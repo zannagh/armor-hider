@@ -1,24 +1,34 @@
 package de.zannagh.armorhider;
 
+import de.zannagh.armorhider.net.NetworkManager;
+import de.zannagh.armorhider.net.SettingsC2SPacket;
+import de.zannagh.armorhider.net.SettingsS2CPacket;
 import net.fabricmc.api.ModInitializer;
 
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class Armorhider implements ModInitializer {
 	public static final String MOD_ID = "armor-hider";
-
-	// This logger is used to write text to the console and the log file.
-	// It is considered best practice to use your mod id as the logger's name.
-	// That way, it's clear which mod wrote info, warnings, and errors.
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
 	@Override
 	public void onInitialize() {
-		// This code runs as soon as Minecraft is in a mod-load-ready state.
-		// However, some things (like resources) may still be uninitialized.
-		// Proceed with mild caution.
-
-		LOGGER.info("Hello Fabric world!");
+		LOGGER.info("Armor Hider initializing...");
+        ServerLifecycleEvents.SERVER_STARTING.register(server -> {
+            NetworkManager.ServerRuntime.init(server);
+            LOGGER.info("Server config store opened");
+        });
+        ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
+            if (NetworkManager.ServerRuntime.store != null) {
+                NetworkManager.ServerRuntime.store.save();
+            }
+        });
+        PayloadTypeRegistry.playC2S().register(SettingsC2SPacket.IDENTIFIER, SettingsC2SPacket.PACKET_CODEC);
+        PayloadTypeRegistry.playS2C().register(SettingsS2CPacket.IDENTIFIER, SettingsS2CPacket.PACKET_CODEC);
+        NetworkManager.initServer();
+        LOGGER.info("Armor Hider initialized.");
 	}
 }

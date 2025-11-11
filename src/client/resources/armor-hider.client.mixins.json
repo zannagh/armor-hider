@@ -3,7 +3,7 @@
 	"package": "de.zannagh.armorhider.mixin.client",
 	"compatibilityLevel": "JAVA_21",
 	"client": [
-		"ExampleClientMixin"
+      "ArmorRenderMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
