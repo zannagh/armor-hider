@@ -1,8 +1,6 @@
 package de.zannagh.armorhider.mixin.client;
 
 import de.zannagh.armorhider.ArmorTransparencyHelper;
-import de.zannagh.armorhider.Armorhider;
-import de.zannagh.armorhider.ArmorhiderClient;
 import net.minecraft.client.model.Model;
 import net.minecraft.client.render.command.OrderedRenderCommandQueue;
 import net.minecraft.client.render.entity.equipment.EquipmentModel;
@@ -28,6 +26,5 @@ public class EquipmentRenderMixin {
             return;
         }
         double transparency = currentSlotInfo.GetTransparency();
-        // TODO: Modify transparency here.
     }
 }

@@ -28,6 +28,46 @@ public final class ClientConfigManager {
         save();
     }
     
+    public static boolean isEnabled(){
+        return CURRENT.helmetTransparency < 1 && CURRENT.chestTransparency < 1 && CURRENT.legsTransparency < 1 && CURRENT.bootsTransparency < 1;
+    }
+    
+    public static void setEnabled(boolean enabled){
+        if (enabled) {
+            CURRENT.helmetTransparency = 1;
+            CURRENT.chestTransparency = 1;
+            CURRENT.legsTransparency = 1;
+            CURRENT.bootsTransparency = 1;
+        }
+        else {
+            CURRENT.helmetTransparency = 0;
+            CURRENT.chestTransparency = 0;
+            CURRENT.legsTransparency = 0;
+            CURRENT.bootsTransparency = 0;
+        }
+        save();
+    }
+    
+    public static void setHelmet(boolean enabled){
+        CURRENT.helmetTransparency = enabled ? 1.0 : 0.0;
+        save();
+    }
+
+    public static void setChest(boolean enabled){
+        CURRENT.chestTransparency = enabled ? 1.0 : 0.0;
+        save();
+    }
+
+    public static void setLegs(boolean enabled){
+        CURRENT.legsTransparency = enabled ? 1.0 : 0.0;
+        save();
+    }
+
+    public static void setBoots(boolean enabled){
+        CURRENT.bootsTransparency = enabled ? 1.0 : 0.0;
+        save();
+    }
+    
     public static void load() {
         try {
             if (Files.exists(FILE)) {
@@ -52,8 +92,9 @@ public final class ClientConfigManager {
             Files.createDirectories(FILE.getParent());
             try (Writer w = Files.newBufferedWriter(FILE)) {
                 GSON.toJson(CURRENT, w);
-                Armorhider.LOGGER.info("Saved client config to file. Sending to server...");
-                if (MinecraftClient.getInstance().isRunning()) {
+                Armorhider.LOGGER.info("Saved client config to file.");
+                if (MinecraftClient.getInstance().isConnectedToLocalServer() || MinecraftClient.getInstance().getServer() != null) {
+                    Armorhider.LOGGER.info("Sending to server...");
                     ClientPlayNetworking.send(new SettingsC2SPacket(get()));
                     Armorhider.LOGGER.info("Saved client config and sent to server. New config is {}", GSON.toJson(CURRENT));
                 }

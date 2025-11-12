@@ -5,6 +5,7 @@ import de.zannagh.armorhider.net.SettingsS2CPacket;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.minecraft.client.MinecraftClient;
 
 public class ArmorhiderClient implements ClientModInitializer {
     
@@ -29,6 +30,7 @@ public class ArmorhiderClient implements ClientModInitializer {
             ClientConfigManager.updateName(playerName);
             ClientPlayNetworking.send(new SettingsC2SPacket(ClientConfigManager.get()));
         });
+
 	}
     
 }
