@@ -26,6 +26,7 @@ public class ArmorHiderClient implements ClientModInitializer {
             
             if (config == null) {
                 ArmorHider.LOGGER.error("Failed to load settings packet.");
+                return;
             }
             
             ClientConfigManager.setServerConfig(config);

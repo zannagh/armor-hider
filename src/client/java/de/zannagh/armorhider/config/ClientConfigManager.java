@@ -119,13 +119,11 @@ public final class ClientConfigManager {
                 return CURRENT;
             }
             ArmorHider.LOGGER.warn("Failed to get config for player by id, trying to retrieve by player name. {} {}", playerName, playerName);
-            var nameBasedConfig = serverHashMap.values().stream().filter(c -> c.playerName.equals(playerName)).findFirst();
-            if (nameBasedConfig.isPresent()) {
-                ArmorHider.LOGGER.info("Found config for player by name {}, returning config", playerName);
-                return nameBasedConfig.get();
+            if (serverHashMap.containsKey(playerName)) {
+                return serverHashMap.get(playerName);
             }
         }
-        ArmorHider.LOGGER.warn("Failed to get config for player {}", playerName);
+        ArmorHider.LOGGER.warn("Failed to get config for player {}. Returning local settings.", playerName);
         return CURRENT;
     }
 

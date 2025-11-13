@@ -42,13 +42,20 @@ public class EquipmentRenderMixin {
     )
     private static <S, T> void interceptRender(EquipmentModel.LayerType layerType, RegistryKey<EquipmentAsset> assetKey, Model<? super S> model, S object, ItemStack itemStack, MatrixStack matrixStack, OrderedRenderCommandQueue orderedRenderCommandQueue, int i, Identifier identifier, int j, int k, CallbackInfo ci){
         if (object instanceof PlayerEntityRenderState playerEntityRenderState && ArmorHiderClient.CurrentSlot.get() != null) {
-            ArmorHiderClient.CurrentArmorMod.set(tryResolveConfigFromPlayerEntityState(ArmorHiderClient.CurrentSlot.get(), playerEntityRenderState));
+            var configByEntityState = tryResolveConfigFromPlayerEntityState(ArmorHiderClient.CurrentSlot.get(), playerEntityRenderState);
+            ArmorHiderClient.CurrentArmorMod.set(configByEntityState);
         }
         
-        if (ArmorHiderClient.CurrentArmorMod.get() != null && ArmorHiderClient.CurrentArmorMod.get().ShouldModify()) {
-            if (ArmorHiderClient.CurrentArmorMod.get().ShouldHide()) {
-                ci.cancel();
-            }
+        if (ArmorHiderClient.CurrentArmorMod.get() == null) {
+            return;
+        }
+
+        if (!ArmorHiderClient.CurrentArmorMod.get().ShouldModify()) {
+            return;
+        }
+        
+        if (ArmorHiderClient.CurrentArmorMod.get().ShouldHide()) {
+            ci.cancel();
         }
     }
 
@@ -60,11 +67,16 @@ public class EquipmentRenderMixin {
             )
     )
     private boolean modifyGlint(boolean original) {
-        if (ArmorHiderClient.CurrentArmorMod.get() != null && ArmorHiderClient.CurrentArmorMod.get().ShouldModify()) {
-            return original && ArmorHiderClient.CurrentArmorMod.get().GetTransparency() > 0;
+        if (ArmorHiderClient.CurrentArmorMod.get() == null) {
+            return original;
         }
 
-        return original;
+        if (!ArmorHiderClient.CurrentArmorMod.get().ShouldModify()) {
+            return original;
+        }
+        
+        
+        return original && ArmorHiderClient.CurrentArmorMod.get().GetTransparency() > 0;
     }
 
     @WrapOperation(
@@ -75,11 +87,15 @@ public class EquipmentRenderMixin {
             )
     )
     private static <S> RenderLayer modifyArmourCutoutNoCull(Identifier texture, Operation<RenderLayer> original) {
-        if (ArmorHiderClient.CurrentArmorMod.get() != null && ArmorHiderClient.CurrentArmorMod.get().ShouldModify()) {
-            return RenderLayer.createArmorTranslucent(texture);
+        if (ArmorHiderClient.CurrentArmorMod.get() == null) {
+            return original.call(texture);
         }
 
-        return original.call(texture); 
+        if (!ArmorHiderClient.CurrentArmorMod.get().ShouldModify()) {
+            return original.call(texture);
+        }
+        
+        return RenderLayer.createArmorTranslucent(texture);
     }
 
     @WrapOperation(
@@ -90,7 +106,15 @@ public class EquipmentRenderMixin {
             )
     )
     private RenderLayer modifyTrimRenderLayer(boolean decal, Operation<RenderLayer> original) {
-        if (ArmorHiderClient.CurrentArmorMod.get() != null && ArmorHiderClient.CurrentArmorMod.get().ShouldModify() && ArmorHiderClient.CurrentArmorMod.get().GetTransparency() < 1) {
+        if (ArmorHiderClient.CurrentArmorMod.get() == null) {
+            return original.call(decal);
+        }
+
+        if (!ArmorHiderClient.CurrentArmorMod.get().ShouldModify()) {
+            return original.call(decal);
+        }
+        
+        if (ArmorHiderClient.CurrentArmorMod.get().GetTransparency() < 1) {
             return RenderLayer.createArmorTranslucent(TexturedRenderLayers.ARMOR_TRIMS_ATLAS_TEXTURE);
         }
 

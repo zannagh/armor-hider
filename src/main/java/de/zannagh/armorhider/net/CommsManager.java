@@ -15,7 +15,7 @@ import java.util.UUID;
 public final class CommsManager {
     public static void initServer() {
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
-            ArmorHider.LOGGER.info("Player joined with ID {}. Sending current config to client...", handler.player.getUuidAsString());
+            ArmorHider.LOGGER.info("Player joined with ID {}. Sending current server config to client...", handler.player.getUuidAsString());
             var p = handler.player;
             var currentConfig = ServerRuntime.store.getConfig();
             sendToClient(p, currentConfig);

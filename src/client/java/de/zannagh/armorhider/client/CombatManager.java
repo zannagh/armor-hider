@@ -16,9 +16,7 @@ public final class CombatManager {
                 removalKeys.add(k);
             }
         });
-        removalKeys.forEach((k) -> {
-            combatTimes.remove(k);
-        });
+        removalKeys.forEach(combatTimes::remove);
     }
     
     public static void logCombat(String player){

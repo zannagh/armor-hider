@@ -4,7 +4,6 @@ package de.zannagh.armorhider.resources;
 import java.util.UUID;
 
 public class PlayerConfig {
-    
     public static PlayerConfig FromPacket(double helmet, double chest, double legs, double boots, String uuid, String playerName){
         return new PlayerConfig(helmet, chest, legs, boots, uuid, playerName);
     }
