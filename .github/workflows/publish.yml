@@ -1,19 +1,24 @@
 name: publish
-on: [release]
-
+on: 
+  release:
+    types: [released]
+  workflow_dispatch:
+    
 env:
   MINECRAFT_VERSION: 1.21.10
   JAVA_VERSION: 21
-  RELEASE_NAME: 0.2.0 Release
+  RELEASE_NAME: ${{GITHUB_REF}}
   MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
 
 jobs:
   release:
     runs-on: ubuntu-latest
-    # ...
     permissions:
       contents: write
     steps:
+      - name: Extract Tag
+        run: |
+          echo "tag=${GITHUB_REF#refs/*/}" >> RELEASE_NAME
       - name: checkout repository
         uses: actions/checkout@v4
       - name: validate gradle wrapper
