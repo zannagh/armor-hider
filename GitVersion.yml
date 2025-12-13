@@ -1,0 +1,19 @@
+branches:
+  main:
+    mode: ContinuousDelivery
+    increment: None
+    label: ''
+    source-branches: []
+    pre-release-weight: 0
+    prevent-increment:
+      when-current-commit-tagged: true
+  unknown:
+    mode: ContinuousDelivery
+    increment: None
+    label: ''
+    source-branches: 
+      - main
+      - release
+    pre-release-weight: 0
+    prevent-increment:
+      when-current-commit-tagged: true
