@@ -1,13 +1,8 @@
 name: publish
 on: 
   release:
+    types: [published]
   workflow_dispatch:
-    
-env:
-  MINECRAFT_VERSION: 1.21.10
-  JAVA_VERSION: 21
-  RELEASE_NAME: ${{github.ref}}
-  MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
 
 jobs:
   release:
@@ -15,9 +10,6 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Extract Tag
-        run: |
-          echo "tag=${GITHUB_REF#refs/*/}" >> RELEASE_NAME
       - name: checkout repository
         uses: actions/checkout@v4
         with:
@@ -45,16 +37,29 @@ jobs:
         run: ./gradlew build -PsemVer="${{ steps.version.outputs.majorMinorPatch }}-${{ steps.version.outputs.commitsSinceVersionSource }}"
 
       - name: capture build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
-          name: Artifacts
+          name: build-output
           path: build/libs/
-      - uses: Kir-Antipov/mc-publish@v3.3
-        name: Publish to Modrinth
+      
+  upload:
+    needs: release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all workflow run artifacts
+        uses: actions/download-artifact@v4
         with:
-          # Only include this section if you wish to publish
-          # your assets on Modrinth.
-          files: build/libs/!(*-@(dev\|sources\|javadoc)).jar
-          modrinth-id: zannaghs-armor-hider
-          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
-            
+          path: artifacts
+
+      - name: Upload to GitHub Release
+        if: ${{ github.event_name == 'release' }}
+        uses: xresloader/upload-to-github-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          release_id: ${{ github.event.release.id }}
+          file: "artifacts/**/build/libs/*.jar"
+          overwrite: true
+  

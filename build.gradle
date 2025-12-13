@@ -7,7 +7,9 @@ def getGitVersion() {
     String ciVersionProperty = findProperty("semVer") ?: ""
     if (ciVersionProperty != "") {
         // In CI, this property is set to versionize
-        return "git rev-parse --abbrev-ref HEAD".execute().text.trim().replace("release", "").replace("/", "-") + "-" + ciVersionProperty
+        String ciVersion = "git rev-parse --abbrev-ref HEAD".execute().text.trim().replace("release", "").replace("/", "-") + "-" + ciVersionProperty
+        ciVersion = ciVersion.replace("--", "-")
+        return ciVersion
     }
     String branchName = "git rev-parse --abbrev-ref HEAD".execute().text.trim()
     String lastKnownTag = "git describe --tags".execute().text.trim()
