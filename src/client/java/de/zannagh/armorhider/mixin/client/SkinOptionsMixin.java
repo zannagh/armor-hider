@@ -40,7 +40,7 @@ public abstract class SkinOptionsMixin {
                 SimpleOption.emptyTooltip(),
                 (text, value) -> Text.literal("Zannagh's Armor Hider"),
                 new SimpleOption.ValidatingIntSliderCallbacks(0, 0)
-                        .withModifier(v -> v / 20.0, v -> (int) Math.round(v * 20)),
+                        .withModifier(v -> v / 20.0, v -> (int) Math.round(v * 20), true),
                 ClientConfigManager.get().helmetTransparency, value -> { }
         );
         
@@ -51,7 +51,7 @@ public abstract class SkinOptionsMixin {
                 SimpleOption.constantTooltip(Text.literal("Adjusts the helmet transparency for your model between 0 and 1 in steps of 0.05. Applies to skulls and hats as well.")),
                 (text, value) -> Text.literal("Helmet: " + String.format("%.0f%%", value * 100)),
                 new SimpleOption.ValidatingIntSliderCallbacks(0, 20)
-                        .withModifier(v -> v / 20.0, v -> (int) Math.round(v * 20)),
+                        .withModifier(v -> v / 20.0, v -> (int) Math.round(v * 20), true),
                 ClientConfigManager.get().helmetTransparency,
                 ClientConfigManager::setHelmetTransparency
         );
@@ -63,7 +63,7 @@ public abstract class SkinOptionsMixin {
                 SimpleOption.constantTooltip(Text.literal("Adjusts the chestplate transparency for your model between 0 and 1 in steps of 0.05. Applies to elytra as well.")),
                 (text, value) -> Text.literal("Chestplate: " + String.format("%.0f%%", value * 100)),
                 new SimpleOption.ValidatingIntSliderCallbacks(0, 20)
-                        .withModifier(v -> v / 20.0, v -> (int) Math.round(v * 20)),
+                        .withModifier(v -> v / 20.0, v -> (int) Math.round(v * 20), true),
                 ClientConfigManager.get().chestTransparency,
                 ClientConfigManager::setChestTransparency
         );
@@ -75,7 +75,7 @@ public abstract class SkinOptionsMixin {
                 SimpleOption.constantTooltip(Text.literal("Adjusts the legs transparency for your model between 0 and 1 in steps of 0.05.")),
                 (text, value) -> Text.literal("Leggings: " + String.format("%.0f%%", value * 100)),
                 new SimpleOption.ValidatingIntSliderCallbacks(0, 20)
-                        .withModifier(v -> v / 20.0, v -> (int) Math.round(v * 20)),
+                        .withModifier(v -> v / 20.0, v -> (int) Math.round(v * 20), true),
                 ClientConfigManager.get().legsTransparency,
                 ClientConfigManager::setLegsTransparency
         );
@@ -87,7 +87,7 @@ public abstract class SkinOptionsMixin {
                 SimpleOption.constantTooltip(Text.literal("Adjusts the boot transparency for your model between 0 and 1 in steps of 0.05.")),
                 (text, value) -> Text.literal("Boots: " + String.format("%.0f%%", value * 100)),
                 new SimpleOption.ValidatingIntSliderCallbacks(0, 20)
-                        .withModifier(v -> v / 20.0, v -> (int) Math.round(v * 20)),
+                        .withModifier(v -> v / 20.0, v -> (int) Math.round(v * 20), true),
                 ClientConfigManager.get().bootsTransparency,
                 ClientConfigManager::setBootsTransparency
         );

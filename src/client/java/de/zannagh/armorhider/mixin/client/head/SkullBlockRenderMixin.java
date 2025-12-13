@@ -6,6 +6,7 @@ import de.zannagh.armorhider.client.ArmorHiderClient;
 import net.minecraft.block.SkullBlock;
 import net.minecraft.client.model.Model;
 import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.RenderLayers;
 import net.minecraft.client.render.block.entity.SkullBlockEntityRenderer;
 import net.minecraft.client.render.command.ModelCommandRenderer;
 import net.minecraft.client.render.command.OrderedRenderCommandQueue;
@@ -54,7 +55,7 @@ public abstract class SkullBlockRenderMixin {
         if (ArmorHiderClient.CurrentArmorMod.get() != null &&
             ArmorHiderClient.CurrentArmorMod.get().ShouldModify() &&
             ArmorHiderClient.CurrentArmorMod.get().GetTransparency() < 1.0) {
-            return RenderLayer.getEntityTranslucent(TEXTURES.get(type));
+            return RenderLayers.entityTranslucent(TEXTURES.get(type), true);
         }
 
         return original.call(type, texture);
@@ -64,14 +65,14 @@ public abstract class SkullBlockRenderMixin {
             method = "getCutoutRenderLayer",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/client/render/RenderLayer;getEntityCutoutNoCullZOffset(Lnet/minecraft/util/Identifier;)Lnet/minecraft/client/render/RenderLayer;"
+                    target = "Lnet/minecraft/client/render/RenderLayers;entityCutoutNoCullZOffset(Lnet/minecraft/util/Identifier;)Lnet/minecraft/client/render/RenderLayer;"
             )
     )
     private static RenderLayer getCutoutRenderLayer(Identifier texture, Operation<RenderLayer> original) {
         if (ArmorHiderClient.CurrentArmorMod.get() != null &&
                 ArmorHiderClient.CurrentArmorMod.get().ShouldModify() &&
                 ArmorHiderClient.CurrentArmorMod.get().GetTransparency() < 1.0) {
-            return RenderLayer.getEntityTranslucent(texture);
+            return RenderLayers.entityTranslucent(texture, true);
         }
 
         return original.call(texture);
