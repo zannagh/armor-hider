@@ -2,6 +2,7 @@ package de.zannagh.armorhider.mixin.client.head;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import net.minecraft.block.SkullBlock;
 import net.minecraft.client.model.Model;
@@ -55,7 +56,7 @@ public abstract class SkullBlockRenderMixin {
         if (ArmorHiderClient.CurrentArmorMod.get() != null &&
             ArmorHiderClient.CurrentArmorMod.get().ShouldModify() &&
             ArmorHiderClient.CurrentArmorMod.get().GetTransparency() < 1.0) {
-            return RenderLayers.entityTranslucent(TEXTURES.get(type), true);
+            return RenderLayers.entityTranslucent(TEXTURES.get(type), ArmorHider.TRANSLUCENCY_AFFECTING_OUTLINE);
         }
 
         return original.call(type, texture);
@@ -72,7 +73,7 @@ public abstract class SkullBlockRenderMixin {
         if (ArmorHiderClient.CurrentArmorMod.get() != null &&
                 ArmorHiderClient.CurrentArmorMod.get().ShouldModify() &&
                 ArmorHiderClient.CurrentArmorMod.get().GetTransparency() < 1.0) {
-            return RenderLayers.entityTranslucent(texture, true);
+            return RenderLayers.entityTranslucent(texture, ArmorHider.TRANSLUCENCY_AFFECTING_OUTLINE);
         }
 
         return original.call(texture);

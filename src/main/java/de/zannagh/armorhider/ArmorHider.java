@@ -12,6 +12,8 @@ import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import org.slf4j.LoggerFactory;
 
 public class ArmorHider implements ModInitializer {
+    
+    public static final Boolean TRANSLUCENCY_AFFECTING_OUTLINE = true;
 	public static final String MOD_ID = "armor-hider";
 	public static final EnrichedLogger LOGGER = new EnrichedLogger(LoggerFactory.getLogger(MOD_ID));
 
