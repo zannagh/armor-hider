@@ -34,7 +34,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: build
-        run: ./gradlew build -PsemVer="${{ steps.version.outputs.majorMinorPatch }}-${{ steps.version.outputs.commitsSinceVersionSource }}"
+        run: ./gradlew build -PsemVer="${{ steps.version.outputs.majorMinorPatch }}"
 
       - name: capture build artifacts
         uses: actions/upload-artifact@v6
