@@ -10,14 +10,14 @@ strategies:
 branches:
   main:
     mode: ContinuousDelivery
-    increment: None
+    increment: Patch
     label: ''
     pre-release-weight: 0
     prevent-increment:
       when-current-commit-tagged: true
   release:
     mode: ContinuousDelivery
-    increment: None
+    increment: Inherit
     label: ''
     regex: ^release/*
     source-branches:
