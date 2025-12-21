@@ -11,13 +11,18 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.render.entity.state.LivingEntityRenderState;
 import net.minecraft.client.render.entity.state.PlayerEntityRenderState;
 import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.entity.player.PlayerEntity;
 
 public class ArmorHiderClient implements ClientModInitializer {
     
     public static ThreadLocal<EquipmentSlot> CurrentSlot =  ThreadLocal.withInitial(() -> null);
     public static ThreadLocal<ArmorModificationInfo> CurrentArmorMod = ThreadLocal.withInitial(() -> null);
     
-    public static void trySetCurrentSlotFromEntityRenderState(LivingEntityRenderState livingEntityRenderState){
+    public static boolean shouldInterceptRender(Object livingEntityRenderState) {
+        return livingEntityRenderState instanceof PlayerEntityRenderState;
+    }
+    
+    public static void trySetCurrentSlotFromEntityRenderState(LivingEntityRenderState livingEntityRenderState) {
         if (livingEntityRenderState == null) {
             return;
         }

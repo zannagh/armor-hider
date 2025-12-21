@@ -41,7 +41,7 @@ public class EquipmentRenderMixin {
             at = @At("HEAD"),
             cancellable = true
     )
-    private static <S> void interceptRender(EquipmentModel.LayerType layerType, RegistryKey<EquipmentAsset> assetKey, Model<? super S> model, S object, ItemStack itemStack, MatrixStack matrixStack, OrderedRenderCommandQueue orderedRenderCommandQueue, int i, Identifier identifier, int j, int k, CallbackInfo ci){
+    private static <S> void interceptRender(EquipmentModel.LayerType layerType, RegistryKey<EquipmentAsset> assetKey, Model<? super S> model, S object, ItemStack itemStack, MatrixStack matrixStack, OrderedRenderCommandQueue orderedRenderCommandQueue, int i, Identifier identifier, int j, int k, CallbackInfo ci) {
         ArmorHiderClient.trySetCurrentSlotFromEntityRenderState((LivingEntityRenderState) object);
         
         if (ArmorHiderClient.CurrentArmorMod.get() == null) {
@@ -49,6 +49,10 @@ public class EquipmentRenderMixin {
         }
 
         if (!ArmorHiderClient.CurrentArmorMod.get().ShouldModify()) {
+            return;
+        }
+        
+        if (ArmorHiderClient.shouldInterceptRender(object)) {
             return;
         }
         
@@ -129,9 +133,16 @@ public class EquipmentRenderMixin {
         )
     )
     private static <S> void modifyColor(RenderCommandQueue instance, Model<? super S> model, S s, MatrixStack matrixStack, RenderLayer renderLayer, int light, int overlay, int tintedColor, Sprite sprite, int outlineColor, ModelCommandRenderer.CrumblingOverlayCommand crumblingOverlayCommand, Operation<Void> original) {
+        
+        
         if (ArmorHiderClient.CurrentArmorMod.get() == null && s instanceof PlayerEntityRenderState playerEntityRenderState && ArmorHiderClient.CurrentSlot.get() != null) {
             var config = tryResolveConfigFromPlayerEntityState(ArmorHiderClient.CurrentSlot.get(), playerEntityRenderState);
             ArmorHiderClient.CurrentArmorMod.set(config);
+        }
+        
+        if (!ArmorHiderClient.shouldInterceptRender(s)) {
+            original.call(instance, model, s, matrixStack, renderLayer, light, overlay, tintedColor, sprite, outlineColor, crumblingOverlayCommand);
+            return;
         }
         
         if (ArmorHiderClient.CurrentArmorMod.get() != null && ArmorHiderClient.CurrentArmorMod.get().ShouldModify()) {
