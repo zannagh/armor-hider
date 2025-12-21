@@ -52,7 +52,7 @@ public class EquipmentRenderMixin {
             return;
         }
         
-        if (ArmorHiderClient.shouldInterceptRender(object)) {
+        if (ArmorHiderClient.shouldNotInterceptRender(object)) {
             return;
         }
         
@@ -140,7 +140,7 @@ public class EquipmentRenderMixin {
             ArmorHiderClient.CurrentArmorMod.set(config);
         }
         
-        if (!ArmorHiderClient.shouldInterceptRender(s)) {
+        if (!ArmorHiderClient.shouldNotInterceptRender(s)) {
             original.call(instance, model, s, matrixStack, renderLayer, light, overlay, tintedColor, sprite, outlineColor, crumblingOverlayCommand);
             return;
         }
