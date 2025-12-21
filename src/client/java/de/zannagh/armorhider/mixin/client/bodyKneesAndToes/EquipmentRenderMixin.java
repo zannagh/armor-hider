@@ -52,6 +52,10 @@ public class EquipmentRenderMixin {
         if (!ArmorHiderClient.CurrentArmorMod.get().ShouldModify()) {
             return;
         }
+
+        if (ArmorHiderClient.shouldNotInterceptRender(object)) {
+            return;
+        }
         
         if (ArmorHiderClient.CurrentArmorMod.get().ShouldHide()) {
             if (ci != null) {
@@ -133,6 +137,11 @@ public class EquipmentRenderMixin {
         if (ArmorHiderClient.CurrentArmorMod.get() == null && s instanceof PlayerEntityRenderState playerEntityRenderState && ArmorHiderClient.CurrentSlot.get() != null) {
             var config = tryResolveConfigFromPlayerEntityState(ArmorHiderClient.CurrentSlot.get(), playerEntityRenderState);
             ArmorHiderClient.CurrentArmorMod.set(config);
+        }
+
+        if (!ArmorHiderClient.shouldNotInterceptRender(s)) {
+            original.call(instance, model, s, matrixStack, renderLayer, light, overlay, tintedColor, sprite, outlineColor, crumblingOverlayCommand);
+            return;
         }
         
         if (ArmorHiderClient.CurrentArmorMod.get() != null && ArmorHiderClient.CurrentArmorMod.get().ShouldModify()) {

@@ -16,7 +16,11 @@ public class ArmorHiderClient implements ClientModInitializer {
     
     public static ThreadLocal<EquipmentSlot> CurrentSlot =  ThreadLocal.withInitial(() -> null);
     public static ThreadLocal<ArmorModificationInfo> CurrentArmorMod = ThreadLocal.withInitial(() -> null);
-    
+
+    public static boolean shouldNotInterceptRender(Object renderState) {
+        return renderState instanceof PlayerEntityRenderState;
+    }
+
     public static void trySetCurrentSlotFromEntityRenderState(LivingEntityRenderState livingEntityRenderState){
         if (livingEntityRenderState == null) {
             return;
