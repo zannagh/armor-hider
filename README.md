@@ -21,4 +21,13 @@ Feel free to create an issue on the GitHub repository to make me aware of proble
 
 ## Versioning
 
-CI runs are using GitVersion to versionize, whereas local builds will only use git tag information to versionize.
+CI runs are using GitVersion to versionize (see GitVersion.yml), whereas local builds will only use git tag information (via `git describe --tags`) to versionize.
+
+GitVersion configuration:
+- no labels on branches
+- no version bump on tagged commits (when creating release in GitHub)
+- ignore changes to GitVersion.yml or documentational .md files
+- ignore changes to GitHub workflows
+- ignore version numbers in branches (to not get Minecraft targets versions into artifacts version)
+- no version bump on branch creation
+- tag prefix regex to match Minecraft target version plus mod version (i.e. v1.21.11-0.1.0 will be matched to 0.1.0)
