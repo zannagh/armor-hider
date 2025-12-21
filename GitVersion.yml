@@ -1,4 +1,6 @@
 version-in-branch-pattern: (\A(?!x)x)
+tag-prefix: '[vV]?(\d\.\d\d.\d\d)?-?'
+no-bump-message: '(\+semver:\s?(none|skip)|ci.*:.*|docs.*:.*)'
 strategies:
   - Fallback
   - ConfiguredNextVersion
@@ -8,14 +10,14 @@ strategies:
 branches:
   main:
     mode: ContinuousDelivery
-    increment: None
+    increment: Patch
     label: ''
     pre-release-weight: 0
     prevent-increment:
       when-current-commit-tagged: true
   release:
     mode: ContinuousDelivery
-    increment: None
+    increment: Inherit
     label: ''
     regex: ^release/*
     source-branches:
@@ -32,3 +34,10 @@ branches:
     pre-release-weight: 0
     prevent-increment:
       when-current-commit-tagged: true
+ignore:
+  paths:
+    - ".*.github.*"
+    - ".*README.md.*"
+    - ".*SECURITY.md.*"
+    - ".*contributing.md.*"
+    - ".*GitVersion.yml.*"
