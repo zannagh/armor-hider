@@ -1,7 +1,7 @@
 package de.zannagh.armorhider.mixin.client.head;
 
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.rendering.ArmorModificationContext;
+import de.zannagh.armorhider.rendering.ArmorRenderPipeline;
 import net.minecraft.client.render.command.OrderedRenderCommandQueue;
 import net.minecraft.client.render.entity.feature.FeatureRenderer;
 import net.minecraft.client.render.entity.feature.FeatureRendererContext;
@@ -26,18 +26,18 @@ public abstract class HeadRenderMixin<S extends LivingEntityRenderState, M exten
             at = @At("HEAD"),
     cancellable = true)
     private void grabHatRenderContext(MatrixStack matrixStack, OrderedRenderCommandQueue orderedRenderCommandQueue, int i, S livingEntityRenderState, float f, float g, CallbackInfo ci) {
-        ArmorModificationContext.setCurrentSlot(EquipmentSlot.HEAD);
+        ArmorRenderPipeline.setCurrentSlot(EquipmentSlot.HEAD);
         ArmorHiderClient.trySetCurrentSlotFromEntityRenderState(livingEntityRenderState);
 
-        if (!ArmorModificationContext.hasActiveContext()) {
+        if (!ArmorRenderPipeline.hasActiveContext()) {
             return;
         }
 
-        if (!ArmorModificationContext.shouldModifyEquipment()) {
+        if (!ArmorRenderPipeline.shouldModifyEquipment()) {
             return;
         }
 
-        if (ArmorModificationContext.shouldHideEquipment()) {
+        if (ArmorRenderPipeline.shouldHideEquipment()) {
             ci.cancel();
         }
     }
@@ -47,7 +47,7 @@ public abstract class HeadRenderMixin<S extends LivingEntityRenderState, M exten
             at = @At("RETURN")
     )
     private void resetHatRenderContext(MatrixStack matrixStack, OrderedRenderCommandQueue orderedRenderCommandQueue, int i, S livingEntityRenderState, float f, float g, CallbackInfo ci) {
-        ArmorModificationContext.clearAll();
+        ArmorRenderPipeline.clearContext();
     }
 }
 

@@ -2,7 +2,7 @@ package de.zannagh.armorhider.mixin.client.head;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import de.zannagh.armorhider.rendering.ArmorModificationContext;
+import de.zannagh.armorhider.rendering.ArmorRenderPipeline;
 import net.minecraft.block.SkullBlock;
 import net.minecraft.client.model.Model;
 import net.minecraft.client.render.RenderLayer;
@@ -33,8 +33,8 @@ public abstract class SkullBlockRenderMixin {
             )
     )
     private static void modifyTransparency(OrderedRenderCommandQueue instance, Model model, Object o, MatrixStack matrixStack, RenderLayer renderLayer, int light, int overlay, int outlineColor, ModelCommandRenderer.CrumblingOverlayCommand crumblingOverlayCommand, Operation<Void> original){
-        if (ArmorModificationContext.hasActiveContext() && ArmorModificationContext.shouldModifyEquipment()) {
-            double transparency = ArmorModificationContext.getTransparency();
+        if (ArmorRenderPipeline.hasActiveContext() && ArmorRenderPipeline.shouldModifyEquipment()) {
+            double transparency = ArmorRenderPipeline.getTransparency();
             var newColor = ColorHelper.withAlpha(ColorHelper.channelFromFloat((float)transparency), -1);
             instance.submitModel(model, o, matrixStack, renderLayer, light, overlay, newColor , null, outlineColor, crumblingOverlayCommand);
         } else {
@@ -50,9 +50,9 @@ public abstract class SkullBlockRenderMixin {
             )
     )
     private static RenderLayer modifySkullTransparency(SkullBlock.SkullType type, Identifier texture, Operation<RenderLayer> original) {
-        if (ArmorModificationContext.hasActiveContext()
-            && ArmorModificationContext.shouldModifyEquipment()
-            && ArmorModificationContext.getTransparency() < 1.0) {
+        if (ArmorRenderPipeline.hasActiveContext()
+            && ArmorRenderPipeline.shouldModifyEquipment()
+            && ArmorRenderPipeline.getTransparency() < 1.0) {
             return RenderLayer.getEntityTranslucent(TEXTURES.get(type));
         }
 
@@ -67,9 +67,9 @@ public abstract class SkullBlockRenderMixin {
             )
     )
     private static RenderLayer getCutoutRenderLayer(Identifier texture, Operation<RenderLayer> original) {
-        if (ArmorModificationContext.hasActiveContext()
-            && ArmorModificationContext.shouldModifyEquipment()
-            && ArmorModificationContext.getTransparency() < 1.0) {
+        if (ArmorRenderPipeline.hasActiveContext()
+            && ArmorRenderPipeline.shouldModifyEquipment()
+            && ArmorRenderPipeline.getTransparency() < 1.0) {
             return RenderLayer.getEntityTranslucent(texture);
         }
 

@@ -9,10 +9,7 @@ package de.zannagh.armorhider.mixin.client.bodyKneesAndToes;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.rendering.ArmorModificationContext;
-import de.zannagh.armorhider.rendering.RenderInterceptor;
-import de.zannagh.armorhider.resources.ArmorModificationInfo;
+import de.zannagh.armorhider.rendering.ArmorRenderPipeline;
 import net.minecraft.client.model.Model;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.command.ModelCommandRenderer;
@@ -45,7 +42,7 @@ public class EquipmentRenderMixin {
             argsOnly = true
     )
     private static int modifyRenderOrder(int k, EquipmentModel.LayerType layerType, RegistryKey<EquipmentAsset> assetKey, Model<?> model, Object object, ItemStack itemStack) {
-        return RenderInterceptor.modifyRenderPriority(k, itemStack);
+        return ArmorRenderPipeline.modifyRenderPriority(k, itemStack);
     }
 
     @Inject(
@@ -55,16 +52,14 @@ public class EquipmentRenderMixin {
     )
     private static <S> void interceptRender(EquipmentModel.LayerType layerType, RegistryKey<EquipmentAsset> assetKey, Model<? super S> model, S object, ItemStack itemStack, MatrixStack matrixStack, OrderedRenderCommandQueue orderedRenderCommandQueue, int i, Identifier identifier, int j, int k, CallbackInfo ci) {
 
-        RenderInterceptor.setupRenderContext(itemStack, (LivingEntityRenderState) object);
+        ArmorRenderPipeline.setupContext(itemStack, (LivingEntityRenderState) object);
 
-        ArmorModificationInfo armorModInfo = ArmorModificationContext.getCurrentModification();
-
-        if (!RenderInterceptor.shouldModifyEquipment(armorModInfo) 
-                || RenderInterceptor.shouldNotInterceptRender(object)) {
+        if (!ArmorRenderPipeline.shouldModifyEquipment()
+                || ArmorRenderPipeline.shouldInterceptRender(object)) {
             return;
         }
 
-        if (RenderInterceptor.shouldHideEquipment(armorModInfo)) {
+        if (ArmorRenderPipeline.shouldHideEquipment()) {
             if (ci != null) {
                 ci.cancel();
             }
@@ -78,12 +73,11 @@ public class EquipmentRenderMixin {
             )
     )
     private boolean modifyGlint(boolean original) {
-        ArmorModificationInfo armorModInfo = ArmorModificationContext.getCurrentModification();
-        if (armorModInfo == null || !armorModInfo.ShouldModify()) {
+        if (!ArmorRenderPipeline.shouldModifyEquipment()) {
             return original;
         }
 
-        return original && armorModInfo.GetTransparency() > 0;
+        return original && ArmorRenderPipeline.getTransparency() > 0;
     }
 
     @WrapOperation(
@@ -94,11 +88,7 @@ public class EquipmentRenderMixin {
             )
     )
     private static <S> RenderLayer modifyArmourCutoutNoCull(Identifier texture, Operation<RenderLayer> original) {
-        return RenderInterceptor.getRenderLayer(
-            texture,
-            original.call(texture),
-            ArmorModificationContext.getCurrentModification()
-        );
+        return ArmorRenderPipeline.getRenderLayer(texture, original.call(texture));
     }
 
     @WrapOperation(
@@ -109,11 +99,7 @@ public class EquipmentRenderMixin {
             )
     )
     private RenderLayer modifyTrimRenderLayer(boolean decal, Operation<RenderLayer> original) {
-        return RenderInterceptor.getTrimRenderLayer(
-            decal,
-            original.call(decal),
-            ArmorModificationContext.getCurrentModification()
-        );
+        return ArmorRenderPipeline.getTrimRenderLayer(decal, original.call(decal));
     }
 
     @WrapOperation(
@@ -125,25 +111,23 @@ public class EquipmentRenderMixin {
     )
     private static <S> void modifyColor(RenderCommandQueue instance, Model<? super S> model, S s, MatrixStack matrixStack, RenderLayer renderLayer, int light, int overlay, int tintedColor, Sprite sprite, int outlineColor, ModelCommandRenderer.CrumblingOverlayCommand crumblingOverlayCommand, Operation<Void> original) {
 
-        if (ArmorModificationContext.getCurrentModification() == null
+        // Fallback: try to set modification context if null (edge case handling)
+        if (ArmorRenderPipeline.getCurrentModification() == null
             && s instanceof PlayerEntityRenderState playerEntityRenderState
-            && ArmorModificationContext.getCurrentSlot() != null) {
+            && ArmorRenderPipeline.getCurrentSlot() != null) {
             var config = tryResolveConfigFromPlayerEntityState(
-                ArmorModificationContext.getCurrentSlot(),
+                ArmorRenderPipeline.getCurrentSlot(),
                 playerEntityRenderState
             );
-            ArmorModificationContext.setCurrentModification(config);
+            ArmorRenderPipeline.setCurrentModification(config);
         }
 
-        if (!RenderInterceptor.shouldNotInterceptRender(s)) {
+        if (ArmorRenderPipeline.shouldInterceptRender(s)) {
             original.call(instance, model, s, matrixStack, renderLayer, light, overlay, tintedColor, sprite, outlineColor, crumblingOverlayCommand);
             return;
         }
 
-        int modifiedColor = RenderInterceptor.applyTransparency(
-            tintedColor,
-            ArmorModificationContext.getCurrentModification()
-        );
+        int modifiedColor = ArmorRenderPipeline.applyTransparency(tintedColor);
         original.call(instance, model, s, matrixStack, renderLayer, light, overlay, modifiedColor, sprite, outlineColor, crumblingOverlayCommand);
     }
 
@@ -152,7 +136,7 @@ public class EquipmentRenderMixin {
             at = @At("RETURN")
     )
     private static <S> void resetContext(EquipmentModel.LayerType layerType, RegistryKey<EquipmentAsset> assetKey, Model<? super S> model, S object, ItemStack itemStack, MatrixStack matrixStack, OrderedRenderCommandQueue orderedRenderCommandQueue, int i, Identifier identifier, int j, int k, CallbackInfo ci) {
-        ArmorModificationContext.clearAll();
+        ArmorRenderPipeline.clearContext();
     }
     
     

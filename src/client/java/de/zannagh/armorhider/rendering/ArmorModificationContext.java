@@ -3,7 +3,7 @@ package de.zannagh.armorhider.rendering;
 import de.zannagh.armorhider.resources.ArmorModificationInfo;
 import net.minecraft.entity.EquipmentSlot;
 
-public class ArmorModificationContext {
+class ArmorModificationContext {
 
     private static final ThreadLocal<EquipmentSlot> currentSlot = ThreadLocal.withInitial(() -> null);
     private static final ThreadLocal<ArmorModificationInfo> currentModification = ThreadLocal.withInitial(() -> null);
