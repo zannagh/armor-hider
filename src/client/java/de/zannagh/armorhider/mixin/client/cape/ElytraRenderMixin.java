@@ -23,18 +23,28 @@ public class ElytraRenderMixin {
         ArmorHiderClient.trySetCurrentSlotFromEntityRenderState(bipedEntityRenderState);
 
         if (ArmorHiderClient.CurrentArmorMod.get() == null) {
+            ArmorHiderClient.CurrentSlot.remove();
             return;
         }
 
         if (!ArmorHiderClient.CurrentArmorMod.get().ShouldModify()) {
+            ArmorHiderClient.CurrentArmorMod.remove();
+            ArmorHiderClient.CurrentSlot.remove();
             return;
         }
 
         if (ArmorHiderClient.CurrentArmorMod.get().ShouldHide()) {
+            ArmorHiderClient.CurrentArmorMod.remove();
+            ArmorHiderClient.CurrentSlot.remove();
             if (ci != null) {
                 ci.cancel();
             }
+            return;
         }
+
+        // Clear both so other armor parts that render won't use CHEST slot config
+        ArmorHiderClient.CurrentArmorMod.remove();
+        ArmorHiderClient.CurrentSlot.remove();
     }
 
     @Inject(

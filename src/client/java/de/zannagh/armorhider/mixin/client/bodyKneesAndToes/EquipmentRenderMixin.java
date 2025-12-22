@@ -10,6 +10,8 @@ import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.common.ItemStackHelper;
+import de.zannagh.armorhider.resources.ArmorModificationInfo;
 import net.minecraft.client.model.Model;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.TexturedRenderLayers;
@@ -42,27 +44,28 @@ public class EquipmentRenderMixin {
             cancellable = true
     )
     private static <S> void interceptRender(EquipmentModel.LayerType layerType, RegistryKey<EquipmentAsset> assetKey, Model<? super S> model, S object, ItemStack itemStack, MatrixStack matrixStack, OrderedRenderCommandQueue orderedRenderCommandQueue, int i, Identifier identifier, int j, int k, CallbackInfo ci) {
-        ArmorHiderClient.trySetCurrentSlotFromEntityRenderState((LivingEntityRenderState) object);
         
-        if (ArmorHiderClient.CurrentArmorMod.get() == null) {
+        if (ArmorHiderClient.CurrentSlot.get() == null && ItemStackHelper.itemStackContainsElytra(itemStack)) {
+            ArmorHiderClient.CurrentSlot.set(net.minecraft.entity.EquipmentSlot.CHEST);
+        }
+
+        ArmorHiderClient.trySetCurrentSlotFromEntityRenderState((LivingEntityRenderState) object);
+
+        if (!(ArmorHiderClient.CurrentArmorMod.get() instanceof ArmorModificationInfo armorModInfo)
+                || !armorModInfo.ShouldModify()) {
             return;
         }
 
-        if (!ArmorHiderClient.CurrentArmorMod.get().ShouldModify()) {
-            return;
-        }
-        
         if (ArmorHiderClient.shouldNotInterceptRender(object)) {
             return;
         }
-        
+
         if (ArmorHiderClient.CurrentArmorMod.get().ShouldHide()) {
             if (ci != null) {
                 ci.cancel();
             }
         }
     }
-
     @ModifyExpressionValue(
             method = "render(Lnet/minecraft/client/render/entity/equipment/EquipmentModel$LayerType;Lnet/minecraft/registry/RegistryKey;Lnet/minecraft/client/model/Model;Ljava/lang/Object;Lnet/minecraft/item/ItemStack;Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/command/OrderedRenderCommandQueue;ILnet/minecraft/util/Identifier;II)V",
             at = @At(
@@ -71,14 +74,10 @@ public class EquipmentRenderMixin {
             )
     )
     private boolean modifyGlint(boolean original) {
-        if (ArmorHiderClient.CurrentArmorMod.get() == null) {
+        if (!(ArmorHiderClient.CurrentArmorMod.get() instanceof ArmorModificationInfo armorModInfo)
+            || !armorModInfo.ShouldModify()) {
             return original;
         }
-
-        if (!ArmorHiderClient.CurrentArmorMod.get().ShouldModify()) {
-            return original;
-        }
-        
         
         return original && ArmorHiderClient.CurrentArmorMod.get().GetTransparency() > 0;
     }
@@ -91,15 +90,13 @@ public class EquipmentRenderMixin {
             )
     )
     private static <S> RenderLayer modifyArmourCutoutNoCull(Identifier texture, Operation<RenderLayer> original) {
-        if (ArmorHiderClient.CurrentArmorMod.get() == null) {
+        
+        if (!(ArmorHiderClient.CurrentArmorMod.get() instanceof ArmorModificationInfo armorModInfo)
+                || !armorModInfo.ShouldModify()) {
             return original.call(texture);
         }
 
-        if (!ArmorHiderClient.CurrentArmorMod.get().ShouldModify()) {
-            return original.call(texture);
-        }
-        
-        return RenderLayer.createArmorTranslucent(texture);
+        return RenderLayer.getEntityTranslucent(texture);
     }
 
     @WrapOperation(
@@ -110,15 +107,12 @@ public class EquipmentRenderMixin {
             )
     )
     private RenderLayer modifyTrimRenderLayer(boolean decal, Operation<RenderLayer> original) {
-        if (ArmorHiderClient.CurrentArmorMod.get() == null) {
-            return original.call(decal);
-        }
-
-        if (!ArmorHiderClient.CurrentArmorMod.get().ShouldModify()) {
+        if (!(ArmorHiderClient.CurrentArmorMod.get() instanceof ArmorModificationInfo armorModInfo)
+                || !armorModInfo.ShouldModify()) {
             return original.call(decal);
         }
         
-        if (ArmorHiderClient.CurrentArmorMod.get().GetTransparency() < 1) {
+        if (armorModInfo.GetTransparency() < 1) {
             return RenderLayer.createArmorTranslucent(TexturedRenderLayers.ARMOR_TRIMS_ATLAS_TEXTURE);
         }
 
