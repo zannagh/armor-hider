@@ -68,8 +68,7 @@ public class EquipmentRenderMixin {
 
         ArmorHiderClient.trySetCurrentSlotFromEntityRenderState((LivingEntityRenderState) object);
 
-        if (!(ArmorHiderClient.CurrentArmorMod.get() instanceof ArmorModificationInfo armorModInfo)
-                || !armorModInfo.ShouldModify()) {
+        if (!(ArmorHiderClient.CurrentArmorMod.get() instanceof ArmorModificationInfo armorModInfo)) {
             return;
         }
 
@@ -77,7 +76,7 @@ public class EquipmentRenderMixin {
             return;
         }
 
-        if (ArmorHiderClient.CurrentArmorMod.get().ShouldHide()) {
+        if (armorModInfo.ShouldHide()) {
             if (ci != null) {
                 ci.cancel();
             }
@@ -91,12 +90,11 @@ public class EquipmentRenderMixin {
             )
     )
     private boolean modifyGlint(boolean original) {
-        if (!(ArmorHiderClient.CurrentArmorMod.get() instanceof ArmorModificationInfo armorModInfo)
-            || !armorModInfo.ShouldModify()) {
+        if (!(ArmorHiderClient.CurrentArmorMod.get() instanceof ArmorModificationInfo armorModInfo)) {
             return original;
         }
         
-        return original && ArmorHiderClient.CurrentArmorMod.get().GetTransparency() > 0;
+        return original && armorModInfo.GetTransparency() > 0;
     }
 
     @WrapOperation(
@@ -129,8 +127,7 @@ public class EquipmentRenderMixin {
             )
     )
     private RenderLayer modifyTrimRenderLayer(boolean decal, Operation<RenderLayer> original) {
-        if (!(ArmorHiderClient.CurrentArmorMod.get() instanceof ArmorModificationInfo armorModInfo)
-                || !armorModInfo.ShouldModify()) {
+        if (!(ArmorHiderClient.CurrentArmorMod.get() instanceof ArmorModificationInfo armorModInfo)) {
             return original.call(decal);
         }
         
@@ -149,28 +146,27 @@ public class EquipmentRenderMixin {
         )
     )
     private static <S> void modifyColor(RenderCommandQueue instance, Model<? super S> model, S s, MatrixStack matrixStack, RenderLayer renderLayer, int light, int overlay, int tintedColor, Sprite sprite, int outlineColor, ModelCommandRenderer.CrumblingOverlayCommand crumblingOverlayCommand, Operation<Void> original) {
-        
-        
+
         if (ArmorHiderClient.CurrentArmorMod.get() == null && s instanceof PlayerEntityRenderState playerEntityRenderState && ArmorHiderClient.CurrentSlot.get() != null) {
             var config = tryResolveConfigFromPlayerEntityState(ArmorHiderClient.CurrentSlot.get(), playerEntityRenderState);
             ArmorHiderClient.CurrentArmorMod.set(config);
         }
-        
+
         if (!ArmorHiderClient.shouldNotInterceptRender(s)) {
             original.call(instance, model, s, matrixStack, renderLayer, light, overlay, tintedColor, sprite, outlineColor, crumblingOverlayCommand);
             return;
         }
-        
-        if (ArmorHiderClient.CurrentArmorMod.get() != null && ArmorHiderClient.CurrentArmorMod.get().ShouldModify()) {
 
         if (ArmorHiderClient.CurrentArmorMod.get() != null) {
-            double transparency = ArmorHiderClient.CurrentArmorMod.get().GetTransparency();
 
-            var newColor = ColorHelper.withAlpha(ColorHelper.channelFromFloat((float)transparency), tintedColor);
-            original.call(instance, model, s, matrixStack, renderLayer, light, overlay, newColor, sprite, outlineColor, crumblingOverlayCommand);
-        }
-        else {
-            original.call(instance, model, s, matrixStack, renderLayer, light, overlay, tintedColor, sprite, outlineColor, crumblingOverlayCommand);
+            if (ArmorHiderClient.CurrentArmorMod.get() != null) {
+                double transparency = ArmorHiderClient.CurrentArmorMod.get().GetTransparency();
+
+                var newColor = ColorHelper.withAlpha(ColorHelper.channelFromFloat((float) transparency), tintedColor);
+                original.call(instance, model, s, matrixStack, renderLayer, light, overlay, newColor, sprite, outlineColor, crumblingOverlayCommand);
+            } else {
+                original.call(instance, model, s, matrixStack, renderLayer, light, overlay, tintedColor, sprite, outlineColor, crumblingOverlayCommand);
+            }
         }
     }
 
@@ -178,11 +174,9 @@ public class EquipmentRenderMixin {
             method = "render(Lnet/minecraft/client/render/entity/equipment/EquipmentModel$LayerType;Lnet/minecraft/registry/RegistryKey;Lnet/minecraft/client/model/Model;Ljava/lang/Object;Lnet/minecraft/item/ItemStack;Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/command/OrderedRenderCommandQueue;ILnet/minecraft/util/Identifier;II)V",
             at = @At("RETURN")
     )
-    private static <S> void resetContext(EquipmentModel.LayerType layerType, RegistryKey<EquipmentAsset> assetKey, Model<? super S> model, S object, ItemStack itemStack, MatrixStack matrixStack, OrderedRenderCommandQueue orderedRenderCommandQueue, int i, Identifier identifier, int j, int k, CallbackInfo ci) {
+    private static <S> void resetContext(EquipmentModel.LayerType layerType, RegistryKey<EquipmentAsset> assetKey, Model<? super S> model, S object, ItemStack itemStack, MatrixStack matrixStack, OrderedRenderCommandQueue orderedRenderCommandQueue, int i, Identifier identifier, int j, int k, CallbackInfo ci) 
+    {
         ArmorHiderClient.CurrentArmorMod.remove();
         ArmorHiderClient.CurrentSlot.remove();
     }
-    
-    
-    
 }

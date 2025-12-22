@@ -32,10 +32,6 @@ public abstract class HeadRenderMixin<S extends LivingEntityRenderState, M exten
             return;
         }
 
-        if (!ArmorHiderClient.CurrentArmorMod.get().ShouldModify()) {
-            return;
-        }
-
         if (ArmorHiderClient.CurrentArmorMod.get().ShouldHide()) {
             ci.cancel();
         }   

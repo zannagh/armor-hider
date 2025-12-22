@@ -35,8 +35,7 @@ public abstract class SkullBlockRenderMixin {
             )
     )
     private static void modifyTransparency(OrderedRenderCommandQueue instance, Model model, Object o, MatrixStack matrixStack, RenderLayer renderLayer, int light, int overlay, int outlineColor, ModelCommandRenderer.CrumblingOverlayCommand crumblingOverlayCommand, Operation<Void> original){
-        if (ArmorHiderClient.CurrentArmorMod.get() != null &&
-            ArmorHiderClient.CurrentArmorMod.get().ShouldModify()) {
+        if (ArmorHiderClient.CurrentArmorMod.get() != null) {
             double transparency = ArmorHiderClient.CurrentArmorMod.get().GetTransparency();
             var newColor = ColorHelper.withAlpha(ColorHelper.channelFromFloat((float)transparency), -1);
             instance.submitModel(model, o, matrixStack, renderLayer, light, overlay, newColor , null, outlineColor, crumblingOverlayCommand);
@@ -54,7 +53,6 @@ public abstract class SkullBlockRenderMixin {
     )
     private static RenderLayer modifySkullTransparency(SkullBlock.SkullType type, Identifier texture, Operation<RenderLayer> original) {
         if (ArmorHiderClient.CurrentArmorMod.get() != null &&
-            ArmorHiderClient.CurrentArmorMod.get().ShouldModify() &&
             ArmorHiderClient.CurrentArmorMod.get().GetTransparency() < 1.0) {
             return RenderLayers.entityTranslucent(TEXTURES.get(type), ArmorHider.TRANSLUCENCY_AFFECTING_OUTLINE);
         }
@@ -70,8 +68,7 @@ public abstract class SkullBlockRenderMixin {
             )
     )
     private static RenderLayer getCutoutRenderLayer(Identifier texture, Operation<RenderLayer> original) {
-        if (ArmorHiderClient.CurrentArmorMod.get() != null &&
-                ArmorHiderClient.CurrentArmorMod.get().ShouldModify() &&
+        if (ArmorHiderClient.CurrentArmorMod.get() != null  &&
                 ArmorHiderClient.CurrentArmorMod.get().GetTransparency() < 1.0) {
             return RenderLayers.entityTranslucent(texture, ArmorHider.TRANSLUCENCY_AFFECTING_OUTLINE);
         }

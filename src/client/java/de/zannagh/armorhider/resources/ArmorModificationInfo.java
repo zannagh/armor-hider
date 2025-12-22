@@ -32,19 +32,4 @@ public class ArmorModificationInfo {
         double transparency = GetTransparency();
         return transparency < 0.1;
     }
-    
-    public boolean ShouldModify(){
-        double transparency = GetTransparency();
-        return transparency < 0.995;
-    }
-    
-     public String GetSlotName(){
-        return switch (equipmentSlot) {
-            case HEAD -> "head";
-            case CHEST -> "chest";
-            case LEGS -> "legs";
-            case FEET -> "feet";
-            default -> "none";
-        };
-     }
 }

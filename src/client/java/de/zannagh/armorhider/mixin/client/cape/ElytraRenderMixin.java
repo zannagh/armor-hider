@@ -27,12 +27,6 @@ public class ElytraRenderMixin {
             return;
         }
 
-        if (!ArmorHiderClient.CurrentArmorMod.get().ShouldModify()) {
-            ArmorHiderClient.CurrentArmorMod.remove();
-            ArmorHiderClient.CurrentSlot.remove();
-            return;
-        }
-
         if (ArmorHiderClient.CurrentArmorMod.get().ShouldHide()) {
             ArmorHiderClient.CurrentArmorMod.remove();
             ArmorHiderClient.CurrentSlot.remove();
