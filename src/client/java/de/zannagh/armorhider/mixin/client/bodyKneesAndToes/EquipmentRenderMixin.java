@@ -10,11 +10,11 @@ import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.common.ItemStackHelper;
+import de.zannagh.armorhider.rendering.ArmorModificationContext;
+import de.zannagh.armorhider.rendering.RenderInterceptor;
 import de.zannagh.armorhider.resources.ArmorModificationInfo;
 import net.minecraft.client.model.Model;
 import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.TexturedRenderLayers;
 import net.minecraft.client.render.command.ModelCommandRenderer;
 import net.minecraft.client.render.command.OrderedRenderCommandQueue;
 import net.minecraft.client.render.command.RenderCommandQueue;
@@ -28,7 +28,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.equipment.EquipmentAsset;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.ColorHelper;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -46,12 +45,7 @@ public class EquipmentRenderMixin {
             argsOnly = true
     )
     private static int modifyRenderOrder(int k, EquipmentModel.LayerType layerType, RegistryKey<EquipmentAsset> assetKey, Model<?> model, Object object, ItemStack itemStack) {
-        // Force Elytra to render AFTER armor by giving it a higher k value
-        // This ensures armor (like leggings) is visible through transparent Elytra
-        if (ItemStackHelper.itemStackContainsElytra(itemStack)) {
-            return 100; // Render after all armor (which uses k=1)
-        }
-        return k;
+        return RenderInterceptor.modifyRenderPriority(k, itemStack);
     }
 
     @Inject(
@@ -61,22 +55,16 @@ public class EquipmentRenderMixin {
     )
     private static <S> void interceptRender(EquipmentModel.LayerType layerType, RegistryKey<EquipmentAsset> assetKey, Model<? super S> model, S object, ItemStack itemStack, MatrixStack matrixStack, OrderedRenderCommandQueue orderedRenderCommandQueue, int i, Identifier identifier, int j, int k, CallbackInfo ci) {
 
-        if (ArmorHiderClient.CurrentSlot.get() == null && ItemStackHelper.itemStackContainsElytra(itemStack)) {
-            ArmorHiderClient.CurrentSlot.set(net.minecraft.entity.EquipmentSlot.CHEST);
-        }
+        RenderInterceptor.setupRenderContext(itemStack, (LivingEntityRenderState) object);
 
-        ArmorHiderClient.trySetCurrentSlotFromEntityRenderState((LivingEntityRenderState) object);
+        ArmorModificationInfo armorModInfo = ArmorModificationContext.getCurrentModification();
 
-        if (!(ArmorHiderClient.CurrentArmorMod.get() instanceof ArmorModificationInfo armorModInfo)
-                || !armorModInfo.ShouldModify()) {
+        if (!RenderInterceptor.shouldModifyEquipment(armorModInfo) 
+                || RenderInterceptor.shouldNotInterceptRender(object)) {
             return;
         }
 
-        if (ArmorHiderClient.shouldNotInterceptRender(object)) {
-            return;
-        }
-
-        if (ArmorHiderClient.CurrentArmorMod.get().ShouldHide()) {
+        if (RenderInterceptor.shouldHideEquipment(armorModInfo)) {
             if (ci != null) {
                 ci.cancel();
             }
@@ -90,12 +78,12 @@ public class EquipmentRenderMixin {
             )
     )
     private boolean modifyGlint(boolean original) {
-        if (!(ArmorHiderClient.CurrentArmorMod.get() instanceof ArmorModificationInfo armorModInfo)
-            || !armorModInfo.ShouldModify()) {
+        ArmorModificationInfo armorModInfo = ArmorModificationContext.getCurrentModification();
+        if (armorModInfo == null || !armorModInfo.ShouldModify()) {
             return original;
         }
-        
-        return original && ArmorHiderClient.CurrentArmorMod.get().GetTransparency() > 0;
+
+        return original && armorModInfo.GetTransparency() > 0;
     }
 
     @WrapOperation(
@@ -106,18 +94,11 @@ public class EquipmentRenderMixin {
             )
     )
     private static <S> RenderLayer modifyArmourCutoutNoCull(Identifier texture, Operation<RenderLayer> original) {
-
-        if (!(ArmorHiderClient.CurrentArmorMod.get() instanceof ArmorModificationInfo armorModInfo)) {
-            return original.call(texture);
-        }
-
-        double transparency = armorModInfo.GetTransparency();
-
-        if (transparency < 0.95) {
-            return RenderLayer.getEntityTranslucent(texture);
-        }
-
-        return original.call(texture);
+        return RenderInterceptor.getRenderLayer(
+            texture,
+            original.call(texture),
+            ArmorModificationContext.getCurrentModification()
+        );
     }
 
     @WrapOperation(
@@ -128,16 +109,11 @@ public class EquipmentRenderMixin {
             )
     )
     private RenderLayer modifyTrimRenderLayer(boolean decal, Operation<RenderLayer> original) {
-        if (!(ArmorHiderClient.CurrentArmorMod.get() instanceof ArmorModificationInfo armorModInfo)
-                || !armorModInfo.ShouldModify()) {
-            return original.call(decal);
-        }
-        
-        if (armorModInfo.GetTransparency() < 1) {
-            return RenderLayer.createArmorTranslucent(TexturedRenderLayers.ARMOR_TRIMS_ATLAS_TEXTURE);
-        }
-
-        return original.call(decal);
+        return RenderInterceptor.getTrimRenderLayer(
+            decal,
+            original.call(decal),
+            ArmorModificationContext.getCurrentModification()
+        );
     }
 
     @WrapOperation(
@@ -149,27 +125,26 @@ public class EquipmentRenderMixin {
     )
     private static <S> void modifyColor(RenderCommandQueue instance, Model<? super S> model, S s, MatrixStack matrixStack, RenderLayer renderLayer, int light, int overlay, int tintedColor, Sprite sprite, int outlineColor, ModelCommandRenderer.CrumblingOverlayCommand crumblingOverlayCommand, Operation<Void> original) {
 
-
-        if (ArmorHiderClient.CurrentArmorMod.get() == null && s instanceof PlayerEntityRenderState playerEntityRenderState && ArmorHiderClient.CurrentSlot.get() != null) {
-            var config = tryResolveConfigFromPlayerEntityState(ArmorHiderClient.CurrentSlot.get(), playerEntityRenderState);
-            ArmorHiderClient.CurrentArmorMod.set(config);
-            System.out.println("[DEBUG] modifyColor fallback - set CurrentArmorMod for slot: " + ArmorHiderClient.CurrentSlot.get());
+        if (ArmorModificationContext.getCurrentModification() == null
+            && s instanceof PlayerEntityRenderState playerEntityRenderState
+            && ArmorModificationContext.getCurrentSlot() != null) {
+            var config = tryResolveConfigFromPlayerEntityState(
+                ArmorModificationContext.getCurrentSlot(),
+                playerEntityRenderState
+            );
+            ArmorModificationContext.setCurrentModification(config);
         }
 
-        if (!ArmorHiderClient.shouldNotInterceptRender(s)) {
+        if (!RenderInterceptor.shouldNotInterceptRender(s)) {
             original.call(instance, model, s, matrixStack, renderLayer, light, overlay, tintedColor, sprite, outlineColor, crumblingOverlayCommand);
             return;
         }
 
-        if (ArmorHiderClient.CurrentArmorMod.get() != null) {
-            double transparency = ArmorHiderClient.CurrentArmorMod.get().GetTransparency();
-
-            var newColor = ColorHelper.withAlpha(ColorHelper.channelFromFloat((float)transparency), tintedColor);
-            original.call(instance, model, s, matrixStack, renderLayer, light, overlay, newColor, sprite, outlineColor, crumblingOverlayCommand);
-        }
-        else {
-            original.call(instance, model, s, matrixStack, renderLayer, light, overlay, tintedColor, sprite, outlineColor, crumblingOverlayCommand);
-        }
+        int modifiedColor = RenderInterceptor.applyTransparency(
+            tintedColor,
+            ArmorModificationContext.getCurrentModification()
+        );
+        original.call(instance, model, s, matrixStack, renderLayer, light, overlay, modifiedColor, sprite, outlineColor, crumblingOverlayCommand);
     }
 
     @Inject(
@@ -177,8 +152,7 @@ public class EquipmentRenderMixin {
             at = @At("RETURN")
     )
     private static <S> void resetContext(EquipmentModel.LayerType layerType, RegistryKey<EquipmentAsset> assetKey, Model<? super S> model, S object, ItemStack itemStack, MatrixStack matrixStack, OrderedRenderCommandQueue orderedRenderCommandQueue, int i, Identifier identifier, int j, int k, CallbackInfo ci) {
-        ArmorHiderClient.CurrentArmorMod.remove();
-        ArmorHiderClient.CurrentSlot.remove();
+        ArmorModificationContext.clearAll();
     }
     
     

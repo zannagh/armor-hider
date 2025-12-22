@@ -1,6 +1,6 @@
 package de.zannagh.armorhider.resources;
 
-import de.zannagh.armorhider.client.CombatManager;
+import de.zannagh.armorhider.common.CombatManager;
 import net.minecraft.entity.EquipmentSlot;
 
 public class ArmorModificationInfo {
@@ -12,11 +12,11 @@ public class ArmorModificationInfo {
         playerConfig = config;
         playerName = config.playerName;
     }
-    
+
     public EquipmentSlot getEquipmentSlot() {
         return equipmentSlot;
     }
-    
+
     public double GetTransparency(){
         var setting = switch (equipmentSlot) {
             case HEAD -> playerConfig.helmetTransparency;
@@ -27,18 +27,18 @@ public class ArmorModificationInfo {
         };
         return CombatManager.transformTransparencyBasedOnCombat(playerName, setting);
     }
-    
+
     public boolean ShouldHide() {
         double transparency = GetTransparency();
         return transparency < 0.1;
     }
-    
+
     public boolean ShouldModify(){
         double transparency = GetTransparency();
         return transparency < 0.995;
     }
-    
-     public String GetSlotName(){
+
+    public String GetSlotName(){
         return switch (equipmentSlot) {
             case HEAD -> "head";
             case CHEST -> "chest";
@@ -46,5 +46,5 @@ public class ArmorModificationInfo {
             case FEET -> "feet";
             default -> "none";
         };
-     }
+    }
 }
