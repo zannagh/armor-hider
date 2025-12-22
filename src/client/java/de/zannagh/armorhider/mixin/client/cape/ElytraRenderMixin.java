@@ -42,7 +42,6 @@ public class ElytraRenderMixin {
             return;
         }
 
-        // Clear both so other armor parts that render won't use CHEST slot config
         ArmorHiderClient.CurrentArmorMod.remove();
         ArmorHiderClient.CurrentSlot.remove();
     }

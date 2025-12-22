@@ -35,7 +35,7 @@ public class ArmorModificationInfo {
     
     public boolean ShouldModify(){
         double transparency = GetTransparency();
-        return transparency < 0.95;
+        return transparency < 0.995;
     }
     
      public String GetSlotName(){
