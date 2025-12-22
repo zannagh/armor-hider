@@ -61,7 +61,6 @@ public class EquipmentRenderMixin {
     )
     private static <S> void interceptRender(EquipmentModel.LayerType layerType, RegistryKey<EquipmentAsset> assetKey, Model<? super S> model, S object, ItemStack itemStack, MatrixStack matrixStack, OrderedRenderCommandQueue orderedRenderCommandQueue, int i, Identifier identifier, int j, int k, CallbackInfo ci) {
 
-        // If CurrentSlot is null and we're rendering an Elytra, set it to CHEST
         if (ArmorHiderClient.CurrentSlot.get() == null && ItemStackHelper.itemStackContainsElytra(itemStack)) {
             ArmorHiderClient.CurrentSlot.set(net.minecraft.entity.EquipmentSlot.CHEST);
         }
@@ -114,13 +113,10 @@ public class EquipmentRenderMixin {
 
         double transparency = armorModInfo.GetTransparency();
 
-        // Only use translucent layer if transparency is actually less than fully opaque
-        // This ensures opaque armor renders in solid pass (before translucent Elytra)
         if (transparency < 0.95) {
             return RenderLayer.getEntityTranslucent(texture);
         }
 
-        // For fully opaque armor, use the original layer (solid pass)
         return original.call(texture);
     }
 
