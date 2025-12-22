@@ -1,4 +1,4 @@
-package de.zannagh.armorhider.client;
+package de.zannagh.armorhider.common;
 
 import java.util.ArrayList;
 import java.util.HashMap;

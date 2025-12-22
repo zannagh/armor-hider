@@ -1,6 +1,7 @@
 package de.zannagh.armorhider.mixin.client.cape;
 
 import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.rendering.ArmorRenderPipeline;
 import net.minecraft.client.render.command.OrderedRenderCommandQueue;
 import net.minecraft.client.render.entity.feature.ElytraFeatureRenderer;
 import net.minecraft.client.render.entity.state.BipedEntityRenderState;
@@ -19,25 +20,28 @@ public class ElytraRenderMixin {
         cancellable = true
     )
     private <S extends BipedEntityRenderState> void interceptElytraRender(MatrixStack matrixStack, OrderedRenderCommandQueue orderedRenderCommandQueue, int i, S bipedEntityRenderState, float f, float g, CallbackInfo ci){
-        ArmorHiderClient.CurrentSlot.set(EquipmentSlot.CHEST);
+        ArmorRenderPipeline.setCurrentSlot(EquipmentSlot.CHEST);
         ArmorHiderClient.trySetCurrentSlotFromEntityRenderState(bipedEntityRenderState);
 
-        if (ArmorHiderClient.CurrentArmorMod.get() == null) {
-            ArmorHiderClient.CurrentSlot.remove();
+        if (!ArmorRenderPipeline.hasActiveContext()) {
+            ArmorRenderPipeline.clearContext();
             return;
         }
 
-        if (ArmorHiderClient.CurrentArmorMod.get().ShouldHide()) {
-            ArmorHiderClient.CurrentArmorMod.remove();
-            ArmorHiderClient.CurrentSlot.remove();
+        if (!ArmorRenderPipeline.shouldModifyEquipment()) {
+            ArmorRenderPipeline.clearContext();
+            return;
+        }
+
+        if (ArmorRenderPipeline.shouldHideEquipment()) {
+            ArmorRenderPipeline.clearContext();
             if (ci != null) {
                 ci.cancel();
             }
             return;
         }
 
-        ArmorHiderClient.CurrentArmorMod.remove();
-        ArmorHiderClient.CurrentSlot.remove();
+        ArmorRenderPipeline.clearContext();
     }
 
     @Inject(
@@ -45,7 +49,6 @@ public class ElytraRenderMixin {
             at = @At(value = "RETURN")
     )
     private <S extends BipedEntityRenderState> void releaseContext(MatrixStack matrixStack, OrderedRenderCommandQueue orderedRenderCommandQueue, int i, S bipedEntityRenderState, float f, float g, CallbackInfo ci){
-        ArmorHiderClient.CurrentArmorMod.remove();
-        ArmorHiderClient.CurrentSlot.remove();
+        ArmorRenderPipeline.clearContext();
     }
 }

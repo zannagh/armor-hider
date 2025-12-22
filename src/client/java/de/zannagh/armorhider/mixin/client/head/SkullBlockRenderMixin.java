@@ -2,8 +2,7 @@ package de.zannagh.armorhider.mixin.client.head;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import de.zannagh.armorhider.ArmorHider;
-import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.rendering.ArmorRenderPipeline;
 import net.minecraft.block.SkullBlock;
 import net.minecraft.client.model.Model;
 import net.minecraft.client.render.RenderLayer;
@@ -35,15 +34,15 @@ public abstract class SkullBlockRenderMixin {
             )
     )
     private static void modifyTransparency(OrderedRenderCommandQueue instance, Model model, Object o, MatrixStack matrixStack, RenderLayer renderLayer, int light, int overlay, int outlineColor, ModelCommandRenderer.CrumblingOverlayCommand crumblingOverlayCommand, Operation<Void> original){
-        if (ArmorHiderClient.CurrentArmorMod.get() != null) {
-            double transparency = ArmorHiderClient.CurrentArmorMod.get().GetTransparency();
+        if (ArmorRenderPipeline.hasActiveContext() && ArmorRenderPipeline.shouldModifyEquipment()) {
+            double transparency = ArmorRenderPipeline.getTransparency();
             var newColor = ColorHelper.withAlpha(ColorHelper.channelFromFloat((float)transparency), -1);
             instance.submitModel(model, o, matrixStack, renderLayer, light, overlay, newColor , null, outlineColor, crumblingOverlayCommand);
         } else {
             original.call(instance, model, o, matrixStack, renderLayer, light, overlay, outlineColor, crumblingOverlayCommand);
         }
     }
-    
+
     @WrapOperation(
             method = "renderSkull",
             at = @At(
@@ -52,14 +51,15 @@ public abstract class SkullBlockRenderMixin {
             )
     )
     private static RenderLayer modifySkullTransparency(SkullBlock.SkullType type, Identifier texture, Operation<RenderLayer> original) {
-        if (ArmorHiderClient.CurrentArmorMod.get() != null &&
-            ArmorHiderClient.CurrentArmorMod.get().GetTransparency() < 1.0) {
-            return RenderLayers.entityTranslucent(TEXTURES.get(type), ArmorHider.TRANSLUCENCY_AFFECTING_OUTLINE);
+        if (ArmorRenderPipeline.hasActiveContext()
+            && ArmorRenderPipeline.shouldModifyEquipment()
+            && ArmorRenderPipeline.getTransparency() < 1.0) {
+            return RenderLayers.getEntityTranslucent(TEXTURES.get(type));
         }
 
         return original.call(type, texture);
     }
-    
+
     @WrapOperation(
             method = "getCutoutRenderLayer",
             at = @At(
@@ -68,9 +68,10 @@ public abstract class SkullBlockRenderMixin {
             )
     )
     private static RenderLayer getCutoutRenderLayer(Identifier texture, Operation<RenderLayer> original) {
-        if (ArmorHiderClient.CurrentArmorMod.get() != null  &&
-                ArmorHiderClient.CurrentArmorMod.get().GetTransparency() < 1.0) {
-            return RenderLayers.entityTranslucent(texture, ArmorHider.TRANSLUCENCY_AFFECTING_OUTLINE);
+        if (ArmorRenderPipeline.hasActiveContext()
+            && ArmorRenderPipeline.shouldModifyEquipment()
+            && ArmorRenderPipeline.getTransparency() < 1.0) {
+            return RenderLayers.getEntityTranslucent(texture);
         }
 
         return original.call(texture);

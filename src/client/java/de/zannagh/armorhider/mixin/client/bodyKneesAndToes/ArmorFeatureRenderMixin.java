@@ -6,7 +6,7 @@
 
 package de.zannagh.armorhider.mixin.client.bodyKneesAndToes;
 
-import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.rendering.ArmorRenderPipeline;
 import net.minecraft.client.render.command.OrderedRenderCommandQueue;
 import net.minecraft.client.render.entity.feature.ArmorFeatureRenderer;
 import net.minecraft.client.render.entity.state.BipedEntityRenderState;
@@ -29,6 +29,6 @@ public class ArmorFeatureRenderMixin {
             int light,
             BipedEntityRenderState armorModel,
             CallbackInfo ci) {
-        ArmorHiderClient.CurrentSlot.set(slot);
+        ArmorRenderPipeline.setCurrentSlot(slot);
     }
 }
