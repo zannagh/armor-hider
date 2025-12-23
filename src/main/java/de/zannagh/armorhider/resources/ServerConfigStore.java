@@ -71,8 +71,6 @@ public final class ServerConfigStore {
                 overwrites.put(e, k);
             }
         });
-        overwrites.forEach((e, k) -> {
-            data.replace(e, k);
-        });
+        overwrites.forEach((e, k) -> data.replace(e, k));
     }
 }

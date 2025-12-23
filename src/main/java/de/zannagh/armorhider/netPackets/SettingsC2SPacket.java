@@ -4,18 +4,12 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import de.zannagh.armorhider.resources.PlayerConfig;
 import io.netty.buffer.ByteBuf;
-import jdk.jfr.Enabled;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
 
 public record SettingsC2SPacket(PlayerConfig config) implements CustomPayload {
-
-    public PlayerConfig payload(){
-        return config;
-    }
-    private static final Gson GSON = new GsonBuilder().create();
     public static final Id<SettingsC2SPacket> IDENTIFIER = new Id<>(Identifier.of("de.zannagh.armorhider", "settings_c2s_packet"));
     public static final PacketCodec<ByteBuf, SettingsC2SPacket> PACKET_CODEC = PacketCodec.tuple(
             PacketCodecs.DOUBLE, c -> c.config().helmetTransparency,

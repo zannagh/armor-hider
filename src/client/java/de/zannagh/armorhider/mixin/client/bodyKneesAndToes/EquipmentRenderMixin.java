@@ -20,7 +20,6 @@ import net.minecraft.client.render.command.RenderCommandQueue;
 import net.minecraft.client.render.entity.equipment.EquipmentModel;
 import net.minecraft.client.render.entity.equipment.EquipmentRenderer;
 import net.minecraft.client.render.entity.state.LivingEntityRenderState;
-import net.minecraft.client.render.entity.state.PlayerEntityRenderState;
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.ItemStack;
@@ -32,8 +31,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import static de.zannagh.armorhider.client.ArmorHiderClient.tryResolveConfigFromPlayerEntityState;
 
 @Mixin(EquipmentRenderer.class)
 public class EquipmentRenderMixin {
@@ -52,19 +49,16 @@ public class EquipmentRenderMixin {
             at = @At("HEAD"),
             cancellable = true
     )
-    private static <S> void interceptRender(EquipmentModel.LayerType layerType, RegistryKey<EquipmentAsset> assetKey, Model<? super S> model, S object, ItemStack itemStack, MatrixStack matrixStack, OrderedRenderCommandQueue orderedRenderCommandQueue, int i, Identifier identifier, int j, int k, CallbackInfo ci){
-        
-       ArmorRenderPipeline.setupContext(itemStack, (LivingEntityRenderState) object);
+    private static <S> void interceptRender(EquipmentModel.LayerType layerType, RegistryKey<EquipmentAsset> assetKey, Model<? super S> model, S object, ItemStack itemStack, MatrixStack matrixStack, OrderedRenderCommandQueue orderedRenderCommandQueue, int i, Identifier identifier, int j, int k, CallbackInfo ci) {
 
-        if (!ArmorRenderPipeline.shouldModifyEquipment()
-                || ArmorRenderPipeline.shouldInterceptRender(object)) {
+        ArmorRenderPipeline.setupContext(itemStack, null, (LivingEntityRenderState) object);
+
+        if (!ArmorRenderPipeline.shouldModifyEquipment() || ArmorRenderPipeline.renderStateDoesNotTargetPlayer(object)) {
             return;
         }
 
-        if (ArmorRenderPipeline.shouldHideEquipment()) {
-            if (ci != null) {
-                ci.cancel();
-            }
+        if (ArmorRenderPipeline.shouldHideEquipment() && ci != null) {
+            ci.cancel();
         }
     }
     @ModifyExpressionValue(
@@ -75,11 +69,7 @@ public class EquipmentRenderMixin {
             )
     )
     private boolean modifyGlint(boolean original) {
-        if (!ArmorRenderPipeline.shouldModifyEquipment()) {
-            return original;
-        }
-
-        return original && ArmorRenderPipeline.getTransparency() > 0;
+        return original && !ArmorRenderPipeline.shouldHideEquipment();
     }
 
     @WrapOperation(
@@ -113,18 +103,11 @@ public class EquipmentRenderMixin {
     )
     private static <S> void modifyColor(RenderCommandQueue instance, Model<? super S> model, S s, MatrixStack matrixStack, RenderLayer renderLayer, int light, int overlay, int tintedColor, Sprite sprite, int outlineColor, ModelCommandRenderer.CrumblingOverlayCommand crumblingOverlayCommand, Operation<Void> original) {
 
-        // Fallback: try to set modification context if null (edge case handling)
-        if (ArmorRenderPipeline.getCurrentModification() == null
-            && s instanceof PlayerEntityRenderState playerEntityRenderState
-            && ArmorRenderPipeline.getCurrentSlot() != null) {
-            var config = tryResolveConfigFromPlayerEntityState(
-                ArmorRenderPipeline.getCurrentSlot(),
-                playerEntityRenderState
-            );
-            ArmorRenderPipeline.setCurrentModification(config);
+        if (!ArmorRenderPipeline.hasActiveContext()) {
+            ArmorRenderPipeline.addContext(s);
         }
 
-        if (ArmorRenderPipeline.shouldInterceptRender(s)) {
+        if (ArmorRenderPipeline.renderStateDoesNotTargetPlayer(s)) {
             original.call(instance, model, s, matrixStack, renderLayer, light, overlay, tintedColor, sprite, outlineColor, crumblingOverlayCommand);
             return;
         }
@@ -140,7 +123,4 @@ public class EquipmentRenderMixin {
     private static <S> void resetContext(EquipmentModel.LayerType layerType, RegistryKey<EquipmentAsset> assetKey, Model<? super S> model, S object, ItemStack itemStack, MatrixStack matrixStack, OrderedRenderCommandQueue orderedRenderCommandQueue, int i, Identifier identifier, int j, int k, CallbackInfo ci) {
         ArmorRenderPipeline.clearContext();
     }
-    
-    
-    
 }

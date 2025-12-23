@@ -21,7 +21,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(ArmorFeatureRenderer.class)
 public class ArmorFeatureRenderMixin {
     @Inject(method = "renderArmor", at = @At("HEAD"))
-    private void captureSlotAndCheckHide(
+    private void captureContext(
             MatrixStack matrices,
             OrderedRenderCommandQueue vertexConsumers,
             ItemStack stack,
@@ -29,6 +29,6 @@ public class ArmorFeatureRenderMixin {
             int light,
             BipedEntityRenderState armorModel,
             CallbackInfo ci) {
-        ArmorRenderPipeline.setCurrentSlot(slot);
+        ArmorRenderPipeline.setupContext(stack, slot, armorModel);
     }
 }

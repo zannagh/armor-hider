@@ -23,11 +23,21 @@ public class LivingEntityMixin {
             at = @At(value = "HEAD")
     )
     private void triggerCombat(DamageSource damageSource, CallbackInfo ci) {
-        if ((Object) this instanceof ClientPlayerEntity player) {
-            CombatManager.logCombat(player.getName().getString());
+        if (damageSource.getAttacker() != null) {
+            if ((Object) this instanceof ClientPlayerEntity player) {
+                CombatManager.logCombat(player.getName().getString());
+            }
+            if ((Object) this instanceof OtherClientPlayerEntity player) {
+                CombatManager.logCombat(player.getName().getString());
+            }
+            
+            if (damageSource.getAttacker() instanceof ClientPlayerEntity player) {
+                CombatManager.logCombat(player.getName().getString());
+            }
+            if (damageSource.getAttacker() instanceof OtherClientPlayerEntity player) {
+                CombatManager.logCombat(player.getName().getString());
+            }
         }
-        if ((Object) this instanceof OtherClientPlayerEntity player) {
-            CombatManager.logCombat(player.getName().getString());
-        }
+        
     }
 }
