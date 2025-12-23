@@ -26,14 +26,17 @@ public abstract class HeadRenderMixin<S extends LivingEntityRenderState, M exten
             at = @At("HEAD"),
     cancellable = true)
     private void grabHatRenderContext(MatrixStack matrixStack, OrderedRenderCommandQueue orderedRenderCommandQueue, int i, S livingEntityRenderState, float f, float g, CallbackInfo ci) {
-        ArmorRenderPipeline.setCurrentSlot(EquipmentSlot.HEAD);
-        ArmorHiderClient.trySetCurrentSlotFromEntityRenderState(livingEntityRenderState);
-
+        ArmorRenderPipeline.setupContext(null, EquipmentSlot.HEAD, livingEntityRenderState);
+        
         if (!ArmorRenderPipeline.hasActiveContext()) {
             return;
         }
 
         if (!ArmorRenderPipeline.shouldModifyEquipment()) {
+            return;
+        }
+        
+        if (ArmorRenderPipeline.renderStateDoesNotTargetPlayer(livingEntityRenderState)) {
             return;
         }
 

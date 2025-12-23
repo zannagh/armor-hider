@@ -1,6 +1,5 @@
 package de.zannagh.armorhider.mixin.client.cape;
 
-import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.rendering.ArmorRenderPipeline;
 import net.minecraft.client.render.command.OrderedRenderCommandQueue;
 import net.minecraft.client.render.entity.feature.ElytraFeatureRenderer;
@@ -20,15 +19,9 @@ public class ElytraRenderMixin {
         cancellable = true
     )
     private <S extends BipedEntityRenderState> void interceptElytraRender(MatrixStack matrixStack, OrderedRenderCommandQueue orderedRenderCommandQueue, int i, S bipedEntityRenderState, float f, float g, CallbackInfo ci){
-        ArmorRenderPipeline.setCurrentSlot(EquipmentSlot.CHEST);
-        ArmorHiderClient.trySetCurrentSlotFromEntityRenderState(bipedEntityRenderState);
-
-        if (!ArmorRenderPipeline.hasActiveContext()) {
-            ArmorRenderPipeline.clearContext();
-            return;
-        }
-
-        if (!ArmorRenderPipeline.shouldModifyEquipment()) {
+        ArmorRenderPipeline.setupContext(null, EquipmentSlot.CHEST, bipedEntityRenderState);
+        
+        if (!ArmorRenderPipeline.hasActiveContext() || !ArmorRenderPipeline.shouldModifyEquipment()) {
             ArmorRenderPipeline.clearContext();
             return;
         }

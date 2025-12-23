@@ -21,10 +21,6 @@ import java.util.Map;
 
 @Mixin(SkullBlockEntityRenderer.class)
 public abstract class SkullBlockRenderMixin {
-    @Shadow
-    @Final
-    private static Map<SkullBlock.SkullType, Identifier> TEXTURES;
-
     @WrapOperation(
             method = "render(Lnet/minecraft/util/math/Direction;FFLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/command/OrderedRenderCommandQueue;ILnet/minecraft/client/render/block/entity/SkullBlockEntityModel;Lnet/minecraft/client/render/RenderLayer;ILnet/minecraft/client/render/command/ModelCommandRenderer$CrumblingOverlayCommand;)V",
             at = @At(
@@ -33,10 +29,10 @@ public abstract class SkullBlockRenderMixin {
             )
     )
     private static void modifyTransparency(OrderedRenderCommandQueue instance, Model model, Object o, MatrixStack matrixStack, RenderLayer renderLayer, int light, int overlay, int outlineColor, ModelCommandRenderer.CrumblingOverlayCommand crumblingOverlayCommand, Operation<Void> original){
+        
         if (ArmorRenderPipeline.hasActiveContext() && ArmorRenderPipeline.shouldModifyEquipment()) {
-            double transparency = ArmorRenderPipeline.getTransparency();
-            var newColor = ColorHelper.withAlpha(ColorHelper.channelFromFloat((float)transparency), -1);
-            instance.submitModel(model, o, matrixStack, renderLayer, light, overlay, newColor , null, outlineColor, crumblingOverlayCommand);
+            var newColor = ArmorRenderPipeline.applyTransparency(-1);
+            instance.getBatchingQueue(ArmorRenderPipeline.SkullRenderPriority).submitModel(model, o, matrixStack, renderLayer, light, overlay, newColor , null, outlineColor, crumblingOverlayCommand);
         } else {
             original.call(instance, model, o, matrixStack, renderLayer, light, overlay, outlineColor, crumblingOverlayCommand);
         }
@@ -50,13 +46,7 @@ public abstract class SkullBlockRenderMixin {
             )
     )
     private static RenderLayer modifySkullTransparency(SkullBlock.SkullType type, Identifier texture, Operation<RenderLayer> original) {
-        if (ArmorRenderPipeline.hasActiveContext()
-            && ArmorRenderPipeline.shouldModifyEquipment()
-            && ArmorRenderPipeline.getTransparency() < 1.0) {
-            return RenderLayer.getEntityTranslucent(TEXTURES.get(type));
-        }
-
-        return original.call(type, texture);
+        return ArmorRenderPipeline.getRenderLayer(texture, original.call(type, texture));
     }
 
     @WrapOperation(
@@ -67,12 +57,6 @@ public abstract class SkullBlockRenderMixin {
             )
     )
     private static RenderLayer getCutoutRenderLayer(Identifier texture, Operation<RenderLayer> original) {
-        if (ArmorRenderPipeline.hasActiveContext()
-            && ArmorRenderPipeline.shouldModifyEquipment()
-            && ArmorRenderPipeline.getTransparency() < 1.0) {
-            return RenderLayer.getEntityTranslucent(texture);
-        }
-
-        return original.call(texture);
+        return ArmorRenderPipeline.getRenderLayer(texture, original.call(texture));
     }
 }

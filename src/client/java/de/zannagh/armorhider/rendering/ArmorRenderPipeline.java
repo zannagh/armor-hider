@@ -1,7 +1,8 @@
 package de.zannagh.armorhider.rendering;
 
-import de.zannagh.armorhider.client.ArmorHiderClient;
+import com.mojang.datafixers.kinds.Const;
 import de.zannagh.armorhider.common.ItemStackHelper;
+import de.zannagh.armorhider.config.ClientConfigManager;
 import de.zannagh.armorhider.resources.ArmorModificationInfo;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.entity.state.LivingEntityRenderState;
@@ -13,39 +14,79 @@ import net.minecraft.util.math.ColorHelper;
 
 public class ArmorRenderPipeline {
 
-    public static void setupContext(ItemStack itemStack, LivingEntityRenderState entityRenderState) {
+    /// Elytra to render as last item in usual armor queue (armor items usually use k 0-3) as it 
+    /// has the highest chance to overlap other items.
+    public static final int ElytraRenderPriority = 100;
+
+    /// See ElytraRenderPriority. Skull should usually render ahead of Elytra, in case the Elytra is visually infront of the skull.
+    public static final int SkullRenderPriority = 99;
+
+    /// Captures context for the render pipeline, used within other methods of the class.
+    /// ItemStack can be null, slot can be null.
+    public static void setupContext(ItemStack itemStack, EquipmentSlot slot, LivingEntityRenderState entityRenderState) {
+        
+        if (slot != null) {
+            setCurrentSlot(slot);
+        }
+        
         // If current slot is null and elytra rendering is requested, set slot to chest
         if (ArmorModificationContext.getCurrentSlot() == null && ItemStackHelper.itemStackContainsElytra(itemStack)) {
             ArmorModificationContext.setCurrentSlot(EquipmentSlot.CHEST);
         }
 
-        ArmorHiderClient.trySetCurrentSlotFromEntityRenderState(entityRenderState);
+        if (entityRenderState instanceof PlayerEntityRenderState playerEntityRenderState && getCurrentSlot() != null) {
+            var configByEntityState = tryResolveConfigFromPlayerEntityState(
+                    getCurrentSlot(),
+                    playerEntityRenderState
+            );
+            setCurrentModification(configByEntityState);
+        }
     }
 
-    public static void setCurrentSlot(EquipmentSlot slot) {
-        ArmorModificationContext.setCurrentSlot(slot);
+    /// In case context is missing (current modification information), this tries to add the missing context from the entity render state.
+    public static void addContext(Object entityRenderState) {
+        if (getCurrentModification() == null 
+                && getCurrentSlot() != null
+                && entityRenderState instanceof PlayerEntityRenderState playerEntityRenderState) {
+            var config = tryResolveConfigFromPlayerEntityState(
+                    ArmorRenderPipeline.getCurrentSlot(),
+                    playerEntityRenderState
+            );
+            setCurrentModification(config);
+        }
     }
 
-    public static EquipmentSlot getCurrentSlot() {
-        return ArmorModificationContext.getCurrentSlot();
+    public static boolean hasActiveContext() {
+        return ArmorModificationContext.hasActiveContext();
     }
 
-    public static ArmorModificationInfo getCurrentModification() {
-        return ArmorModificationContext.getCurrentModification();
-    }
-
-    public static void setCurrentModification(ArmorModificationInfo modification) {
-        ArmorModificationContext.setCurrentModification(modification);
-    }
     public static void clearContext() {
         ArmorModificationContext.clearAll();
     }
 
-    // region RenderMethods
-    public static boolean hasActiveContext() {
-        return ArmorModificationContext.hasActiveContext();
+    private static ArmorModificationInfo tryResolveConfigFromPlayerEntityState(EquipmentSlot slot, PlayerEntityRenderState state){
+        return state.displayName == null
+                ? new ArmorModificationInfo(slot, ClientConfigManager.get())
+                : new ArmorModificationInfo(slot, ClientConfigManager.getConfigForPlayer(state.displayName.getString()));
     }
-    
+
+    private static void setCurrentSlot(EquipmentSlot slot) {
+        ArmorModificationContext.setCurrentSlot(slot);
+    }
+
+    private static EquipmentSlot getCurrentSlot() {
+        return ArmorModificationContext.getCurrentSlot();
+    }
+
+    private static ArmorModificationInfo getCurrentModification() {
+        return ArmorModificationContext.getCurrentModification();
+    }
+
+    private static void setCurrentModification(ArmorModificationInfo modification) {
+        ArmorModificationContext.setCurrentModification(modification);
+    }
+
+    // region RenderMethods
     public static boolean shouldHideEquipment() {
         return ArmorModificationContext.shouldHideEquipment();
     }
@@ -54,17 +95,13 @@ public class ArmorRenderPipeline {
         return ArmorModificationContext.shouldModifyEquipment();
     }
 
-    public static double getTransparency() {
-        return ArmorModificationContext.getTransparency();
-    }
-
-    public static boolean shouldInterceptRender(Object renderState) {
+    public static boolean renderStateDoesNotTargetPlayer(Object renderState) {
         return !(renderState instanceof PlayerEntityRenderState);
     }
 
     public static int modifyRenderPriority(int originalPriority, ItemStack itemStack) {
         if (ItemStackHelper.itemStackContainsElytra(itemStack)) {
-            return 100; // Render after all armor (which uses priority 1)
+            return ElytraRenderPriority; // Render after all armor (which uses priority 1)
         }
         return originalPriority;
     }
