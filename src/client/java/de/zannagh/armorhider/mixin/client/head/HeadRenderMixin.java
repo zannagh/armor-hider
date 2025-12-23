@@ -1,6 +1,5 @@
 package de.zannagh.armorhider.mixin.client.head;
 
-import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.rendering.ArmorRenderPipeline;
 import net.minecraft.client.render.command.OrderedRenderCommandQueue;
 import net.minecraft.client.render.entity.feature.FeatureRenderer;

@@ -4,14 +4,9 @@ import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.config.ClientConfigManager;
 import de.zannagh.armorhider.netPackets.SettingsC2SPacket;
 import de.zannagh.armorhider.netPackets.SettingsS2CPacket;
-import de.zannagh.armorhider.rendering.ArmorRenderPipeline;
-import de.zannagh.armorhider.resources.ArmorModificationInfo;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.client.render.entity.state.LivingEntityRenderState;
-import net.minecraft.client.render.entity.state.PlayerEntityRenderState;
-import net.minecraft.entity.EquipmentSlot;
 
 public class ArmorHiderClient implements ClientModInitializer {
 

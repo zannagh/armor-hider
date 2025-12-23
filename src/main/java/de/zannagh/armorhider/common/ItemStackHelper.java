@@ -1,7 +1,6 @@
 package de.zannagh.armorhider.common;
 
 import net.minecraft.item.ItemStack;
-import net.minecraft.world.chunk.PaletteType;
 
 public class ItemStackHelper {
     

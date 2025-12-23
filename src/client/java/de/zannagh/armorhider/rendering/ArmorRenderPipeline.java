@@ -1,6 +1,5 @@
 package de.zannagh.armorhider.rendering;
 
-import com.mojang.datafixers.kinds.Const;
 import de.zannagh.armorhider.common.ItemStackHelper;
 import de.zannagh.armorhider.config.ClientConfigManager;
 import de.zannagh.armorhider.resources.ArmorModificationInfo;

@@ -97,9 +97,7 @@ public final class ClientConfigManager {
     public static void setServerConfig(List<PlayerConfig> serverConfig) {
         ArmorHider.LOGGER.info("Setting server config...");
         serverHashMap = new HashMap<>();
-        serverConfig.forEach(c -> {
-            serverHashMap.put(c.playerName, c);
-        });
+        serverConfig.forEach(c -> serverHashMap.put(c.playerName, c));
     }
 
     public static PlayerConfig get() { return CURRENT; }

@@ -38,19 +38,6 @@ class ArmorModificationContext {
         return modification != null && modification.ShouldModify();
     }
 
-    public static double getTransparency() {
-        ArmorModificationInfo modification = currentModification.get();
-        return modification != null ? modification.GetTransparency() : 1.0;
-    }
-
-    public static void clearSlot() {
-        currentSlot.remove();
-    }
-
-    public static void clearModification() {
-        currentModification.remove();
-    }
-
     public static void clearAll() {
         currentSlot.remove();
         currentModification.remove();

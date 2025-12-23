@@ -13,10 +13,6 @@ public class ArmorModificationInfo {
         playerName = config.playerName;
     }
 
-    public EquipmentSlot getEquipmentSlot() {
-        return equipmentSlot;
-    }
-
     public double GetTransparency(){
         var setting = switch (equipmentSlot) {
             case HEAD -> playerConfig.helmetTransparency;

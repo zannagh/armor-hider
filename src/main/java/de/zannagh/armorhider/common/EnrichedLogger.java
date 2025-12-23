@@ -13,7 +13,7 @@ public class EnrichedLogger implements Logger {
         return "[Zannagh's Armor Hider] - " + message;
     }
     
-    private Logger del;
+    private final Logger del;
     
     public EnrichedLogger(Logger delegate){
         del = delegate;

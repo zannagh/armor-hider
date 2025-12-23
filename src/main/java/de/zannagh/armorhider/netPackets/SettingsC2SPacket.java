@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import de.zannagh.armorhider.resources.PlayerConfig;
 import io.netty.buffer.ByteBuf;
-import jdk.jfr.Enabled;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.network.packet.CustomPayload;
