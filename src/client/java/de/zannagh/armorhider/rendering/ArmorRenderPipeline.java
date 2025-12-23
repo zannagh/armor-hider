@@ -4,6 +4,7 @@ import de.zannagh.armorhider.common.ItemStackHelper;
 import de.zannagh.armorhider.config.ClientConfigManager;
 import de.zannagh.armorhider.resources.ArmorModificationInfo;
 import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.RenderLayers;
 import net.minecraft.client.render.entity.state.LivingEntityRenderState;
 import net.minecraft.client.render.entity.state.PlayerEntityRenderState;
 import net.minecraft.entity.EquipmentSlot;
@@ -114,7 +115,7 @@ public class ArmorRenderPipeline {
         double transparency = modification.GetTransparency();
 
         if (transparency < 0.95) {
-            return RenderLayer.getEntityTranslucent(texture);
+            return RenderLayers.entityTranslucent(texture);
         }
 
         return originalLayer;
@@ -127,7 +128,7 @@ public class ArmorRenderPipeline {
         }
 
         if (modification.GetTransparency() < 1) {
-            return RenderLayer.createArmorTranslucent(net.minecraft.client.render.TexturedRenderLayers.ARMOR_TRIMS_ATLAS_TEXTURE);
+            return RenderLayers.armorTranslucent(net.minecraft.client.render.TexturedRenderLayers.ARMOR_TRIMS_ATLAS_TEXTURE);
         }
 
         return originalLayer;
