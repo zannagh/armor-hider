@@ -8,7 +8,6 @@ package de.zannagh.armorhider.mixin.client;
 
 import de.zannagh.armorhider.common.CombatManager;
 import de.zannagh.armorhider.config.ClientConfigManager;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.network.OtherClientPlayerEntity;
 import net.minecraft.entity.LivingEntity;

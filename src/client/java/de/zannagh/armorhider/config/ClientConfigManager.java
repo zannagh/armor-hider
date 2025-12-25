@@ -1,9 +1,6 @@
 package de.zannagh.armorhider.config;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import de.zannagh.armorhider.ArmorHider;
-import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.resources.PlayerConfig;
 import de.zannagh.armorhider.netPackets.SettingsC2SPacket;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -98,8 +95,6 @@ public final class ClientConfigManager {
             ArmorHider.LOGGER.error("Failed to save client config!", e);
         }
     }
-    
-    public static Map<String, PlayerConfig> getServerConfig(){ return serverHashMap; }
     
     public static void setServerConfig(List<PlayerConfig> serverConfig) {
         ArmorHider.LOGGER.info("Setting server config...");
