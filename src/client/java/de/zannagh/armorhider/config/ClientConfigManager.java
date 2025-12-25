@@ -3,6 +3,7 @@ package de.zannagh.armorhider.config;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import de.zannagh.armorhider.ArmorHider;
+import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.resources.PlayerConfig;
 import de.zannagh.armorhider.netPackets.SettingsC2SPacket;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -17,40 +18,48 @@ import java.nio.file.Path;
 import java.util.*;
 
 public final class ClientConfigManager {
-    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    
     private static final Path FILE = new File("config", "armor-hider.json").toPath();
 
     private static PlayerConfig CURRENT = PlayerConfig.defaults(UUID.randomUUID(), "dummy");
     
     private static Map<String, PlayerConfig> serverHashMap = new HashMap<>();
 
-    public static void updateName(String name){
+    public static void updateName(String name) {
         CURRENT.playerName = name;
         save();
     }
 
-    public static void updateId(UUID id){
+    public static void updateId(UUID id) {
         CURRENT.playerId = id;
         save();
     }
     
-    public static void setHelmetTransparency(double transparency){
+    public static void setHelmetTransparency(double transparency) {
         CURRENT.helmetTransparency = transparency;
         save();
     }
 
-    public static void setChestTransparency(double transparency){
+    public static void setChestTransparency(double transparency) {
         CURRENT.chestTransparency = transparency;
         save();
     }
 
-    public static void setLegsTransparency(double transparency){
+    public static void setLegsTransparency(double transparency) {
         CURRENT.legsTransparency = transparency;
         save();
     }
 
-    public static void setBootsTransparency(double transparency){
+    public static void setBootsTransparency(double transparency) {
         CURRENT.bootsTransparency = transparency;
+        save();
+    }
+    
+    /// Sets combat detection and saves the setting. Should only be used for admin players, as this
+    /// will force an update to all other clients, where the registrations of packets usually force all configs
+    /// to follow a mod/admin setting change.
+    public static void setCombatDetection(boolean enabled) {
+        CURRENT.enableCombatDetection = enabled;
         save();
     }
     
@@ -58,18 +67,16 @@ public final class ClientConfigManager {
         try {
             if (Files.exists(FILE)) {
                 try (Reader r = Files.newBufferedReader(FILE)) {
-                    PlayerConfig c = GSON.fromJson(r, PlayerConfig.class);
-                    if (c != null) {
-                        CURRENT = c;
-                        ArmorHider.LOGGER.info("Loaded client config from file.");
-                        ArmorHider.LOGGER.info("Current config: {}", GSON.toJson(CURRENT));
-                    }
+                    CURRENT = PlayerConfig.Deserialize(r);
+                    ArmorHider.LOGGER.info("Loaded client config from file.");
+                    ArmorHider.LOGGER.info("Current config: {}", ArmorHider.GSON.toJson(CURRENT));
                 }
             } else {
                 save();
             }
         } catch (IOException e) {
             ArmorHider.LOGGER.error("Failed to load client config!", e);
+            CURRENT = PlayerConfig.defaults(UUID.randomUUID(), "dummy");
         }
     }
 
@@ -77,7 +84,7 @@ public final class ClientConfigManager {
         try {
             Files.createDirectories(FILE.getParent());
             try (Writer w = Files.newBufferedWriter(FILE)) {
-                GSON.toJson(CURRENT, w);
+                ArmorHider.GSON.toJson(CURRENT, w);
                 ArmorHider.LOGGER.info("Saved client config to file.");
                 if (MinecraftClient.getInstance().isConnectedToLocalServer() 
                         || MinecraftClient.getInstance().getServer() != null 
@@ -124,5 +131,4 @@ public final class ClientConfigManager {
         ArmorHider.LOGGER.warn("Failed to get config for player {}. Returning local settings.", playerName);
         return CURRENT;
     }
-
 }

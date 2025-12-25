@@ -1,7 +1,5 @@
 package de.zannagh.armorhider.netPackets;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import de.zannagh.armorhider.resources.PlayerConfig;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.PacketCodec;
@@ -16,9 +14,10 @@ public record SettingsC2SPacket(PlayerConfig config) implements CustomPayload {
             PacketCodecs.DOUBLE, c -> c.config().chestTransparency,
             PacketCodecs.DOUBLE, c -> c.config().legsTransparency,
             PacketCodecs.DOUBLE, c -> c.config().bootsTransparency,
+            PacketCodecs.BOOLEAN, c -> c.config().enableCombatDetection,
             PacketCodecs.STRING, c -> c.config().playerId.toString(),
             PacketCodecs.STRING, c -> c.config().playerName,
-            (helmet, chest, legs, boots, uuid, playerName) -> new SettingsC2SPacket(PlayerConfig.FromPacket(helmet, chest, legs, boots, uuid, playerName))
+            (helmet, chest, legs, boots, combatDetection, uuid, playerName) -> new SettingsC2SPacket(PlayerConfig.FromPacket(helmet, chest, legs, boots, combatDetection == null || combatDetection, uuid, playerName))
     );
     @Override
     public Id<? extends CustomPayload> getId() {

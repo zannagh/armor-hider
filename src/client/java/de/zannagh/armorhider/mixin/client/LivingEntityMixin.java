@@ -7,6 +7,8 @@
 package de.zannagh.armorhider.mixin.client;
 
 import de.zannagh.armorhider.common.CombatManager;
+import de.zannagh.armorhider.config.ClientConfigManager;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.network.OtherClientPlayerEntity;
 import net.minecraft.entity.LivingEntity;
@@ -23,6 +25,10 @@ public class LivingEntityMixin {
             at = @At(value = "HEAD")
     )
     private void triggerCombat(DamageSource damageSource, CallbackInfo ci) {
+        if (!ClientConfigManager.get().enableCombatDetection) {
+            return;
+        }
+        
         if (damageSource.getAttacker() != null) {
             if ((Object) this instanceof ClientPlayerEntity player) {
                 CombatManager.logCombat(player.getName().getString());

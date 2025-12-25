@@ -18,6 +18,11 @@ public final class CommsManager {
             ArmorHider.LOGGER.info("Player joined with ID {}. Sending current server config to client...", handler.player.getUuidAsString());
             var p = handler.player;
             var currentConfig = ServerRuntime.store.getConfig();
+            boolean disableConfigDetection = currentConfig.stream().anyMatch(c -> !c.enableCombatDetection);
+            if (disableConfigDetection) {
+                ArmorHider.LOGGER.info("A player with mod or admin rights has disabled combat detection. Disabling combat detection for all players.");
+                currentConfig.forEach(c -> c.enableCombatDetection = false);
+            }
             sendToClient(p, currentConfig);
         });
         
@@ -26,13 +31,35 @@ public final class CommsManager {
             
             var data = payload.config();
             
+            boolean updateCombatDetection = false;
+            boolean newCombatDetection;
+            if (context.player().getPermissionLevel() < 3 && !data.enableCombatDetection) {
+                newCombatDetection = true;
+                data.enableCombatDetection = true;
+            }
+            else if (context.player().getPermissionLevel() >= 3) {
+                
+                ArmorHider.LOGGER.info("A player with permission level higher 3 has updated their settings. Checking combat detection..");
+                updateCombatDetection = true;
+                newCombatDetection = data.enableCombatDetection;
+            } else {
+                newCombatDetection = true;
+            }
+
             try {
                 ServerRuntime.put(data.playerId, data);
                 ServerRuntime.store.save();
+                if (updateCombatDetection) {
+                    ArmorHider.LOGGER.info("Updating all current configuration entries to change combat detection due to mod or admin change.");
+                    var currentServerConfig = ServerRuntime.store.getConfig();
+                    currentServerConfig.forEach(c -> c.enableCombatDetection = newCombatDetection);
+                    ServerRuntime.store.save();
+                }
                 sendToAllClientsButSender(data.playerId, ServerRuntime.store.getConfig());
             } catch(Exception e) {
                 ArmorHider.LOGGER.error("Failed to store player data!", e);
             }
+            
         });
     }
 

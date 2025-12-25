@@ -6,7 +6,10 @@
 
 package de.zannagh.armorhider.mixin.client;
 
+import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.config.ClientConfigManager;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.option.GameOptionsScreen;
 import net.minecraft.client.gui.screen.option.SkinOptionsScreen;
 import net.minecraft.client.gui.widget.OptionListWidget;
@@ -14,15 +17,20 @@ import net.minecraft.client.option.SimpleOption;
 import net.minecraft.text.Text;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(GameOptionsScreen.class)
-public abstract class SkinOptionsMixin {
+public abstract class SkinOptionsMixin extends Screen {
 
     @Shadow
     protected OptionListWidget body;
+
+    protected SkinOptionsMixin(Text title) {
+        super(title);
+    }
 
     @Inject(method = "init", at = @At("RETURN"))
     private void onAddOptions(CallbackInfo ci) {
@@ -93,5 +101,26 @@ public abstract class SkinOptionsMixin {
         );
 
         body.addSingleOptionEntry(bootsOption);
+
+        if (MinecraftClient.getInstance().player != null) {
+            SimpleOption<Boolean> enableCombatHiding = SimpleOption.ofBoolean(
+                    ArmorHiderClient.IsCurrentPlayerSinglePlayerHostOrAdmin ? "Armor Hider Combat Detection" : "No permissions to change combat detection",
+                    SimpleOption.constantTooltip(Text.literal("Enables detection of combat to force showing armor when a player is in combat.")),
+                    (Text, Value) -> net.minecraft.text.Text.literal(
+                            ArmorHiderClient.IsCurrentPlayerSinglePlayerHostOrAdmin
+                                    ? (Value ? "Enabled" : "Disabled")
+                                    : ClientConfigManager.get().enableCombatDetection ? "Enabled" : "Disabled"),
+                    ClientConfigManager.get().enableCombatDetection,
+                    SkinOptionsMixin::setCombatDetection
+            );
+            body.addSingleOptionEntry(enableCombatHiding);
+        }
+    }
+    
+    @Unique
+    private static void setCombatDetection(boolean value){
+        if (ArmorHiderClient.IsCurrentPlayerSinglePlayerHostOrAdmin) {
+            ClientConfigManager.setCombatDetection(value);
+        }
     }
 }
