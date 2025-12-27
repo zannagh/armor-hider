@@ -54,6 +54,7 @@ public class LivingEntityMixin {
                 CombatManager.logCombat(Objects.requireNonNull(otherPlayer.getDisplayName()).getString());
             }
         }
+        
     }
 
     /**
