@@ -72,11 +72,6 @@ public class LivingEntityMixin {
         boolean isClientPlayer = !(player instanceof OtherClientPlayerEntity);
         boolean serverUsesCombatDetection = ClientConfigManager.getServerConfig().enableCombatDetection;
 
-        // In singleplayer, always use the client player's preference
-        if (MinecraftClient.getInstance().isInSingleplayer()) {
-            return ClientConfigManager.get().enableCombatDetection;
-        }
-
         // If server enforces combat detection, always log combat (potential PvP advantage prevention)
         if (serverUsesCombatDetection) {
             return true;
