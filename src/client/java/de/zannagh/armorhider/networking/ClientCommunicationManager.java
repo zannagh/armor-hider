@@ -7,7 +7,6 @@ import de.zannagh.armorhider.netPackets.SettingsC2SPacket;
 import de.zannagh.armorhider.netPackets.SettingsS2CPacket;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.world.chunk.PaletteType;
 
 public final class ClientCommunicationManager {
     public static void initClient() {

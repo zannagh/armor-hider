@@ -8,6 +8,7 @@ import de.zannagh.armorhider.netPackets.SettingsC2SPacket;
 import de.zannagh.armorhider.resources.ServerConfiguration;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.network.PlayerListEntry;
 
 import java.io.File;
 import java.io.IOException;
@@ -129,7 +130,7 @@ public final class ClientConfigManager {
     public static void set(PlayerConfig cfg) { CURRENT = cfg; save(); }
 
     public static PlayerConfig getConfigForPlayer(String playerName) {
-        if (playerName == null) {
+        if (playerName == null || playerName.equals(ArmorHiderClient.CurrentPlayerName)) {
             return CURRENT;
         }
         
@@ -139,7 +140,12 @@ public final class ClientConfigManager {
         }
         else {
             if (!Objects.requireNonNull(MinecraftClient.getInstance().getNetworkHandler()).getProfile().name().equals(playerName)) {
-                serverConfiguration.putOnRuntime(playerName, CURRENT);
+                UUID playerId = null;
+                if (Objects.requireNonNull(MinecraftClient.getInstance().getNetworkHandler()).getCaseInsensitivePlayerInfo(playerName) instanceof PlayerListEntry entry) {
+                    playerId = entry.getProfile().id();
+                }
+                
+                serverConfiguration.putOnRuntime(playerName, playerId, CURRENT);
                 return CURRENT;
             }
             ArmorHider.LOGGER.warn("Failed to get config for player by id, trying to retrieve by player name. {} {}", playerName, playerName);

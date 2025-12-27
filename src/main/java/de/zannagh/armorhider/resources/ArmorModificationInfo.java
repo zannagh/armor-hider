@@ -3,17 +3,10 @@ package de.zannagh.armorhider.resources;
 import de.zannagh.armorhider.common.CombatManager;
 import net.minecraft.entity.EquipmentSlot;
 
-public class ArmorModificationInfo {
-    private final PlayerConfig playerConfig;
-    private final String playerName;
-    private final EquipmentSlot equipmentSlot;
-    public ArmorModificationInfo(EquipmentSlot slot, PlayerConfig config) {
-        equipmentSlot = slot;
-        playerConfig = config;
-        playerName = config.playerName;
-    }
+public record ArmorModificationInfo(EquipmentSlot equipmentSlot, PlayerConfig playerConfig) {
 
-    public double GetTransparency(){
+    public static final double TransparencyStep = 0.05;
+    public double GetTransparency() {
         var setting = switch (equipmentSlot) {
             case HEAD -> playerConfig.helmetTransparency;
             case CHEST -> playerConfig.chestTransparency;
@@ -21,26 +14,16 @@ public class ArmorModificationInfo {
             case FEET -> playerConfig.bootsTransparency;
             default -> 1.0;
         };
-        return CombatManager.transformTransparencyBasedOnCombat(playerName, setting);
+        return CombatManager.transformTransparencyBasedOnCombat(playerConfig.playerName, setting);
     }
 
     public boolean ShouldHide() {
         double transparency = GetTransparency();
-        return transparency < 0.08;
+        return transparency < TransparencyStep + TransparencyStep / 2;
     }
 
-    public boolean ShouldModify(){
+    public boolean ShouldModify() {
         double transparency = GetTransparency();
-        return transparency < 0.995;
-    }
-
-    public String GetSlotName(){
-        return switch (equipmentSlot) {
-            case HEAD -> "head";
-            case CHEST -> "chest";
-            case LEGS -> "legs";
-            case FEET -> "feet";
-            default -> "none";
-        };
+        return transparency < 1 - TransparencyStep / 2;
     }
 }

@@ -35,9 +35,7 @@ public record SettingsS2CPacket(List<PlayerConfig> config, Boolean serverCombatD
     
     public ServerConfiguration getConfig(){
         var serverMap = new HashMap<UUID, PlayerConfig>();
-        config.forEach(c ->{
-            serverMap.put(c.playerId, c);
-        });
+        config.forEach(c -> serverMap.put(c.playerId, c));
         return new ServerConfiguration(serverMap, serverCombatDetection);
     }
 

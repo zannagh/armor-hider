@@ -5,7 +5,6 @@ import de.zannagh.armorhider.ArmorHider;
 import net.minecraft.util.Pair;
 
 import java.io.Reader;
-import java.sql.Ref;
 import java.util.UUID;
 
 public class PlayerConfig {
@@ -35,7 +34,7 @@ public class PlayerConfig {
     }
     
     private Boolean setNullEntriesToDefault(UUID uuid, String name){
-        Boolean hasChangedSettings = false;
+        boolean hasChangedSettings = false;
         var defaults = defaults(uuid, name);
         if (playerId == null) {
             playerId = defaults.playerId;

@@ -24,10 +24,13 @@ public final class CombatManager {
         combatTimes.put(player, System.currentTimeMillis());
     }
     
-    public static double transformTransparencyBasedOnCombat(String player, double transparency){
+    public static double transformTransparencyBasedOnCombat(String playerName, double transparency){
         clearCombatTimesOlderThanTenSeconds();
-        if (combatTimes.containsKey(player)){
-            var lastCombatTime = combatTimes.get(player);
+        if (playerName.isEmpty()) {
+            return transparency;
+        }
+        if (combatTimes.containsKey(playerName)){
+            var lastCombatTime = combatTimes.get(playerName);
             
             var milliSecondDiff =  System.currentTimeMillis() - lastCombatTime;
             var steps = milliSecondDiff / 25;

@@ -5,6 +5,7 @@ import de.zannagh.armorhider.config.ClientConfigManager;
 import de.zannagh.armorhider.networking.ClientCommunicationManager;
 import net.fabricmc.api.ClientModInitializer;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.network.ClientPlayerEntity;
 
 public class ArmorHiderClient implements ClientModInitializer {
 
@@ -14,6 +15,8 @@ public class ArmorHiderClient implements ClientModInitializer {
             MinecraftClient.getInstance().isConnectedToLocalServer()
                 || MinecraftClient.getInstance().getServer() != null
                 || (MinecraftClient.getInstance().getNetworkHandler() != null && MinecraftClient.getInstance().getNetworkHandler().getServerInfo() != null);
+    
+    public static String CurrentPlayerName = MinecraftClient.getInstance().player instanceof ClientPlayerEntity clientPlayer && clientPlayer.getDisplayName() instanceof net.minecraft.text.Text displayText ? displayText.getString() : null;
     
     @Override
 	public void onInitializeClient() {

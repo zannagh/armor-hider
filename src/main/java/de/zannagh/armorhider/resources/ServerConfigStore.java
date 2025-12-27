@@ -94,6 +94,7 @@ public final class ServerConfigStore {
             }
         });
         configuration.playerNameConfigs.put(cfg.playerName, cfg);
+        
         Map<String, PlayerConfig> overwrites2 = new HashMap<>();
         configuration.playerNameConfigs.forEach((e, k) -> {
             if (k.playerName.equals(cfg.playerName)){

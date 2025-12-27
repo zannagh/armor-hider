@@ -13,11 +13,14 @@ import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.network.OtherClientPlayerEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.entity.player.PlayerEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import java.util.Objects;
 
 @Mixin(LivingEntity.class)
 public class LivingEntityMixin {
@@ -31,24 +34,24 @@ public class LivingEntityMixin {
         }
 
         if ((Object) this instanceof ClientPlayerEntity player) {
-            if (shouldLogCombatForPlayer(player.getName().getString(), true)) {
-                CombatManager.logCombat(player.getName().getString());
+            if (shouldLogCombatForPlayer(player)) {
+                CombatManager.logCombat(player.getDisplayName().getString());
             }
         }
         if ((Object) this instanceof OtherClientPlayerEntity otherPlayer) {
-            if (shouldLogCombatForPlayer(otherPlayer.getName().getString(), false)) {
-                CombatManager.logCombat(otherPlayer.getName().getString());
+            if (shouldLogCombatForPlayer(otherPlayer)) {
+                CombatManager.logCombat(otherPlayer.getDisplayName().getString());
             }
         }
 
         if (damageSource.getAttacker() instanceof ClientPlayerEntity player) {
-            if (shouldLogCombatForPlayer(player.getName().getString(), true)) {
-                CombatManager.logCombat(player.getName().getString());
+            if (shouldLogCombatForPlayer(player)) {
+                CombatManager.logCombat(Objects.requireNonNull(player.getDisplayName()).getString());
             }
         }
         if (damageSource.getAttacker() instanceof OtherClientPlayerEntity otherPlayer) {
-            if (shouldLogCombatForPlayer(otherPlayer.getName().getString(), false)) {
-                CombatManager.logCombat(otherPlayer.getName().getString());
+            if (shouldLogCombatForPlayer(otherPlayer)) {
+                CombatManager.logCombat(Objects.requireNonNull(otherPlayer.getDisplayName()).getString());
             }
         }
     }
@@ -60,12 +63,12 @@ public class LivingEntityMixin {
      * - If server has combat detection enabled: always log combat (ignore player preference)
      * - If server has combat detection disabled: use the player's individual preference
      *
-     * @param playerName The name of the player to check
-     * @param isClientPlayer Whether this is the local client player
+     * @param player The player entity to check.
      * @return true if combat should be logged for this player
      */
     @Unique
-    private static boolean shouldLogCombatForPlayer(String playerName, boolean isClientPlayer) {
+    private static boolean shouldLogCombatForPlayer(PlayerEntity player) {
+        boolean isClientPlayer = !(player instanceof OtherClientPlayerEntity);
         boolean serverUsesCombatDetection = ClientConfigManager.getServerConfig().enableCombatDetection;
 
         // In singleplayer, always use the client player's preference
@@ -83,7 +86,7 @@ public class LivingEntityMixin {
         if (isClientPlayer) {
             playerUsesCombatDetection = ClientConfigManager.get().enableCombatDetection;
         } else {
-            var playerConfig = ClientConfigManager.getServerConfig().getPlayerConfigOrDefault(playerName);
+            var playerConfig = ClientConfigManager.getServerConfig().getPlayerConfigOrDefault(player);
             playerUsesCombatDetection = playerConfig != null ? playerConfig.enableCombatDetection : true;
         }
 

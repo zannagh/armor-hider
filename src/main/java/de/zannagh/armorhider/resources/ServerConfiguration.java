@@ -1,5 +1,8 @@
 package de.zannagh.armorhider.resources;
 
+import net.minecraft.entity.player.PlayerEntity;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.*;
 
 public class ServerConfiguration {
@@ -15,9 +18,14 @@ public class ServerConfiguration {
     public ServerConfiguration(Map<UUID, PlayerConfig> playerConfigs, Boolean enableCombatDetection) {
         this.playerConfigs = playerConfigs != null ? playerConfigs : new HashMap<>();
         this.enableCombatDetection = enableCombatDetection;
-        this.playerConfigs.values().forEach(c ->{
-            playerNameConfigs.put(c.playerName, c);
-        });
+        this.playerConfigs.values().forEach(c -> playerNameConfigs.put(c.playerName, c));
+    }
+
+    public PlayerConfig getPlayerConfigOrDefault(PlayerEntity player) {
+        if (getPlayerConfigOrDefault(player.getUuid()) instanceof PlayerConfig uuidConfig && Objects.equals(uuidConfig.playerName, Objects.requireNonNull(player.getDisplayName()).getString())) {
+            return uuidConfig;
+        }
+        return getPlayerConfigOrDefault(Objects.requireNonNull(player.getDisplayName()).getString());
     }
     
     public PlayerConfig getPlayerConfigOrDefault(UUID uuid) {
@@ -32,8 +40,11 @@ public class ServerConfiguration {
         return new ArrayList<>(playerConfigs.values());
     }
     
-    public void putOnRuntime(String playerName, PlayerConfig playerConfig){
+    public void putOnRuntime(@NotNull String playerName, UUID playerId, PlayerConfig playerConfig) {
         playerNameConfigs.put(playerName, playerConfig);
+        if (playerId != null) {
+            playerConfigs.put(playerId, playerConfig);
+        }
     }
 
     public static ServerConfiguration fromLegacyFormat(Map<UUID, PlayerConfig> playerConfigs) {
