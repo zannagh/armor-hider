@@ -50,17 +50,4 @@ public class ServerConfiguration {
     public static ServerConfiguration fromLegacyFormat(Map<UUID, PlayerConfig> playerConfigs) {
         return new ServerConfiguration(playerConfigs, true);
     }
-    
-    public void replaceNullValues(){
-        playerConfigs.values().forEach(c ->{
-            if (c.enableCombatDetection == null) {
-                c.enableCombatDetection = true;
-            }
-        });
-        playerNameConfigs.values().forEach(c ->{
-            if (c.enableCombatDetection == null) {
-                c.enableCombatDetection = true;
-            }
-        });
-    }
 }

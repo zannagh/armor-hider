@@ -61,13 +61,10 @@ public final class ClientConfigManager {
     }
     
     public static void load() {
-        boolean hasChangedLocalSetting = false;
         try {
             if (Files.exists(FILE)) {
                 try (Reader r = Files.newBufferedReader(FILE)) {
-                    var deserializedConfig = PlayerConfig.Deserialize(r);
-                    CURRENT = deserializedConfig.getLeft();
-                    hasChangedLocalSetting = deserializedConfig.getRight();
+                    CURRENT = PlayerConfig.Deserialize(r);
                     ArmorHider.LOGGER.info("Loaded client config from file.");
                     ArmorHider.LOGGER.info("Current config: {}", ArmorHider.GSON.toJson(CURRENT));
                 }
@@ -78,9 +75,6 @@ public final class ClientConfigManager {
             ArmorHider.LOGGER.error("Failed to load client config!", e);
             CURRENT = PlayerConfig.defaults(UUID.randomUUID(), "dummy");
         }
-        if (hasChangedLocalSetting) {
-            save();
-        }
     }
 
     public static void save() {
@@ -89,7 +83,7 @@ public final class ClientConfigManager {
             try (Writer w = Files.newBufferedWriter(FILE)) {
                 ArmorHider.GSON.toJson(CURRENT, w);
                 ArmorHider.LOGGER.info("Saved client config to file.");
-                if (ArmorHiderClient.IsClientConnectedToServer) {
+                if (ArmorHiderClient.isClientConnectedToServer()) {
                     ArmorHider.LOGGER.info("Sending to server...");
                     ClientPlayNetworking.send(new SettingsC2SPacket(get()));
                     ArmorHider.LOGGER.info("Send client config package to server.");
@@ -101,7 +95,7 @@ public final class ClientConfigManager {
     }
     
     public static void setAndSendServerCombatDetection(boolean enabled){
-        if (!ArmorHiderClient.IsCurrentPlayerSinglePlayerHostOrAdmin) {
+        if (!ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin) {
             return;
         }
         serverConfiguration.enableCombatDetection = enabled;
@@ -109,7 +103,7 @@ public final class ClientConfigManager {
     }
     
     public static void setAndSendServerConfig(ServerConfiguration serverConfig) {
-        if (!ArmorHiderClient.IsCurrentPlayerSinglePlayerHostOrAdmin) {
+        if (!ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin) {
             ArmorHider.LOGGER.info("Player is no admin, suppressing update...");
             return;
         }
@@ -130,7 +124,7 @@ public final class ClientConfigManager {
     public static void set(PlayerConfig cfg) { CURRENT = cfg; save(); }
 
     public static PlayerConfig getConfigForPlayer(String playerName) {
-        if (playerName == null || playerName.equals(ArmorHiderClient.CurrentPlayerName)) {
+        if (playerName == null || playerName.equals(ArmorHiderClient.getCurrentPlayerName())) {
             return CURRENT;
         }
         

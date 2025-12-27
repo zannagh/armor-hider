@@ -2,7 +2,6 @@
 package de.zannagh.armorhider.resources;
 
 import de.zannagh.armorhider.ArmorHider;
-import net.minecraft.util.Pair;
 
 import java.io.Reader;
 import java.util.UUID;
@@ -27,14 +26,13 @@ public class PlayerConfig {
         playerName = name;
     }
     
-    public static Pair<PlayerConfig, Boolean> Deserialize(Reader reader){
+    public static PlayerConfig Deserialize(Reader reader){
         PlayerConfig c = ArmorHider.GSON.fromJson(reader, PlayerConfig.class);
-        var hasChanged = c.setNullEntriesToDefault(c.playerId, c.playerName);
-        return new Pair<>(c, hasChanged);
+        c.setNullEntriesToDefault(c.playerId, c.playerName);
+        return c;
     }
     
-    private Boolean setNullEntriesToDefault(UUID uuid, String name){
-        boolean hasChangedSettings = false;
+    private void setNullEntriesToDefault(UUID uuid, String name){
         var defaults = defaults(uuid, name);
         if (playerId == null) {
             playerId = defaults.playerId;
@@ -42,11 +40,6 @@ public class PlayerConfig {
         if (playerName == null) {
             playerName = defaults.playerName;
         }
-        if (enableCombatDetection == null) {
-            enableCombatDetection = defaults.enableCombatDetection;
-            hasChangedSettings = true;
-        }
-        return hasChangedSettings;
     }
     
     public double helmetTransparency = 1.0;
@@ -55,6 +48,6 @@ public class PlayerConfig {
     public double bootsTransparency = 1.0;
     public UUID playerId;
     public String playerName;
-    public Boolean enableCombatDetection = true;
+    public boolean enableCombatDetection = true;
     public static PlayerConfig defaults(UUID playerId, String playerName) { return new PlayerConfig(playerId, playerName); }
 }

@@ -109,7 +109,7 @@ public abstract class SkinOptionsMixin extends Screen {
         );
         body.addSingleOptionEntry(enableCombatHiding);
         
-        if (ArmorHiderClient.IsCurrentPlayerSinglePlayerHostOrAdmin) {
+        if (ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin) {
             SimpleOption<Boolean> combatHidingOnServer = SimpleOption.ofBoolean(
                     "Armor Hider Combat Detection (Server)",
                     SimpleOption.constantTooltip(Text.literal("Enables detection of combat server-wide to force showing armor when a player is in combat. If enabled, this will override individual's detection setting.")),

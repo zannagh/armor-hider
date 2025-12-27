@@ -9,14 +9,17 @@ import net.minecraft.client.network.ClientPlayerEntity;
 
 public class ArmorHiderClient implements ClientModInitializer {
 
-    public static Boolean IsCurrentPlayerSinglePlayerHostOrAdmin = false;
+    public static Boolean isCurrentPlayerSinglePlayerHostOrAdmin = false;
     
-    public static Boolean IsClientConnectedToServer = 
-            MinecraftClient.getInstance().isConnectedToLocalServer()
+    public static Boolean isClientConnectedToServer() {
+        return MinecraftClient.getInstance().isConnectedToLocalServer()
                 || MinecraftClient.getInstance().getServer() != null
                 || (MinecraftClient.getInstance().getNetworkHandler() != null && MinecraftClient.getInstance().getNetworkHandler().getServerInfo() != null);
+    }
     
-    public static String CurrentPlayerName = MinecraftClient.getInstance().player instanceof ClientPlayerEntity clientPlayer && clientPlayer.getDisplayName() instanceof net.minecraft.text.Text displayText ? displayText.getString() : null;
+    public static String getCurrentPlayerName() { 
+        return MinecraftClient.getInstance().player instanceof ClientPlayerEntity clientPlayer && clientPlayer.getDisplayName() instanceof net.minecraft.text.Text displayText ? displayText.getString() : null;
+    }
     
     @Override
 	public void onInitializeClient() {

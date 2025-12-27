@@ -28,15 +28,15 @@ public final class ClientCommunicationManager {
 
             if (client.getServer() != null) {
                 try {
-                   ArmorHiderClient.IsCurrentPlayerSinglePlayerHostOrAdmin = client.getServer().getPermissionLevel(client.player.getPlayerConfigEntry()) >= 3;
+                   ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin = client.getServer().getPermissionLevel(client.player.getPlayerConfigEntry()) >= 3;
                 }
                 catch (Exception ignored) {
                     ArmorHider.LOGGER.error("Failed to set permissions for player {}.", playerName);
                 }
             }
 
-            if (!ArmorHiderClient.IsClientConnectedToServer) {
-                ArmorHiderClient.IsCurrentPlayerSinglePlayerHostOrAdmin = true;
+            if (!ArmorHiderClient.isClientConnectedToServer()) {
+                ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin = true;
             }
             ClientPlayNetworking.send(new SettingsC2SPacket(currentConfig));
         });

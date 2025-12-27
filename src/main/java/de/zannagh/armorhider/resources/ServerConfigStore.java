@@ -53,7 +53,8 @@ public final class ServerConfigStore {
                             Map<UUID, PlayerConfig> legacyData = GSON.fromJson(element, LEGACY_MAP_TYPE);
                             if (legacyData != null) {
                                 configuration = ServerConfiguration.fromLegacyFormat(legacyData);
-                                ArmorHider.LOGGER.info("Loaded server config (legacy format). Will be migrated on next save.");
+                                ArmorHider.LOGGER.info("Migrated server config (legacy format).");
+                                save();
                             }
                         }
                     }
@@ -69,8 +70,6 @@ public final class ServerConfigStore {
         } catch (Exception e) {
             ArmorHider.LOGGER.error("Server config load failed", e);
         }
-        configuration.replaceNullValues();
-        save();
     }
 
     public void save() {
@@ -94,15 +93,7 @@ public final class ServerConfigStore {
             }
         });
         configuration.playerNameConfigs.put(cfg.playerName, cfg);
-        
-        Map<String, PlayerConfig> overwrites2 = new HashMap<>();
-        configuration.playerNameConfigs.forEach((e, k) -> {
-            if (k.playerName.equals(cfg.playerName)){
-                overwrites2.put(e, k);
-            }
-        });
         overwrites.forEach((e, k) -> configuration.playerConfigs.replace(e, k));
-        overwrites2.forEach((e, k) -> configuration.playerNameConfigs.replace(e, k));
         save();
     }
 }

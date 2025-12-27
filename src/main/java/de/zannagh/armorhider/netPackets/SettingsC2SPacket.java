@@ -17,7 +17,7 @@ public record SettingsC2SPacket(PlayerConfig config) implements CustomPayload {
             PacketCodecs.BOOLEAN, c -> c.config().enableCombatDetection,
             PacketCodecs.STRING, c -> c.config().playerId.toString(),
             PacketCodecs.STRING, c -> c.config().playerName,
-            (helmet, chest, legs, boots, combatDetection, uuid, playerName) -> new SettingsC2SPacket(PlayerConfig.FromPacket(helmet, chest, legs, boots, combatDetection == null || combatDetection, uuid, playerName))
+            (helmet, chest, legs, boots, combatDetection, uuid, playerName) -> new SettingsC2SPacket(PlayerConfig.FromPacket(helmet, chest, legs, boots, combatDetection != null ? combatDetection : true, uuid, playerName))
     );
     @Override
     public Id<? extends CustomPayload> getId() {
