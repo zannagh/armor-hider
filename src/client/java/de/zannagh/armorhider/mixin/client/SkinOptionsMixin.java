@@ -102,25 +102,24 @@ public abstract class SkinOptionsMixin extends Screen {
 
         body.addSingleOptionEntry(bootsOption);
 
-        if (MinecraftClient.getInstance().player != null) {
-            SimpleOption<Boolean> enableCombatHiding = SimpleOption.ofBoolean(
-                    ArmorHiderClient.IsCurrentPlayerSinglePlayerHostOrAdmin ? "Armor Hider Combat Detection" : "No permissions to change combat detection",
-                    SimpleOption.constantTooltip(Text.literal("Enables detection of combat to force showing armor when a player is in combat.")),
-                    (Text, Value) -> net.minecraft.text.Text.literal(
-                            ArmorHiderClient.IsCurrentPlayerSinglePlayerHostOrAdmin
-                                    ? (Value ? "Enabled" : "Disabled")
-                                    : ClientConfigManager.get().enableCombatDetection ? "Enabled" : "Disabled"),
-                    ClientConfigManager.get().enableCombatDetection,
-                    SkinOptionsMixin::setCombatDetection
-            );
-            body.addSingleOptionEntry(enableCombatHiding);
-        }
-    }
-    
-    @Unique
-    private static void setCombatDetection(boolean value){
+        SimpleOption<Boolean> enableCombatHiding = SimpleOption.ofBoolean(
+                "Armor Hider Combat Detection",
+                SimpleOption.constantTooltip(Text.literal("Enables detection of combat to show your armor when you are in combat.")),
+                (Text, Value) -> net.minecraft.text.Text.literal(Value ? "Enabled" : "Disabled"),
+                ClientConfigManager.get().enableCombatDetection,
+                ClientConfigManager::setCombatDetection
+        );
+        body.addSingleOptionEntry(enableCombatHiding);
+        
         if (ArmorHiderClient.IsCurrentPlayerSinglePlayerHostOrAdmin) {
-            ClientConfigManager.setCombatDetection(value);
+            SimpleOption<Boolean> combatHidingOnServer = SimpleOption.ofBoolean(
+                    "Armor Hider Combat Detection (Server)",
+                    SimpleOption.constantTooltip(Text.literal("Enables detection of combat server-wide to force showing armor when a player is in combat. If enabled, this will override individual's detection setting.")),
+                    (Text, Value) -> net.minecraft.text.Text.literal(Value ? "Enabled" : "Disabled"),
+                    ClientConfigManager.getServerConfig().enableCombatDetection,
+                    ClientConfigManager::setAndSendServerCombatDetection
+            );
+            body.addSingleOptionEntry(combatHidingOnServer);
         }
     }
 }

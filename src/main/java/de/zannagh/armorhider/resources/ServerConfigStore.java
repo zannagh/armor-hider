@@ -1,7 +1,6 @@
 package de.zannagh.armorhider.resources;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import de.zannagh.armorhider.ArmorHider;
 
@@ -15,10 +14,10 @@ import java.util.*;
 
 public final class ServerConfigStore {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-    private static final Type MAP_TYPE = new TypeToken<Map<UUID, PlayerConfig>>(){}.getType();
+    private static final Type LEGACY_MAP_TYPE = new TypeToken<Map<UUID, PlayerConfig>>(){}.getType();
 
     private final Path file;
-    private Map<UUID, PlayerConfig> data = new HashMap<>();
+    private ServerConfiguration configuration = new ServerConfiguration();
 
     private ServerConfigStore(Path file) { this.file = file; }
 
@@ -28,20 +27,40 @@ public final class ServerConfigStore {
         store.load();
         return store;
     }
-    
-    public List<PlayerConfig> getConfig() {
-        return new ArrayList<>(data.values());
+
+    public ServerConfiguration getConfig() { return configuration; }
+
+    public void setServerCombatDetection(Boolean enabled) {
+        configuration.enableCombatDetection = enabled;
     }
 
     private void load() {
         try {
             if (Files.exists(file)) {
                 try (Reader r = Files.newBufferedReader(file)) {
-                    Map<UUID, PlayerConfig> m = GSON.fromJson(r, MAP_TYPE);
-                    if (m != null) {
-                        data = m;
-                        ArmorHider.LOGGER.info("Loaded server config.");
+                    JsonElement element = JsonParser.parseReader(r);
+
+                    if (element.isJsonObject()) {
+                        JsonObject obj = element.getAsJsonObject();
+
+                        // Check if this is the new format (has "playerConfigs" field)
+                        if (obj.has("playerConfigs")) {
+                            // New format - deserialize directly
+                            configuration = GSON.fromJson(element, ServerConfiguration.class);
+                            ArmorHider.LOGGER.info("Loaded server config (new format).");
+                        } else {
+                            // Old format - it's a flat map of UUID -> PlayerConfig
+                            Map<UUID, PlayerConfig> legacyData = GSON.fromJson(element, LEGACY_MAP_TYPE);
+                            if (legacyData != null) {
+                                configuration = ServerConfiguration.fromLegacyFormat(legacyData);
+                                ArmorHider.LOGGER.info("Loaded server config (legacy format). Will be migrated on next save.");
+                            }
+                        }
                     }
+                }
+                if (configuration.enableCombatDetection == null) {
+                    configuration.enableCombatDetection = true;
+                    save();
                 }
             } else {
                 save();
@@ -50,27 +69,39 @@ public final class ServerConfigStore {
         } catch (Exception e) {
             ArmorHider.LOGGER.error("Server config load failed", e);
         }
+        configuration.replaceNullValues();
+        save();
     }
 
     public void save() {
         try {
             Files.createDirectories(file.getParent());
             try (Writer w = Files.newBufferedWriter(file)) {
-                GSON.toJson(data, MAP_TYPE, w);
+                GSON.toJson(configuration, ServerConfiguration.class, w);
                 ArmorHider.LOGGER.info("Saved server config.");
             }
         } catch (Exception e) {
             ArmorHider.LOGGER.error("Server config save failed", e);
         }
     }
+
     public void put(UUID uuid, PlayerConfig cfg) {
-        data.put(uuid, cfg);
+        configuration.playerConfigs.put(uuid, cfg);
         Map<UUID, PlayerConfig> overwrites = new HashMap<>();
-        data.forEach((e, k) -> {
+        configuration.playerConfigs.forEach((e, k) -> {
             if (k.playerName.equals(cfg.playerName)){
                 overwrites.put(e, k);
             }
         });
-        overwrites.forEach((e, k) -> data.replace(e, k));
+        configuration.playerNameConfigs.put(cfg.playerName, cfg);
+        Map<String, PlayerConfig> overwrites2 = new HashMap<>();
+        configuration.playerNameConfigs.forEach((e, k) -> {
+            if (k.playerName.equals(cfg.playerName)){
+                overwrites2.put(e, k);
+            }
+        });
+        overwrites.forEach((e, k) -> configuration.playerConfigs.replace(e, k));
+        overwrites2.forEach((e, k) -> configuration.playerNameConfigs.replace(e, k));
+        save();
     }
 }

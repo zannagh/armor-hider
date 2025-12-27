@@ -1,8 +1,11 @@
 package de.zannagh.armorhider.config;
 
 import de.zannagh.armorhider.ArmorHider;
+import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.netPackets.AdminSettingsC2SPacket;
 import de.zannagh.armorhider.resources.PlayerConfig;
 import de.zannagh.armorhider.netPackets.SettingsC2SPacket;
+import de.zannagh.armorhider.resources.ServerConfiguration;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.MinecraftClient;
 
@@ -20,8 +23,7 @@ public final class ClientConfigManager {
 
     private static PlayerConfig CURRENT = PlayerConfig.defaults(UUID.randomUUID(), "dummy");
     
-    private static Map<String, PlayerConfig> serverHashMap = new HashMap<>();
-
+    private static ServerConfiguration serverConfiguration = new ServerConfiguration();
     public static void updateName(String name) {
         CURRENT.playerName = name;
         save();
@@ -52,19 +54,19 @@ public final class ClientConfigManager {
         save();
     }
     
-    /// Sets combat detection and saves the setting. Should only be used for admin players, as this
-    /// will force an update to all other clients, where the registrations of packets usually force all configs
-    /// to follow a mod/admin setting change.
     public static void setCombatDetection(boolean enabled) {
         CURRENT.enableCombatDetection = enabled;
         save();
     }
     
     public static void load() {
+        boolean hasChangedLocalSetting = false;
         try {
             if (Files.exists(FILE)) {
                 try (Reader r = Files.newBufferedReader(FILE)) {
-                    CURRENT = PlayerConfig.Deserialize(r);
+                    var deserializedConfig = PlayerConfig.Deserialize(r);
+                    CURRENT = deserializedConfig.getLeft();
+                    hasChangedLocalSetting = deserializedConfig.getRight();
                     ArmorHider.LOGGER.info("Loaded client config from file.");
                     ArmorHider.LOGGER.info("Current config: {}", ArmorHider.GSON.toJson(CURRENT));
                 }
@@ -75,6 +77,9 @@ public final class ClientConfigManager {
             ArmorHider.LOGGER.error("Failed to load client config!", e);
             CURRENT = PlayerConfig.defaults(UUID.randomUUID(), "dummy");
         }
+        if (hasChangedLocalSetting) {
+            save();
+        }
     }
 
     public static void save() {
@@ -83,9 +88,7 @@ public final class ClientConfigManager {
             try (Writer w = Files.newBufferedWriter(FILE)) {
                 ArmorHider.GSON.toJson(CURRENT, w);
                 ArmorHider.LOGGER.info("Saved client config to file.");
-                if (MinecraftClient.getInstance().isConnectedToLocalServer() 
-                        || MinecraftClient.getInstance().getServer() != null 
-                        || (MinecraftClient.getInstance().getNetworkHandler() != null && MinecraftClient.getInstance().getNetworkHandler().getServerInfo() != null)) {
+                if (ArmorHiderClient.IsClientConnectedToServer) {
                     ArmorHider.LOGGER.info("Sending to server...");
                     ClientPlayNetworking.send(new SettingsC2SPacket(get()));
                     ArmorHider.LOGGER.info("Send client config package to server.");
@@ -96,31 +99,52 @@ public final class ClientConfigManager {
         }
     }
     
-    public static void setServerConfig(List<PlayerConfig> serverConfig) {
+    public static void setAndSendServerCombatDetection(boolean enabled){
+        if (!ArmorHiderClient.IsCurrentPlayerSinglePlayerHostOrAdmin) {
+            return;
+        }
+        serverConfiguration.enableCombatDetection = enabled;
+        setAndSendServerConfig(serverConfiguration);
+    }
+    
+    public static void setAndSendServerConfig(ServerConfiguration serverConfig) {
+        if (!ArmorHiderClient.IsCurrentPlayerSinglePlayerHostOrAdmin) {
+            ArmorHider.LOGGER.info("Player is no admin, suppressing update...");
+            return;
+        }
+        serverConfiguration = serverConfig;
+        ArmorHider.LOGGER.info("Sending server config to server...");
+        ClientPlayNetworking.send(new AdminSettingsC2SPacket(serverConfig.enableCombatDetection));
+    }
+    
+    public static void setServerConfig(ServerConfiguration serverConfig) {
         ArmorHider.LOGGER.info("Setting server config...");
-        serverHashMap = new HashMap<>();
-        serverConfig.forEach(c -> serverHashMap.put(c.playerName, c));
+        serverConfiguration = serverConfig;
     }
 
     public static PlayerConfig get() { return CURRENT; }
+    
+    public static ServerConfiguration getServerConfig() { return serverConfiguration; }
+    
     public static void set(PlayerConfig cfg) { CURRENT = cfg; save(); }
 
     public static PlayerConfig getConfigForPlayer(String playerName) {
         if (playerName == null) {
             return CURRENT;
         }
-        var config = serverHashMap.getOrDefault(playerName, null);
+        
+        var config = serverConfiguration.getPlayerConfigOrDefault(playerName);
         if (config != null) {
             return config;
         }
         else {
-            if (!serverHashMap.containsKey(playerName) && Objects.requireNonNull(MinecraftClient.getInstance().getNetworkHandler()).getProfile().name().equals(playerName)) {
-                serverHashMap.put(playerName, CURRENT);
+            if (!Objects.requireNonNull(MinecraftClient.getInstance().getNetworkHandler()).getProfile().name().equals(playerName)) {
+                serverConfiguration.putOnRuntime(playerName, CURRENT);
                 return CURRENT;
             }
             ArmorHider.LOGGER.warn("Failed to get config for player by id, trying to retrieve by player name. {} {}", playerName, playerName);
-            if (serverHashMap.containsKey(playerName)) {
-                return serverHashMap.get(playerName);
+            if (serverConfiguration.getPlayerConfigOrDefault(playerName) != null) {
+                return serverConfiguration.getPlayerConfigOrDefault(playerName);
             }
         }
         ArmorHider.LOGGER.warn("Failed to get config for player {}. Returning local settings.", playerName);

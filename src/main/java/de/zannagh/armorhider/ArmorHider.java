@@ -30,8 +30,6 @@ public class ArmorHider implements ModInitializer {
                 ServerRuntime.store.save();
             }
         });
-        PayloadTypeRegistry.playC2S().register(SettingsC2SPacket.IDENTIFIER, SettingsC2SPacket.PACKET_CODEC);
-        PayloadTypeRegistry.playS2C().register(SettingsS2CPacket.IDENTIFIER, SettingsS2CPacket.PACKET_CODEC);
         CommsManager.initServer();
         LOGGER.info("Armor Hider initialized.");
 	}

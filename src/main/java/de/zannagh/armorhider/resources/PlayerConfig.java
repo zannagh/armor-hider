@@ -2,8 +2,10 @@
 package de.zannagh.armorhider.resources;
 
 import de.zannagh.armorhider.ArmorHider;
+import net.minecraft.util.Pair;
 
 import java.io.Reader;
+import java.sql.Ref;
 import java.util.UUID;
 
 public class PlayerConfig {
@@ -26,13 +28,14 @@ public class PlayerConfig {
         playerName = name;
     }
     
-    public static PlayerConfig Deserialize(Reader reader){
+    public static Pair<PlayerConfig, Boolean> Deserialize(Reader reader){
         PlayerConfig c = ArmorHider.GSON.fromJson(reader, PlayerConfig.class);
-        c.setNullEntriesToDefault(c.playerId, c.playerName);
-        return c;
+        var hasChanged = c.setNullEntriesToDefault(c.playerId, c.playerName);
+        return new Pair<>(c, hasChanged);
     }
     
-    private void setNullEntriesToDefault(UUID uuid, String name){
+    private Boolean setNullEntriesToDefault(UUID uuid, String name){
+        Boolean hasChangedSettings = false;
         var defaults = defaults(uuid, name);
         if (playerId == null) {
             playerId = defaults.playerId;
@@ -42,7 +45,9 @@ public class PlayerConfig {
         }
         if (enableCombatDetection == null) {
             enableCombatDetection = defaults.enableCombatDetection;
+            hasChangedSettings = true;
         }
+        return hasChangedSettings;
     }
     
     public double helmetTransparency = 1.0;
