@@ -12,6 +12,8 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.option.GameOptionsScreen;
 import net.minecraft.client.gui.screen.option.SkinOptionsScreen;
 import net.minecraft.client.gui.widget.OptionListWidget;
+import net.minecraft.client.gui.widget.TextFieldWidget;
+import net.minecraft.client.gui.widget.TextWidget;
 import net.minecraft.client.option.SimpleOption;
 import net.minecraft.text.Text;
 import org.spongepowered.asm.mixin.Mixin;
@@ -41,16 +43,7 @@ public abstract class SkinOptionsMixin extends Screen {
             return;
         }
 
-        SimpleOption<Double> divider = new SimpleOption<>(
-                "armorhider.helmet.divider",
-                SimpleOption.emptyTooltip(),
-                (text, value) -> Text.literal("Zannagh's Armor Hider"),
-                new SimpleOption.ValidatingIntSliderCallbacks(0, 0)
-                        .withModifier(v -> v / 20.0, v -> (int) Math.round(v * 20), true),
-                ClientConfigManager.get().helmetTransparency, value -> { }
-        );
-        
-        body.addSingleOptionEntry(divider);
+        this.body.addHeader(Text.literal("Zannagh's Armor Hider"));
 
         SimpleOption<Double> helmetOption = new SimpleOption<>(
                 "armorhider.helmet.transparency",
