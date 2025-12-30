@@ -8,23 +8,34 @@ package de.zannagh.armorhider.mixin.client;
 
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.config.ClientConfigManager;
+import de.zannagh.armorhider.rendering.PlayerPreviewRenderer;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.option.GameOptionsScreen;
 import net.minecraft.client.gui.screen.option.SkinOptionsScreen;
 import net.minecraft.client.gui.widget.OptionListWidget;
+import net.minecraft.client.gui.widget.TextWidget;
+import net.minecraft.client.option.GameOptions;
 import net.minecraft.client.option.SimpleOption;
 import net.minecraft.text.Text;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.awt.*;
+
 @Mixin(GameOptionsScreen.class)
 public abstract class SkinOptionsMixin extends Screen {
 
     @Shadow
     protected OptionListWidget body;
+    
+    @Final
+    @Shadow
+    protected GameOptions gameOptions;
 
     protected SkinOptionsMixin(Text title) {
         super(title);
@@ -41,16 +52,7 @@ public abstract class SkinOptionsMixin extends Screen {
             return;
         }
 
-        SimpleOption<Double> divider = new SimpleOption<>(
-                "armorhider.helmet.divider",
-                SimpleOption.emptyTooltip(),
-                (text, value) -> Text.literal("Zannagh's Armor Hider"),
-                new SimpleOption.ValidatingIntSliderCallbacks(0, 0)
-                        .withModifier(v -> v / 20.0, v -> (int) Math.round(v * 20)),
-                ClientConfigManager.get().helmetTransparency, value -> { }
-        );
-        
-        body.addSingleOptionEntry(divider);
+        this.body.addWidgetEntry(new TextWidget(Text.literal("Zannagh's Armor Hider"), this.getTextRenderer()), null);
 
         SimpleOption<Double> helmetOption = new SimpleOption<>(
                 "armorhider.helmet.transparency",
@@ -61,8 +63,7 @@ public abstract class SkinOptionsMixin extends Screen {
                 ClientConfigManager.get().helmetTransparency,
                 ClientConfigManager::setHelmetTransparency
         );
-        
-        body.addSingleOptionEntry(helmetOption);
+        body.addWidgetEntry(PlayerPreviewRenderer.simpleOptionToWidget(helmetOption, gameOptions, body), null);
 
         SimpleOption<Double> chestOption = new SimpleOption<>(
                 "armorhider.chest.transparency",
@@ -73,8 +74,7 @@ public abstract class SkinOptionsMixin extends Screen {
                 ClientConfigManager.get().chestTransparency,
                 ClientConfigManager::setChestTransparency
         );
-
-        body.addSingleOptionEntry(chestOption);
+        body.addWidgetEntry(PlayerPreviewRenderer.simpleOptionToWidget(chestOption, gameOptions, body), null);
 
         SimpleOption<Double> legsOption = new SimpleOption<>(
                 "armorhider.legs.transparency",
@@ -85,8 +85,7 @@ public abstract class SkinOptionsMixin extends Screen {
                 ClientConfigManager.get().legsTransparency,
                 ClientConfigManager::setLegsTransparency
         );
-
-        body.addSingleOptionEntry(legsOption);
+        body.addWidgetEntry(PlayerPreviewRenderer.simpleOptionToWidget(legsOption, gameOptions, body), null);
 
         SimpleOption<Double> bootsOption = new SimpleOption<>(
                 "armorhider.boots.transparency",
@@ -97,27 +96,32 @@ public abstract class SkinOptionsMixin extends Screen {
                 ClientConfigManager.get().bootsTransparency,
                 ClientConfigManager::setBootsTransparency
         );
-
-        body.addSingleOptionEntry(bootsOption);
+        body.addWidgetEntry(PlayerPreviewRenderer.simpleOptionToWidget(bootsOption, gameOptions, body), null);
 
         SimpleOption<Boolean> enableCombatHiding = SimpleOption.ofBoolean(
-                "Armor Hider Combat Detection",
+                "Combat Detection",
                 SimpleOption.constantTooltip(Text.literal("Enables detection of combat to show your armor when you are in combat.")),
-                (Text, Value) -> net.minecraft.text.Text.literal(Value ? "Enabled" : "Disabled"),
+                (Text, Value) -> net.minecraft.text.Text.literal(Value ? "ON" : "OFF"),
                 ClientConfigManager.get().enableCombatDetection,
                 ClientConfigManager::setCombatDetection
         );
-        body.addSingleOptionEntry(enableCombatHiding);
+        body.addWidgetEntry(PlayerPreviewRenderer.simpleOptionToWidget(enableCombatHiding, gameOptions, body), null);
         
         if (ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin) {
             SimpleOption<Boolean> combatHidingOnServer = SimpleOption.ofBoolean(
-                    "Armor Hider Combat Detection (Server)",
+                    "Armor in combat (server)",
                     SimpleOption.constantTooltip(Text.literal("Enables detection of combat server-wide to force showing armor when a player is in combat. If enabled, this will override individual's detection setting.")),
-                    (Text, Value) -> net.minecraft.text.Text.literal(Value ? "Enabled" : "Disabled"),
+                    (Text, Value) -> net.minecraft.text.Text.literal(Value ? "ON" : "OFF"),
                     ClientConfigManager.getServerConfig().enableCombatDetection,
                     ClientConfigManager::setAndSendServerCombatDetection
             );
-            body.addSingleOptionEntry(combatHidingOnServer);
+            body.addWidgetEntry(PlayerPreviewRenderer.simpleOptionToWidget(combatHidingOnServer, gameOptions, body), null);
         }
+    }
+    
+    @Override
+    public void render(DrawContext context, int mouseX, int mouseY, float deltaTicks){
+        super.render(context, mouseX, mouseY, deltaTicks);
+        PlayerPreviewRenderer.renderPlayerPreview(context, body, mouseX, mouseY);
     }
 }
