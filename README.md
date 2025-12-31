@@ -2,18 +2,47 @@
 
 A small server/client side mod to alter transparency of armor items (relayed to other players via server).
 
-This mod is heavily inspired by Show Me Your Skin! (https://github.com/enjarai/show-me-your-skin). 
-It's less feature complete but easier to raise to new Minecraft releases due to no-dependencies.
+<p align="center">
+<img width="359" height="400" alt="IngamePreview" src="https://github.com/user-attachments/assets/81731706-ef87-43e7-8dc3-bf7ca1f0e91a" />
+</p>
+
+This mod is heavily inspired by Show Me Your Skin! (https://github.com/enjarai/show-me-your-skin).
 
 The settings are accessible via "Skin Customization" in game: 
-
-<img width="516" height="441" alt="Screenshot-2025-11-13-16 12 13" src="https://github.com/user-attachments/assets/bc7fea45-1fe2-41c7-8151-0aa26dcdd130" />
-
-Transparency percentages get applied to armor textures and glints: 
-
-<img width="2648" height="1606" alt="acb0de564254ce67035bec2bb3b6098b693cf329" src="https://github.com/user-attachments/assets/a5fe22bb-ee83-47e3-8ef7-16e6a7d053ec" />
+<p align="center">
+<img width="495" height="400" alt="IngameSettings" src="https://github.com/user-attachments/assets/d279bf39-9e15-4350-b624-c21946295ddc" />
+</p>
 
 Your locally set preferences (on your client) will get sent to the server on change or join and vice versa and player joining a server will retrieve the config library from the server in order to apply the player preferences to other clients.
+
+## Settings
+* **Helmet**: Opacity slider (0-100%) for head slot, also applies to block like head items (e.g. skeleton block) or hats
+* **Chestplate**: Opacity slider (0-100%) for chest slot, also applies to Elytra
+* **Leggings**: Opacity slider (0-100%) for legs slot
+* **Boots**: Opacity slider (0-100%) for boot slot
+* **Combat Detection**: Show your armor when you enter combat with another player or a mob
+* **Armor in combat (server)**: Enable or disable that the combat detection is respected by an individual's player setting - when enabled, the client's setting is overridden and armor is always shown in combat, when disabled, individual client's settings will be used
+
+## Demo
+<details>
+<summary>Settings</summary>
+
+**Main Menu Settings**
+![MainMenuSettings](https://github.com/user-attachments/assets/f20d0847-ea5e-4107-a87c-bc7b620233cd)
+
+**Ingame Settings (Admin)**
+![IngameSettings](https://github.com/user-attachments/assets/91ef2bba-84a7-4888-b823-af048e31b89a)
+
+</details>
+<details>
+<summary>Combat Detection</summary>
+  
+**Enabled Combat Detection**
+![CombatDetection](https://github.com/user-attachments/assets/00f191e3-3997-4b83-ac41-7c169aae9d52)
+
+**Disabled Combat Detection**
+![NoCombatDetection](https://github.com/user-attachments/assets/fd7af6a4-8f5d-4a42-99bb-57804bc7ecca)
+</details>
 
 ## Issues and Feature Requests
 
