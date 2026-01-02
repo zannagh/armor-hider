@@ -3,22 +3,14 @@ package de.zannagh.armorhider.rendering;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.InventoryScreen;
-import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.gui.widget.OptionListWidget;
 import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.option.GameOptions;
-import net.minecraft.client.option.SimpleOption;
 import net.minecraft.util.Colors;
 
 import java.awt.*;
 
 public class PlayerPreviewRenderer {
     private static final int armorHiderSegmentRow = 5;
-    
-    public static ClickableWidget simpleOptionToWidget(SimpleOption<?> simpleOption, GameOptions options, OptionListWidget body){
-        int width = MinecraftClient.getInstance().player != null ? body.getRowWidth() / 2 : body.getRowWidth();
-        return simpleOption.createWidget(options, body.getRowLeft(), body.getYOfNextEntry(), width);
-    }
     
     public static void renderPlayerPreview(DrawContext context, OptionListWidget body, int mouseX, int mouseY){
         if (!(MinecraftClient.getInstance().player instanceof ClientPlayerEntity player)) {
