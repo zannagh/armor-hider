@@ -55,14 +55,13 @@ public class OptionElementFactory {
     public SimpleOption<Double> buildDoubleOption(String key,
                                                   MutableText tooltip,
                                                   @Nullable MutableText narration,
-                                                  MutableText sliderText,
-                                                  Function<Double, String> stringTransformation,
+                                                  Function<Double, MutableText> sliderText,
                                                   Double defaultValue,
                                                   Consumer<Double> setter) {
         return new SimpleOption<>(
                 key,
                 new NarratedTooltipFactory<>(tooltip, narration),
-                (text, value) -> sliderText.append(stringTransformation.apply(value)),
+                (text, value) -> sliderText.apply(value),
                 new SimpleOption.ValidatingIntSliderCallbacks(0, 20)
                         .withModifier(v -> v / 20.0, v -> (int) Math.round(v * 20)),
                 defaultValue,
