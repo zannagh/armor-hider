@@ -1,0 +1,23 @@
+{
+  "armorhider.options.mod_title": "Zannaghs Armor Hider",
+  "armorhider.options.helmet.button_text": "Helm: ",
+  "armorhider.options.helmet.tooltip": "Passt die Durchsichtigkeit des Helm-Slots zwischen 0 (durchsichtig) und 100% (sichtbar). Diese Einstellung beeinflusst auch Köpfe, beispielsweise Skelettschädel, und Hüte.",
+  "armorhider.options.helmet.tooltip_narration": "Passt die Durchsichtigkeit des Helm-Slots zwischen 0 (durchsichtig) und 100% (sichtbar). Diese Einstellung beeinflusst auch Köpfe, beispielsweise Skelettschädel, und Hüte.",
+  "armorhider.options.chestplate.button_text": "Brustpanzer: ",
+  "armorhider.options.chestplate.tooltip": "Passt die Durchsichtigkeit des Brustpanzer-Slots zwischen 0 (durchsichtig) und 100% (sichtbar). Diese Einstellung beeinflusst auch Elytren.",
+  "armorhider.options.chestplate.tooltip_narration": "Passt die Durchsichtigkeit des Brustpanzer-Slots zwischen 0 (durchsichtig) und 100% (sichtbar). Diese Einstellung beeinflusst auch Elytren.",
+  "armorhider.options.leggings.button_text": "Beinschutz: ",
+  "armorhider.options.leggings.tooltip": "Passt die Durchsichtigkeit des Beinschutz-Slots zwischen 0 (durchsichtig) und 100% (sichtbar) (in Schritten von 5%).",
+  "armorhider.options.leggings.tooltip_narration": "Passt die Durchsichtigkeit des Beinschutz-Slots zwischen 0 (durchsichtig) und 100% (sichtbar) (in Schritten von 5%).",
+  "armorhider.options.boots.button_text": "Stiefel: ",
+  "armorhider.options.boots.tooltip": "Passt die Durchsichtigkeit des Stiefel-Slots zwischen 0 (durchsichtig) und 100% (sichtbar) an.",
+  "armorhider.options.boots.tooltip_narration": "Passt die Durchsichtigkeit des Stiefel-Slots zwischen 0 (durchsichtig) und 100% (sichtbar) an.",
+  "armorhider.options.combat_detection.title": "Kampferkennung",
+  "armorhider.options.combat_detection.tooltip": "Aktiviert die Kampferkennung, um deine Rüstung im Kampf anzuzeigen.",
+  "armorhider.options.combat_detection.tooltip_narration": "Aktiviert die Kampferkennung, um deine Rüstung im Kampf anzuzeigen.",
+  "armorhider.options.combat_detection_server.title": "Rüstung im Kampf (Server)",
+  "armorhider.options.combat_detection_server.tooltip": "Aktiviert die Kampferkennung serverweit, um die Anzeige von Rüstung im Kampf zu erzwingen. Falls aktiviert, überschreibt dies individuelle Einstellungen.",
+  "armorhider.options.combat_detection_server.tooltip_narration": "Aktiviert die Kampferkennung serverweit, um die Anzeige von Rüstung im Kampf zu erzwingen. Falls aktiviert, überschreibt dies individuelle Einstellungen.",
+  "armorhider.options.toggle.on": "An",
+  "armorhider.options.toggle.off": "Aus"
+}

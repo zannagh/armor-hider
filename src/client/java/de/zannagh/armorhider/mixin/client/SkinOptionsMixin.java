@@ -7,14 +7,14 @@
 package de.zannagh.armorhider.mixin.client;
 
 import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.client.OptionElementFactory;
 import de.zannagh.armorhider.config.ClientConfigManager;
 import de.zannagh.armorhider.rendering.PlayerPreviewRenderer;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.option.GameOptionsScreen;
-import net.minecraft.client.gui.screen.option.SkinOptionsScreen;
 import net.minecraft.client.gui.widget.OptionListWidget;
-import net.minecraft.client.gui.widget.TextWidget;
 import net.minecraft.client.option.GameOptions;
 import net.minecraft.client.option.SimpleOption;
 import net.minecraft.text.Text;
@@ -24,8 +24,6 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import java.awt.*;
 
 @Mixin(GameOptionsScreen.class)
 public abstract class SkinOptionsMixin extends Screen {
@@ -39,83 +37,77 @@ public abstract class SkinOptionsMixin extends Screen {
 
     protected SkinOptionsMixin(Text title) {
         super(title);
+        
     }
 
     @Inject(method = "init", at = @At("RETURN"))
     private void onAddOptions(CallbackInfo ci) {
-        var current = ((GameOptionsScreen)(Object)this);
-        if (!(current instanceof SkinOptionsScreen)) {
-            return;
+        
+        OptionElementFactory optionElementFactory = new OptionElementFactory(this, body, gameOptions);
+        if (MinecraftClient.getInstance().player != null) {
+            optionElementFactory = optionElementFactory.withHalfWidthRendering();
         }
-
-        if (body == null) {
-            return;
-        }
-
-        this.body.addWidgetEntry(new TextWidget(Text.literal("Zannagh's Armor Hider"), this.getTextRenderer()), null);
-
-        SimpleOption<Double> helmetOption = new SimpleOption<>(
-                "armorhider.helmet.transparency",
-                SimpleOption.constantTooltip(Text.literal("Adjusts the helmet transparency for your model between 0 and 1 in steps of 0.05. Applies to skulls and hats as well.")),
-                (text, value) -> Text.literal("Helmet: " + String.format("%.0f%%", value * 100)),
-                new SimpleOption.ValidatingIntSliderCallbacks(0, 20)
-                        .withModifier(v -> v / 20.0, v -> (int) Math.round(v * 20)),
+        
+        optionElementFactory.addTextAsWidget(Text.translatable("armorhider.options.mod_title"));
+        
+        var helmetOption = optionElementFactory.buildDoubleOption(
+                "armorhider.helmet.transparency", 
+                Text.translatable("armorhider.options.helmet.tooltip"), 
+                Text.translatable("armorhider.options.helmet.tooltip_narration"),
+                Text.translatable("armorhider.options.helmet.button_text"),
+                currentValue -> String.format("%.0f%%", currentValue * 100),
                 ClientConfigManager.get().helmetTransparency,
-                ClientConfigManager::setHelmetTransparency
-        );
-        body.addWidgetEntry(PlayerPreviewRenderer.simpleOptionToWidget(helmetOption, gameOptions, body), null);
+                ClientConfigManager::setHelmetTransparency);
+        optionElementFactory.addSimpleOptionAsWidget(helmetOption);
 
-        SimpleOption<Double> chestOption = new SimpleOption<>(
-                "armorhider.chest.transparency",
-                SimpleOption.constantTooltip(Text.literal("Adjusts the chestplate transparency for your model between 0 and 1 in steps of 0.05. Applies to elytra as well.")),
-                (text, value) -> Text.literal("Chestplate: " + String.format("%.0f%%", value * 100)),
-                new SimpleOption.ValidatingIntSliderCallbacks(0, 20)
-                        .withModifier(v -> v / 20.0, v -> (int) Math.round(v * 20)),
+        var chestOption = optionElementFactory.buildDoubleOption(
+                "armorhider.chestplate.transparency",
+                Text.translatable("armorhider.options.chestplate.tooltip"),
+                Text.translatable("armorhider.options.chestplate.tooltip_narration"),
+                Text.translatable("armorhider.options.chestplate.button_text"),
+                currentValue -> String.format("%.0f%%", currentValue * 100),
                 ClientConfigManager.get().chestTransparency,
-                ClientConfigManager::setChestTransparency
-        );
-        body.addWidgetEntry(PlayerPreviewRenderer.simpleOptionToWidget(chestOption, gameOptions, body), null);
+                ClientConfigManager::setChestTransparency);
+        optionElementFactory.addSimpleOptionAsWidget(chestOption);
 
-        SimpleOption<Double> legsOption = new SimpleOption<>(
+        var legsOption = optionElementFactory.buildDoubleOption(
                 "armorhider.legs.transparency",
-                SimpleOption.constantTooltip(Text.literal("Adjusts the legs transparency for your model between 0 and 1 in steps of 0.05.")),
-                (text, value) -> Text.literal("Leggings: " + String.format("%.0f%%", value * 100)),
-                new SimpleOption.ValidatingIntSliderCallbacks(0, 20)
-                        .withModifier(v -> v / 20.0, v -> (int) Math.round(v * 20)),
+                Text.translatable("armorhider.options.leggings.tooltip"),
+                Text.translatable("armorhider.options.leggings.tooltip_narration"),
+                Text.translatable("armorhider.options.leggings.button_text"),
+                currentValue -> String.format("%.0f%%", currentValue * 100),
                 ClientConfigManager.get().legsTransparency,
-                ClientConfigManager::setLegsTransparency
-        );
-        body.addWidgetEntry(PlayerPreviewRenderer.simpleOptionToWidget(legsOption, gameOptions, body), null);
+                ClientConfigManager::setLegsTransparency);
+        optionElementFactory.addSimpleOptionAsWidget(legsOption);
 
-        SimpleOption<Double> bootsOption = new SimpleOption<>(
+        var bootsOption = optionElementFactory.buildDoubleOption(
                 "armorhider.boots.transparency",
-                SimpleOption.constantTooltip(Text.literal("Adjusts the boot transparency for your model between 0 and 1 in steps of 0.05.")),
-                (text, value) -> Text.literal("Boots: " + String.format("%.0f%%", value * 100)),
-                new SimpleOption.ValidatingIntSliderCallbacks(0, 20)
-                        .withModifier(v -> v / 20.0, v -> (int) Math.round(v * 20)),
+                Text.translatable("armorhider.options.boots.tooltip"),
+                Text.translatable("armorhider.options.boots.tooltip_narration"),
+                Text.translatable("armorhider.options.boots.button_text"),
+                currentValue -> String.format("%.0f%%", currentValue * 100),
                 ClientConfigManager.get().bootsTransparency,
-                ClientConfigManager::setBootsTransparency
-        );
-        body.addWidgetEntry(PlayerPreviewRenderer.simpleOptionToWidget(bootsOption, gameOptions, body), null);
-
-        SimpleOption<Boolean> enableCombatHiding = SimpleOption.ofBoolean(
-                "Combat Detection",
-                SimpleOption.constantTooltip(Text.literal("Enables detection of combat to show your armor when you are in combat.")),
-                (Text, Value) -> net.minecraft.text.Text.literal(Value ? "ON" : "OFF"),
+                ClientConfigManager::setBootsTransparency);
+        optionElementFactory.addSimpleOptionAsWidget(bootsOption);
+        
+        SimpleOption<Boolean> enableCombatDetection = optionElementFactory.buildBooleanOption(
+                Text.translatable("armorhider.options.combat_detection.title"),
+                Text.translatable("armorhider.options.combat_detection.tooltip"),
+                Text.translatable("armorhider.options.combat_detection.tooltip_narration"),
                 ClientConfigManager.get().enableCombatDetection,
                 ClientConfigManager::setCombatDetection
         );
-        body.addWidgetEntry(PlayerPreviewRenderer.simpleOptionToWidget(enableCombatHiding, gameOptions, body), null);
+        optionElementFactory.addSimpleOptionAsWidget(enableCombatDetection);
         
         if (ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin) {
-            SimpleOption<Boolean> combatHidingOnServer = SimpleOption.ofBoolean(
-                    "Armor in combat (server)",
-                    SimpleOption.constantTooltip(Text.literal("Enables detection of combat server-wide to force showing armor when a player is in combat. If enabled, this will override individual's detection setting.")),
-                    (Text, Value) -> net.minecraft.text.Text.literal(Value ? "ON" : "OFF"),
-                    ClientConfigManager.getServerConfig().enableCombatDetection,
+            SimpleOption<Boolean> combatHidingOnServer = optionElementFactory.buildBooleanOption(
+                    Text.translatable("armorhider.options.combat_detection_server.title"),
+                    Text.translatable("armorhider.options.combat_detection_server.tooltip"),
+                    Text.translatable("armorhider.options.combat_detection_server.tooltip_narration"),
+                    ClientConfigManager.get().enableCombatDetection,
                     ClientConfigManager::setAndSendServerCombatDetection
             );
-            body.addWidgetEntry(PlayerPreviewRenderer.simpleOptionToWidget(combatHidingOnServer, gameOptions, body), null);
+            optionElementFactory.addSimpleOptionAsWidget(combatHidingOnServer);
         }
     }
     

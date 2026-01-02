@@ -1,0 +1,23 @@
+{
+  "armorhider.options.mod_title": "Zannagh's Armor Hider",
+  "armorhider.options.helmet.button_text": "Helmet: ",
+  "armorhider.options.helmet.tooltip": "Adjusts the helmet opacity for your model between 0 (transparent) and 100% (visible). Applies to skulls and hats as well.",
+  "armorhider.options.helmet.tooltip_narration": "Adjusts the helmet opacity for your model between 0 (transparent) and 100% (visible). Applies to skulls and hats as well.",
+  "armorhider.options.chestplate.button_text": "Chestplate: ",
+  "armorhider.options.chestplate.tooltip": "Adjusts the chestplate opacity for your model between 0 (transparent) and 100% (visible). Applies to elytra as well.",
+  "armorhider.options.chestplate.tooltip_narration": "Adjusts the chestplate opacity for your model between 0 (transparent) and 100% (visible). Applies to elytra as well.",
+  "armorhider.options.leggings.button_text": "Leggings: ",
+  "armorhider.options.leggings.tooltip": "Adjusts the legs opacity for your model between 0 (transparent) and 100% (visible).",
+  "armorhider.options.leggings.tooltip_narration": "Adjusts the legs opacity for your model between 0 (transparent) and 100% (visible).",
+  "armorhider.options.boots.button_text": "Boots: ",
+  "armorhider.options.boots.tooltip": "Adjusts the boot opacity for your model between 0 (transparent) and 100% (visible).",
+  "armorhider.options.boots.tooltip_narration": "Adjusts the boot opacity for your model between 0 (transparent) and 100% (visible).",
+  "armorhider.options.combat_detection.title": "Combat Detection: ",
+  "armorhider.options.combat_detection.tooltip": "Enables detection of combat to show your armor when you are in combat.",
+  "armorhider.options.combat_detection.tooltip_narration": "Enables detection of combat to show your armor when you are in combat.",
+  "armorhider.options.combat_detection_server.title": "Armor in combat (server): ",
+  "armorhider.options.combat_detection_server.tooltip": "Enables detection of combat server-wide to force showing armor when a player is in combat. If enabled, this will override individual's detection setting.",
+  "armorhider.options.combat_detection_server.tooltip_narration": "Enables detection of combat server-wide to force showing armor when a player is in combat. If enabled, this will override individual's detection setting.",
+  "armorhider.options.toggle.on": "ON",
+  "armorhider.options.toggle.off": "OFF"
+}
