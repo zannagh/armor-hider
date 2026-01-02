@@ -30,9 +30,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(GameOptionsScreen.class)
 public abstract class SkinOptionsMixin extends Screen {
-
-    @Unique
-    private PlayerConfig changedConfig;
     
     @Unique
     private boolean settingsChanged;
@@ -64,7 +61,7 @@ public abstract class SkinOptionsMixin extends Screen {
     public void close() {
         if (settingsChanged) {
             ArmorHider.LOGGER.info("Updating current player settings...");
-            ClientConfigManager.set(changedConfig);
+            ClientConfigManager.save();
         }
         if (serverSettingsChanged) {
             ArmorHider.LOGGER.info("Updating current server settings (if possible)...");
@@ -76,8 +73,6 @@ public abstract class SkinOptionsMixin extends Screen {
     @Inject(method = "init", at = @At("RETURN"))
     private void onAddOptions(CallbackInfo ci) {
 
-        changedConfig = ClientConfigManager.get();
-        
         OptionElementFactory optionElementFactory = new OptionElementFactory(this, body, gameOptions);
         if (MinecraftClient.getInstance().player != null) {
             optionElementFactory = optionElementFactory.withHalfWidthRendering();
@@ -90,7 +85,7 @@ public abstract class SkinOptionsMixin extends Screen {
                 Text.translatable("armorhider.options.helmet.tooltip"), 
                 Text.translatable("armorhider.options.helmet.tooltip_narration"),
                 currentValue -> Text.translatable("armorhider.options.helmet.button_text", String.format("%.0f%%", currentValue * 100)),
-                changedConfig.helmetTransparency,
+                ClientConfigManager.get().helmetTransparency,
                 this::setHelmetTransparency);
         optionElementFactory.addSimpleOptionAsWidget(helmetOption);
 
@@ -99,7 +94,7 @@ public abstract class SkinOptionsMixin extends Screen {
                 Text.translatable("armorhider.options.chestplate.tooltip"),
                 Text.translatable("armorhider.options.chestplate.tooltip_narration"),
                 currentValue -> Text.translatable("armorhider.options.chestplate.button_text", String.format("%.0f%%", currentValue * 100)),
-                changedConfig.chestTransparency,
+                ClientConfigManager.get().chestTransparency,
                 this::setChestTransparency);
         optionElementFactory.addSimpleOptionAsWidget(chestOption);
 
@@ -108,7 +103,7 @@ public abstract class SkinOptionsMixin extends Screen {
                 Text.translatable("armorhider.options.leggings.tooltip"),
                 Text.translatable("armorhider.options.leggings.tooltip_narration"),
                 currentValue -> Text.translatable("armorhider.options.leggings.button_text", String.format("%.0f%%", currentValue * 100)),
-                changedConfig.legsTransparency,
+                ClientConfigManager.get().legsTransparency,
                 this::setLegsTransparency);
         optionElementFactory.addSimpleOptionAsWidget(legsOption);
 
@@ -117,7 +112,7 @@ public abstract class SkinOptionsMixin extends Screen {
                 Text.translatable("armorhider.options.boots.tooltip"),
                 Text.translatable("armorhider.options.boots.tooltip_narration"),
                 currentValue -> Text.translatable("armorhider.options.boots.button_text", String.format("%.0f%%", currentValue * 100)),
-                changedConfig.bootsTransparency,
+                ClientConfigManager.get().bootsTransparency,
                 this::setBootsTransparency);
         optionElementFactory.addSimpleOptionAsWidget(bootsOption);
         
@@ -125,7 +120,7 @@ public abstract class SkinOptionsMixin extends Screen {
                 Text.translatable("armorhider.options.combat_detection.title"),
                 Text.translatable("armorhider.options.combat_detection.tooltip"),
                 Text.translatable("armorhider.options.combat_detection.tooltip_narration"),
-                changedConfig.enableCombatDetection,
+                ClientConfigManager.get().enableCombatDetection,
                 this::setCombatDetection
         );
         optionElementFactory.addSimpleOptionAsWidget(enableCombatDetection);
@@ -135,7 +130,7 @@ public abstract class SkinOptionsMixin extends Screen {
                     Text.translatable("armorhider.options.combat_detection_server.title"),
                     Text.translatable("armorhider.options.combat_detection_server.tooltip"),
                     Text.translatable("armorhider.options.combat_detection_server.tooltip_narration"),
-                    changedConfig.enableCombatDetection,
+                    ClientConfigManager.get().enableCombatDetection,
                     this::setServerCombatDetection
             );
             optionElementFactory.addSimpleOptionAsWidget(combatHidingOnServer);
@@ -144,31 +139,31 @@ public abstract class SkinOptionsMixin extends Screen {
 
     @Unique
     private void setHelmetTransparency(double value){
-        changedConfig.helmetTransparency = value;
+        ClientConfigManager.get().helmetTransparency = value;
         settingsChanged = true;
     }
 
     @Unique
     private void setChestTransparency(double value){
-        changedConfig.chestTransparency = value;
+        ClientConfigManager.get().chestTransparency = value;
         settingsChanged = true;
     }
 
     @Unique
     private void setLegsTransparency(double value){
-        changedConfig.legsTransparency = value;
+        ClientConfigManager.get().legsTransparency = value;
         settingsChanged = true;
     }
     
     @Unique
     private void setBootsTransparency(double value){
-        changedConfig.bootsTransparency = value;
+        ClientConfigManager.get().bootsTransparency = value;
         settingsChanged = true;
     }
     
     @Unique
     private void setCombatDetection(boolean enabled) {
-        changedConfig.enableCombatDetection = enabled;
+        ClientConfigManager.get().enableCombatDetection = enabled;
         settingsChanged = true;
     }
 
