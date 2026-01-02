@@ -1,0 +1,23 @@
+{
+  "armorhider.options.mod_title": "Armor Hider de Zannagh",
+  "armorhider.options.helmet.button_text": "Casque: ",
+  "armorhider.options.helmet.tooltip": "Ajuste l'opacité du casque pour votre modèle entre 0 (transparent) et 100% (visible). S'applique également aux crânes et aux chapeaux.",
+  "armorhider.options.helmet.tooltip_narration": "Ajuste l'opacité du casque pour votre modèle entre 0 (transparent) et 100% (visible). S'applique également aux crânes et aux chapeaux.",
+  "armorhider.options.chestplate.button_text": "Plastron: ",
+  "armorhider.options.chestplate.tooltip": "Ajuste l'opacité du plastron pour votre modèle entre 0 (transparent) et 100% (visible). S'applique également aux élytres.",
+  "armorhider.options.chestplate.tooltip_narration": "Ajuste l'opacité du plastron pour votre modèle entre 0 (transparent) et 100% (visible). S'applique également aux élytres.",
+  "armorhider.options.leggings.button_text": "Jambières: ",
+  "armorhider.options.leggings.tooltip": "Ajuste l'opacité des jambières pour votre modèle entre 0 (transparent) et 100% (visible).",
+  "armorhider.options.leggings.tooltip_narration": "Ajuste l'opacité des jambières pour votre modèle entre 0 (transparent) et 100% (visible).",
+  "armorhider.options.boots.button_text": "Bottes: ",
+  "armorhider.options.boots.tooltip": "Ajuste l'opacité des bottes pour votre modèle entre 0 (transparent) et 100% (visible).",
+  "armorhider.options.boots.tooltip_narration": "Ajuste l'opacité des bottes pour votre modèle entre 0 (transparent) et 100% (visible).",
+  "armorhider.options.combat_detection.title": "Détection de combat: ",
+  "armorhider.options.combat_detection.tooltip": "Active la détection de combat pour afficher votre armure lorsque vous êtes en combat.",
+  "armorhider.options.combat_detection.tooltip_narration": "Active la détection de combat pour afficher votre armure lorsque vous êtes en combat.",
+  "armorhider.options.combat_detection_server.title": "Armure en combat (serveur): ",
+  "armorhider.options.combat_detection_server.tooltip": "Active la détection de combat à l'échelle du serveur pour forcer l'affichage de l'armure lorsqu'un joueur est en combat. Si activé, cela remplacera les paramètres individuels.",
+  "armorhider.options.combat_detection_server.tooltip_narration": "Active la détection de combat à l'échelle du serveur pour forcer l'affichage de l'armure lorsqu'un joueur est en combat. Si activé, cela remplacera les paramètres individuels.",
+  "armorhider.options.toggle.on": "ACTIVÉ",
+  "armorhider.options.toggle.off": "DÉSACTIVÉ"
+}
