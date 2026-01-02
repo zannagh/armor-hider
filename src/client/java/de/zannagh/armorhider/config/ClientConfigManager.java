@@ -35,31 +35,6 @@ public final class ClientConfigManager {
         save();
     }
     
-    public static void setHelmetTransparency(double transparency) {
-        CURRENT.helmetTransparency = transparency;
-        save();
-    }
-
-    public static void setChestTransparency(double transparency) {
-        CURRENT.chestTransparency = transparency;
-        save();
-    }
-
-    public static void setLegsTransparency(double transparency) {
-        CURRENT.legsTransparency = transparency;
-        save();
-    }
-
-    public static void setBootsTransparency(double transparency) {
-        CURRENT.bootsTransparency = transparency;
-        save();
-    }
-    
-    public static void setCombatDetection(boolean enabled) {
-        CURRENT.enableCombatDetection = enabled;
-        save();
-    }
-    
     public static void load() {
         try {
             if (Files.exists(FILE)) {

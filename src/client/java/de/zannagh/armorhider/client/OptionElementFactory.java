@@ -13,7 +13,6 @@ import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -55,14 +54,13 @@ public class OptionElementFactory {
     public SimpleOption<Double> buildDoubleOption(String key,
                                                   MutableText tooltip,
                                                   @Nullable MutableText narration,
-                                                  MutableText sliderText,
-                                                  Function<Double, String> stringTransformation,
+                                                  Function<Double, MutableText> sliderTextProvider,
                                                   Double defaultValue,
                                                   Consumer<Double> setter) {
         return new SimpleOption<>(
                 key,
                 new NarratedTooltipFactory<>(tooltip, narration),
-                (text, value) -> sliderText.append(stringTransformation.apply(value)),
+                (text, value) -> sliderTextProvider.apply(value),
                 new SimpleOption.ValidatingIntSliderCallbacks(0, 20)
                         .withModifier(v -> v / 20.0, v -> (int) Math.round(v * 20)),
                 defaultValue,
