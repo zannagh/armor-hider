@@ -2,7 +2,7 @@
   "armorhider.options.mod_title": "Zannagh's Armor Hider",
   "armorhider.options.helmet.button_text": "Helmet: ",
   "armorhider.options.helmet.tooltip": "Adjusts the helmet opacity for your model between 0 (transparent) and 100% (visible). Applies to skulls and hats as well.",
-  "armorhider.options.helmet.tooltip_narration": "",
+  "armorhider.options.helmet.tooltip_narration": "Adjusts the helmet opacity for your model between 0 (transparent) and 100% (visible). Applies to skulls and hats as well.",
   "armorhider.options.chestplate.button_text": "Chestplate: ",
   "armorhider.options.chestplate.tooltip": "Adjusts the chestplate opacity for your model between 0 (transparent) and 100% (visible). Applies to elytra as well.",
   "armorhider.options.chestplate.tooltip_narration": "Adjusts the chestplate opacity for your model between 0 (transparent) and 100% (visible). Applies to elytra as well.",

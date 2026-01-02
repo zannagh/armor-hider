@@ -75,8 +75,15 @@ public class OptionElementFactory {
                                                   @Nullable MutableText narration,
                                                   Boolean defaultValue,
                                                   Consumer<Boolean> setter) {
+        String booleanKey;
+        if (key.getWithStyle(Style.EMPTY).getFirst().getLiteralString() instanceof String textString && !textString.isEmpty()) {
+            booleanKey = textString.contains(":") ? textString.split(":")[0] : textString;
+        }
+        else {
+            booleanKey = key.getString();
+        }
         return SimpleOption.ofBoolean(
-                Objects.requireNonNull(key.getWithStyle(Style.EMPTY).getFirst().getLiteralString()).split(":")[0],
+                booleanKey,
                 new NarratedTooltipFactory<>(tooltip, narration),
                 (text, value) -> value ? Text.translatable("armorhider.options.toggle.on") : Text.translatable("armorhider.options.toggle.off"),
                 defaultValue,
