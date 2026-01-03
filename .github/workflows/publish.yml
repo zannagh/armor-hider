@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  release:
+  build:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -34,8 +34,13 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: build
-        run: ./gradlew build -PsemVer="${{ steps.version.outputs.majorMinorPatch }}"
-
+        if: ${{ github.event_name == 'release' }}
+        run: ./gradlew build -PsemVer="${{ steps.version.outputs.majorMinorPatch }}" -Pprerelease="${{ github.event.release.prerelease }}"
+      
+      - name: buildWhenDispatch
+        if: ${{ github.event_name != 'release' }}
+        run: ./gradlew build -PsemVer="${{ steps.version.outputs.majorMinorPatch }}-${{ steps.version.outputs.commitsSinceVersionSource }}" -Pprerelease="true"
+      
       - name: capture build artifacts
         uses: actions/upload-artifact@v6
         with:
@@ -43,7 +48,8 @@ jobs:
           path: build/libs/
       
   upload:
-    needs: release
+    if: ${{ github.event_name == 'release' }}
+    needs: build
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -54,7 +60,6 @@ jobs:
           path: artifacts
 
       - name: Upload to GitHub Release
-        if: ${{ github.event_name == 'release' }}
         uses: xresloader/upload-to-github-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
