@@ -1,7 +1,6 @@
 package de.zannagh.armorhider.client;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.navigation.NavigationDirection;
+import de.zannagh.armorhider.rendering.RenderUtilities;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.gui.widget.OptionListWidget;
@@ -90,24 +89,9 @@ public class OptionElementFactory {
     }
 
     private static ClickableWidget simpleOptionToGameOptionWidget(SimpleOption<?> simpleOption, GameOptions options, @Nullable OptionListWidget body, boolean fullWidth){
-        int rowWidth;
-        int rowLeft = 0;
-        int y = 0;
-        if (body == null) {
-            if (MinecraftClient.getInstance().currentScreen == null) {
-                rowWidth = MinecraftClient.getInstance().getWindow().getWidth();
-            }
-            else {
-                rowWidth = MinecraftClient.getInstance().currentScreen.width;
-                rowLeft = MinecraftClient.getInstance().currentScreen.getBorder(NavigationDirection.LEFT).getLeft();
-            }
-        }
-        else {
-            rowWidth = body.getRowWidth();
-            rowLeft = body.getRowLeft();
-            y = body.getYOfNextEntry();
-        }
-        
+        int rowWidth = RenderUtilities.getRowWidth(body);
+        int rowLeft = RenderUtilities.getRowLeft(body);
+        int y = RenderUtilities.getNextY(body);
         int width = fullWidth ? rowWidth : rowWidth / 2;
         return simpleOption.createWidget(options, rowLeft, y, width);
     }
