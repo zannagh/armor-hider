@@ -11,7 +11,6 @@ import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.OptionElementFactory;
 import de.zannagh.armorhider.config.ClientConfigManager;
 import de.zannagh.armorhider.rendering.PlayerPreviewRenderer;
-import de.zannagh.armorhider.resources.PlayerConfig;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
@@ -54,7 +53,9 @@ public abstract class SkinOptionsMixin extends Screen {
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float deltaTicks){
         super.render(context, mouseX, mouseY, deltaTicks);
-        PlayerPreviewRenderer.renderPlayerPreview(context, body, mouseX, mouseY);
+        if (body != null) {
+            PlayerPreviewRenderer.renderPlayerPreview(context, body, mouseX, mouseY);
+        }
     }
     
     @Override

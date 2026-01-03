@@ -17,31 +17,37 @@ public class PlayerPreviewRenderer {
             return;
         }
         
+        int rowWidth = RenderUtilities.getRowWidth(body);
+        int rowLeft = RenderUtilities.getRowLeft(body);
+        int rowTop = RenderUtilities.getRowTop(body, armorHiderSegmentRow);
+        int bodyTop = RenderUtilities.getBodyTop(body);
+        int bodyBottom = RenderUtilities.getBodyBottom(body);
+        int bodyWidth = RenderUtilities.getBodyWidth(body);
+        int bodyX = RenderUtilities.getBodyX(body);
+        
         int margin = 20;
 
-        int rightHalfWidth = body.getRowWidth() / 2;
-        int rightHalfStart = body.getRowLeft() + rightHalfWidth;
+        int rightHalfWidth = rowWidth / 2;
+        int rightHalfStart = rowLeft + rightHalfWidth;
 
         int previewSize = rightHalfWidth - margin * 2;
         int previewX = rightHalfStart + rightHalfWidth / 2; // Center X of right half
-        int previewY = body.getRowTop(armorHiderSegmentRow) + 2 + previewSize;
+        int previewY = rowTop + 2 + previewSize;
 
         int panelLeft = previewX - previewSize / 2 - 10;
         int panelTop = previewY - previewSize;
         int panelRight = previewX + previewSize / 2 + 10;
         int panelBottom = previewY + 20;
 
-        int bodyTop = body.getY();
-        int bodyBottom = body.getBottom();
 
         if (panelBottom < bodyTop || panelTop > bodyBottom) {
             return;
         }
 
         context.enableScissor(
-                body.getX(),
+                bodyX,
                 bodyTop,
-                body.getX() + body.getWidth(),
+                bodyX + bodyWidth,
                 bodyBottom
         );
 
