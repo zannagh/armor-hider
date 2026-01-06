@@ -1,6 +1,5 @@
 package de.zannagh.armorhider;
 
-import de.zannagh.armorhider.resources.PlayerConfig;
 import de.zannagh.armorhider.resources.ServerConfiguration;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -227,16 +226,13 @@ public class ServerConfigurationTests {
         var configProvider = new StringServerConfigProvider(v3Json);
         var currentConfig = configProvider.getValue();
 
-        // Verify player config loaded correctly
         assertEquals(0.5, currentConfig.getPlayerConfigOrDefault("TestPlayer").helmetOpacity.getValue());
         assertEquals(0.75, currentConfig.getPlayerConfigOrDefault("TestPlayer").chestOpacity.getValue());
         assertEquals(true, currentConfig.getPlayerConfigOrDefault("TestPlayer").enableCombatDetection.getValue());
 
-        // Verify server-wide setting was migrated from v3 to v4 format
         assertNotNull(currentConfig.serverWideSettings);
         assertEquals(false, currentConfig.serverWideSettings.enableCombatDetection.getValue());
 
-        // Verify the config was marked as changed (requires saving)
         assertTrue(currentConfig.hasChangedFromSerializedContent());
     }
 
@@ -266,57 +262,44 @@ public class ServerConfigurationTests {
         var configProvider = new StringServerConfigProvider(v4Json);
         var currentConfig = configProvider.getValue();
 
-        // Verify player config loaded correctly
         assertEquals(0.2, currentConfig.getPlayerConfigOrDefault("ModernPlayer").helmetOpacity.getValue());
         assertEquals(0.4, currentConfig.getPlayerConfigOrDefault("ModernPlayer").chestOpacity.getValue());
         assertEquals(false, currentConfig.getPlayerConfigOrDefault("ModernPlayer").enableCombatDetection.getValue());
 
-        // Verify server-wide settings loaded correctly in v4 format
         assertNotNull(currentConfig.serverWideSettings);
         assertEquals(true, currentConfig.serverWideSettings.enableCombatDetection.getValue());
 
-        // Verify the config was NOT marked as changed (no migration needed)
         assertFalse(currentConfig.hasChangedFromSerializedContent());
     }
 
     @Test
     @DisplayName("Compressed packet size test - up to 500 players")
     void testCompressedPacketSizes() {
-        // Test incremental player counts to ensure packets stay within reasonable limits
         int[] playerCounts = {1, 10, 50, 100, 200, 300, 400, 500};
-        int maxReasonableSize = 2 * 1024 * 1024; // 2MB safety limit
-
-        System.out.println("\n=== Compressed Packet Size Test ===");
-        System.out.println("Testing ServerConfiguration packet sizes with varying player counts:");
-        System.out.println("Format: [Players] Uncompressed → Compressed (Compression Ratio)");
-        System.out.println("-----------------------------------------------------------");
+        int maxReasonableByteSize = 2 * 1024 * 1024; 
 
         for (int playerCount : playerCounts) {
-            // Create a ServerConfiguration with the specified number of players
+            
             StringServerConfigProvider provider = createServerConfigWithPlayers(playerCount);
             ServerConfiguration config = provider.getValue();
 
-            // Measure uncompressed JSON size
             String json = de.zannagh.armorhider.ArmorHider.GSON.toJson(config);
             int uncompressedSize = json.getBytes(java.nio.charset.StandardCharsets.UTF_8).length;
 
-            // Measure compressed packet size by actually encoding it
             ByteBuf buffer = Unpooled.buffer();
             try {
                 config.getCodec().encode(buffer, config);
                 int compressedSize = buffer.readableBytes();
                 double compressionRatio = (double) uncompressedSize / compressedSize;
 
-                // Format output
                 String uncompressedStr = formatBytes(uncompressedSize);
                 String compressedStr = formatBytes(compressedSize);
                 System.out.printf("[%3d players] %8s → %8s (%.1fx compression)%n",
                         playerCount, uncompressedStr, compressedStr, compressionRatio);
 
-                // Assert the compressed size is within reasonable limits
-                assertTrue(compressedSize < maxReasonableSize,
+                assertTrue(compressedSize < maxReasonableByteSize,
                         String.format("Compressed packet for %d players (%s) exceeds safety limit of %s",
-                                playerCount, compressedStr, formatBytes(maxReasonableSize)));
+                                playerCount, compressedStr, formatBytes(maxReasonableByteSize)));
 
             } finally {
                 buffer.release();
@@ -328,9 +311,6 @@ public class ServerConfigurationTests {
         System.out.println("===========================================\n");
     }
 
-    /**
-     * Creates a ServerConfiguration with the specified number of player configs
-     */
     private StringServerConfigProvider createServerConfigWithPlayers(int playerCount) {
         StringBuilder jsonBuilder = new StringBuilder();
         jsonBuilder.append("{\n");
@@ -351,15 +331,17 @@ public class ServerConfigurationTests {
             boolean combatDetection = Math.random() > 0.5;
 
             jsonBuilder.append(String.format(Locale.US,
-                    "    \"%s\": {\n" +
-                    "      \"helmetOpacity\": %.2f,\n" +
-                    "      \"chestOpacity\": %.2f,\n" +
-                    "      \"legsOpacity\": %.2f,\n" +
-                    "      \"bootsOpacity\": %.2f,\n" +
-                    "      \"playerId\": \"%s\",\n" +
-                    "      \"playerName\": \"%s\",\n" +
-                    "      \"enableCombatDetection\": %s\n" +
-                    "    }",
+                    """
+                                "%s": {
+                                  "helmetOpacity": %.2f,
+                                  "chestOpacity": %.2f,
+                                  "legsOpacity": %.2f,
+                                  "bootsOpacity": %.2f,
+                                  "playerId": "%s",
+                                  "playerName": "%s",
+                                  "enableCombatDetection": %s
+                                }\
+                            """,
                     playerId,
                     helmetOpacity,
                     chestOpacity,
@@ -379,9 +361,6 @@ public class ServerConfigurationTests {
         return new StringServerConfigProvider(jsonBuilder.toString());
     }
 
-    /**
-     * Formats byte count into human-readable string (KB, MB)
-     */
     private String formatBytes(int bytes) {
         if (bytes < 1024) {
             return bytes + "B";
