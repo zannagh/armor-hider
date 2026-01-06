@@ -2,17 +2,19 @@ package de.zannagh.armorhider.networking;
 
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.netPackets.SettingsC2SPacket;
-import de.zannagh.armorhider.netPackets.SettingsS2CPacket;
+import de.zannagh.armorhider.resources.PlayerConfig;
 import de.zannagh.armorhider.resources.ServerConfiguration;
+import de.zannagh.armorhider.resources.ServerWideSettings;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 
 public final class ClientCommunicationManager {
     public static void initClient() {
-        ClientPlayNetworking.registerGlobalReceiver(SettingsS2CPacket.IDENTIFIER, (payload, context) -> {
+        
+        ClientPlayNetworking.registerGlobalReceiver(ServerConfiguration.PACKET_IDENTIFIER, (payload, context) -> {
             ArmorHider.LOGGER.info("Armor Hider received configuration from server.");
-            ArmorHiderClient.CLIENT_CONFIG_MANAGER.setServerConfig(ServerConfiguration.fromPacket(payload));
+            ArmorHiderClient.CLIENT_CONFIG_MANAGER.setServerConfig(payload);
             ArmorHider.LOGGER.info("Armor Hider successfully set configuration from server.");
         });
 
@@ -36,7 +38,7 @@ public final class ClientCommunicationManager {
             if (!ArmorHiderClient.isClientConnectedToServer()) {
                 ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin = true;
             }
-            ClientPlayNetworking.send(new SettingsC2SPacket(currentConfig));
+            ClientPlayNetworking.send(currentConfig);
         });
     }
 }

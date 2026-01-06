@@ -130,7 +130,7 @@ public abstract class SkinOptionsMixin extends Screen {
                     Text.translatable("armorhider.options.combat_detection_server.title"),
                     Text.translatable("armorhider.options.combat_detection_server.tooltip"),
                     Text.translatable("armorhider.options.combat_detection_server.tooltip_narration"),
-                    ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().enableCombatDetection.getValue(),
+                    ArmorHiderClient.CLIENT_CONFIG_MANAGER.getServerConfig().serverWideSettings.enableCombatDetection.getValue(),
                     this::setServerCombatDetection
             );
             optionElementFactory.addSimpleOptionAsWidget(combatHidingOnServer);

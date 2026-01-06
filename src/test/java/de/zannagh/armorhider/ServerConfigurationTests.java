@@ -1,11 +1,16 @@
 package de.zannagh.armorhider;
 
+import de.zannagh.armorhider.resources.PlayerConfig;
+import de.zannagh.armorhider.resources.ServerConfiguration;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.Locale;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ServerConfigurationTests {
     @Test
@@ -46,7 +51,7 @@ public class ServerConfigurationTests {
         assertEquals(0.3, currentConfig.getPlayerConfigOrDefault(UUID.fromString("ab5af6cc-0975-34e7-baca-b908d8aa661c")).helmetOpacity.getValue());
         assertEquals(true, currentConfig.getPlayerConfigOrDefault("Player393").enableCombatDetection.getValue());
         assertEquals(true, currentConfig.getPlayerConfigOrDefault(UUID.fromString("ab5af6cc-0975-34e7-baca-b908d8aa661c")).enableCombatDetection.getValue());
-        assertEquals(true, currentConfig.enableCombatDetection.getValue());
+        assertEquals(true, currentConfig.serverWideSettings.enableCombatDetection.getValue());
     }
 
     @Test
@@ -123,7 +128,7 @@ public class ServerConfigurationTests {
         assertEquals(0.3, currentConfig.getPlayerConfigOrDefault(UUID.fromString("da6fa5b1-bd84-361d-8771-656d46818daa")).helmetOpacity.getValue());
         assertEquals(false, currentConfig.getPlayerConfigOrDefault("Player393").enableCombatDetection.getValue());
         assertEquals(false, currentConfig.getPlayerConfigOrDefault(UUID.fromString("da6fa5b1-bd84-361d-8771-656d46818daa")).enableCombatDetection.getValue());
-        assertEquals(true, currentConfig.enableCombatDetection.getValue());
+        assertEquals(true, currentConfig.serverWideSettings.enableCombatDetection.getValue());
     }
 
     @Test
@@ -195,6 +200,195 @@ public class ServerConfigurationTests {
         assertEquals(0.3, currentConfig.getPlayerConfigOrDefault(UUID.fromString("da6fa5b1-bd84-361d-8771-656d46818daa")).helmetOpacity.getValue());
         assertEquals(true, currentConfig.getPlayerConfigOrDefault("Player393").enableCombatDetection.getValue());
         assertEquals(false, currentConfig.getPlayerConfigOrDefault(UUID.fromString("da6fa5b1-bd84-361d-8771-656d46818daa")).enableCombatDetection.getValue());
-        assertEquals(true, currentConfig.enableCombatDetection.getValue());
+        assertEquals(true, currentConfig.serverWideSettings.enableCombatDetection.getValue());
+    }
+
+    @Test
+    @DisplayName("Read from v3 configuration and migrate to v4")
+    void readV3MigrateToV4() {
+        //region json - v3 format with top-level enableCombatDetection
+        String v3Json = """
+            {
+                "playerConfigs": {
+                     "da6fa5b1-bd84-361d-8771-656d46818daa": {
+                       "helmetOpacity": 0.5,
+                       "chestOpacity": 0.75,
+                       "legsOpacity": 1.0,
+                       "bootsOpacity": 0.25,
+                       "playerId": "da6fa5b1-bd84-361d-8771-656d46818daa",
+                       "playerName": "TestPlayer",
+                       "enableCombatDetection": true
+                     }
+                },
+                "enableCombatDetection": false
+            }
+            """;
+        //endregion
+        var configProvider = new StringServerConfigProvider(v3Json);
+        var currentConfig = configProvider.getValue();
+
+        // Verify player config loaded correctly
+        assertEquals(0.5, currentConfig.getPlayerConfigOrDefault("TestPlayer").helmetOpacity.getValue());
+        assertEquals(0.75, currentConfig.getPlayerConfigOrDefault("TestPlayer").chestOpacity.getValue());
+        assertEquals(true, currentConfig.getPlayerConfigOrDefault("TestPlayer").enableCombatDetection.getValue());
+
+        // Verify server-wide setting was migrated from v3 to v4 format
+        assertNotNull(currentConfig.serverWideSettings);
+        assertEquals(false, currentConfig.serverWideSettings.enableCombatDetection.getValue());
+
+        // Verify the config was marked as changed (requires saving)
+        assertTrue(currentConfig.hasChangedFromSerializedContent());
+    }
+
+    @Test
+    @DisplayName("Read from v4 configuration")
+    void readV4() {
+        //region json - v4 format with serverWideSettings object
+        String v4Json = """
+            {
+                "playerConfigs": {
+                     "da6fa5b1-bd84-361d-8771-656d46818daa": {
+                       "helmetOpacity": 0.2,
+                       "chestOpacity": 0.4,
+                       "legsOpacity": 0.6,
+                       "bootsOpacity": 0.8,
+                       "playerId": "da6fa5b1-bd84-361d-8771-656d46818daa",
+                       "playerName": "ModernPlayer",
+                       "enableCombatDetection": false
+                     }
+                },
+                "serverWideSettings": {
+                    "enableCombatDetection": true
+                }
+            }
+            """;
+        //endregion
+        var configProvider = new StringServerConfigProvider(v4Json);
+        var currentConfig = configProvider.getValue();
+
+        // Verify player config loaded correctly
+        assertEquals(0.2, currentConfig.getPlayerConfigOrDefault("ModernPlayer").helmetOpacity.getValue());
+        assertEquals(0.4, currentConfig.getPlayerConfigOrDefault("ModernPlayer").chestOpacity.getValue());
+        assertEquals(false, currentConfig.getPlayerConfigOrDefault("ModernPlayer").enableCombatDetection.getValue());
+
+        // Verify server-wide settings loaded correctly in v4 format
+        assertNotNull(currentConfig.serverWideSettings);
+        assertEquals(true, currentConfig.serverWideSettings.enableCombatDetection.getValue());
+
+        // Verify the config was NOT marked as changed (no migration needed)
+        assertFalse(currentConfig.hasChangedFromSerializedContent());
+    }
+
+    @Test
+    @DisplayName("Compressed packet size test - up to 500 players")
+    void testCompressedPacketSizes() {
+        // Test incremental player counts to ensure packets stay within reasonable limits
+        int[] playerCounts = {1, 10, 50, 100, 200, 300, 400, 500};
+        int maxReasonableSize = 2 * 1024 * 1024; // 2MB safety limit
+
+        System.out.println("\n=== Compressed Packet Size Test ===");
+        System.out.println("Testing ServerConfiguration packet sizes with varying player counts:");
+        System.out.println("Format: [Players] Uncompressed → Compressed (Compression Ratio)");
+        System.out.println("-----------------------------------------------------------");
+
+        for (int playerCount : playerCounts) {
+            // Create a ServerConfiguration with the specified number of players
+            StringServerConfigProvider provider = createServerConfigWithPlayers(playerCount);
+            ServerConfiguration config = provider.getValue();
+
+            // Measure uncompressed JSON size
+            String json = de.zannagh.armorhider.ArmorHider.GSON.toJson(config);
+            int uncompressedSize = json.getBytes(java.nio.charset.StandardCharsets.UTF_8).length;
+
+            // Measure compressed packet size by actually encoding it
+            ByteBuf buffer = Unpooled.buffer();
+            try {
+                config.getCodec().encode(buffer, config);
+                int compressedSize = buffer.readableBytes();
+                double compressionRatio = (double) uncompressedSize / compressedSize;
+
+                // Format output
+                String uncompressedStr = formatBytes(uncompressedSize);
+                String compressedStr = formatBytes(compressedSize);
+                System.out.printf("[%3d players] %8s → %8s (%.1fx compression)%n",
+                        playerCount, uncompressedStr, compressedStr, compressionRatio);
+
+                // Assert the compressed size is within reasonable limits
+                assertTrue(compressedSize < maxReasonableSize,
+                        String.format("Compressed packet for %d players (%s) exceeds safety limit of %s",
+                                playerCount, compressedStr, formatBytes(maxReasonableSize)));
+
+            } finally {
+                buffer.release();
+            }
+        }
+
+        System.out.println("-----------------------------------------------------------");
+        System.out.println("✓ All packet sizes within acceptable limits");
+        System.out.println("===========================================\n");
+    }
+
+    /**
+     * Creates a ServerConfiguration with the specified number of player configs
+     */
+    private StringServerConfigProvider createServerConfigWithPlayers(int playerCount) {
+        StringBuilder jsonBuilder = new StringBuilder();
+        jsonBuilder.append("{\n");
+        jsonBuilder.append("  \"playerConfigs\": {\n");
+
+        for (int i = 0; i < playerCount; i++) {
+            UUID playerId = UUID.randomUUID();
+            String playerName = "Player" + i;
+
+            if (i > 0) {
+                jsonBuilder.append(",\n");
+            }
+
+            double helmetOpacity = Math.random();
+            double chestOpacity = Math.random();
+            double legsOpacity = Math.random();
+            double bootsOpacity = Math.random();
+            boolean combatDetection = Math.random() > 0.5;
+
+            jsonBuilder.append(String.format(Locale.US,
+                    "    \"%s\": {\n" +
+                    "      \"helmetOpacity\": %.2f,\n" +
+                    "      \"chestOpacity\": %.2f,\n" +
+                    "      \"legsOpacity\": %.2f,\n" +
+                    "      \"bootsOpacity\": %.2f,\n" +
+                    "      \"playerId\": \"%s\",\n" +
+                    "      \"playerName\": \"%s\",\n" +
+                    "      \"enableCombatDetection\": %s\n" +
+                    "    }",
+                    playerId,
+                    helmetOpacity,
+                    chestOpacity,
+                    legsOpacity,
+                    bootsOpacity,
+                    playerId,
+                    playerName,
+                    combatDetection));
+        }
+
+        jsonBuilder.append("\n  },\n");
+        jsonBuilder.append("  \"serverWideSettings\": {\n");
+        jsonBuilder.append("    \"enableCombatDetection\": true\n");
+        jsonBuilder.append("  }\n");
+        jsonBuilder.append("}");
+
+        return new StringServerConfigProvider(jsonBuilder.toString());
+    }
+
+    /**
+     * Formats byte count into human-readable string (KB, MB)
+     */
+    private String formatBytes(int bytes) {
+        if (bytes < 1024) {
+            return bytes + "B";
+        } else if (bytes < 1024 * 1024) {
+            return String.format("%.1fKB", bytes / 1024.0);
+        } else {
+            return String.format("%.2fMB", bytes / (1024.0 * 1024.0));
+        }
     }
 }

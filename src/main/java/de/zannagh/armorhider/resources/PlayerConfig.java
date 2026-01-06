@@ -8,14 +8,30 @@ import de.zannagh.armorhider.configuration.items.implementations.ArmorOpacity;
 import de.zannagh.armorhider.configuration.items.implementations.CombatDetection;
 import de.zannagh.armorhider.configuration.items.implementations.PlayerName;
 import de.zannagh.armorhider.configuration.items.implementations.PlayerUuid;
+import de.zannagh.armorhider.netPackets.CompressedJsonCodec;
+import io.netty.buffer.ByteBuf;
+import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.NonNull;
 
 import java.io.Reader;
 import java.util.UUID;
 
-public class PlayerConfig implements ConfigurationSource {
+public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
+    
     private boolean hasChangedFromSerializedContent;
+
+    public static final Id<PlayerConfig> PACKET_IDENTIFIER = new Id<>(Identifier.of("de.zannagh.armorhider", "settings_c2s_packet"));
+    
+    public PacketCodec<ByteBuf, PlayerConfig> getCodec() {
+        return CompressedJsonCodec.create(ArmorHider.GSON, PlayerConfig.class);
+    }
+
+    @Override
+    public Id<PlayerConfig> getId() {
+        return PACKET_IDENTIFIER;
+    }
     
     @SerializedName(value = "helmetOpacity", alternate = {"helmetTransparency"})
     public ArmorOpacity helmetOpacity;

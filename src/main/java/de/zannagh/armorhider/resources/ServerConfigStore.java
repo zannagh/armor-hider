@@ -25,7 +25,7 @@ public class ServerConfigStore implements ConfigurationProvider<ServerConfigurat
     public ServerConfiguration getConfig() { return configurationProvider.getValue(); }
 
     public void setServerCombatDetection(Boolean enabled) {
-        configurationProvider.getValue().enableCombatDetection.setValue(enabled);
+        configurationProvider.getValue().serverWideSettings.enableCombatDetection.setValue(enabled);
         configurationProvider.saveCurrent();
     }
 

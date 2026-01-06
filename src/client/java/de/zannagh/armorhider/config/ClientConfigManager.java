@@ -3,10 +3,9 @@ package de.zannagh.armorhider.config;
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.common.ConfigurationProvider;
-import de.zannagh.armorhider.netPackets.AdminSettingsC2SPacket;
 import de.zannagh.armorhider.resources.PlayerConfig;
-import de.zannagh.armorhider.netPackets.SettingsC2SPacket;
 import de.zannagh.armorhider.resources.ServerConfiguration;
+import de.zannagh.armorhider.resources.ServerWideSettings;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.PlayerListEntry;
@@ -49,7 +48,7 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
         playerConfigProvider.save(config);
         if (ArmorHiderClient.isClientConnectedToServer()) {
             ArmorHider.LOGGER.info("Sending to server...");
-            ClientPlayNetworking.send(new SettingsC2SPacket(getValue()));
+            ClientPlayNetworking.send(getValue());
             ArmorHider.LOGGER.info("Send client config package to server.");
         }
     }
@@ -66,18 +65,18 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
         if (!ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin) {
             return;
         }
-        serverConfiguration.enableCombatDetection.setValue(enabled);
-        setAndSendServerConfig(serverConfiguration);
+        serverConfiguration.serverWideSettings.enableCombatDetection.setValue(enabled);
+        setAndSendServerWideSettings(serverConfiguration.serverWideSettings);
     }
-    
-    public void setAndSendServerConfig(ServerConfiguration serverConfig) {
+
+    public void setAndSendServerWideSettings(ServerWideSettings serverWideSettings) {
         if (!ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin) {
             ArmorHider.LOGGER.info("Player is no admin, suppressing update...");
             return;
         }
-        serverConfiguration = serverConfig;
-        ArmorHider.LOGGER.info("Sending server config to server...");
-        ClientPlayNetworking.send(new AdminSettingsC2SPacket(serverConfig.enableCombatDetection.getValue()));
+        serverConfiguration.serverWideSettings = serverWideSettings;
+        ArmorHider.LOGGER.info("Sending server-wide settings to server...");
+        ClientPlayNetworking.send(serverWideSettings);
     }
     
     public void setServerConfig(ServerConfiguration serverConfig) {

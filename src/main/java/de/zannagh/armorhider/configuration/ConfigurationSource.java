@@ -1,11 +1,18 @@
 package de.zannagh.armorhider.configuration;
 
+import de.zannagh.armorhider.resources.PlayerConfig;
+import io.netty.buffer.ByteBuf;
+import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.packet.CustomPayload;
+
 /**
  * Marker interface for configuration classes that should have their
  * ConfigurationItemBase fields automatically initialized when missing from JSON.
  */
-public interface ConfigurationSource {
-
+public interface ConfigurationSource<T> extends CustomPayload {
+    
+    PacketCodec<ByteBuf, T> getCodec();
+    
     /**
      * Indicates whether the configuration source has been altered compared to the
      * state derived from its serialized content, such as JSON representation.
