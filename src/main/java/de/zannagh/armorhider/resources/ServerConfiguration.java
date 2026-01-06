@@ -18,11 +18,11 @@ public class ServerConfiguration {
     public ServerConfiguration(Map<UUID, PlayerConfig> playerConfigs, Boolean enableCombatDetection) {
         this.playerConfigs = playerConfigs != null ? playerConfigs : new HashMap<>();
         this.enableCombatDetection = enableCombatDetection;
-        this.playerConfigs.values().forEach(c -> playerNameConfigs.put(c.playerName, c));
+        this.playerConfigs.values().forEach(c -> playerNameConfigs.put(c.playerName.getValue(), c));
     }
 
     public PlayerConfig getPlayerConfigOrDefault(PlayerEntity player) {
-        if (getPlayerConfigOrDefault(player.getUuid()) instanceof PlayerConfig uuidConfig && Objects.equals(uuidConfig.playerName, Objects.requireNonNull(player.getDisplayName()).getString())) {
+        if (getPlayerConfigOrDefault(player.getUuid()) instanceof PlayerConfig uuidConfig && Objects.equals(uuidConfig.playerName.getValue(), Objects.requireNonNull(player.getDisplayName()).getString())) {
             return uuidConfig;
         }
         return getPlayerConfigOrDefault(Objects.requireNonNull(player.getDisplayName()).getString());

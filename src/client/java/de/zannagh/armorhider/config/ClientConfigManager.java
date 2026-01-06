@@ -2,6 +2,7 @@ package de.zannagh.armorhider.config;
 
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.common.ConfigurationProvider;
 import de.zannagh.armorhider.netPackets.AdminSettingsC2SPacket;
 import de.zannagh.armorhider.resources.PlayerConfig;
 import de.zannagh.armorhider.netPackets.SettingsC2SPacket;
@@ -10,66 +11,44 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.PlayerListEntry;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.*;
 
-public final class ClientConfigManager {
+public class ClientConfigManager {
     
-    private static final Path FILE = new File("config", "armor-hider.json").toPath();
+    private final ConfigurationProvider<PlayerConfig> playerConfigProvider;
 
-    private static PlayerConfig CURRENT = PlayerConfig.defaults(UUID.randomUUID(), "dummy");
+    private PlayerConfig CURRENT = PlayerConfig.defaults(UUID.randomUUID(), "dummy");
     
-    private static ServerConfiguration serverConfiguration = new ServerConfiguration();
-    public static void updateName(String name) {
-        CURRENT.playerName = name;
+    private ServerConfiguration serverConfiguration = new ServerConfiguration();
+    
+    public ClientConfigManager() {
+        this.playerConfigProvider = new PlayerConfigFileProvider();
+    }
+    
+    public void updateName(String name) {
+        CURRENT.playerName.setValue(name);
         save();
     }
 
-    public static void updateId(UUID id) {
-        CURRENT.playerId = id;
+    public void updateId(UUID id) {
+        CURRENT.playerId.setValue(id);
         save();
     }
     
-    public static void load() {
-        try {
-            if (Files.exists(FILE)) {
-                try (Reader r = Files.newBufferedReader(FILE)) {
-                    CURRENT = PlayerConfig.Deserialize(r);
-                    ArmorHider.LOGGER.info("Loaded client config from file.");
-                    ArmorHider.LOGGER.info("Current config: {}", ArmorHider.GSON.toJson(CURRENT));
-                }
-            } else {
-                save();
-            }
-        } catch (IOException e) {
-            ArmorHider.LOGGER.error("Failed to load client config!", e);
-            CURRENT = PlayerConfig.defaults(UUID.randomUUID(), "dummy");
-        }
+    public void load() {
+        CURRENT = playerConfigProvider.load();
     }
 
-    public static void save() {
-        try {
-            Files.createDirectories(FILE.getParent());
-            try (Writer w = Files.newBufferedWriter(FILE)) {
-                ArmorHider.GSON.toJson(CURRENT, w);
-                ArmorHider.LOGGER.info("Saved client config to file.");
-                if (ArmorHiderClient.isClientConnectedToServer()) {
-                    ArmorHider.LOGGER.info("Sending to server...");
-                    ClientPlayNetworking.send(new SettingsC2SPacket(get()));
-                    ArmorHider.LOGGER.info("Send client config package to server.");
-                }
-            }
-        } catch (IOException e) {
-            ArmorHider.LOGGER.error("Failed to save client config!", e);
+    public void save() {
+        playerConfigProvider.save(CURRENT);
+        if (ArmorHiderClient.isClientConnectedToServer()) {
+            ArmorHider.LOGGER.info("Sending to server...");
+            ClientPlayNetworking.send(new SettingsC2SPacket(get()));
+            ArmorHider.LOGGER.info("Send client config package to server.");
         }
     }
     
-    public static void setAndSendServerCombatDetection(boolean enabled){
+    public void setAndSendServerCombatDetection(boolean enabled){
         if (!ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin) {
             return;
         }
@@ -77,7 +56,7 @@ public final class ClientConfigManager {
         setAndSendServerConfig(serverConfiguration);
     }
     
-    public static void setAndSendServerConfig(ServerConfiguration serverConfig) {
+    public void setAndSendServerConfig(ServerConfiguration serverConfig) {
         if (!ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin) {
             ArmorHider.LOGGER.info("Player is no admin, suppressing update...");
             return;
@@ -87,18 +66,18 @@ public final class ClientConfigManager {
         ClientPlayNetworking.send(new AdminSettingsC2SPacket(serverConfig.enableCombatDetection));
     }
     
-    public static void setServerConfig(ServerConfiguration serverConfig) {
+    public void setServerConfig(ServerConfiguration serverConfig) {
         ArmorHider.LOGGER.info("Setting server config...");
         serverConfiguration = serverConfig;
     }
 
-    public static PlayerConfig get() { return CURRENT; }
+    public PlayerConfig get() { return CURRENT; }
     
-    public static ServerConfiguration getServerConfig() { return serverConfiguration; }
+    public ServerConfiguration getServerConfig() { return serverConfiguration; }
     
-    public static void set(PlayerConfig cfg) { CURRENT = cfg; save(); }
+    public void set(PlayerConfig cfg) { CURRENT = cfg; save(); }
 
-    public static PlayerConfig getConfigForPlayer(String playerName) {
+    public PlayerConfig getConfigForPlayer(String playerName) {
         if (playerName == null || playerName.equals(ArmorHiderClient.getCurrentPlayerName())) {
             return CURRENT;
         }

@@ -17,14 +17,14 @@ public record SettingsS2CPacket(List<PlayerConfig> config, Boolean serverCombatD
     public static final Id<SettingsS2CPacket> IDENTIFIER = new Id<>(Identifier.of("de.zannagh.armorhider", "settings_s2c_packet"));
 
     private static final PacketCodec<ByteBuf, PlayerConfig> PLAYER_CONFIG_CODEC = PacketCodec.tuple(
-            PacketCodecs.DOUBLE, pc -> pc.helmetTransparency,
-            PacketCodecs.DOUBLE, pc -> pc.chestTransparency,
-            PacketCodecs.DOUBLE, pc -> pc.legsTransparency,
-            PacketCodecs.DOUBLE, pc -> pc.bootsTransparency,
-            PacketCodecs.BOOLEAN, pc -> pc.enableCombatDetection,
-            PacketCodecs.STRING, pc -> pc.playerId.toString(),
-            PacketCodecs.STRING, pc -> pc.playerName,
-            PlayerConfig::FromPacket
+            PacketCodecs.DOUBLE, pc -> pc.helmetOpacity.getValue(),
+            PacketCodecs.DOUBLE, pc -> pc.chestOpacity.getValue(),
+            PacketCodecs.DOUBLE, pc -> pc.legsOpacity.getValue(),
+            PacketCodecs.DOUBLE, pc -> pc.bootsOpacity.getValue(),
+            PacketCodecs.BOOLEAN, pc -> pc.enableCombatDetection.getValue(),
+            PacketCodecs.STRING, pc -> pc.playerId.getValue().toString(),
+            PacketCodecs.STRING, pc -> pc.playerName.getValue(),
+            PlayerConfig::new
     );
 
     public static final PacketCodec<ByteBuf, SettingsS2CPacket> PACKET_CODEC = PacketCodec.tuple(
@@ -35,7 +35,7 @@ public record SettingsS2CPacket(List<PlayerConfig> config, Boolean serverCombatD
     
     public ServerConfiguration getConfig(){
         var serverMap = new HashMap<UUID, PlayerConfig>();
-        config.forEach(c -> serverMap.put(c.playerId, c));
+        config.forEach(c -> serverMap.put(c.playerId.getValue(), c));
         return new ServerConfiguration(serverMap, serverCombatDetection);
     }
 

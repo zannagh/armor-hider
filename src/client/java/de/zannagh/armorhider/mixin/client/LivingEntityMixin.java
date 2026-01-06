@@ -6,8 +6,8 @@
 
 package de.zannagh.armorhider.mixin.client;
 
+import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.common.CombatManager;
-import de.zannagh.armorhider.config.ClientConfigManager;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.network.OtherClientPlayerEntity;
 import net.minecraft.entity.LivingEntity;
@@ -69,7 +69,7 @@ public class LivingEntityMixin {
     @Unique
     private static boolean shouldLogCombatForPlayer(PlayerEntity player) {
         boolean isClientPlayer = !(player instanceof OtherClientPlayerEntity);
-        boolean serverUsesCombatDetection = ClientConfigManager.getServerConfig().enableCombatDetection;
+        boolean serverUsesCombatDetection = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getServerConfig().enableCombatDetection;
 
         // If server enforces combat detection, always log combat (potential PvP advantage prevention)
         if (serverUsesCombatDetection) {
@@ -79,10 +79,10 @@ public class LivingEntityMixin {
         // Server has combat detection disabled - use individual player preference
         boolean playerUsesCombatDetection;
         if (isClientPlayer) {
-            playerUsesCombatDetection = ClientConfigManager.get().enableCombatDetection;
+            playerUsesCombatDetection = ArmorHiderClient.CLIENT_CONFIG_MANAGER.get().enableCombatDetection.getValue();
         } else {
-            var playerConfig = ClientConfigManager.getServerConfig().getPlayerConfigOrDefault(player);
-            playerUsesCombatDetection = playerConfig != null ? playerConfig.enableCombatDetection : true;
+            var playerConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getServerConfig().getPlayerConfigOrDefault(player);
+            playerUsesCombatDetection = playerConfig != null ? playerConfig.enableCombatDetection.getValue() : true;
         }
 
         return playerUsesCombatDetection;

@@ -13,7 +13,6 @@ import java.nio.file.Path;
 import java.util.*;
 
 public final class ServerConfigStore {
-    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final Type LEGACY_MAP_TYPE = new TypeToken<Map<UUID, PlayerConfig>>(){}.getType();
 
     private final Path file;
@@ -46,11 +45,11 @@ public final class ServerConfigStore {
                         // Check if this is the new format (has "playerConfigs" field)
                         if (obj.has("playerConfigs")) {
                             // New format - deserialize directly
-                            configuration = GSON.fromJson(element, ServerConfiguration.class);
+                            configuration = ArmorHider.GSON.fromJson(element, ServerConfiguration.class);
                             ArmorHider.LOGGER.info("Loaded server config (new format).");
                         } else {
                             // Old format - it's a flat map of UUID -> PlayerConfig
-                            Map<UUID, PlayerConfig> legacyData = GSON.fromJson(element, LEGACY_MAP_TYPE);
+                            Map<UUID, PlayerConfig> legacyData = ArmorHider.GSON.fromJson(element, LEGACY_MAP_TYPE);
                             if (legacyData != null) {
                                 configuration = ServerConfiguration.fromLegacyFormat(legacyData);
                                 ArmorHider.LOGGER.info("Migrated server config (legacy format).");
@@ -76,7 +75,7 @@ public final class ServerConfigStore {
         try {
             Files.createDirectories(file.getParent());
             try (Writer w = Files.newBufferedWriter(file)) {
-                GSON.toJson(configuration, ServerConfiguration.class, w);
+                ArmorHider.GSON.toJson(configuration, ServerConfiguration.class, w);
                 ArmorHider.LOGGER.info("Saved server config.");
             }
         } catch (Exception e) {
@@ -88,11 +87,11 @@ public final class ServerConfigStore {
         configuration.playerConfigs.put(uuid, cfg);
         Map<UUID, PlayerConfig> overwrites = new HashMap<>();
         configuration.playerConfigs.forEach((e, k) -> {
-            if (k.playerName.equals(cfg.playerName)){
+            if (k.playerName.getValue().equals(cfg.playerName.getValue())){
                 overwrites.put(e, k);
             }
         });
-        configuration.playerNameConfigs.put(cfg.playerName, cfg);
+        configuration.playerNameConfigs.put(cfg.playerName.getValue(), cfg);
         overwrites.forEach((e, k) -> configuration.playerConfigs.replace(e, k));
         save();
     }

@@ -9,9 +9,6 @@ import de.zannagh.armorhider.resources.ServerConfiguration;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.command.permission.LeveledPermissionPredicate;
-import net.minecraft.command.permission.PermissionLevel;
-import net.minecraft.command.permission.PermissionPredicate;
 import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.util.UUID;
@@ -33,17 +30,17 @@ public final class CommsManager {
         });
         
         ServerPlayNetworking.registerGlobalReceiver(SettingsC2SPacket.IDENTIFIER, (payload, context) ->{
-            ArmorHider.LOGGER.info("Server received settings packet from {}", payload.config().playerId.toString());
+            ArmorHider.LOGGER.info("Server received settings packet from {}", payload.config().playerId.getValue().toString());
 
             var data = payload.config();
-            
+
             try {
-                ServerRuntime.put(data.playerId, data);
+                ServerRuntime.put(data.playerId.getValue(), data);
                 ServerRuntime.store.save();
 
                 var currentConfig = ServerRuntime.store.getConfig();
 
-                sendToAllClientsButSender(data.playerId, currentConfig);
+                sendToAllClientsButSender(data.playerId.getValue(), currentConfig);
             } catch(Exception e) {
                 ArmorHider.LOGGER.error("Failed to store player data!", e);
             }

@@ -12,8 +12,6 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import de.zannagh.armorhider.rendering.ArmorRenderPipeline;
 import net.minecraft.client.model.Model;
 import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.RenderLayers;
-import net.minecraft.client.render.TexturedRenderLayers;
 import net.minecraft.client.render.command.ModelCommandRenderer;
 import net.minecraft.client.render.command.OrderedRenderCommandQueue;
 import net.minecraft.client.render.command.RenderCommandQueue;
