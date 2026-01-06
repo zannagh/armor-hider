@@ -61,7 +61,7 @@ public abstract class SkinOptionsMixin extends Screen {
     public void close() {
         if (settingsChanged) {
             ArmorHider.LOGGER.info("Updating current player settings...");
-            ArmorHiderClient.CLIENT_CONFIG_MANAGER.save();
+            ArmorHiderClient.CLIENT_CONFIG_MANAGER.saveCurrent();
         }
         if (serverSettingsChanged) {
             ArmorHider.LOGGER.info("Updating current server settings (if possible)...");
@@ -85,7 +85,7 @@ public abstract class SkinOptionsMixin extends Screen {
                 Text.translatable("armorhider.options.helmet.tooltip"),
                 Text.translatable("armorhider.options.helmet.tooltip_narration"),
                 currentValue -> Text.translatable("armorhider.options.helmet.button_text", String.format("%.0f%%", currentValue * 100)),
-                ArmorHiderClient.CLIENT_CONFIG_MANAGER.get().helmetOpacity.getValue(),
+                ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().helmetOpacity.getValue(),
                 this::setHelmetTransparency);
         optionElementFactory.addSimpleOptionAsWidget(helmetOption);
 
@@ -94,7 +94,7 @@ public abstract class SkinOptionsMixin extends Screen {
                 Text.translatable("armorhider.options.chestplate.tooltip"),
                 Text.translatable("armorhider.options.chestplate.tooltip_narration"),
                 currentValue -> Text.translatable("armorhider.options.chestplate.button_text", String.format("%.0f%%", currentValue * 100)),
-                ArmorHiderClient.CLIENT_CONFIG_MANAGER.get().chestOpacity.getValue(),
+                ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().chestOpacity.getValue(),
                 this::setChestTransparency);
         optionElementFactory.addSimpleOptionAsWidget(chestOption);
 
@@ -103,7 +103,7 @@ public abstract class SkinOptionsMixin extends Screen {
                 Text.translatable("armorhider.options.leggings.tooltip"),
                 Text.translatable("armorhider.options.leggings.tooltip_narration"),
                 currentValue -> Text.translatable("armorhider.options.leggings.button_text", String.format("%.0f%%", currentValue * 100)),
-                ArmorHiderClient.CLIENT_CONFIG_MANAGER.get().legsOpacity.getValue(),
+                ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().legsOpacity.getValue(),
                 this::setLegsTransparency);
         optionElementFactory.addSimpleOptionAsWidget(legsOption);
 
@@ -112,7 +112,7 @@ public abstract class SkinOptionsMixin extends Screen {
                 Text.translatable("armorhider.options.boots.tooltip"),
                 Text.translatable("armorhider.options.boots.tooltip_narration"),
                 currentValue -> Text.translatable("armorhider.options.boots.button_text", String.format("%.0f%%", currentValue * 100)),
-                ArmorHiderClient.CLIENT_CONFIG_MANAGER.get().bootsOpacity.getValue(),
+                ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().bootsOpacity.getValue(),
                 this::setBootsTransparency);
         optionElementFactory.addSimpleOptionAsWidget(bootsOption);
 
@@ -120,7 +120,7 @@ public abstract class SkinOptionsMixin extends Screen {
                 Text.translatable("armorhider.options.combat_detection.title"),
                 Text.translatable("armorhider.options.combat_detection.tooltip"),
                 Text.translatable("armorhider.options.combat_detection.tooltip_narration"),
-                ArmorHiderClient.CLIENT_CONFIG_MANAGER.get().enableCombatDetection.getValue(),
+                ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().enableCombatDetection.getValue(),
                 this::setCombatDetection
         );
         optionElementFactory.addSimpleOptionAsWidget(enableCombatDetection);
@@ -130,7 +130,7 @@ public abstract class SkinOptionsMixin extends Screen {
                     Text.translatable("armorhider.options.combat_detection_server.title"),
                     Text.translatable("armorhider.options.combat_detection_server.tooltip"),
                     Text.translatable("armorhider.options.combat_detection_server.tooltip_narration"),
-                    ArmorHiderClient.CLIENT_CONFIG_MANAGER.get().enableCombatDetection.getValue(),
+                    ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().enableCombatDetection.getValue(),
                     this::setServerCombatDetection
             );
             optionElementFactory.addSimpleOptionAsWidget(combatHidingOnServer);
@@ -139,31 +139,31 @@ public abstract class SkinOptionsMixin extends Screen {
 
     @Unique
     private void setHelmetTransparency(double value){
-        ArmorHiderClient.CLIENT_CONFIG_MANAGER.get().helmetOpacity.setValue(value);
+        ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().helmetOpacity.setValue(value);
         settingsChanged = true;
     }
 
     @Unique
     private void setChestTransparency(double value){
-        ArmorHiderClient.CLIENT_CONFIG_MANAGER.get().chestOpacity.setValue(value);
+        ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().chestOpacity.setValue(value);
         settingsChanged = true;
     }
 
     @Unique
     private void setLegsTransparency(double value){
-        ArmorHiderClient.CLIENT_CONFIG_MANAGER.get().legsOpacity.setValue(value);
+        ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().legsOpacity.setValue(value);
         settingsChanged = true;
     }
 
     @Unique
     private void setBootsTransparency(double value){
-        ArmorHiderClient.CLIENT_CONFIG_MANAGER.get().bootsOpacity.setValue(value);
+        ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().bootsOpacity.setValue(value);
         settingsChanged = true;
     }
 
     @Unique
     private void setCombatDetection(boolean enabled) {
-        ArmorHiderClient.CLIENT_CONFIG_MANAGER.get().enableCombatDetection.setValue(enabled);
+        ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().enableCombatDetection.setValue(enabled);
         settingsChanged = true;
     }
 

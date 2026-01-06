@@ -3,9 +3,8 @@ package de.zannagh.armorhider;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import de.zannagh.armorhider.common.ConfigurationProvider;
+import de.zannagh.armorhider.config.ClientConfigManager;
 import de.zannagh.armorhider.configuration.items.implementations.ArmorOpacity;
-import de.zannagh.armorhider.resources.PlayerConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -14,8 +13,6 @@ import java.util.UUID;
 
 class PlayerConfigurationTests {
     
-    private ConfigurationProvider<PlayerConfig> configurationProvider;
-   
     @Test
     @DisplayName("Read from v1 configuration")
     void readV1(){
@@ -28,7 +25,7 @@ class PlayerConfigurationTests {
                   "playerId": "6f7d35ad-9152-3823-9277-b683a91158a3",
                   "playerName": "Player446"
                 }""";
-        configurationProvider = new StringPlayerConfigProvider(v1Json);
+        var configurationProvider = new StringPlayerConfigProvider(v1Json);
         var currentConfig = configurationProvider.load();
         assertEquals(0.35, currentConfig.helmetOpacity.getValue());
         assertEquals(0.35, currentConfig.chestOpacity.getValue());
@@ -52,7 +49,7 @@ class PlayerConfigurationTests {
                   "playerName": "Player446",
                   "enableCombatDetection": true
                 }""";
-        configurationProvider = new StringPlayerConfigProvider(v2Json);
+        var configurationProvider = new StringPlayerConfigProvider(v2Json);
         var currentConfig = configurationProvider.load();
         assertEquals(0.35, currentConfig.helmetOpacity.getValue());
         assertEquals(0.35, currentConfig.chestOpacity.getValue());
@@ -75,8 +72,8 @@ class PlayerConfigurationTests {
                   "playerName": "Player446",
                   "enableCombatDetection": true
                 }""";
-        configurationProvider = new StringPlayerConfigProvider(v2JsonMissingBoots);
-        var currentConfig = configurationProvider.load();
+        var configurationProvider = new StringPlayerConfigProvider(v2JsonMissingBoots);
+        var currentConfig = configurationProvider.getValue();
         assertEquals(0.35, currentConfig.helmetOpacity.getValue());
         assertEquals(0.35, currentConfig.chestOpacity.getValue());
         assertEquals(0.2, currentConfig.legsOpacity.getValue());
@@ -90,7 +87,33 @@ class PlayerConfigurationTests {
     @Test
     @DisplayName("Read from v3 configuration")
     void readV3(){
-        String v3Json = """
+        var configurationProvider = new StringPlayerConfigProvider(getVersion3PlayerConfig());
+        var currentConfig = configurationProvider.getValue();
+        assertEquals(0.35, currentConfig.helmetOpacity.getValue());
+        assertEquals(0.35, currentConfig.chestOpacity.getValue());
+        assertEquals(0.2, currentConfig.legsOpacity.getValue());
+        assertEquals(0.25, currentConfig.bootsOpacity.getValue());
+        assertEquals(UUID.fromString("6f7d35ad-9152-3823-9277-b683a91158a3"), currentConfig.playerId.getValue());
+        assertEquals("Player446", currentConfig.playerName.getValue());
+        assertEquals(true, currentConfig.enableCombatDetection.getValue());
+    }
+    
+    @Test
+    @DisplayName("Read from Config Manager")
+    void readFromConfigManager(){
+        ClientConfigManager configManager = new ClientConfigManager(new StringPlayerConfigProvider(getVersion3PlayerConfig()));
+        var currentConfig = configManager.getValue();
+        assertEquals(0.35, currentConfig.helmetOpacity.getValue());
+        assertEquals(0.35, currentConfig.chestOpacity.getValue());
+        assertEquals(0.2, currentConfig.legsOpacity.getValue());
+        assertEquals(0.25, currentConfig.bootsOpacity.getValue());
+        assertEquals(UUID.fromString("6f7d35ad-9152-3823-9277-b683a91158a3"), currentConfig.playerId.getValue());
+        assertEquals("Player446", currentConfig.playerName.getValue());
+        assertEquals(true, currentConfig.enableCombatDetection.getValue());
+    }
+
+    private static String getVersion3PlayerConfig() {
+        return """
                 {
                   "helmetOpacity": 0.35,
                   "chestOpacity": 0.35,
@@ -100,14 +123,5 @@ class PlayerConfigurationTests {
                   "playerName": "Player446",
                   "enableCombatDetection": true
                 }""";
-        configurationProvider = new StringPlayerConfigProvider(v3Json);
-        var currentConfig = configurationProvider.load();
-        assertEquals(0.35, currentConfig.helmetOpacity.getValue());
-        assertEquals(0.35, currentConfig.chestOpacity.getValue());
-        assertEquals(0.2, currentConfig.legsOpacity.getValue());
-        assertEquals(0.25, currentConfig.bootsOpacity.getValue());
-        assertEquals(UUID.fromString("6f7d35ad-9152-3823-9277-b683a91158a3"), currentConfig.playerId.getValue());
-        assertEquals("Player446", currentConfig.playerName.getValue());
-        assertEquals(true, currentConfig.enableCombatDetection.getValue());
     }
 }

@@ -4,6 +4,7 @@ import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.netPackets.SettingsC2SPacket;
 import de.zannagh.armorhider.netPackets.SettingsS2CPacket;
+import de.zannagh.armorhider.resources.ServerConfiguration;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 
@@ -11,10 +12,7 @@ public final class ClientCommunicationManager {
     public static void initClient() {
         ClientPlayNetworking.registerGlobalReceiver(SettingsS2CPacket.IDENTIFIER, (payload, context) -> {
             ArmorHider.LOGGER.info("Armor Hider received configuration from server.");
-
-            var serverConfig = payload.getConfig();
-
-            ArmorHiderClient.CLIENT_CONFIG_MANAGER.setServerConfig(serverConfig);
+            ArmorHiderClient.CLIENT_CONFIG_MANAGER.setServerConfig(ServerConfiguration.fromPacket(payload));
             ArmorHider.LOGGER.info("Armor Hider successfully set configuration from server.");
         });
 
@@ -23,7 +21,7 @@ public final class ClientCommunicationManager {
             var playerName = client.player.getName().getString();
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.updateName(playerName);
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.updateId(handler.getProfile().id());
-            var currentConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER.get();
+            var currentConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue();
 
             if (client.getServer() != null) {
                 try {

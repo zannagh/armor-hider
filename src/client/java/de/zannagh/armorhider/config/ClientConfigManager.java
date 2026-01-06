@@ -13,7 +13,7 @@ import net.minecraft.client.network.PlayerListEntry;
 
 import java.util.*;
 
-public class ClientConfigManager {
+public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> {
     
     private final ConfigurationProvider<PlayerConfig> playerConfigProvider;
 
@@ -23,36 +23,50 @@ public class ClientConfigManager {
     
     public ClientConfigManager() {
         this.playerConfigProvider = new PlayerConfigFileProvider();
+        CURRENT = load();
+    }
+
+    public ClientConfigManager(ConfigurationProvider<PlayerConfig> configurationProvider) {
+        this.playerConfigProvider = configurationProvider;
+        CURRENT = load();
     }
     
     public void updateName(String name) {
         CURRENT.playerName.setValue(name);
-        save();
+        saveCurrent();
     }
 
     public void updateId(UUID id) {
         CURRENT.playerId.setValue(id);
-        save();
+        saveCurrent();
     }
     
-    public void load() {
-        CURRENT = playerConfigProvider.load();
+    public PlayerConfig load() {
+        return playerConfigProvider.getValue();
     }
-
-    public void save() {
-        playerConfigProvider.save(CURRENT);
+    
+    public void save(PlayerConfig config){
+        playerConfigProvider.save(config);
         if (ArmorHiderClient.isClientConnectedToServer()) {
             ArmorHider.LOGGER.info("Sending to server...");
-            ClientPlayNetworking.send(new SettingsC2SPacket(get()));
+            ClientPlayNetworking.send(new SettingsC2SPacket(getValue()));
             ArmorHider.LOGGER.info("Send client config package to server.");
         }
     }
-    
+
+    public void saveCurrent() {
+        save(CURRENT);
+    }
+
+    public PlayerConfig getDefault() {
+        return PlayerConfig.empty();
+    }
+
     public void setAndSendServerCombatDetection(boolean enabled){
         if (!ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin) {
             return;
         }
-        serverConfiguration.enableCombatDetection = enabled;
+        serverConfiguration.enableCombatDetection.setValue(enabled);
         setAndSendServerConfig(serverConfiguration);
     }
     
@@ -63,7 +77,7 @@ public class ClientConfigManager {
         }
         serverConfiguration = serverConfig;
         ArmorHider.LOGGER.info("Sending server config to server...");
-        ClientPlayNetworking.send(new AdminSettingsC2SPacket(serverConfig.enableCombatDetection));
+        ClientPlayNetworking.send(new AdminSettingsC2SPacket(serverConfig.enableCombatDetection.getValue()));
     }
     
     public void setServerConfig(ServerConfiguration serverConfig) {
@@ -71,11 +85,11 @@ public class ClientConfigManager {
         serverConfiguration = serverConfig;
     }
 
-    public PlayerConfig get() { return CURRENT; }
+    public PlayerConfig getValue() { return CURRENT; }
     
     public ServerConfiguration getServerConfig() { return serverConfiguration; }
     
-    public void set(PlayerConfig cfg) { CURRENT = cfg; save(); }
+    public void setValue(PlayerConfig cfg) { CURRENT = cfg; saveCurrent(); }
 
     public PlayerConfig getConfigForPlayer(String playerName) {
         if (playerName == null || playerName.equals(ArmorHiderClient.getCurrentPlayerName())) {

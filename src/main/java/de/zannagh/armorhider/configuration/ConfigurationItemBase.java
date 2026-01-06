@@ -17,6 +17,10 @@ public abstract class ConfigurationItemBase<T> {
     }
 
     public void setValue(T value) {
+        if (value == null) {
+            this.value = getDefaultValue();
+            return;
+        }
         this.value = value;
     }
 

@@ -1,17 +1,14 @@
 package de.zannagh.armorhider.netPackets;
 
 import de.zannagh.armorhider.resources.PlayerConfig;
-import de.zannagh.armorhider.resources.ServerConfiguration;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.UUID;
 
 public record SettingsS2CPacket(List<PlayerConfig> config, Boolean serverCombatDetection) implements CustomPayload {
     public static final Id<SettingsS2CPacket> IDENTIFIER = new Id<>(Identifier.of("de.zannagh.armorhider", "settings_s2c_packet"));
@@ -33,12 +30,6 @@ public record SettingsS2CPacket(List<PlayerConfig> config, Boolean serverCombatD
             SettingsS2CPacket::new
     );
     
-    public ServerConfiguration getConfig(){
-        var serverMap = new HashMap<UUID, PlayerConfig>();
-        config.forEach(c -> serverMap.put(c.playerId.getValue(), c));
-        return new ServerConfiguration(serverMap, serverCombatDetection);
-    }
-
     @Override
     public Id<? extends CustomPayload> getId() {
         return IDENTIFIER;

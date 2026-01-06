@@ -18,19 +18,19 @@ public class PlayerConfig implements ConfigurationSource {
     private boolean hasChangedFromSerializedContent;
     
     @SerializedName(value = "helmetOpacity", alternate = {"helmetTransparency"})
-    public ArmorOpacity helmetOpacity = new ArmorOpacity();
+    public ArmorOpacity helmetOpacity;
     
     @SerializedName(value = "chestOpacity", alternate = {"chestTransparency"})
-    public ArmorOpacity chestOpacity = new ArmorOpacity();
+    public ArmorOpacity chestOpacity;
 
     @SerializedName(value = "legsOpacity", alternate = {"legsTransparency"})
-    public ArmorOpacity legsOpacity = new ArmorOpacity();
+    public ArmorOpacity legsOpacity;
 
     @SerializedName(value = "bootsOpacity", alternate = {"bootsTransparency"})
-    public ArmorOpacity bootsOpacity = new ArmorOpacity();
+    public ArmorOpacity bootsOpacity;
     
     @SerializedName(value = "enableCombatDetection")
-    public CombatDetection enableCombatDetection = new CombatDetection();
+    public CombatDetection enableCombatDetection;
     public PlayerUuid playerId;
     public PlayerName playerName;
 
@@ -45,11 +45,17 @@ public class PlayerConfig implements ConfigurationSource {
     }
 
     public PlayerConfig(UUID uuid, String name) {
+        this();
         this.playerId = new PlayerUuid(uuid);
         this.playerName = new PlayerName(name);
     }
     
     public PlayerConfig() {
+        helmetOpacity = new ArmorOpacity();
+        chestOpacity = new ArmorOpacity();
+        legsOpacity = new ArmorOpacity();
+        bootsOpacity = new ArmorOpacity();
+        enableCombatDetection = new CombatDetection();
         playerId = new PlayerUuid();
         playerName = new PlayerName();
     }

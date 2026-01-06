@@ -69,7 +69,7 @@ public class LivingEntityMixin {
     @Unique
     private static boolean shouldLogCombatForPlayer(PlayerEntity player) {
         boolean isClientPlayer = !(player instanceof OtherClientPlayerEntity);
-        boolean serverUsesCombatDetection = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getServerConfig().enableCombatDetection;
+        boolean serverUsesCombatDetection = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getServerConfig().enableCombatDetection.getValue();
 
         // If server enforces combat detection, always log combat (potential PvP advantage prevention)
         if (serverUsesCombatDetection) {
@@ -79,7 +79,7 @@ public class LivingEntityMixin {
         // Server has combat detection disabled - use individual player preference
         boolean playerUsesCombatDetection;
         if (isClientPlayer) {
-            playerUsesCombatDetection = ArmorHiderClient.CLIENT_CONFIG_MANAGER.get().enableCombatDetection.getValue();
+            playerUsesCombatDetection = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().enableCombatDetection.getValue();
         } else {
             var playerConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getServerConfig().getPlayerConfigOrDefault(player);
             playerUsesCombatDetection = playerConfig != null ? playerConfig.enableCombatDetection.getValue() : true;

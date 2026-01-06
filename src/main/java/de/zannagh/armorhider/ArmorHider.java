@@ -30,7 +30,7 @@ public class ArmorHider implements ModInitializer {
         });
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
             if (ServerRuntime.store != null) {
-                ServerRuntime.store.save();
+                ServerRuntime.store.saveCurrent();
             }
         });
         CommsManager.initServer();

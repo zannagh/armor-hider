@@ -16,8 +16,21 @@ public class PlayerConfigFileProvider implements ConfigurationProvider<PlayerCon
     
     private final Path FILE;
     
+    private PlayerConfig current;
+    
     public PlayerConfigFileProvider() {
         FILE = new File("config", "armor-hider.json").toPath();
+        current = load();
+    }
+    
+    @Override
+    public PlayerConfig getValue() {
+        return current;
+    }
+
+    @Override
+    public void setValue(PlayerConfig newValue) {
+        current = newValue;
     }
     
     @Override
@@ -55,6 +68,11 @@ public class PlayerConfigFileProvider implements ConfigurationProvider<PlayerCon
         } catch (IOException e) {
             ArmorHider.LOGGER.error("Failed to save client config!", e);
         }
+    }
+    
+    @Override
+    public void saveCurrent(){
+        save(current);
     }
 
     @Override

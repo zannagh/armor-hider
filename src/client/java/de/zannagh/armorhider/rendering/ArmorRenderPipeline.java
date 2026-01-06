@@ -66,7 +66,7 @@ public class ArmorRenderPipeline {
 
     private static ArmorModificationInfo tryResolveConfigFromPlayerEntityState(EquipmentSlot slot, PlayerEntityRenderState state){
         return state.displayName == null
-                ? new ArmorModificationInfo(slot, ArmorHiderClient.CLIENT_CONFIG_MANAGER.get())
+                ? new ArmorModificationInfo(slot, ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue())
                 : new ArmorModificationInfo(slot, ArmorHiderClient.CLIENT_CONFIG_MANAGER.getConfigForPlayer(state.displayName.getString()));
     }
 

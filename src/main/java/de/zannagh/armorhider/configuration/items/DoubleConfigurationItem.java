@@ -4,7 +4,7 @@ import de.zannagh.armorhider.configuration.ConfigurationItemBase;
 
 public abstract class DoubleConfigurationItem extends ConfigurationItemBase<Double> {
 
-    public DoubleConfigurationItem(double currentValue) {
+    public DoubleConfigurationItem(Double currentValue) {
         super(currentValue);
     }
 

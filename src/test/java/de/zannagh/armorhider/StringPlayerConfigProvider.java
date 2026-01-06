@@ -10,6 +10,7 @@ public class StringPlayerConfigProvider implements ConfigurationProvider<PlayerC
     private String configuration;
     public StringPlayerConfigProvider(String configuration) {
         this.configuration = configuration;
+        current = load();
     }
     PlayerConfig current;
     @Override
@@ -25,6 +26,21 @@ public class StringPlayerConfigProvider implements ConfigurationProvider<PlayerC
     @Override
     public void save(PlayerConfig currentValue) {
         configuration = ArmorHider.GSON.toJson(currentValue);
+    }
+
+    @Override
+    public void saveCurrent() {
+        configuration = ArmorHider.GSON.toJson(current);
+    }
+
+    @Override
+    public void setValue(PlayerConfig newValue) {
+        current = newValue;
+    }
+
+    @Override
+    public PlayerConfig getValue() {
+        return current;
     }
 
     @Override

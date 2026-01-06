@@ -36,7 +36,7 @@ public final class CommsManager {
 
             try {
                 ServerRuntime.put(data.playerId.getValue(), data);
-                ServerRuntime.store.save();
+                ServerRuntime.store.saveCurrent();
 
                 var currentConfig = ServerRuntime.store.getConfig();
 
@@ -64,7 +64,7 @@ public final class CommsManager {
     }
 
     private static void sendToClient(ServerPlayerEntity player, ServerConfiguration config) {
-        ServerPlayNetworking.send(player, new SettingsS2CPacket(config.getPlayerConfigs(), config.enableCombatDetection));
+        ServerPlayNetworking.send(player, new SettingsS2CPacket(config.getPlayerConfigs(), config.enableCombatDetection.getValue()));
     }
 
     private static void sendToAllClientsButSender(UUID playerId, ServerConfiguration config) {
@@ -72,7 +72,7 @@ public final class CommsManager {
         players.forEach(player -> {
             ArmorHider.LOGGER.info("Sending config to players...");
             if (!player.getUuid().equals(playerId)) {
-                ServerPlayNetworking.send(player, new SettingsS2CPacket(config.getPlayerConfigs(), config.enableCombatDetection));
+                ServerPlayNetworking.send(player, new SettingsS2CPacket(config.getPlayerConfigs(), config.enableCombatDetection.getValue()));
             }
         });
     }

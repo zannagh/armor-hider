@@ -28,6 +28,5 @@ public class ArmorHiderClient implements ClientModInitializer {
         ArmorHider.LOGGER.info("Armor Hider client initializing...");
         ClientCommunicationManager.initClient();
         CLIENT_CONFIG_MANAGER = new ClientConfigManager();
-        CLIENT_CONFIG_MANAGER.load();
     }
 }
