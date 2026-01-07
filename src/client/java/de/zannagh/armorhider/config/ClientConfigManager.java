@@ -106,7 +106,7 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
                     playerId = entry.getProfile().id();
                 }
                 
-                serverConfiguration.putOnRuntime(playerName, playerId, CURRENT);
+                serverConfiguration.put(playerName, playerId, CURRENT);
                 return CURRENT;
             }
             ArmorHider.LOGGER.warn("Failed to get config for player by id, trying to retrieve by player name. {} {}", playerName, playerName);

@@ -55,7 +55,7 @@ public class ConfigurationSourceSerializer implements TypeAdapterFactory {
                         hasChanged = true;
                     }
 
-                    if (hasChanged && instance instanceof ConfigurationSource configurationSource) {
+                    if (hasChanged && instance instanceof ConfigurationSource<?> configurationSource) {
                         configurationSource.setHasChangedFromSerializedContent();
                     }
                 }

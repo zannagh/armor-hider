@@ -11,7 +11,6 @@ import de.zannagh.armorhider.netPackets.CompressedJsonCodec;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -74,11 +73,15 @@ public class ServerConfiguration implements ConfigurationSource<ServerConfigurat
         return new ArrayList<>(playerConfigs.values());
     }
     
-    public void putOnRuntime(@NotNull String playerName, UUID playerId, PlayerConfig playerConfig) {
+    public void put(@NotNull String playerName, UUID playerId, PlayerConfig playerConfig) {
         playerNameConfigs.put(playerName, playerConfig);
         if (playerId != null) {
             playerConfigs.put(playerId, playerConfig);
         }
+    }
+    
+    public String toJson() {
+        return ArmorHider.GSON.toJson(this);
     }
     
     public static @NonNull ServerConfiguration deserialize(Reader reader) throws IOException {

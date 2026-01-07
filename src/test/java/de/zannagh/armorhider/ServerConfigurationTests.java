@@ -1,13 +1,19 @@
 package de.zannagh.armorhider;
 
+import com.google.common.base.Stopwatch;
+import de.zannagh.armorhider.resources.PlayerConfig;
 import de.zannagh.armorhider.resources.ServerConfiguration;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import org.jetbrains.annotations.Contract;
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.util.Locale;
+import java.util.HashMap;
+import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -275,9 +281,10 @@ public class ServerConfigurationTests {
     @Test
     @DisplayName("Compressed packet size test - up to 500 players")
     void testCompressedPacketSizes() {
-        int[] playerCounts = {1, 10, 50, 100, 200, 300, 400, 500};
-        int maxReasonableByteSize = 2 * 1024 * 1024; 
+        int[] playerCounts = {1, 10, 50, 100, 200, 300, 400, 500, 1000, 1500};
+        int maxReasonableByteSize = 2 * 1024 * 1024;
 
+        HashMap<Integer, Boolean> sizeAcceptable = new HashMap<Integer, Boolean>();
         for (int playerCount : playerCounts) {
             
             StringServerConfigProvider provider = createServerConfigWithPlayers(playerCount);
@@ -288,80 +295,52 @@ public class ServerConfigurationTests {
 
             ByteBuf buffer = Unpooled.buffer();
             try {
+                Stopwatch stopwatch = Stopwatch.createStarted();
                 config.getCodec().encode(buffer, config);
+                stopwatch.stop();
                 int compressedSize = buffer.readableBytes();
                 double compressionRatio = (double) uncompressedSize / compressedSize;
 
                 String uncompressedStr = formatBytes(uncompressedSize);
                 String compressedStr = formatBytes(compressedSize);
-                System.out.printf("[%3d players] %8s → %8s (%.1fx compression)%n",
-                        playerCount, uncompressedStr, compressedStr, compressionRatio);
-
-                assertTrue(compressedSize < maxReasonableByteSize,
-                        String.format("Compressed packet for %d players (%s) exceeds safety limit of %s",
-                                playerCount, compressedStr, formatBytes(maxReasonableByteSize)));
+                System.out.printf("[%3d players] %8s → %8s (%.1fx compression). Encoding elapsed: %s ms%n",
+                        playerCount, uncompressedStr, compressedStr, compressionRatio, stopwatch.elapsed(TimeUnit.MILLISECONDS));
+                sizeAcceptable.put(playerCount, compressedSize < maxReasonableByteSize);
 
             } finally {
                 buffer.release();
             }
         }
+        
+        boolean allSizesAcceptable = true;
 
-        System.out.println("-----------------------------------------------------------");
-        System.out.println("✓ All packet sizes within acceptable limits");
-        System.out.println("===========================================\n");
+        for (var entry : sizeAcceptable.entrySet()) {
+            if (!entry.getValue()) {
+                allSizesAcceptable = false;
+                break;
+            }
+        }
+        assertTrue(allSizesAcceptable, "All packet sizes within acceptable limits");
     }
 
-    private StringServerConfigProvider createServerConfigWithPlayers(int playerCount) {
-        StringBuilder jsonBuilder = new StringBuilder();
-        jsonBuilder.append("{\n");
-        jsonBuilder.append("  \"playerConfigs\": {\n");
-
+    @Contract("_ -> new")
+    private @NonNull StringServerConfigProvider createServerConfigWithPlayers(int playerCount) {
+        ServerConfiguration configuration = new ServerConfiguration();
+        
         for (int i = 0; i < playerCount; i++) {
             UUID playerId = UUID.randomUUID();
             String playerName = "Player" + i;
-
-            if (i > 0) {
-                jsonBuilder.append(",\n");
-            }
-
             double helmetOpacity = Math.random();
             double chestOpacity = Math.random();
             double legsOpacity = Math.random();
             double bootsOpacity = Math.random();
             boolean combatDetection = Math.random() > 0.5;
-
-            jsonBuilder.append(String.format(Locale.US,
-                    """
-                                "%s": {
-                                  "helmetOpacity": %.2f,
-                                  "chestOpacity": %.2f,
-                                  "legsOpacity": %.2f,
-                                  "bootsOpacity": %.2f,
-                                  "playerId": "%s",
-                                  "playerName": "%s",
-                                  "enableCombatDetection": %s
-                                }\
-                            """,
-                    playerId,
-                    helmetOpacity,
-                    chestOpacity,
-                    legsOpacity,
-                    bootsOpacity,
-                    playerId,
-                    playerName,
-                    combatDetection));
+            configuration.put(playerName, playerId, new PlayerConfig(helmetOpacity, chestOpacity, legsOpacity, bootsOpacity, combatDetection, playerId.toString(), playerName));
         }
-
-        jsonBuilder.append("\n  },\n");
-        jsonBuilder.append("  \"serverWideSettings\": {\n");
-        jsonBuilder.append("    \"enableCombatDetection\": true\n");
-        jsonBuilder.append("  }\n");
-        jsonBuilder.append("}");
-
-        return new StringServerConfigProvider(jsonBuilder.toString());
+        return new StringServerConfigProvider(configuration.toJson());
     }
 
-    private String formatBytes(int bytes) {
+    private @NonNull String formatBytes(int bytes) {
         if (bytes < 1024) {
             return bytes + "B";
         } else if (bytes < 1024 * 1024) {

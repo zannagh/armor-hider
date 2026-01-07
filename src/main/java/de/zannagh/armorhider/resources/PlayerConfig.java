@@ -51,12 +51,16 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
     public PlayerName playerName;
 
     public PlayerConfig(double helmet, double chest, double legs, double boots, boolean combatDetection, String uuid, String name){
+        this(helmet, chest, legs, boots, combatDetection, UUID.fromString(uuid), name);
+    }
+
+    public PlayerConfig(double helmet, double chest, double legs, double boots, boolean combatDetection, UUID uuid, String name){
         this.helmetOpacity = new ArmorOpacity(helmet);
         this.chestOpacity = new ArmorOpacity(chest);
         this.legsOpacity = new ArmorOpacity(legs);
         this.bootsOpacity = new ArmorOpacity(boots);
         this.enableCombatDetection = new CombatDetection(combatDetection);
-        this.playerId = new PlayerUuid(UUID.fromString(uuid));
+        this.playerId = new PlayerUuid(uuid);
         this.playerName = new PlayerName(name);
     }
 
