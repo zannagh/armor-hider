@@ -1,7 +1,7 @@
 package de.zannagh.armorhider.rendering;
 
+import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.common.ItemStackHelper;
-import de.zannagh.armorhider.config.ClientConfigManager;
 import de.zannagh.armorhider.resources.ArmorModificationInfo;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.entity.state.LivingEntityRenderState;
@@ -65,8 +65,8 @@ public class ArmorRenderPipeline {
 
     private static ArmorModificationInfo tryResolveConfigFromPlayerEntityState(EquipmentSlot slot, PlayerEntityRenderState state){
         return state.displayName == null
-                ? new ArmorModificationInfo(slot, ClientConfigManager.get())
-                : new ArmorModificationInfo(slot, ClientConfigManager.getConfigForPlayer(state.displayName.getString()));
+                ? new ArmorModificationInfo(slot, ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue())
+                : new ArmorModificationInfo(slot, ArmorHiderClient.CLIENT_CONFIG_MANAGER.getConfigForPlayer(state.displayName.getString()));
     }
 
     private static void setCurrentSlot(EquipmentSlot slot) {

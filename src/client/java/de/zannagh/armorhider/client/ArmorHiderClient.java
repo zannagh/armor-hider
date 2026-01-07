@@ -21,10 +21,12 @@ public class ArmorHiderClient implements ClientModInitializer {
         return MinecraftClient.getInstance().player instanceof ClientPlayerEntity clientPlayer && clientPlayer.getDisplayName() instanceof net.minecraft.text.Text displayText ? displayText.getString() : null;
     }
     
+    public static ClientConfigManager CLIENT_CONFIG_MANAGER;
+    
     @Override
 	public void onInitializeClient() {
         ArmorHider.LOGGER.info("Armor Hider client initializing...");
         ClientCommunicationManager.initClient();
-        ClientConfigManager.load();
+        CLIENT_CONFIG_MANAGER = new ClientConfigManager();
     }
 }
