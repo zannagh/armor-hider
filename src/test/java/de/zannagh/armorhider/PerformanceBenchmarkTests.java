@@ -12,10 +12,10 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class 
-PerformanceBenchmarkTests {
+public class PerformanceBenchmarkTests {
+    static int ITERATIONS_PER_PLAYER_COUNT = 500;
     
-    static int ITERATIONS_PER_PLAYER_COUNT = 250;
+    static double ALLOWED_RATIO_DEVIATION = 1.5;
 
     @Test
     @DisplayName("Serialization Performance Benchmark - up to 1500 players")
@@ -34,7 +34,7 @@ PerformanceBenchmarkTests {
             long[] reflectionDeserializationTimes = new long[ITERATIONS_PER_PLAYER_COUNT];
             long[] regularDeserializationTimes = new long[ITERATIONS_PER_PLAYER_COUNT];
 
-            // Warmup run
+            // Warmup JVM and factories
             var provider = ServerConfigProviderMock.createServerConfigWithPlayers(playerCount);
             ServerConfiguration config = provider.getValue();
             String reflectionJson = config.toJson();
@@ -42,7 +42,6 @@ PerformanceBenchmarkTests {
             gson.fromJson(regularJson, ServerConfiguration.class);
             ArmorHider.GSON.fromJson(reflectionJson, ServerConfiguration.class);
 
-            // Actual benchmark runs
             for (int i = 0; i < ITERATIONS_PER_PLAYER_COUNT; i++) {
                 provider = ServerConfigProviderMock.createServerConfigWithPlayers(playerCount);
                 config = provider.getValue();
@@ -68,7 +67,6 @@ PerformanceBenchmarkTests {
                 reflectionDeserializationTimes[i] = reflectionDeserializationStopwatch.elapsed(TimeUnit.NANOSECONDS);
             }
 
-            // Calculate statistics
             BenchmarkStats reflectionSerializationStats = calculateStats(reflectionSerializationTimes);
             BenchmarkStats regularSerializationStats = calculateStats(regularSerializationTimes);
             BenchmarkStats reflectionDeserializationStats = calculateStats(reflectionDeserializationTimes);
@@ -88,21 +86,21 @@ PerformanceBenchmarkTests {
             ));
 
             System.out.printf("[%4d players] Deserialization:%n", playerCount);
-            System.out.printf("  Regular:    %.2f ± %.2f ns (min: %.2f, max: %.2f)%n",
-                    regularDeserializationStats.mean, regularDeserializationStats.stdDev,
-                    regularDeserializationStats.min, regularDeserializationStats.max);
-            System.out.printf("  Reflection: %.2f ± %.2f ns (min: %.2f, max: %.2f)%n",
-                    reflectionDeserializationStats.mean, reflectionDeserializationStats.stdDev,
-                    reflectionDeserializationStats.min, reflectionDeserializationStats.max);
+            System.out.printf("  Regular:    %.4f ± %.4f ms (min: %.4f, max: %.4f)%n",
+                    regularDeserializationStats.mean / 1_000_000.0, regularDeserializationStats.stdDev / 1_000_000.0,
+                    regularDeserializationStats.min / 1_000_000.0, regularDeserializationStats.max / 1_000_000.0);
+            System.out.printf("  Reflection: %.4f ± %.4f ms (min: %.4f, max: %.4f)%n",
+                    reflectionDeserializationStats.mean / 1_000_000.0, reflectionDeserializationStats.stdDev / 1_000_000.0,
+                    reflectionDeserializationStats.min / 1_000_000.0, reflectionDeserializationStats.max / 1_000_000.0);
             System.out.printf("  Ratio: %.2fx (reflection/regular)%n", deserializationRatio);
 
             System.out.printf("[%4d players] Serialization:%n", playerCount);
-            System.out.printf("  Regular:    %.2f ± %.2f ns (min: %.2f, max: %.2f)%n",
-                    regularSerializationStats.mean, regularSerializationStats.stdDev,
-                    regularSerializationStats.min, regularSerializationStats.max);
-            System.out.printf("  Reflection: %.2f ± %.2f ns (min: %.2f, max: %.2f)%n",
-                    reflectionSerializationStats.mean, reflectionSerializationStats.stdDev,
-                    reflectionSerializationStats.min, reflectionSerializationStats.max);
+            System.out.printf("  Regular:    %.4f ± %.4f ms (min: %.4f, max: %.4f)%n",
+                    regularSerializationStats.mean / 1_000_000.0, regularSerializationStats.stdDev / 1_000_000.0,
+                    regularSerializationStats.min / 1_000_000.0, regularSerializationStats.max / 1_000_000.0);
+            System.out.printf("  Reflection: %.4f ± %.4f ms (min: %.4f, max: %.4f)%n",
+                    reflectionSerializationStats.mean / 1_000_000.0, reflectionSerializationStats.stdDev / 1_000_000.0,
+                    reflectionSerializationStats.min / 1_000_000.0, reflectionSerializationStats.max / 1_000_000.0);
             System.out.printf("  Ratio: %.2fx (reflection/regular)%n", serializationRatio);
 
             assertPerformanceWithinBounds(
@@ -160,11 +158,11 @@ PerformanceBenchmarkTests {
             return;
         }
 
-        assertTrue(ratio < 2.5,
-                String.format("%s ratio %.2fx exceeds threshold %.2fx at %d players (Regular: %.0f±%.0f ns, Reflection: %.0f±%.0f ns)",
-                        operationType, ratio, 2.5, playerCount,
-                        regularStats.mean, regularStats.stdDev,
-                        reflectionStats.mean, reflectionStats.stdDev));
+        assertTrue(ratio < ALLOWED_RATIO_DEVIATION,
+                String.format("%s ratio %.2fx exceeds threshold %.2fx at %d players (Regular: %.4f±%.4f ms, Reflection: %.4f±%.4f ms)",
+                        operationType, ratio, ALLOWED_RATIO_DEVIATION, playerCount,
+                        regularStats.mean / 1_000_000.0, regularStats.stdDev / 1_000_000.0,
+                        reflectionStats.mean / 1_000_000.0, reflectionStats.stdDev / 1_000_000.0));
     }
 
     private static boolean isIntervalsOverlap(BenchmarkStats regularStats, BenchmarkStats reflectionStats) {
@@ -186,17 +184,17 @@ PerformanceBenchmarkTests {
         System.out.println("DESERIALIZATION PERFORMANCE SUMMARY");
         System.out.println("=".repeat(80));
         System.out.printf("%-10s | %-20s | %-20s | %-8s | %-10s%n",
-                "Players", "Regular (ns)", "Reflection (ns)", "Ratio", "Overhead");
+                "Players", "Regular (ms)", "Reflection (ms)", "Ratio", "Overhead");
         System.out.println("-".repeat(80));
 
         double totalDeserializationOverhead = 0;
         for (BenchmarkResult result : results) {
             double overhead = (result.deserializationRatio - 1) * 100;
             totalDeserializationOverhead += overhead;
-            System.out.printf("%-10d | %10.0f ± %7.0f | %10.0f ± %7.0f | %8.2fx | %+9.1f%%%n",
+            System.out.printf("%-10d | %10.4f ± %7.4f | %10.4f ± %7.4f | %8.2fx | %+9.1f%%%n",
                     result.playerCount,
-                    result.regularDeserialization.mean, result.regularDeserialization.stdDev,
-                    result.reflectionDeserialization.mean, result.reflectionDeserialization.stdDev,
+                    result.regularDeserialization.mean / 1_000_000.0, result.regularDeserialization.stdDev / 1_000_000.0,
+                    result.reflectionDeserialization.mean / 1_000_000.0, result.reflectionDeserialization.stdDev / 1_000_000.0,
                     result.deserializationRatio,
                     overhead);
         }
@@ -207,17 +205,17 @@ PerformanceBenchmarkTests {
         System.out.println("SERIALIZATION PERFORMANCE SUMMARY");
         System.out.println("=".repeat(80));
         System.out.printf("%-10s | %-20s | %-20s | %-8s | %-10s%n",
-                "Players", "Regular (ns)", "Reflection (ns)", "Ratio", "Speedup");
+                "Players", "Regular (ms)", "Reflection (ms)", "Ratio", "Speedup");
         System.out.println("-".repeat(80));
 
         double totalSerializationSpeedup = 0;
         for (BenchmarkResult result : results) {
             double speedup = (1 - result.serializationRatio) * 100;
             totalSerializationSpeedup += speedup;
-            System.out.printf("%-10d | %10.0f ± %7.0f | %10.0f ± %7.0f | %8.2fx | %+9.1f%%%n",
+            System.out.printf("%-10d | %10.4f ± %7.4f | %10.4f ± %7.4f | %8.2fx | %+9.1f%%%n",
                     result.playerCount,
-                    result.regularSerialization.mean, result.regularSerialization.stdDev,
-                    result.reflectionSerialization.mean, result.reflectionSerialization.stdDev,
+                    result.regularSerialization.mean / 1_000_000.0, result.regularSerialization.stdDev / 1_000_000.0,
+                    result.reflectionSerialization.mean / 1_000_000.0, result.reflectionSerialization.stdDev / 1_000_000.0,
                     result.serializationRatio,
                     speedup);
         }
@@ -252,36 +250,37 @@ PerformanceBenchmarkTests {
         }
     }
 
-    private static class BenchmarkStats {
-        double mean;
-        double stdDev;
-        double min;
-        double max;
-    }
+    private record BenchmarkStats(double mean, double stdDev, double min, double max) {}
 
     private BenchmarkStats calculateStats(long[] times) {
-        BenchmarkStats stats = new BenchmarkStats();
-
-        // Calculate mean
+        
+        double min;
+        double max;
+        double mean;
+        double stdDev;
+        
         long sum = 0;
-        stats.min = Long.MAX_VALUE;
-        stats.max = Long.MIN_VALUE;
+        min = Long.MAX_VALUE;
+        max = Long.MIN_VALUE;
 
         for (long time : times) {
             sum += time;
-            if (time < stats.min) stats.min = time;
-            if (time > stats.max) stats.max = time;
+            if (time < min) {
+                min = time;
+            }
+            if (time > max) {
+                max = time;
+            }
         }
-        stats.mean = (double) sum / times.length;
+        mean = (double) sum / times.length;
 
-        // Calculate standard deviation
         double varianceSum = 0;
         for (long time : times) {
-            double diff = time - stats.mean;
+            double diff = time - mean;
             varianceSum += diff * diff;
         }
-        stats.stdDev = Math.sqrt(varianceSum / times.length);
+        stdDev = Math.sqrt(varianceSum / times.length);
 
-        return stats;
+        return new BenchmarkStats(mean, stdDev, min, max);
     }
 }

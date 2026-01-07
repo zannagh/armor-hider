@@ -1,12 +1,9 @@
 package de.zannagh.armorhider;
 
 import com.google.common.base.Stopwatch;
-import com.google.gson.GsonBuilder;
-import de.zannagh.armorhider.resources.PlayerConfig;
 import de.zannagh.armorhider.resources.ServerConfiguration;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -284,7 +281,7 @@ public class ServerConfigurationTests {
         int[] playerCounts = {1, 10, 50, 100, 200, 300, 400, 500, 1000, 1500};
         int maxReasonableByteSize = 2 * 1024 * 1024;
 
-        HashMap<Integer, Boolean> sizeAcceptable = new HashMap<Integer, Boolean>();
+        HashMap<Integer, Boolean> sizeAcceptable = new HashMap<>();
         for (int playerCount : playerCounts) {
             
             StringServerConfigProvider provider = ServerConfigProviderMock.createServerConfigWithPlayers(playerCount);
