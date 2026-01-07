@@ -12,7 +12,7 @@ public final class ServerRuntime {
 
     public static void init(MinecraftServer s) {
         server = s;
-        store = ServerConfigStore.open();
+        store = new ServerConfigStore();
     }
     public static void put(UUID id, PlayerConfig c) { store.put(id, c); }
 }
