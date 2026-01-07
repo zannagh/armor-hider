@@ -15,13 +15,7 @@ import java.util.UUID;
 public final class CommsManager {
     
     public static void initServer() {
-        var playerConfig = new PlayerConfig();
-        PayloadTypeRegistry.playC2S().register(playerConfig.getId(), playerConfig.getCodec());
-
-        var serverConfig = new ServerConfiguration();
-        var serverWideSettings = new ServerWideSettings();
-        PayloadTypeRegistry.playS2C().register(serverConfig.getId(), serverConfig.getCodec());
-        PayloadTypeRegistry.playC2S().register(serverWideSettings.getId(), serverWideSettings.getCodec());
+        
 
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             ArmorHider.LOGGER.info("Player joined with ID {}. Sending current server config to client...", handler.player.getUuidAsString());

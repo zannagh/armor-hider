@@ -33,7 +33,7 @@ public class ServerWideSettings implements ConfigurationSource<ServerWideSetting
 
     @Override
     public PacketCodec<ByteBuf, ServerWideSettings> getCodec() {
-        return CompressedJsonCodec.create(ArmorHider.GSON, ServerWideSettings.class);
+        return CompressedJsonCodec.create(ServerWideSettings.class);
     }
 
     @Override

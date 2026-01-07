@@ -25,7 +25,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
     public static final Id<PlayerConfig> PACKET_IDENTIFIER = new Id<>(Identifier.of("de.zannagh.armorhider", "settings_c2s_packet"));
     
     public PacketCodec<ByteBuf, PlayerConfig> getCodec() {
-        return CompressedJsonCodec.create(ArmorHider.GSON, PlayerConfig.class);
+        return CompressedJsonCodec.create(PlayerConfig.class);
     }
 
     @Override

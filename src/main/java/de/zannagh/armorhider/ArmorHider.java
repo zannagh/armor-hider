@@ -6,7 +6,9 @@ import de.zannagh.armorhider.common.EnrichedLogger;
 import de.zannagh.armorhider.configuration.ConfigurationItemSerializer;
 import de.zannagh.armorhider.configuration.ConfigurationSourceSerializer;
 import de.zannagh.armorhider.net.CommsManager;
+import de.zannagh.armorhider.net.PayloadRegistrar;
 import de.zannagh.armorhider.net.ServerRuntime;
+import de.zannagh.armorhider.netPackets.CompressedJsonCodec;
 import net.fabricmc.api.ModInitializer;
 
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -23,7 +25,7 @@ public class ArmorHider implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		LOGGER.info("Armor Hider initializing...");
+		LOGGER.info("Initializing...");
         ServerLifecycleEvents.SERVER_STARTING.register(server -> {
             ServerRuntime.init(server);
             LOGGER.info("Server config store opened");
@@ -33,7 +35,9 @@ public class ArmorHider implements ModInitializer {
                 ServerRuntime.store.saveCurrent();
             }
         });
+        CompressedJsonCodec.setGson(GSON);
+        PayloadRegistrar.registerPayloads();
         CommsManager.initServer();
-        LOGGER.info("Armor Hider initialized.");
+        LOGGER.info("Initialized!");
 	}
 }

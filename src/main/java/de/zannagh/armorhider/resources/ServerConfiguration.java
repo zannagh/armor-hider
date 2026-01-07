@@ -27,7 +27,7 @@ public class ServerConfiguration implements ConfigurationSource<ServerConfigurat
     public static final Id<ServerConfiguration> PACKET_IDENTIFIER = new Id<>(Identifier.of("de.zannagh.armorhider", "settings_s2c_packet"));
 
     public PacketCodec<ByteBuf, ServerConfiguration> getCodec() {
-        return CompressedJsonCodec.create(ArmorHider.GSON, ServerConfiguration.class);
+        return CompressedJsonCodec.create(ServerConfiguration.class);
     }
 
     @Override
