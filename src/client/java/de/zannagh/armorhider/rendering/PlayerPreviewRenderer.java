@@ -3,6 +3,7 @@ package de.zannagh.armorhider.rendering;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.InventoryScreen;
+import net.minecraft.client.gui.screen.option.SkinOptionsScreen;
 import net.minecraft.client.gui.widget.OptionListWidget;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.util.Colors;
@@ -14,6 +15,10 @@ public class PlayerPreviewRenderer {
     
     public static void renderPlayerPreview(DrawContext context, OptionListWidget body, int mouseX, int mouseY){
         if (!(MinecraftClient.getInstance().player instanceof ClientPlayerEntity player)) {
+            return;
+        }
+        
+        if (!(MinecraftClient.getInstance().currentScreen instanceof SkinOptionsScreen)) {
             return;
         }
         
