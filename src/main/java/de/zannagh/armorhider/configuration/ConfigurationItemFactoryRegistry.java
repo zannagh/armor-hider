@@ -8,6 +8,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.jar.JarEntry;
@@ -20,8 +21,8 @@ import java.util.jar.JarFile;
 public class ConfigurationItemFactoryRegistry {
 
     private static final List<String> IMPLEMENTATIONS_PACKAGES = List.of("de.zannagh.armorhider.configuration.items.implementations");
-    private static final HashMap<Class<?>, Function<Object, ConfigurationItemBase<?>>> VALUE_FACTORIES = new HashMap<>();
-    private static final HashMap<Class<?>, Supplier<ConfigurationItemBase<?>>> DEFAULT_FACTORIES = new HashMap<>();
+    private static final ConcurrentHashMap<Class<?>, Function<Object, ConfigurationItemBase<?>>> VALUE_FACTORIES = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Class<?>, Supplier<ConfigurationItemBase<?>>> DEFAULT_FACTORIES = new ConcurrentHashMap<>();
     private static boolean initialized = false;
 
     public static synchronized void initialize() {

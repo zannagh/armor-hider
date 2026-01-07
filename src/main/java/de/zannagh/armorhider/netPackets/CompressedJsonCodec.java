@@ -1,7 +1,6 @@
 package de.zannagh.armorhider.netPackets;
 
 import com.google.gson.Gson;
-import de.zannagh.armorhider.ArmorHider;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 
@@ -15,7 +14,7 @@ import java.util.zip.GZIPOutputStream;
 
 public class CompressedJsonCodec {
 
-    private static Gson GSON = new Gson();
+    private static volatile Gson GSON = new Gson();
     
     public static void setGson(Gson gson) {
         GSON = gson;
