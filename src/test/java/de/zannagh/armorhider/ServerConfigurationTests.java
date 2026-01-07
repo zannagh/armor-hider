@@ -1,6 +1,7 @@
 package de.zannagh.armorhider;
 
 import com.google.common.base.Stopwatch;
+import com.google.gson.GsonBuilder;
 import de.zannagh.armorhider.resources.PlayerConfig;
 import de.zannagh.armorhider.resources.ServerConfiguration;
 import io.netty.buffer.ByteBuf;
@@ -11,7 +12,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -287,7 +287,7 @@ public class ServerConfigurationTests {
         HashMap<Integer, Boolean> sizeAcceptable = new HashMap<Integer, Boolean>();
         for (int playerCount : playerCounts) {
             
-            StringServerConfigProvider provider = createServerConfigWithPlayers(playerCount);
+            StringServerConfigProvider provider = ServerConfigProviderMock.createServerConfigWithPlayers(playerCount);
             ServerConfiguration config = provider.getValue();
 
             String json = de.zannagh.armorhider.ArmorHider.GSON.toJson(config);
@@ -321,23 +321,6 @@ public class ServerConfigurationTests {
             }
         }
         assertTrue(allSizesAcceptable, "All packet sizes within acceptable limits");
-    }
-
-    @Contract("_ -> new")
-    private @NonNull StringServerConfigProvider createServerConfigWithPlayers(int playerCount) {
-        ServerConfiguration configuration = new ServerConfiguration();
-        
-        for (int i = 0; i < playerCount; i++) {
-            UUID playerId = UUID.randomUUID();
-            String playerName = "Player" + i;
-            double helmetOpacity = Math.random();
-            double chestOpacity = Math.random();
-            double legsOpacity = Math.random();
-            double bootsOpacity = Math.random();
-            boolean combatDetection = Math.random() > 0.5;
-            configuration.put(playerName, playerId, new PlayerConfig(helmetOpacity, chestOpacity, legsOpacity, bootsOpacity, combatDetection, playerId.toString(), playerName));
-        }
-        return new StringServerConfigProvider(configuration.toJson());
     }
 
     private @NonNull String formatBytes(int bytes) {
