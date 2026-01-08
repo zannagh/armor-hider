@@ -20,7 +20,17 @@ final class ServerConfigProviderMock {
             double legsOpacity = Math.random();
             double bootsOpacity = Math.random();
             boolean combatDetection = Math.random() > 0.5;
-            configuration.put(playerName, playerId, new PlayerConfig(helmetOpacity, chestOpacity, legsOpacity, bootsOpacity, combatDetection, playerId.toString(), playerName));
+            boolean elytraAffectedByChest = Math.random() > 0.5;
+            boolean skullAffectedByHelmet = Math.random() > 0.5;
+            var playerConfig = new PlayerConfig(playerId, playerName);
+            playerConfig.opacityAffectingElytra.setValue(elytraAffectedByChest);
+            playerConfig.opacityAffectingHatOrSkull.setValue(skullAffectedByHelmet);
+            playerConfig.enableCombatDetection.setValue(combatDetection);
+            playerConfig.bootsOpacity.setValue(bootsOpacity);
+            playerConfig.chestOpacity.setValue(chestOpacity);
+            playerConfig.helmetOpacity.setValue(helmetOpacity);
+            playerConfig.legsOpacity.setValue(legsOpacity);
+            configuration.put(playerName, playerId, playerConfig);
         }
         return new StringServerConfigProvider(configuration.toJson());
     }
