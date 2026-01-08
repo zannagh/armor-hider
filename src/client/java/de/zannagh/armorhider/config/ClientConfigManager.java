@@ -7,8 +7,10 @@ import de.zannagh.armorhider.resources.PlayerConfig;
 import de.zannagh.armorhider.resources.ServerConfiguration;
 import de.zannagh.armorhider.resources.ServerWideSettings;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.PlayerListEntry;
+import net.minecraft.network.PacketByteBuf;
 
 import java.util.*;
 
@@ -48,7 +50,10 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
         playerConfigProvider.save(config);
         if (ArmorHiderClient.isClientConnectedToServer()) {
             ArmorHider.LOGGER.info("Sending to server...");
-            ClientPlayNetworking.send(getValue());
+            PlayerConfig value = getValue();
+            PacketByteBuf buf = PacketByteBufs.create();
+            value.write(buf);
+            ClientPlayNetworking.send(value.getPacketId(), buf);
             ArmorHider.LOGGER.info("Send client config package to server.");
         }
     }
@@ -76,7 +81,9 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
         }
         serverConfiguration.serverWideSettings = serverWideSettings;
         ArmorHider.LOGGER.info("Sending server-wide settings to server...");
-        ClientPlayNetworking.send(serverWideSettings);
+        PacketByteBuf buf = PacketByteBufs.create();
+        serverWideSettings.write(buf);
+        ClientPlayNetworking.send(serverWideSettings.getPacketId(), buf);
     }
     
     public void setServerConfig(ServerConfiguration serverConfig) {

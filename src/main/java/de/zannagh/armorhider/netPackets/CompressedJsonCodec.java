@@ -1,8 +1,7 @@
 package de.zannagh.armorhider.netPackets;
 
 import com.google.gson.Gson;
-import io.netty.buffer.ByteBuf;
-import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.PacketByteBuf;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -15,26 +14,19 @@ import java.util.zip.GZIPOutputStream;
 public class CompressedJsonCodec {
 
     private static volatile Gson GSON = new Gson();
-    
+
     public static void setGson(Gson gson) {
         GSON = gson;
     }
-    
-    /**
-     * Creates a PacketCodec that serializes objects to compressed JSON.
-     *
-     * @param clazz The class type to deserialize to
-     * @param <T> The type of object to serialize/deserialize
-     * @return A PacketCodec for the given type
-     */
-    public static <T> PacketCodec<ByteBuf, T> create(Class<T> clazz) {
-        return PacketCodec.of(
-                CompressedJsonCodec::encode,
-                (buf) -> decode(buf, clazz)
-        );
-    }
 
-    private static <T> void encode(T value, ByteBuf buf) {
+    /**
+     * Encodes an object to compressed JSON and writes it to the buffer.
+     *
+     * @param value The object to serialize
+     * @param buf The packet buffer to write to
+     * @param <T> The type of object to serialize
+     */
+    public static <T> void encode(T value, PacketByteBuf buf) {
         try {
             ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
             try (GZIPOutputStream gzipStream = new GZIPOutputStream(byteStream);
@@ -50,7 +42,15 @@ public class CompressedJsonCodec {
         }
     }
 
-    private static <T> T decode(ByteBuf buf, Class<T> clazz) {
+    /**
+     * Decodes an object from compressed JSON in the buffer.
+     *
+     * @param buf The packet buffer to read from
+     * @param clazz The class type to deserialize to
+     * @param <T> The type of object to deserialize
+     * @return The deserialized object
+     */
+    public static <T> T decode(PacketByteBuf buf, Class<T> clazz) {
         try {
             int length = buf.readInt();
             byte[] compressed = new byte[length];

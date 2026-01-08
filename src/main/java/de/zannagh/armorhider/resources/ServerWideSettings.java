@@ -4,12 +4,11 @@ import com.google.gson.annotations.SerializedName;
 import de.zannagh.armorhider.configuration.ConfigurationSource;
 import de.zannagh.armorhider.configuration.items.implementations.CombatDetection;
 import de.zannagh.armorhider.netPackets.CompressedJsonCodec;
-import io.netty.buffer.ByteBuf;
-import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.PacketByteBuf;
 import net.minecraft.util.Identifier;
 
 public class ServerWideSettings implements ConfigurationSource<ServerWideSettings> {
-    public static final Id<ServerWideSettings> PACKET_IDENTIFIER = new Id<>(Identifier.of("de.zannagh.armorhider", "server_wide_settings"));
+    public static final Identifier PACKET_ID = new Identifier("de.zannagh.armorhider", "server_wide_settings");
 
     private boolean hasChangedFromSerializedContent = false;
 
@@ -25,13 +24,17 @@ public class ServerWideSettings implements ConfigurationSource<ServerWideSetting
     }
 
     @Override
-    public Id<ServerWideSettings> getId() {
-        return PACKET_IDENTIFIER;
+    public Identifier getPacketId() {
+        return PACKET_ID;
     }
 
     @Override
-    public PacketCodec<ByteBuf, ServerWideSettings> getCodec() {
-        return CompressedJsonCodec.create(ServerWideSettings.class);
+    public void write(PacketByteBuf buf) {
+        CompressedJsonCodec.encode(this, buf);
+    }
+
+    public static ServerWideSettings read(PacketByteBuf buf) {
+        return CompressedJsonCodec.decode(buf, ServerWideSettings.class);
     }
 
     @Override

@@ -6,7 +6,6 @@ import de.zannagh.armorhider.common.EnrichedLogger;
 import de.zannagh.armorhider.configuration.ConfigurationItemSerializer;
 import de.zannagh.armorhider.configuration.ConfigurationSourceSerializer;
 import de.zannagh.armorhider.net.CommsManager;
-import de.zannagh.armorhider.net.PayloadRegistrar;
 import de.zannagh.armorhider.net.ServerRuntime;
 import de.zannagh.armorhider.netPackets.CompressedJsonCodec;
 import net.fabricmc.api.ModInitializer;
@@ -36,7 +35,6 @@ public class ArmorHider implements ModInitializer {
             }
         });
         CompressedJsonCodec.setGson(GSON);
-        PayloadRegistrar.registerPayloads();
         CommsManager.initServer();
         LOGGER.info("Initialized!");
 	}

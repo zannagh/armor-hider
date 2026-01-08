@@ -8,9 +8,8 @@ import com.google.gson.reflect.TypeToken;
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.configuration.ConfigurationSource;
 import de.zannagh.armorhider.netPackets.CompressedJsonCodec;
-import io.netty.buffer.ByteBuf;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.PacketByteBuf;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -21,16 +20,21 @@ import java.io.StringReader;
 import java.util.*;
 
 public class ServerConfiguration implements ConfigurationSource<ServerConfiguration> {
-    
-    public static final Id<ServerConfiguration> PACKET_IDENTIFIER = new Id<>(Identifier.of("de.zannagh.armorhider", "settings_s2c_packet"));
 
-    public PacketCodec<ByteBuf, ServerConfiguration> getCodec() {
-        return CompressedJsonCodec.create(ServerConfiguration.class);
+    public static final Identifier PACKET_ID = new Identifier("de.zannagh.armorhider", "settings_s2c_packet");
+
+    @Override
+    public Identifier getPacketId() {
+        return PACKET_ID;
     }
 
     @Override
-    public Id<ServerConfiguration> getId() {
-        return PACKET_IDENTIFIER;
+    public void write(PacketByteBuf buf) {
+        CompressedJsonCodec.encode(this, buf);
+    }
+
+    public static ServerConfiguration read(PacketByteBuf buf) {
+        return CompressedJsonCodec.decode(buf, ServerConfiguration.class);
     }
     
     private static final java.lang.reflect.Type LEGACY_MAP_TYPE = new TypeToken<Map<UUID, PlayerConfig>>(){}.getType();
@@ -54,7 +58,8 @@ public class ServerConfiguration implements ConfigurationSource<ServerConfigurat
     }
 
     public PlayerConfig getPlayerConfigOrDefault(PlayerEntity player) {
-        if (getPlayerConfigOrDefault(player.getUuid()) instanceof PlayerConfig uuidConfig && Objects.equals(uuidConfig.playerName.getValue(), Objects.requireNonNull(player.getDisplayName()).getString())) {
+        PlayerConfig uuidConfig = getPlayerConfigOrDefault(player.getUuid());
+        if (uuidConfig != null && Objects.equals(uuidConfig.playerName.getValue(), Objects.requireNonNull(player.getDisplayName()).getString())) {
             return uuidConfig;
         }
         return getPlayerConfigOrDefault(Objects.requireNonNull(player.getDisplayName()).getString());
