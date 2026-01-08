@@ -320,6 +320,42 @@ public class ServerConfigurationTests {
         assertTrue(allSizesAcceptable, "All packet sizes within acceptable limits");
     }
 
+    @Test
+    @DisplayName("ServerWideSettings should always be initialized with defaults")
+    void testServerWideSettingsAlwaysInitialized() throws Exception {
+        // Test 1: New ServerConfiguration instance should have serverWideSettings initialized
+        ServerConfiguration newConfig = new ServerConfiguration();
+        assertNotNull(newConfig.serverWideSettings, "serverWideSettings should not be null in new instance");
+        assertNotNull(newConfig.serverWideSettings.enableCombatDetection, "enableCombatDetection should not be null");
+        assertTrue(newConfig.serverWideSettings.enableCombatDetection.getValue(), "Default combat detection should be true");
+
+        // Test 2: Deserializing config without serverWideSettings should initialize it with defaults
+        String configWithoutServerWideSettings = """
+                {
+                    "playerConfigs": {},
+                    "playerNameConfigs": {}
+                }""";
+
+        ServerConfiguration deserializedConfig = ServerConfiguration.deserialize(configWithoutServerWideSettings);
+        assertNotNull(deserializedConfig.serverWideSettings, "serverWideSettings should be initialized after deserialization");
+        assertNotNull(deserializedConfig.serverWideSettings.enableCombatDetection, "enableCombatDetection should be initialized");
+        assertTrue(deserializedConfig.serverWideSettings.enableCombatDetection.getValue(), "Default combat detection should be true");
+
+        // Test 3: Deserializing v3 config (with old enableCombatDetection field) should migrate properly
+        String v3ConfigJson = """
+                {
+                    "playerConfigs": {},
+                    "playerNameConfigs": {},
+                    "enableCombatDetection": true
+                }""";
+
+        ServerConfiguration migratedConfig = ServerConfiguration.deserialize(v3ConfigJson);
+        assertNotNull(migratedConfig.serverWideSettings, "serverWideSettings should be initialized during migration");
+        assertNotNull(migratedConfig.serverWideSettings.enableCombatDetection, "enableCombatDetection should be initialized");
+        assertTrue(migratedConfig.serverWideSettings.enableCombatDetection.getValue(), "Migrated combat detection should preserve original value (true)");
+        assertTrue(migratedConfig.hasChangedFromSerializedContent(), "Migration should mark config as changed");
+    }
+
     private @NonNull String formatBytes(int bytes) {
         if (bytes < 1024) {
             return bytes + "B";
