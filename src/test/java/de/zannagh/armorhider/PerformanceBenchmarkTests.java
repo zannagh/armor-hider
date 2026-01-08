@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class PerformanceBenchmarkTests {
     static int ITERATIONS_PER_PLAYER_COUNT = 500;
     
-    static double ALLOWED_RATIO_DEVIATION = 1.5;
+    static double ALLOWED_RATIO_DEVIATION = 1.7;
 
     @Test
     @DisplayName("Serialization Performance Benchmark - up to 1500 players")

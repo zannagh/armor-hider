@@ -78,7 +78,7 @@ public class ArmorRenderPipeline {
         return ArmorModificationContext.getCurrentSlot();
     }
 
-    private static ArmorModificationInfo getCurrentModification() {
+    public static ArmorModificationInfo getCurrentModification() {
         return ArmorModificationContext.getCurrentModification();
     }
 

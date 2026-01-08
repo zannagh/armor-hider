@@ -4,10 +4,7 @@ package de.zannagh.armorhider.resources;
 import com.google.gson.annotations.SerializedName;
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.configuration.ConfigurationSource;
-import de.zannagh.armorhider.configuration.items.implementations.ArmorOpacity;
-import de.zannagh.armorhider.configuration.items.implementations.CombatDetection;
-import de.zannagh.armorhider.configuration.items.implementations.PlayerName;
-import de.zannagh.armorhider.configuration.items.implementations.PlayerUuid;
+import de.zannagh.armorhider.configuration.items.implementations.*;
 import de.zannagh.armorhider.netPackets.CompressedJsonCodec;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.PacketCodec;
@@ -47,22 +44,15 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
     
     @SerializedName(value = "enableCombatDetection")
     public CombatDetection enableCombatDetection;
+    
+    @SerializedName(value = "opacityAffectingElytra")
+    public OpacityAffectingElytraItem opacityAffectingElytra;
+    
+    @SerializedName(value = "opacityAffectingHatOrSkull")
+    public OpacityAffectingHatOrSkullItem opacityAffectingHatOrSkull;
+    
     public PlayerUuid playerId;
     public PlayerName playerName;
-
-    public PlayerConfig(double helmet, double chest, double legs, double boots, boolean combatDetection, String uuid, String name){
-        this(helmet, chest, legs, boots, combatDetection, UUID.fromString(uuid), name);
-    }
-
-    public PlayerConfig(double helmet, double chest, double legs, double boots, boolean combatDetection, UUID uuid, String name){
-        this.helmetOpacity = new ArmorOpacity(helmet);
-        this.chestOpacity = new ArmorOpacity(chest);
-        this.legsOpacity = new ArmorOpacity(legs);
-        this.bootsOpacity = new ArmorOpacity(boots);
-        this.enableCombatDetection = new CombatDetection(combatDetection);
-        this.playerId = new PlayerUuid(uuid);
-        this.playerName = new PlayerName(name);
-    }
 
     public PlayerConfig(UUID uuid, String name) {
         this();
@@ -78,6 +68,8 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         enableCombatDetection = new CombatDetection();
         playerId = new PlayerUuid();
         playerName = new PlayerName();
+        opacityAffectingHatOrSkull = new OpacityAffectingHatOrSkullItem();
+        opacityAffectingElytra = new OpacityAffectingElytraItem();
     }
 
     public static PlayerConfig deserialize(Reader reader){

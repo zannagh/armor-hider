@@ -26,6 +26,11 @@ public class ElytraRenderMixin {
             return;
         }
 
+        if (!ArmorRenderPipeline.getCurrentModification().playerConfig().opacityAffectingElytra.getValue()) {
+            ArmorRenderPipeline.clearContext();
+            return;
+        }
+
         if (ArmorRenderPipeline.shouldHideEquipment()) {
             ArmorRenderPipeline.clearContext();
             if (ci != null) {

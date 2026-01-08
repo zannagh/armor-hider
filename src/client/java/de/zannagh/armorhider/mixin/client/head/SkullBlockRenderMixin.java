@@ -27,6 +27,10 @@ public abstract class SkullBlockRenderMixin {
     private static <S> void modifyTransparency(OrderedRenderCommandQueue instance, Model<? super S> model, S o, MatrixStack matrixStack, RenderLayer renderLayer, int light, int overlay, int outlineColor, ModelCommandRenderer.CrumblingOverlayCommand crumblingOverlayCommand, Operation<Void> original){
         
         if (ArmorRenderPipeline.hasActiveContext() && ArmorRenderPipeline.shouldModifyEquipment()) {
+            if (!ArmorRenderPipeline.getCurrentModification().playerConfig().opacityAffectingHatOrSkull.getValue()) {
+                original.call(instance, model, o, matrixStack, renderLayer, light, overlay, outlineColor, crumblingOverlayCommand);
+                return;
+            }
             var newColor = ArmorRenderPipeline.applyTransparency(-1);
             instance.getBatchingQueue(ArmorRenderPipeline.SkullRenderPriority).submitModel(model, o, matrixStack, renderLayer, light, overlay, newColor , null, outlineColor, crumblingOverlayCommand);
         } else {
