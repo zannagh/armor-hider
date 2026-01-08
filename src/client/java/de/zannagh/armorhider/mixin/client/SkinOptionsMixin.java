@@ -29,6 +29,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(GameOptionsScreen.class)
 public abstract class SkinOptionsMixin extends Screen {
     
+    // TODO: This may have to be extended into not sending network stuff if the server doesn't support it.
+    @Unique
+    private boolean hasUsedFallbackWhereServerDidntTranspondSettings = false;
+    
     @Unique
     private boolean settingsChanged;
     
@@ -63,7 +67,7 @@ public abstract class SkinOptionsMixin extends Screen {
             ArmorHider.LOGGER.info("Updating current player settings...");
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.saveCurrent();
         }
-        if (serverSettingsChanged) {
+        if (serverSettingsChanged && !hasUsedFallbackWhereServerDidntTranspondSettings) {
             ArmorHider.LOGGER.info("Updating current server settings (if possible)...");
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.setAndSendServerCombatDetection(newServerCombatDetection);
         }
@@ -144,15 +148,29 @@ public abstract class SkinOptionsMixin extends Screen {
         optionElementFactory.addSimpleOptionAsWidget(enableCombatDetection);
 
         if (ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin) {
+            var serverConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getServerConfig();
+            boolean serverCombatDetectionValue = serverConfig != null
+                    && serverConfig.serverWideSettings != null
+                    && serverConfig.serverWideSettings.enableCombatDetection != null
+                    ? serverConfig.serverWideSettings.enableCombatDetection.getValue()
+                    : getFallbackDefault();
+
             SimpleOption<Boolean> combatHidingOnServer = optionElementFactory.buildBooleanOption(
                     Text.translatable("armorhider.options.combat_detection_server.title"),
                     Text.translatable("armorhider.options.combat_detection_server.tooltip"),
                     Text.translatable("armorhider.options.combat_detection_server.tooltip_narration"),
-                    ArmorHiderClient.CLIENT_CONFIG_MANAGER.getServerConfig().serverWideSettings.enableCombatDetection.getValue(),
+                    serverCombatDetectionValue,
                     this::setServerCombatDetection
             );
             optionElementFactory.addSimpleOptionAsWidget(combatHidingOnServer);
         }
+    }
+    
+    @Unique
+    private boolean getFallbackDefault() {
+        // Server didn't have the mod, using default value
+        hasUsedFallbackWhereServerDidntTranspondSettings = true;
+        return true;
     }
 
     @Unique

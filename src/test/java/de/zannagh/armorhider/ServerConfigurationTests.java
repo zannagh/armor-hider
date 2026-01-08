@@ -320,6 +320,103 @@ public class ServerConfigurationTests {
         assertTrue(allSizesAcceptable, "All packet sizes within acceptable limits");
     }
 
+    @Test
+    @DisplayName("Migration from 0.4.x (v3) via Gson network deserialization")
+    void testMigrationFrom04xViaGson() {
+        // This test simulates receiving a config over the network from a 0.4.x server
+        // In 0.4.x, enableCombatDetection was a top-level Boolean field, not wrapped in serverWideSettings
+
+        // Test 1: 0.4.x config with enableCombatDetection = false
+        String v3ConfigFalse = """
+            {
+                "playerConfigs": {
+                     "da6fa5b1-bd84-361d-8771-656d46818daa": {
+                       "helmetOpacity": 0.5,
+                       "chestOpacity": 0.75,
+                       "legsOpacity": 1.0,
+                       "bootsOpacity": 0.25,
+                       "playerId": "da6fa5b1-bd84-361d-8771-656d46818daa",
+                       "playerName": "TestPlayer",
+                       "enableCombatDetection": true
+                     }
+                },
+                "enableCombatDetection": false
+            }
+            """;
+
+        ServerConfiguration config1 = ArmorHider.GSON.fromJson(v3ConfigFalse, ServerConfiguration.class);
+        assertNotNull(config1, "Config should not be null");
+        assertNotNull(config1.serverWideSettings, "serverWideSettings should not be null");
+        assertNotNull(config1.serverWideSettings.enableCombatDetection, "enableCombatDetection should not be null");
+        assertFalse(config1.serverWideSettings.enableCombatDetection.getValue(),
+                "Combat detection should be false (migrated from v3 format)");
+
+        // Test 2: 0.4.x config with enableCombatDetection = true
+        String v3ConfigTrue = """
+            {
+                "playerConfigs": {},
+                "enableCombatDetection": true
+            }
+            """;
+
+        ServerConfiguration config2 = ArmorHider.GSON.fromJson(v3ConfigTrue, ServerConfiguration.class);
+        assertNotNull(config2, "Config should not be null");
+        assertNotNull(config2.serverWideSettings, "serverWideSettings should not be null");
+        assertNotNull(config2.serverWideSettings.enableCombatDetection, "enableCombatDetection should not be null");
+        assertTrue(config2.serverWideSettings.enableCombatDetection.getValue(),
+                "Combat detection should be true (migrated from v3 format)");
+
+        // Test 3: 0.4.x config without enableCombatDetection field (should use default)
+        String v3ConfigNoField = """
+            {
+                "playerConfigs": {}
+            }
+            """;
+
+        ServerConfiguration config3 = ArmorHider.GSON.fromJson(v3ConfigNoField, ServerConfiguration.class);
+        assertNotNull(config3, "Config should not be null");
+        assertNotNull(config3.serverWideSettings, "serverWideSettings should not be null");
+        assertNotNull(config3.serverWideSettings.enableCombatDetection, "enableCombatDetection should not be null");
+        assertTrue(config3.serverWideSettings.enableCombatDetection.getValue(),
+                "Combat detection should be true (default value)");
+    }
+
+    @Test
+    @DisplayName("ServerWideSettings should always be initialized with defaults")
+    void testServerWideSettingsAlwaysInitialized() throws Exception {
+        // Test 1: New ServerConfiguration instance should have serverWideSettings initialized
+        ServerConfiguration newConfig = new ServerConfiguration();
+        assertNotNull(newConfig.serverWideSettings, "serverWideSettings should not be null in new instance");
+        assertNotNull(newConfig.serverWideSettings.enableCombatDetection, "enableCombatDetection should not be null");
+        assertTrue(newConfig.serverWideSettings.enableCombatDetection.getValue(), "Default combat detection should be true");
+
+        // Test 2: Deserializing config without serverWideSettings should initialize it with defaults
+        String configWithoutServerWideSettings = """
+                {
+                    "playerConfigs": {},
+                    "playerNameConfigs": {}
+                }""";
+
+        ServerConfiguration deserializedConfig = ServerConfiguration.deserialize(configWithoutServerWideSettings);
+        assertNotNull(deserializedConfig.serverWideSettings, "serverWideSettings should be initialized after deserialization");
+        assertNotNull(deserializedConfig.serverWideSettings.enableCombatDetection, "enableCombatDetection should be initialized");
+        assertTrue(deserializedConfig.serverWideSettings.enableCombatDetection.getValue(), "Default combat detection should be true");
+
+        // Test 3: Deserializing v3 config (with old enableCombatDetection field) should migrate properly
+        String v3ConfigJson = """
+                {
+                    "playerConfigs": {},
+                    "playerNameConfigs": {},
+                    "enableCombatDetection": true
+                }""";
+
+        ServerConfiguration migratedConfig = ServerConfiguration.deserialize(v3ConfigJson);
+        assertNotNull(migratedConfig.serverWideSettings, "serverWideSettings should be initialized during migration");
+        assertNotNull(migratedConfig.serverWideSettings.enableCombatDetection, "enableCombatDetection should be initialized");
+        assertTrue(migratedConfig.serverWideSettings.enableCombatDetection.getValue(), "Migrated combat detection should preserve original value (true)");
+        assertTrue(migratedConfig.hasChangedFromSerializedContent(), "Migration should mark config as changed");
+    }
+
     private @NonNull String formatBytes(int bytes) {
         if (bytes < 1024) {
             return bytes + "B";
