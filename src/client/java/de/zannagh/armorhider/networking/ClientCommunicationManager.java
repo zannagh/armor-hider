@@ -19,12 +19,12 @@ public final class ClientCommunicationManager {
             assert client.player != null;
             var playerName = client.player.getName().getString();
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.updateName(playerName);
-            ArmorHiderClient.CLIENT_CONFIG_MANAGER.updateId(handler.getProfile().id());
+            ArmorHiderClient.CLIENT_CONFIG_MANAGER.updateId(handler.getProfile().getId());
             var currentConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue();
 
             if (client.getServer() != null) {
                 try {
-                   ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin = client.getServer().getPermissionLevel(client.player.getPlayerConfigEntry()) >= 3;
+                   ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin = client.getServer().getPermissionLevel(client.player.getGameProfile()) >= 3;
                 }
                 catch (Exception ignored) {
                     ArmorHider.LOGGER.error("Failed to set permissions for player {}.", playerName);

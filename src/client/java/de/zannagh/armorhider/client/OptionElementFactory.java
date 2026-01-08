@@ -1,6 +1,7 @@
 package de.zannagh.armorhider.client;
 
 import de.zannagh.armorhider.rendering.RenderUtilities;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.gui.widget.OptionListWidget;
@@ -47,7 +48,7 @@ public class OptionElementFactory {
     }
     
     private TextWidget buildTextWidget(MutableText text) {
-        return new TextWidget(text, screen.getTextRenderer());
+        return new TextWidget(text, MinecraftClient.getInstance().textRenderer);
     }
     
     public SimpleOption<Double> buildDoubleOption(String key,

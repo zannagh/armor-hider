@@ -100,10 +100,10 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
             return config;
         }
         else {
-            if (!Objects.requireNonNull(MinecraftClient.getInstance().getNetworkHandler()).getProfile().name().equals(playerName)) {
+            if (!Objects.requireNonNull(MinecraftClient.getInstance().getNetworkHandler()).getProfile().getName().equals(playerName)) {
                 UUID playerId = null;
-                if (Objects.requireNonNull(MinecraftClient.getInstance().getNetworkHandler()).getCaseInsensitivePlayerInfo(playerName) instanceof PlayerListEntry entry) {
-                    playerId = entry.getProfile().id();
+                if (Objects.requireNonNull(MinecraftClient.getInstance().getNetworkHandler()).getPlayerListEntry(playerName) instanceof PlayerListEntry entry) {
+                    playerId = entry.getProfile().getId();
                 }
                 
                 serverConfiguration.put(playerName, playerId, CURRENT);

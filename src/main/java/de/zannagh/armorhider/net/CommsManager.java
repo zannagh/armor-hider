@@ -42,7 +42,8 @@ public final class CommsManager {
         ServerPlayNetworking.registerGlobalReceiver(ServerWideSettings.PACKET_IDENTIFIER, (payload, context) ->{
             ArmorHider.LOGGER.info("Server received admin settings packet.");
             var player = context.player();
-            if (player.getPermissionLevel() < 3) {
+
+            if (!player.hasPermissionLevel(3)) {
                 ArmorHider.LOGGER.info("Non-admin player {} attempted to disable combat detection. Ignoring.", player.getUuidAsString());
                 return;
             }

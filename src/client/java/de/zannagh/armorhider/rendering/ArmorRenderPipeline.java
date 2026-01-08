@@ -4,9 +4,9 @@ import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.common.ItemStackHelper;
 import de.zannagh.armorhider.resources.ArmorModificationInfo;
 import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.entity.state.LivingEntityRenderState;
-import net.minecraft.client.render.entity.state.PlayerEntityRenderState;
 import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.ColorHelper;
@@ -22,7 +22,7 @@ public class ArmorRenderPipeline {
 
     /// Captures context for the render pipeline, used within other methods of the class.
     /// ItemStack can be null, slot can be null.
-    public static void setupContext(ItemStack itemStack, EquipmentSlot slot, LivingEntityRenderState entityRenderState) {
+    public static void setupContext(ItemStack itemStack, EquipmentSlot slot, LivingEntity entity) {
         
         if (slot != null) {
             setCurrentSlot(slot);
@@ -33,10 +33,10 @@ public class ArmorRenderPipeline {
             ArmorModificationContext.setCurrentSlot(EquipmentSlot.CHEST);
         }
 
-        if (entityRenderState instanceof PlayerEntityRenderState playerEntityRenderState && getCurrentSlot() != null) {
+        if (getCurrentSlot() != null && entity instanceof PlayerEntity playerEntity) {
             var configByEntityState = tryResolveConfigFromPlayerEntityState(
                     getCurrentSlot(),
-                    playerEntityRenderState
+                    playerEntity
             );
             setCurrentModification(configByEntityState);
         }
@@ -46,7 +46,7 @@ public class ArmorRenderPipeline {
     public static void addContext(Object entityRenderState) {
         if (getCurrentModification() == null 
                 && getCurrentSlot() != null
-                && entityRenderState instanceof PlayerEntityRenderState playerEntityRenderState) {
+                && entityRenderState instanceof PlayerEntity playerEntityRenderState) {
             var config = tryResolveConfigFromPlayerEntityState(
                     ArmorRenderPipeline.getCurrentSlot(),
                     playerEntityRenderState
@@ -63,10 +63,10 @@ public class ArmorRenderPipeline {
         ArmorModificationContext.clearAll();
     }
 
-    private static ArmorModificationInfo tryResolveConfigFromPlayerEntityState(EquipmentSlot slot, PlayerEntityRenderState state){
-        return state.displayName == null
+    private static ArmorModificationInfo tryResolveConfigFromPlayerEntityState(EquipmentSlot slot, PlayerEntity state){
+        return state.getDisplayName() == null
                 ? new ArmorModificationInfo(slot, ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue())
-                : new ArmorModificationInfo(slot, ArmorHiderClient.CLIENT_CONFIG_MANAGER.getConfigForPlayer(state.displayName.getString()));
+                : new ArmorModificationInfo(slot, ArmorHiderClient.CLIENT_CONFIG_MANAGER.getConfigForPlayer(state.getDisplayName().getString()));
     }
 
     private static void setCurrentSlot(EquipmentSlot slot) {
@@ -95,7 +95,7 @@ public class ArmorRenderPipeline {
     }
 
     public static boolean renderStateDoesNotTargetPlayer(Object renderState) {
-        return !(renderState instanceof PlayerEntityRenderState);
+        return !(renderState instanceof PlayerEntity);
     }
 
     public static int modifyRenderPriority(int originalPriority, ItemStack itemStack) {
@@ -127,7 +127,7 @@ public class ArmorRenderPipeline {
         }
 
         if (modification.GetTransparency() < 1) {
-            return RenderLayer.createArmorTranslucent(net.minecraft.client.render.TexturedRenderLayers.ARMOR_TRIMS_ATLAS_TEXTURE);
+            return RenderLayer.getEntityTranslucent(net.minecraft.client.render.TexturedRenderLayers.ARMOR_TRIMS_ATLAS_TEXTURE);
         }
 
         return originalLayer;
@@ -140,7 +140,7 @@ public class ArmorRenderPipeline {
         }
 
         double transparency = modification.GetTransparency();
-        return ColorHelper.withAlpha(ColorHelper.channelFromFloat((float)transparency), originalColor);
+        return ColorHelper.Argb.withAlpha(ColorHelper.channelFromFloat((float)transparency), originalColor);
     }
     //endregion
 }
