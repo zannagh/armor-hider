@@ -152,7 +152,7 @@ public class PerformanceBenchmarkTests {
             return;
         }
 
-        if (intervalsOverlap && Math.abs(ratio - 1.0) < 1.0) {
+        if (intervalsOverlap) {
             System.out.printf("  ℹ Info: Confidence intervals overlap for %s at %d players (ratio: %.2fx) - difference not statistically significant%n",
                     operationType, playerCount, ratio);
             return;
