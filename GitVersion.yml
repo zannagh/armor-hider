@@ -1,5 +1,5 @@
 version-in-branch-pattern: (\A(?!x)x)
-tag-prefix: '[vV]?(\d\.\d\d.\d\d)?-?'
+tag-prefix: '[vV]?(\d\.\d\d.\d(\d)?)?-?'
 no-bump-message: '(\+semver:\s?(none|skip)|ci.*:.*|docs.*:.*)'
 strategies:
   - Fallback
