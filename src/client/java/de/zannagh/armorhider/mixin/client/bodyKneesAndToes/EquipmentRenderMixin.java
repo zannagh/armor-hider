@@ -55,7 +55,7 @@ public class EquipmentRenderMixin {
             return;
         }
 
-        if (layerType == EquipmentModel.LayerType.WINGS && !ArmorRenderPipeline.getCurrentModification().playerConfig().opacityAffectingElytra.getDefaultValue()) {
+        if (layerType == EquipmentModel.LayerType.WINGS && !ArmorRenderPipeline.getCurrentModification().playerConfig().opacityAffectingElytra.getValue()) {
             ArmorRenderPipeline.clearContext();
             return;
         }

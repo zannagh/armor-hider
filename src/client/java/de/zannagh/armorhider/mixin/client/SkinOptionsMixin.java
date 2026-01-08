@@ -89,6 +89,15 @@ public abstract class SkinOptionsMixin extends Screen {
                 this::setHelmetTransparency);
         optionElementFactory.addSimpleOptionAsWidget(helmetOption);
 
+        var skullOrHatOption = optionElementFactory.buildBooleanOption(
+                Text.translatable("armorhider.options.helmet_affection.title"),
+                Text.translatable("armorhider.options.helmet_affection.tooltip"),
+                Text.translatable("armorhider.options.helmet_affection.tooltip_narration"),
+                ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().opacityAffectingHatOrSkull.getValue(),
+                this::setOpacityAffectingHatOrSkull
+        );
+        optionElementFactory.addSimpleOptionAsWidget(skullOrHatOption);
+
         var chestOption = optionElementFactory.buildDoubleOption(
                 "armorhider.chestplate.transparency",
                 Text.translatable("armorhider.options.chestplate.tooltip"),
@@ -97,6 +106,15 @@ public abstract class SkinOptionsMixin extends Screen {
                 ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().chestOpacity.getValue(),
                 this::setChestTransparency);
         optionElementFactory.addSimpleOptionAsWidget(chestOption);
+        
+        var elytraOption = optionElementFactory.buildBooleanOption(
+                Text.translatable("armorhider.options.elytra_affection.title"),
+                Text.translatable("armorhider.options.elytra_affection.tooltip"),
+                Text.translatable("armorhider.options.elytra_affection.tooltip_narration"),
+                ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().opacityAffectingElytra.getValue(),
+                this::setOpacityAffectingElytra
+        );
+        optionElementFactory.addSimpleOptionAsWidget(elytraOption);
 
         var legsOption = optionElementFactory.buildDoubleOption(
                 "armorhider.legs.transparency",
@@ -135,6 +153,18 @@ public abstract class SkinOptionsMixin extends Screen {
             );
             optionElementFactory.addSimpleOptionAsWidget(combatHidingOnServer);
         }
+    }
+
+    @Unique
+    private void setOpacityAffectingHatOrSkull(Boolean value) {
+        ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().opacityAffectingHatOrSkull.setValue(value);
+        settingsChanged = true;
+    }
+
+    @Unique
+    private void setOpacityAffectingElytra(Boolean value) {
+        ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().opacityAffectingElytra.setValue(value);
+        settingsChanged = true;
     }
 
     @Unique

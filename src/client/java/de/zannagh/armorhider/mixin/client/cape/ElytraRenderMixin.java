@@ -26,7 +26,7 @@ public class ElytraRenderMixin {
             return;
         }
 
-        if (!ArmorRenderPipeline.getCurrentModification().playerConfig().opacityAffectingElytra.getDefaultValue()) {
+        if (!ArmorRenderPipeline.getCurrentModification().playerConfig().opacityAffectingElytra.getValue()) {
             ArmorRenderPipeline.clearContext();
             return;
         }
