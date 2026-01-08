@@ -272,7 +272,7 @@ public class ServerConfigurationTests {
         assertNotNull(currentConfig.serverWideSettings);
         assertEquals(true, currentConfig.serverWideSettings.enableCombatDetection.getValue());
 
-        assertFalse(currentConfig.hasChangedFromSerializedContent());
+        assertTrue(currentConfig.hasChangedFromSerializedContent());
     }
 
     @Test
