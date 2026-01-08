@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import de.zannagh.armorhider.common.EnrichedLogger;
 import de.zannagh.armorhider.configuration.ConfigurationItemSerializer;
 import de.zannagh.armorhider.configuration.ConfigurationSourceSerializer;
+import de.zannagh.armorhider.configuration.ServerConfigurationDeserializer;
 import de.zannagh.armorhider.net.CommsManager;
 import de.zannagh.armorhider.net.PayloadRegistrar;
 import de.zannagh.armorhider.net.ServerRuntime;
@@ -17,6 +18,7 @@ import org.slf4j.LoggerFactory;
 public class ArmorHider implements ModInitializer {
     public static final Gson GSON = new GsonBuilder()
             .setPrettyPrinting()
+            .registerTypeAdapterFactory(new ServerConfigurationDeserializer())
             .registerTypeAdapterFactory(new ConfigurationSourceSerializer())
             .registerTypeAdapterFactory(new ConfigurationItemSerializer())
             .create();

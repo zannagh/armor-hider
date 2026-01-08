@@ -43,8 +43,9 @@ public class ServerConfiguration implements ConfigurationSource<ServerConfigurat
     public ServerWideSettings serverWideSettings;
 
     public ServerConfiguration() {
-        // Don't initialize serverWideSettings here - let deserialization handle it
-        // This allows migration logic to detect v3 format (where serverWideSettings is missing)
+        // Always initialize serverWideSettings with defaults to prevent null pointer exceptions
+        // Migration logic will detect v3 format by checking for old field presence
+        this.serverWideSettings = new ServerWideSettings();
     }
 
     private ServerConfiguration(Map<UUID, PlayerConfig> playerConfigs, ServerWideSettings serverWideSettings) {
@@ -95,14 +96,16 @@ public class ServerConfiguration implements ConfigurationSource<ServerConfigurat
                 configuration = ArmorHider.GSON.fromJson(element, ServerConfiguration.class);
 
                 // Check if we need to migrate from v3 format (enableCombatDetection boolean) to v4 (serverWideSettings object)
-                if (configuration.serverWideSettings == null && obj.has("enableCombatDetection")) {
+                // Detect v3 by presence of old field and absence of new field in JSON
+                if (obj.has("enableCombatDetection") && !obj.has("serverWideSettings")) {
                     Boolean legacyCombatDetection = obj.get("enableCombatDetection").getAsBoolean();
                     configuration.serverWideSettings = new ServerWideSettings(legacyCombatDetection);
                     ArmorHider.LOGGER.info("Migrated server config from v3 to v4 format (enableCombatDetection -> serverWideSettings).");
                     configuration.setHasChangedFromSerializedContent();
                 } else if (configuration.serverWideSettings == null) {
-                    // No serverWideSettings and no legacy field - use defaults
+                    // Safety fallback: if somehow serverWideSettings is still null, initialize with defaults
                     configuration.serverWideSettings = new ServerWideSettings();
+                    ArmorHider.LOGGER.warn("ServerWideSettings was null after deserialization, initialized with defaults.");
                 } else {
                     ArmorHider.LOGGER.info("Loaded server config (v4 format).");
                 }
