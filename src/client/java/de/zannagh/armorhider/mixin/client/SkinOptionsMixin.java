@@ -39,9 +39,6 @@ public abstract class SkinOptionsMixin extends Screen {
     @Unique
     private boolean newServerCombatDetection;
     
-    @Shadow
-    protected OptionListWidget body;
-    
     @Final
     @Shadow
     protected GameOptions gameOptions;
@@ -68,8 +65,15 @@ public abstract class SkinOptionsMixin extends Screen {
         super.close();
     }
 
+    // 1.20.1 compatibility: In 1.20.1, GameOptionsScreen doesn't override init()
+    // For now, we'll disable this mixin for 1.20.1 and add options through a different mechanism
+    // TODO: Implement options screen integration for 1.20.1
+    /*
     @Inject(method = "init", at = @At("RETURN"))
     private void onAddOptions(CallbackInfo ci) {
+
+        // 1.20.1 compatibility: Find OptionListWidget using reflection
+        OptionListWidget body = getOptionsListWidget();
 
         OptionElementFactory optionElementFactory = new OptionElementFactory(this, body, gameOptions);
         if (MinecraftClient.getInstance().player != null) {
@@ -88,7 +92,7 @@ public abstract class SkinOptionsMixin extends Screen {
 
         // Add player preview widget alongside helmet option if player is present
         if (MinecraftClient.getInstance().player != null) {
-            int rowWidth = RenderUtilities.getRowWidth(body);
+            int rowWidth = RenderUtilities.getRowWidth(body);  // body is the local variable from above
             int width = rowWidth / 2;
             // Calculate height to span multiple rows - make it tall enough to show the player
             int height = 200;
@@ -211,4 +215,22 @@ public abstract class SkinOptionsMixin extends Screen {
         newServerCombatDetection = enabled;
         serverSettingsChanged = true;
     }
+
+    @Unique
+    private OptionListWidget getOptionsListWidget() {
+        // 1.20.1 compatibility: Use reflection to find the OptionListWidget field
+        // The field name changed between versions
+        try {
+            for (java.lang.reflect.Field field : this.getClass().getSuperclass().getDeclaredFields()) {
+                if (OptionListWidget.class.isAssignableFrom(field.getType())) {
+                    field.setAccessible(true);
+                    return (OptionListWidget) field.get(this);
+                }
+            }
+        } catch (Exception e) {
+            ArmorHider.LOGGER.error("Failed to find OptionListWidget field", e);
+        }
+        return null;
+    }
+    */
 }

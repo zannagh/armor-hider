@@ -109,7 +109,9 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
         else {
             if (!Objects.requireNonNull(MinecraftClient.getInstance().getNetworkHandler()).getProfile().getName().equals(playerName)) {
                 UUID playerId = null;
-                if (Objects.requireNonNull(MinecraftClient.getInstance().getNetworkHandler()).getPlayerListEntry(playerName) instanceof PlayerListEntry entry) {
+                // Java 17 compatibility: extract to variable instead of instanceof pattern matching
+                PlayerListEntry entry = Objects.requireNonNull(MinecraftClient.getInstance().getNetworkHandler()).getPlayerListEntry(playerName);
+                if (entry != null) {
                     playerId = entry.getProfile().getId();
                 }
                 

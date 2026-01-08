@@ -31,26 +31,31 @@ public class OptionElementFactory {
     }
     
     public <T> void addSimpleOptionAsWidget(SimpleOption<T> option){
-        addElementAsWidget(simpleOptionToGameOptionWidget(option, gameOptions, body, renderOptionsFullWidth));
+        // 1.20.1 compatibility: addSingleOptionEntry expects SimpleOption, not widget
+        if (body == null) {
+            return;
+        }
+        body.addSingleOptionEntry(option);
     }
 
     public <T> void addSimpleOptionWithSecondWidget(SimpleOption<T> option, ClickableWidget secondWidget){
         if (body == null) {
             return;
         }
-        ClickableWidget firstWidget = simpleOptionToGameOptionWidget(option, gameOptions, body, renderOptionsFullWidth);
-        body.addWidgetEntry(firstWidget, secondWidget);
+        // 1.20.1 compatibility: addSingleOptionEntry expects SimpleOption, not widget
+        // The two-widget layout API doesn't exist, so just add the first option
+        body.addSingleOptionEntry(option);
+        // TODO: Player preview widget disabled in 1.20.1 due to UI API changes
     }
 
     public void addTextAsWidget(MutableText text) {
-        addElementAsWidget(buildTextWidget(text));
+        // 1.20.1: Text widgets cannot be added directly to OptionListWidget
+        // This method is a no-op in 1.20.1
     }
 
     public final void addElementAsWidget(ClickableWidget widget){
-        if (body == null) {
-            return;
-        }
-        body.addWidgetEntry(widget, null);
+        // 1.20.1: Cannot add arbitrary widgets to OptionListWidget
+        // This method is a no-op in 1.20.1
     }
     
     private TextWidget buildTextWidget(MutableText text) {
@@ -79,13 +84,10 @@ public class OptionElementFactory {
                                                   @Nullable MutableText narration,
                                                   Boolean defaultValue,
                                                   Consumer<Boolean> setter) {
-        String booleanKey;
-        if (key.getWithStyle(Style.EMPTY).getFirst().getLiteralString() instanceof String textString && !textString.isEmpty()) {
-            booleanKey = textString.contains(":") ? textString.split(":")[0] : textString;
-        }
-        else {
-            booleanKey = key.getString();
-        }
+        // 1.20.1 compatibility: simplified text key extraction
+        String keyString = key.getString();
+        String booleanKey = keyString.contains(":") ? keyString.split(":")[0] : keyString;
+
         return SimpleOption.ofBoolean(
                 booleanKey,
                 new NarratedTooltipFactory<>(tooltip, narration),

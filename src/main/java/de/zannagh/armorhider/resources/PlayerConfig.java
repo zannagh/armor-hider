@@ -18,7 +18,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
 
     private boolean hasChangedFromSerializedContent;
 
-    public static final Identifier PACKET_ID = new Identifier("de.zannagh.armorhider", "settings_c2s_packet");
+    public static final Identifier PACKET_ID = Identifier.of("de.zannagh.armorhider", "settings_c2s_packet");
 
     @Override
     public Identifier getPacketId() {

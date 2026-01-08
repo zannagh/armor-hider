@@ -17,8 +17,16 @@ public class ArmorHiderClient implements ClientModInitializer {
                 || (MinecraftClient.getInstance().getNetworkHandler() != null && MinecraftClient.getInstance().getNetworkHandler().getServerInfo() != null);
     }
     
-    public static String getCurrentPlayerName() { 
-        return MinecraftClient.getInstance().player instanceof ClientPlayerEntity clientPlayer && clientPlayer.getDisplayName() instanceof net.minecraft.text.Text displayText ? displayText.getString() : null;
+    public static String getCurrentPlayerName() {
+        // Java 17 compatibility: extract to variables instead of instanceof pattern matching
+        ClientPlayerEntity clientPlayer = MinecraftClient.getInstance().player;
+        if (clientPlayer != null) {
+            net.minecraft.text.Text displayText = clientPlayer.getDisplayName();
+            if (displayText != null) {
+                return displayText.getString();
+            }
+        }
+        return null;
     }
     
     public static ClientConfigManager CLIENT_CONFIG_MANAGER;

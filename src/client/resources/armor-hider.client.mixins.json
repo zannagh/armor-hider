@@ -1,7 +1,7 @@
 {
 	"required": true,
 	"package": "de.zannagh.armorhider.mixin.client",
-	"compatibilityLevel": "JAVA_21",
+	"compatibilityLevel": "JAVA_17",
 	"client": [
       "bodyKneesAndToes.ArmorFeatureRenderMixin",
       "bodyKneesAndToes.EquipmentRenderMixin",

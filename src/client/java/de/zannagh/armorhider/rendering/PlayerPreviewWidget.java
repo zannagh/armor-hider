@@ -6,7 +6,6 @@ import net.minecraft.client.gui.screen.ingame.InventoryScreen;
 import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.text.Text;
-import net.minecraft.util.Colors;
 
 import java.awt.*;
 
@@ -17,7 +16,7 @@ public class PlayerPreviewWidget extends ClickableWidget {
     }
 
     @Override
-    protected void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
+    protected void renderButton(DrawContext context, int mouseX, int mouseY, float delta) {
         ClientPlayerEntity player = MinecraftClient.getInstance().player;
         if (player == null) {
             return;
@@ -37,23 +36,20 @@ public class PlayerPreviewWidget extends ClickableWidget {
         context.fill(panelLeft, panelTop, panelRight, panelBottom, Color.darkGray.darker().getRGB());
 
         // Border
-        int borderColor = Colors.LIGHT_GRAY;
+        int borderColor = 0xFFC0C0C0; // Light gray color (1.20.1 compatibility)
         context.fill(panelLeft, panelTop, panelRight, panelTop + 1, borderColor); // Top
         context.fill(panelLeft, panelBottom - 1, panelRight, panelBottom, borderColor); // Bottom
         context.fill(panelLeft, panelTop, panelLeft + 1, panelBottom, borderColor); // Left
         context.fill(panelRight - 1, panelTop, panelRight, panelBottom, borderColor); // Right
 
-        // content
+        // content - 1.20.1 compatibility: drawEntity has different signature
         InventoryScreen.drawEntity(
                 context,
-                panelLeft,
-                panelTop - margin,
-                panelRight,
-                panelBottom,
+                previewX,
+                previewY,
                 (int) Math.round(previewSize * 0.5),
-                0.25f,
-                (float) mouseX,
-                (float) mouseY,
+                (float) (previewX - mouseX),
+                (float) (previewY - margin - mouseY),
                 player
         );
     }

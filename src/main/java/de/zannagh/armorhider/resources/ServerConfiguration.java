@@ -21,7 +21,7 @@ import java.util.*;
 
 public class ServerConfiguration implements ConfigurationSource<ServerConfiguration> {
 
-    public static final Identifier PACKET_ID = new Identifier("de.zannagh.armorhider", "settings_s2c_packet");
+    public static final Identifier PACKET_ID = Identifier.of("de.zannagh.armorhider", "settings_s2c_packet");
 
     @Override
     public Identifier getPacketId() {
