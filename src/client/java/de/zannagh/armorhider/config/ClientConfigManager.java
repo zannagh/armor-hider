@@ -81,6 +81,11 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
     
     public void setServerConfig(ServerConfiguration serverConfig) {
         ArmorHider.LOGGER.info("Setting server config...");
+        if (serverConfig.serverWideSettings == null) {
+            ArmorHider.LOGGER.warn("Received ServerConfiguration with null serverWideSettings, initializing with defaults");
+            serverConfig.serverWideSettings = new ServerWideSettings();
+        }
+
         serverConfiguration = serverConfig;
     }
 
