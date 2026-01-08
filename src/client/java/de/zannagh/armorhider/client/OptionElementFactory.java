@@ -17,12 +17,10 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class OptionElementFactory {
-    private final Screen screen;
     private final OptionListWidget body;
     private final GameOptions gameOptions;
     private boolean renderOptionsFullWidth = true;
     public OptionElementFactory(Screen screen, @Nullable OptionListWidget body, @Nullable GameOptions gameOptions) {
-        this.screen = screen;
         this.body = body;
         this.gameOptions = gameOptions;
     }
@@ -35,11 +33,19 @@ public class OptionElementFactory {
     public <T> void addSimpleOptionAsWidget(SimpleOption<T> option){
         addElementAsWidget(simpleOptionToGameOptionWidget(option, gameOptions, body, renderOptionsFullWidth));
     }
-    
+
+    public <T> void addSimpleOptionWithSecondWidget(SimpleOption<T> option, ClickableWidget secondWidget){
+        if (body == null) {
+            return;
+        }
+        ClickableWidget firstWidget = simpleOptionToGameOptionWidget(option, gameOptions, body, renderOptionsFullWidth);
+        body.addWidgetEntry(firstWidget, secondWidget);
+    }
+
     public void addTextAsWidget(MutableText text) {
         addElementAsWidget(buildTextWidget(text));
     }
-    
+
     public final void addElementAsWidget(ClickableWidget widget){
         if (body == null) {
             return;

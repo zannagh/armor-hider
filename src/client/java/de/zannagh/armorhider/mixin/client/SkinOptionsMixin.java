@@ -9,7 +9,8 @@ package de.zannagh.armorhider.mixin.client;
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.OptionElementFactory;
-import de.zannagh.armorhider.rendering.PlayerPreviewRenderer;
+import de.zannagh.armorhider.rendering.PlayerPreviewWidget;
+import de.zannagh.armorhider.rendering.RenderUtilities;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
@@ -52,9 +53,6 @@ public abstract class SkinOptionsMixin extends Screen {
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float deltaTicks){
         super.render(context, mouseX, mouseY, deltaTicks);
-        if (body != null) {
-            PlayerPreviewRenderer.renderPlayerPreview(context, body, mouseX, mouseY);
-        }
     }
     
     @Override
@@ -87,7 +85,18 @@ public abstract class SkinOptionsMixin extends Screen {
                 currentValue -> Text.translatable("armorhider.options.helmet.button_text", String.format("%.0f%%", currentValue * 100)),
                 ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().helmetOpacity.getValue(),
                 this::setHelmetTransparency);
-        optionElementFactory.addSimpleOptionAsWidget(helmetOption);
+
+        // Add player preview widget alongside helmet option if player is present
+        if (MinecraftClient.getInstance().player != null) {
+            int rowWidth = RenderUtilities.getRowWidth(body);
+            int width = rowWidth / 2;
+            // Calculate height to span multiple rows - make it tall enough to show the player
+            int height = 200;
+            PlayerPreviewWidget previewWidget = new PlayerPreviewWidget(0, 0, width, height);
+            optionElementFactory.addSimpleOptionWithSecondWidget(helmetOption, previewWidget);
+        } else {
+            optionElementFactory.addSimpleOptionAsWidget(helmetOption);
+        }
 
         var skullOrHatOption = optionElementFactory.buildBooleanOption(
                 Text.translatable("armorhider.options.helmet_affection.title"),

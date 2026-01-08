@@ -3,6 +3,7 @@ package de.zannagh.armorhider.rendering;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.option.GameOptionsScreen;
 import net.minecraft.client.gui.widget.OptionListWidget;
+import net.minecraft.client.gui.widget.ThreePartsLayoutWidget;
 import org.jetbrains.annotations.Nullable;
 
 public final class RenderUtilities {
@@ -41,11 +42,7 @@ public final class RenderUtilities {
     }
     
     public static int getRowTop(@Nullable OptionListWidget body, int index) {
-        int y = 0;
-        if (body != null && MinecraftClient.getInstance().currentScreen instanceof GameOptionsScreen screen) {
-            y = Math.toIntExact((long) screen.layout.getContentHeight() * index);
-        }
-        return y;
+        return ThreePartsLayoutWidget.DEFAULT_HEADER_FOOTER_HEIGHT * index;
     }
     
     public static int getBodyTop(@Nullable OptionListWidget body){

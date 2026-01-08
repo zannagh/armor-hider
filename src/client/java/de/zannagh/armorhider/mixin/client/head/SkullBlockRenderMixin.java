@@ -21,17 +21,18 @@ public abstract class SkullBlockRenderMixin {
                     target = "Lnet/minecraft/client/render/block/entity/SkullBlockEntityModel;render(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumer;II)V"
             )
     )
-    private static void modifyTransparency(SkullBlockEntityModel instance, MatrixStack matrixStack, VertexConsumer vertexConsumer, int i, int j, Operation<Void> original){
-        
+    private static void modifyTransparency(SkullBlockEntityModel instance, MatrixStack matrixStack, VertexConsumer vertexConsumer, int light, int overlay, Operation<Void> original){
+
         if (ArmorRenderPipeline.hasActiveContext() && ArmorRenderPipeline.shouldModifyEquipment()) {
             if (!ArmorRenderPipeline.getCurrentModification().playerConfig().opacityAffectingHatOrSkull.getValue()) {
-                original.call(instance, matrixStack, vertexConsumer, i, j);
+                original.call(instance, matrixStack, vertexConsumer, light, overlay);
                 return;
             }
+            
             var newColor = ArmorRenderPipeline.applyTransparency(-1);
-            original.call(instance, matrixStack, vertexConsumer, i, newColor);
+            instance.render(matrixStack, vertexConsumer, light, overlay, newColor);
         } else {
-            original.call(instance, matrixStack, vertexConsumer, i, j);
+            original.call(instance, matrixStack, vertexConsumer, light, overlay);
         }
     }
 
