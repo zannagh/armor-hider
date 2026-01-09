@@ -21,6 +21,7 @@ import net.minecraft.text.Text;
 
 public class ArmorHiderOptionsScreen extends GameOptionsScreen {
     private final Screen parent;
+    private boolean hasUsedFallbackWhereServerDidntTranspondSettings = false;
 
     private boolean settingsChanged;
     private boolean serverSettingsChanged;
@@ -196,6 +197,12 @@ public class ArmorHiderOptionsScreen extends GameOptionsScreen {
 
         // Server-wide combat detection (only for admins)
         if (ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin) {
+            var serverConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getServerConfig();
+            boolean serverCombatDetectionValue = serverConfig != null
+                    && serverConfig.serverWideSettings != null
+                    && serverConfig.serverWideSettings.enableCombatDetection != null
+                    ? serverConfig.serverWideSettings.enableCombatDetection.getValue()
+                    : getFallbackDefault();
             SimpleOption<Boolean> combatHidingOnServer = optionElementFactory.buildBooleanOption(
                 Text.translatable("armorhider.options.combat_detection_server.title"),
                 Text.translatable("armorhider.options.combat_detection_server.tooltip"),
@@ -207,13 +214,19 @@ public class ArmorHiderOptionsScreen extends GameOptionsScreen {
         }
     }
 
+    private boolean getFallbackDefault() {
+        // Server didn't have the mod, using default value
+        hasUsedFallbackWhereServerDidntTranspondSettings = true;
+        return true;
+    }
+
     @Override
     public void close() {
         if (settingsChanged) {
             ArmorHider.LOGGER.info("Updating current player settings...");
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.saveCurrent();
         }
-        if (serverSettingsChanged) {
+        if (serverSettingsChanged && !hasUsedFallbackWhereServerDidntTranspondSettings) {
             ArmorHider.LOGGER.info("Updating current server settings (if possible)...");
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.setAndSendServerCombatDetection(newServerCombatDetection);
         }
