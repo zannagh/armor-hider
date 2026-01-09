@@ -99,8 +99,8 @@ public class EquipmentRenderMixin<T extends LivingEntity, M extends BipedEntityM
             require = 0
     )
     private void modifyTrimColor(BipedEntityModel<T> instance, MatrixStack matrixStack, VertexConsumer vertexConsumer, int light, int overlay, float red, float green, float blue, float alpha, Operation<Void> original) {
-        int modifiedOverlay = ArmorRenderPipeline.applyTransparency(overlay);
-        original.call(instance, matrixStack, vertexConsumer, light, modifiedOverlay, red, green, blue, alpha);
+        var modifiedAlpha = ArmorRenderPipeline.getTransparencyAlpha();
+        original.call(instance, matrixStack, vertexConsumer, light, overlay, red, green, blue, modifiedAlpha);
     }
 
     // Clear context after rendering

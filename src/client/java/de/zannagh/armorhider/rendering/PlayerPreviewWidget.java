@@ -47,7 +47,7 @@ public class PlayerPreviewWidget extends ClickableWidget {
                 context,
                 previewX,
                 previewY - 15,
-                (int) Math.round(previewSize * 0.4),
+                (int) Math.round(previewSize * 0.35),
                 (float) (previewX - mouseX),
                 (float) (previewY - margin - mouseY),
                 player
