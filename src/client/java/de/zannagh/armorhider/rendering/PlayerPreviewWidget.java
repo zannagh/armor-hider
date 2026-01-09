@@ -46,8 +46,8 @@ public class PlayerPreviewWidget extends ClickableWidget {
         InventoryScreen.drawEntity(
                 context,
                 previewX,
-                previewY,
-                (int) Math.round(previewSize * 0.5),
+                previewY - 15,
+                (int) Math.round(previewSize * 0.4),
                 (float) (previewX - mouseX),
                 (float) (previewY - margin - mouseY),
                 player

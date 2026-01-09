@@ -12,13 +12,14 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Reader;
+import java.util.Objects;
 import java.util.UUID;
 
 public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
 
     private boolean hasChangedFromSerializedContent;
 
-    public static final Identifier PACKET_ID = Identifier.of("de.zannagh.armorhider", "settings_c2s_packet");
+    @NotNull public static final Identifier PACKET_ID = Objects.requireNonNull(Identifier.of("de.zannagh.armorhider", "settings_c2s_packet"));
 
     @Override
     public Identifier getPacketId() {

@@ -74,20 +74,6 @@ public class EquipmentRenderMixin<T extends LivingEntity, M extends BipedEntityM
         return ArmorRenderPipeline.getRenderLayer(texture, original.call(texture));
     }
 
-    // Modify trim render layer for transparency
-    // 1.20.1 compatibility: renderTrim method signature might be different, making this optional
-    @WrapOperation(
-            method = "renderTrim",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/client/render/TexturedRenderLayers;getArmorTrims(Z)Lnet/minecraft/client/render/RenderLayer;"
-            ),
-            require = 0
-    )
-    private RenderLayer modifyTrimRenderLayer(boolean decal, Operation<RenderLayer> original) {
-        return ArmorRenderPipeline.getTrimRenderLayer(decal, original.call(decal));
-    }
-
     // Apply transparency to armor color
     // 1.20.1 compatibility: Using RGBA float parameters instead of packed int
     @WrapOperation(
@@ -97,7 +83,7 @@ public class EquipmentRenderMixin<T extends LivingEntity, M extends BipedEntityM
                     target = "Lnet/minecraft/client/render/entity/model/BipedEntityModel;render(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumer;IIFFFF)V"
             )
     )
-    private void modifyArmorColor(BipedEntityModel instance, MatrixStack matrixStack, VertexConsumer vertexConsumer, int light, int overlay, float red, float green, float blue, float alpha, Operation<Void> original) {
+    private void modifyArmorColor(BipedEntityModel<T> instance, MatrixStack matrixStack, VertexConsumer vertexConsumer, int light, int overlay, float red, float green, float blue, float alpha, Operation<Void> original) {
         float modifiedAlpha = ArmorRenderPipeline.getTransparencyAlpha();
         original.call(instance, matrixStack, vertexConsumer, light, overlay, red, green, blue, modifiedAlpha);
     }
@@ -108,13 +94,13 @@ public class EquipmentRenderMixin<T extends LivingEntity, M extends BipedEntityM
             method = "renderTrim",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/client/render/entity/model/BipedEntityModel;render(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumer;II)V"
+                    target = "Lnet/minecraft/client/render/entity/model/BipedEntityModel;render(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumer;IIFFFF)V"
             ),
             require = 0
     )
-    private void modifyTrimColor(BipedEntityModel<?> model, MatrixStack matrices, VertexConsumer vertices, int light, int overlay, Operation<Void> original) {
+    private void modifyTrimColor(BipedEntityModel<T> instance, MatrixStack matrixStack, VertexConsumer vertexConsumer, int light, int overlay, float red, float green, float blue, float alpha, Operation<Void> original) {
         int modifiedOverlay = ArmorRenderPipeline.applyTransparency(overlay);
-        original.call(model, matrices, vertices, light, modifiedOverlay);
+        original.call(instance, matrixStack, vertexConsumer, light, modifiedOverlay, red, green, blue, alpha);
     }
 
     // Clear context after rendering

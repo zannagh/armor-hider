@@ -7,7 +7,9 @@
 package de.zannagh.armorhider.client;
 
 import de.zannagh.armorhider.ArmorHider;
+import de.zannagh.armorhider.rendering.PlayerPreviewWidget;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.option.GameOptionsScreen;
 import net.minecraft.client.gui.widget.ButtonWidget;
@@ -19,7 +21,6 @@ import net.minecraft.text.Text;
 
 public class ArmorHiderOptionsScreen extends GameOptionsScreen {
     private final Screen parent;
-    private OptionListWidget optionListWidget;
 
     private boolean settingsChanged;
     private boolean serverSettingsChanged;
@@ -32,42 +33,96 @@ public class ArmorHiderOptionsScreen extends GameOptionsScreen {
 
     @Override
     protected void init() {
-        // Create the option list widget
-        this.optionListWidget = new OptionListWidget(
-            this.client,
-            this.width,
-            this.height,
-            32, // top
-            this.height - 32, // bottom
-            25  // itemHeight
-        );
+        boolean hasPlayer = MinecraftClient.getInstance().player != null;
 
-        // Add all our custom options
-        addCustomOptions();
+        int topMargin = 32;
+        int bottomMargin = 32;
+        int optionItemHeight = 25;
+        int previewMargin = 20;
 
-        // Add the widget to the screen (needs to be both drawable and selectable)
-        this.addDrawableChild(this.optionListWidget);
+        OptionListWidget optionListWidget;
+
+        if (hasPlayer) {
+            int listWidth = (this.width * 3) / 5;
+
+            optionListWidget = new OptionListWidget(
+                this.client,
+                listWidth,
+                this.height,
+                topMargin,
+                this.height - bottomMargin,
+                    optionItemHeight
+            );
+
+            addCustomOptionsToOptionListWidget(optionListWidget);
+            this.addDrawableChild(optionListWidget);
+
+            int previewWidth = (this.width * 2) / 5 - previewMargin; 
+            int previewHeight = this.height - topMargin - bottomMargin - previewMargin*2;
+            int previewX = listWidth + previewMargin / 2;
+            int previewY = topMargin + previewMargin;
+
+            PlayerPreviewWidget previewWidget = new PlayerPreviewWidget(
+                previewX,
+                previewY,
+                previewWidth,
+                previewHeight
+            );
+            this.addDrawableChild(previewWidget);
+
+        } else {
+            // Single column layout: just the options list full-width
+            optionListWidget = new OptionListWidget(
+                this.client,
+                this.width,
+                this.height,
+                topMargin,
+                this.height - bottomMargin,
+                optionItemHeight
+            );
+
+            // Add all options to the list
+            addCustomOptionsToOptionListWidget(optionListWidget);
+            this.addDrawableChild(optionListWidget);
+        }
 
         // Add Done button at the bottom
-        this.addDrawableChild(ButtonWidget.builder(ScreenTexts.DONE, button -> {
-            this.close();
-        }).dimensions(this.width / 2 - 100, this.height - 27, 200, 20).build());
+        this.addDrawableChild(ButtonWidget.builder(ScreenTexts.DONE, button ->
+            this.close()
+        ).dimensions(this.width / 2 - 100, this.height - 27, 200, previewMargin).build());
     }
 
-    private void addCustomOptions() {
+    @Override
+    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+        // Render full-screen background first
+        this.renderBackground(context);
+
+        // Then render all the widgets (options list, player preview, buttons)
+        super.render(context, mouseX, mouseY, delta);
+
+        // Draw the title - centered in options column if player preview exists, otherwise full-screen center
+        boolean hasPlayer = MinecraftClient.getInstance().player != null;
+        int titleX;
+
+        if (hasPlayer) {
+            // Center within the left column (options list area which is 3/5 of screen width)
+            int listWidth = (this.width * 3) / 5;
+            titleX = listWidth / 2;
+        } else {
+            // Center across entire screen
+            titleX = this.width / 2;
+        }
+
+        context.drawCenteredTextWithShadow(this.textRenderer, this.title, titleX, 15, 0xFFFFFF);
+    }
+
+    private void addCustomOptionsToOptionListWidget(OptionListWidget optionListWidget) {
         OptionElementFactory optionElementFactory = new OptionElementFactory(
             this,
-            this.optionListWidget,
+                optionListWidget,
             this.gameOptions
         );
-
-        // Note: Half-width rendering and player preview are disabled in 1.20.1
-        // due to API limitations with OptionListWidget
-
-        // Add title (no-op in 1.20.1 but kept for future compatibility)
-        optionElementFactory.addTextAsWidget(Text.translatable("armorhider.options.mod_title"));
-
-        // Helmet transparency option
+        
         var helmetOption = optionElementFactory.buildDoubleOption(
             "armorhider.helmet.transparency",
             Text.translatable("armorhider.options.helmet.tooltip"),
@@ -79,7 +134,6 @@ public class ArmorHiderOptionsScreen extends GameOptionsScreen {
         );
         optionElementFactory.addSimpleOptionAsWidget(helmetOption);
 
-        // Skull/Hat affection option
         var skullOrHatOption = optionElementFactory.buildBooleanOption(
             Text.translatable("armorhider.options.helmet_affection.title"),
             Text.translatable("armorhider.options.helmet_affection.tooltip"),
@@ -89,7 +143,6 @@ public class ArmorHiderOptionsScreen extends GameOptionsScreen {
         );
         optionElementFactory.addSimpleOptionAsWidget(skullOrHatOption);
 
-        // Chestplate transparency option
         var chestOption = optionElementFactory.buildDoubleOption(
             "armorhider.chestplate.transparency",
             Text.translatable("armorhider.options.chestplate.tooltip"),
@@ -101,7 +154,6 @@ public class ArmorHiderOptionsScreen extends GameOptionsScreen {
         );
         optionElementFactory.addSimpleOptionAsWidget(chestOption);
 
-        // Elytra affection option
         var elytraOption = optionElementFactory.buildBooleanOption(
             Text.translatable("armorhider.options.elytra_affection.title"),
             Text.translatable("armorhider.options.elytra_affection.tooltip"),
@@ -111,7 +163,6 @@ public class ArmorHiderOptionsScreen extends GameOptionsScreen {
         );
         optionElementFactory.addSimpleOptionAsWidget(elytraOption);
 
-        // Leggings transparency option
         var legsOption = optionElementFactory.buildDoubleOption(
             "armorhider.legs.transparency",
             Text.translatable("armorhider.options.leggings.tooltip"),
@@ -123,7 +174,6 @@ public class ArmorHiderOptionsScreen extends GameOptionsScreen {
         );
         optionElementFactory.addSimpleOptionAsWidget(legsOption);
 
-        // Boots transparency option
         var bootsOption = optionElementFactory.buildDoubleOption(
             "armorhider.boots.transparency",
             Text.translatable("armorhider.options.boots.tooltip"),
@@ -135,7 +185,6 @@ public class ArmorHiderOptionsScreen extends GameOptionsScreen {
         );
         optionElementFactory.addSimpleOptionAsWidget(bootsOption);
 
-        // Combat detection option
         SimpleOption<Boolean> enableCombatDetection = optionElementFactory.buildBooleanOption(
             Text.translatable("armorhider.options.combat_detection.title"),
             Text.translatable("armorhider.options.combat_detection.tooltip"),
@@ -160,7 +209,6 @@ public class ArmorHiderOptionsScreen extends GameOptionsScreen {
 
     @Override
     public void close() {
-        // Save settings if they changed
         if (settingsChanged) {
             ArmorHider.LOGGER.info("Updating current player settings...");
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.saveCurrent();
@@ -170,13 +218,11 @@ public class ArmorHiderOptionsScreen extends GameOptionsScreen {
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.setAndSendServerCombatDetection(newServerCombatDetection);
         }
 
-        // Close and return to parent
         if (this.client != null) {
             this.client.setScreen(this.parent);
         }
     }
-
-    // Setter methods for options
+    
     private void setOpacityAffectingHatOrSkull(Boolean value) {
         ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().opacityAffectingHatOrSkull.setValue(value);
         settingsChanged = true;

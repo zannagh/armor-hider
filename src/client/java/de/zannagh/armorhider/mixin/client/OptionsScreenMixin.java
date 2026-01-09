@@ -1,14 +1,12 @@
 package de.zannagh.armorhider.mixin.client;
 
 import de.zannagh.armorhider.client.ArmorHiderOptionsScreen;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ConfirmScreen;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.option.*;
 import net.minecraft.client.gui.screen.pack.PackScreen;
 import net.minecraft.client.gui.widget.*;
 import net.minecraft.client.option.GameOptions;
-import net.minecraft.network.packet.c2s.play.UpdateDifficultyC2SPacket;
 import net.minecraft.network.packet.c2s.play.UpdateDifficultyLockC2SPacket;
 import net.minecraft.resource.ResourcePackManager;
 import net.minecraft.screen.ScreenTexts;
@@ -18,9 +16,6 @@ import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.function.Supplier;
 
@@ -49,6 +44,7 @@ public abstract class OptionsScreenMixin extends Screen {
     private static final Text TELEMETRY_TEXT = Text.translatable("options.telemetry");
     @Unique
     private static final Text CREDITS_AND_ATTRIBUTION_TEXT = Text.translatable("options.credits_and_attribution");
+    @Unique
     private static final int COLUMNS = 2;
     
     @Final
@@ -73,9 +69,12 @@ public abstract class OptionsScreenMixin extends Screen {
     
     @Override
     public void init(){
+        if (this.client == null) {
+            return;
+        }
         GridWidget gridWidget = new GridWidget();
         gridWidget.getMainPositioner().marginX(5).marginBottom(4).alignHorizontalCenter();
-        GridWidget.Adder adder = gridWidget.createAdder(2);
+        GridWidget.Adder adder = gridWidget.createAdder(COLUMNS);
         adder.add(this.settings.getFov().createWidget(this.client.options, 0, 0, 150));
         adder.add(this.createTopRightButton());
         adder.add(EmptyWidget.ofHeight(26), 2);
@@ -99,20 +98,26 @@ public abstract class OptionsScreenMixin extends Screen {
     @Unique
     private void refreshResourcePacks(ResourcePackManager resourcePackManager) {
         this.settings.refreshResourcePacks(resourcePackManager);
+        assert this.client != null;
         this.client.setScreen(this);
     }
 
     @Unique
     private ButtonWidget createButton(Text message, Supplier<Screen> screenSupplier) {
-        return ButtonWidget.builder(message, (button) -> this.client.setScreen((Screen)screenSupplier.get())).build();
+        return ButtonWidget.builder(message, (button) -> 
+        {
+            if (this.client != null) { 
+                this.client.setScreen(screenSupplier.get());
+            } 
+        }).build();
     }
 
     @Unique
     private Widget createTopRightButton() {
-        if (this.client.world != null && this.client.isIntegratedServerRunning()) {
+        if (this.client != null && this.client.world != null && this.client.isIntegratedServerRunning()) {
             this.difficultyButton = createDifficultyButtonWidget(0, 0, "options.difficulty", this.client);
             if (!this.client.world.getLevelProperties().isHardcore()) {
-                this.lockDifficultyButton = new LockButtonWidget(0, 0, (button) -> this.client.setScreen(new ConfirmScreen(this::lockDifficulty, Text.translatable("difficulty.lock.title"), Text.translatable("difficulty.lock.question", new Object[]{this.client.world.getLevelProperties().getDifficulty().getTranslatableName()}))));
+                this.lockDifficultyButton = new LockButtonWidget(0, 0, (button) -> this.client.setScreen(new ConfirmScreen(this::lockDifficulty, Text.translatable("difficulty.lock.title"), Text.translatable("difficulty.lock.question", this.client.world.getLevelProperties().getDifficulty().getTranslatableName()))));
                 this.difficultyButton.setWidth(this.difficultyButton.getWidth() - this.lockDifficultyButton.getWidth());
                 this.lockDifficultyButton.setLocked(this.client.world.getLevelProperties().isDifficultyLocked());
                 this.lockDifficultyButton.active = !this.lockDifficultyButton.isLocked();
@@ -131,9 +136,13 @@ public abstract class OptionsScreenMixin extends Screen {
     }
 
 
+    @Unique
     private void lockDifficulty(boolean difficultyLocked) {
+        if (this.client == null) {
+            return;
+        }
         this.client.setScreen(this);
-        if (difficultyLocked && this.client.world != null) {
+        if (difficultyLocked && this.client.world != null && this.client.getNetworkHandler() != null) {
             this.client.getNetworkHandler().sendPacket(new UpdateDifficultyLockC2SPacket(true));
             this.lockDifficultyButton.setLocked(true);
             this.lockDifficultyButton.active = false;
