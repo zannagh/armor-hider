@@ -6,28 +6,33 @@ import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.configuration.ConfigurationSource;
 import de.zannagh.armorhider.configuration.items.implementations.*;
 import de.zannagh.armorhider.netPackets.CompressedJsonCodec;
-import io.netty.buffer.ByteBuf;
-import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.PacketByteBuf;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Reader;
+import java.util.Objects;
 import java.util.UUID;
 
 public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
-    
+
     private boolean hasChangedFromSerializedContent;
 
-    public static final Id<PlayerConfig> PACKET_IDENTIFIER = new Id<>(Identifier.of("de.zannagh.armorhider", "settings_c2s_packet"));
-    
-    public PacketCodec<ByteBuf, PlayerConfig> getCodec() {
-        return CompressedJsonCodec.create(PlayerConfig.class);
+    @NotNull public static final Identifier PACKET_ID = Objects.requireNonNull(Identifier.of("de.zannagh.armorhider", "settings_c2s_packet"));
+
+    @Override
+    public Identifier getPacketId() {
+        return PACKET_ID;
     }
 
     @Override
-    public Id<PlayerConfig> getId() {
-        return PACKET_IDENTIFIER;
+    public void write(PacketByteBuf buf) {
+        CompressedJsonCodec.encode(this, buf);
+    }
+
+    public static PlayerConfig read(PacketByteBuf buf) {
+        return CompressedJsonCodec.decode(buf, PlayerConfig.class);
     }
     
     @SerializedName(value = "helmetOpacity", alternate = {"helmetTransparency"})

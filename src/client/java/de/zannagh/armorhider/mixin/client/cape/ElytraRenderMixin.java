@@ -47,23 +47,23 @@ public class ElytraRenderMixin<T extends LivingEntity, M extends EntityModel<T>>
             method = "render(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;ILnet/minecraft/entity/LivingEntity;FFFFFF)V",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/client/render/entity/model/ElytraEntityModel;render(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumer;II)V"
+                    target = "Lnet/minecraft/client/render/entity/model/ElytraEntityModel;render(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumer;IIFFFF)V"
             )
     )
-    private void intercept(ElytraEntityModel<T> instance, MatrixStack matrixStack, VertexConsumer vertexConsumer, int light, int overlay, Operation<Void> original){
+    private void intercept(ElytraEntityModel<T> instance, MatrixStack matrixStack, VertexConsumer vertexConsumer, int light, int overlay, float red, float green, float blue, float alpha, Operation<Void> original){
         if (!ArmorRenderPipeline.hasActiveContext() || !ArmorRenderPipeline.shouldModifyEquipment()) {
             ArmorRenderPipeline.clearContext();
-            original.call(instance, matrixStack, vertexConsumer, light, overlay);
+            original.call(instance, matrixStack, vertexConsumer, light, overlay, red, green, blue, alpha);
             return;
         }
 
         if (!ArmorRenderPipeline.getCurrentModification().playerConfig().opacityAffectingElytra.getValue()) {
             ArmorRenderPipeline.clearContext();
-            original.call(instance, matrixStack, vertexConsumer, light, overlay);
+            original.call(instance, matrixStack, vertexConsumer, light, overlay, red, green, blue, alpha);
             return;
         }
-        var newColor = ArmorRenderPipeline.applyTransparency(-1);
-        instance.render(matrixStack, vertexConsumer, light, overlay, newColor);
+        float newAlpha = ArmorRenderPipeline.getTransparencyAlpha();
+        instance.render(matrixStack, vertexConsumer, light, overlay, red, green, blue, newAlpha);
     }
 
     @Inject(

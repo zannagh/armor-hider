@@ -293,7 +293,9 @@ public class ServerConfigurationTests {
             ByteBuf buffer = Unpooled.buffer();
             try {
                 Stopwatch stopwatch = Stopwatch.createStarted();
-                config.getCodec().encode(buffer, config);
+                // 1.20.1 compatibility: use write() instead of codec.encode()
+                net.minecraft.network.PacketByteBuf packetBuf = new net.minecraft.network.PacketByteBuf(buffer);
+                config.write(packetBuf);
                 stopwatch.stop();
                 int compressedSize = buffer.readableBytes();
                 double compressionRatio = (double) uncompressedSize / compressedSize;

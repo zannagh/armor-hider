@@ -11,8 +11,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 
 /**
  * Centralized registry for ConfigurationItemBase factory methods.
@@ -129,8 +127,7 @@ public class ConfigurationItemFactoryRegistry {
                         File directory = new File(resource.toURI());
                         classes.addAll(findClassesInDirectory(directory, packageName));
                     } else if (resource.getProtocol().equals("jar")) {
-                        String rawPath = resource.getPath().substring(5, resource.getPath().indexOf("!"));
-                        String jarPath = URLDecoder.decode(rawPath, StandardCharsets.UTF_8);
+                        String jarPath = resource.getPath().substring(5, resource.getPath().indexOf("!"));
                         classes.addAll(findClassesInJar(jarPath, path));
                     }
                 }

@@ -18,21 +18,21 @@ public abstract class SkullBlockRenderMixin {
             method = "renderSkull",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/client/render/block/entity/SkullBlockEntityModel;render(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumer;II)V"
+                    target = "Lnet/minecraft/client/render/block/entity/SkullBlockEntityModel;render(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumer;IIFFFF)V"
             )
     )
-    private static void modifyTransparency(SkullBlockEntityModel instance, MatrixStack matrixStack, VertexConsumer vertexConsumer, int light, int overlay, Operation<Void> original){
+    private static void modifyTransparency(SkullBlockEntityModel instance, MatrixStack matrixStack, VertexConsumer vertexConsumer, int light, int overlay, float red, float green, float blue, float alpha, Operation<Void> original){
 
         if (ArmorRenderPipeline.hasActiveContext() && ArmorRenderPipeline.shouldModifyEquipment()) {
             if (!ArmorRenderPipeline.getCurrentModification().playerConfig().opacityAffectingHatOrSkull.getValue()) {
-                original.call(instance, matrixStack, vertexConsumer, light, overlay);
+                original.call(instance, matrixStack, vertexConsumer, light, overlay, red, green, blue, alpha);
                 return;
             }
-            
-            var newColor = ArmorRenderPipeline.applyTransparency(-1);
-            instance.render(matrixStack, vertexConsumer, light, overlay, newColor);
+
+            float newAlpha = ArmorRenderPipeline.getTransparencyAlpha();
+            instance.render(matrixStack, vertexConsumer, light, overlay, red, green, blue, newAlpha);
         } else {
-            original.call(instance, matrixStack, vertexConsumer, light, overlay);
+            original.call(instance, matrixStack, vertexConsumer, light, overlay, red, green, blue, alpha);
         }
     }
 

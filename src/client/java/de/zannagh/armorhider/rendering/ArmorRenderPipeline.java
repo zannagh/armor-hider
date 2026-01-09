@@ -9,7 +9,6 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.ColorHelper;
 
 public class ArmorRenderPipeline {
 
@@ -140,7 +139,25 @@ public class ArmorRenderPipeline {
         }
 
         double transparency = modification.GetTransparency();
-        return ColorHelper.Argb.withAlpha(ColorHelper.channelFromFloat((float)transparency), originalColor);
+        // Convert float (0-1) to channel value (0-255) for 1.20.1 compatibility
+        int alphaChannel = (int) Math.round(transparency * 255.0);
+
+        // 1.20.1 compatibility: manually combine alpha with RGB
+        // Extract RGB components and combine with new alpha
+        int rgb = originalColor & 0x00FFFFFF;  // Keep only RGB, remove alpha
+        return (alphaChannel << 24) | rgb;      // Add new alpha channel
+    }
+
+    /**
+     * Gets the transparency alpha value as a float for 1.20.1 rendering compatibility.
+     * @return alpha value between 0.0 and 1.0
+     */
+    public static float getTransparencyAlpha() {
+        ArmorModificationInfo modification = getCurrentModification();
+        if (modification == null || !modification.ShouldModify()) {
+            return 1.0f;
+        }
+        return (float) modification.GetTransparency();
     }
     //endregion
 }
