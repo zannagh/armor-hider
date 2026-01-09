@@ -60,10 +60,10 @@ public class ServerConfiguration implements ConfigurationSource<ServerConfigurat
 
     public PlayerConfig getPlayerConfigOrDefault(PlayerEntity player) {
         PlayerConfig uuidConfig = getPlayerConfigOrDefault(player.getUuid());
-        if (uuidConfig != null && Objects.equals(uuidConfig.playerName.getValue(), Objects.requireNonNull(player.getDisplayName()).getString())) {
+        if (uuidConfig != null && uuidConfig.playerName.getValue().equals(player.getDisplayName().getString())) {
             return uuidConfig;
         }
-        return getPlayerConfigOrDefault(Objects.requireNonNull(player.getDisplayName()).getString());
+        return getPlayerConfigOrDefault(player.getDisplayName().getString());
     }
     
     public PlayerConfig getPlayerConfigOrDefault(UUID uuid) {
