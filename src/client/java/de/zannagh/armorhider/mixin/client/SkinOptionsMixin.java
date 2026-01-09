@@ -15,6 +15,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.option.GameOptionsScreen;
+import net.minecraft.client.gui.screen.option.SkinOptionsScreen;
 import net.minecraft.client.gui.widget.OptionListWidget;
 import net.minecraft.client.option.GameOptions;
 import net.minecraft.client.option.SimpleOption;
@@ -73,6 +74,9 @@ public abstract class SkinOptionsMixin extends Screen {
 
     @Inject(method = "init", at = @At("RETURN"))
     private void onAddOptions(CallbackInfo ci) {
+        if (!(MinecraftClient.getInstance().currentScreen instanceof SkinOptionsScreen)) {
+            return;
+        }
 
         OptionElementFactory optionElementFactory = new OptionElementFactory(this, body, gameOptions);
         if (MinecraftClient.getInstance().player != null) {
