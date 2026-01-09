@@ -15,6 +15,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.option.GameOptionsScreen;
+import net.minecraft.client.gui.screen.option.SkinOptionsScreen;
 import net.minecraft.client.gui.widget.OptionListWidget;
 import net.minecraft.client.option.GameOptions;
 import net.minecraft.client.option.SimpleOption;
@@ -29,23 +30,26 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(GameOptionsScreen.class)
 public abstract class SkinOptionsMixin extends Screen {
-    
+
     // TODO: This may have to be extended into not sending network stuff if the server doesn't support it.
     @Unique
     private boolean hasUsedFallbackWhereServerDidntTranspondSettings = false;
-    
+
     @Unique
     private boolean settingsChanged;
-    
+
     @Unique
     private boolean serverSettingsChanged;
-    
+
     @Unique
     private boolean newServerCombatDetection;
-    
+
+    @Unique
+    private boolean isSkinOptionsScreen;
+
     @Shadow
     protected OptionListWidget body;
-    
+
     @Final
     @Shadow
     protected GameOptions gameOptions;
@@ -58,9 +62,13 @@ public abstract class SkinOptionsMixin extends Screen {
     public void render(DrawContext context, int mouseX, int mouseY, float deltaTicks){
         super.render(context, mouseX, mouseY, deltaTicks);
     }
-    
+
     @Override
     public void close() {
+        if (!isSkinOptionsScreen) {
+            super.close();
+            return;
+        }
         if (settingsChanged) {
             ArmorHider.LOGGER.info("Updating current player settings...");
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.saveCurrent();
@@ -74,14 +82,19 @@ public abstract class SkinOptionsMixin extends Screen {
 
     @Inject(method = "init", at = @At("RETURN"))
     private void onAddOptions(CallbackInfo ci) {
+        isSkinOptionsScreen = MinecraftClient.getInstance().currentScreen instanceof SkinOptionsScreen;
+
+        if (!isSkinOptionsScreen) {
+            return;
+        }
 
         OptionElementFactory optionElementFactory = new OptionElementFactory(this, body, gameOptions);
         if (MinecraftClient.getInstance().player != null) {
             optionElementFactory = optionElementFactory.withHalfWidthRendering();
         }
-        
+
         optionElementFactory.addTextAsWidget(Text.translatable("armorhider.options.mod_title"));
-        
+
         var helmetOption = optionElementFactory.buildDoubleOption(
                 "armorhider.helmet.transparency",
                 Text.translatable("armorhider.options.helmet.tooltip"),
@@ -119,7 +132,7 @@ public abstract class SkinOptionsMixin extends Screen {
                 ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().chestOpacity.getValue(),
                 this::setChestTransparency);
         optionElementFactory.addSimpleOptionAsWidget(chestOption);
-        
+
         var elytraOption = optionElementFactory.buildBooleanOption(
                 Text.translatable("armorhider.options.elytra_affection.title"),
                 Text.translatable("armorhider.options.elytra_affection.tooltip"),
@@ -174,7 +187,7 @@ public abstract class SkinOptionsMixin extends Screen {
             optionElementFactory.addSimpleOptionAsWidget(combatHidingOnServer);
         }
     }
-    
+
     @Unique
     private boolean getFallbackDefault() {
         // Server didn't have the mod, using default value

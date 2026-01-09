@@ -26,7 +26,7 @@ public abstract class HeadRenderMixin<T extends LivingEntity, M extends EntityMo
             method = "render(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;ILnet/minecraft/entity/LivingEntity;FFFFFF)V",
             at = @At("HEAD"),
     cancellable = true)
-    private void grabHatRenderContext(MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i, T livingEntity, float f, float g, float h, float j, float k, float l, CallbackInfo ci) {
+    private void grabSkullBlockRenderContext(MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i, T livingEntity, float f, float g, float h, float j, float k, float l, CallbackInfo ci) {
         ArmorRenderPipeline.setupContext(null, EquipmentSlot.HEAD, livingEntity);
         
         if (!ArmorRenderPipeline.hasActiveContext()) {
@@ -50,7 +50,7 @@ public abstract class HeadRenderMixin<T extends LivingEntity, M extends EntityMo
             method = "render(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;ILnet/minecraft/entity/LivingEntity;FFFFFF)V",
             at = @At("RETURN")
     )
-    private void resetHatRenderContext(MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i, T livingEntity, float f, float g, float h, float j, float k, float l, CallbackInfo ci) {
+    private void resetSkullBlockRenderContext(MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i, T livingEntity, float f, float g, float h, float j, float k, float l, CallbackInfo ci) {
         ArmorRenderPipeline.clearContext();
     }
 }
