@@ -15,6 +15,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.option.GameOptionsScreen;
+import net.minecraft.client.gui.screen.option.SkinOptionsScreen;
 import net.minecraft.client.gui.widget.OptionListWidget;
 import net.minecraft.client.option.GameOptions;
 import net.minecraft.client.option.SimpleOption;
@@ -29,19 +30,19 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(GameOptionsScreen.class)
 public abstract class SkinOptionsMixin extends Screen {
-    
+
     @Unique
     private boolean settingsChanged;
-    
+
     @Unique
     private boolean serverSettingsChanged;
-    
+
     @Unique
     private boolean newServerCombatDetection;
-    
+
     @Shadow
     protected OptionListWidget body;
-    
+
     @Final
     @Shadow
     protected GameOptions gameOptions;
@@ -73,14 +74,17 @@ public abstract class SkinOptionsMixin extends Screen {
 
     @Inject(method = "init", at = @At("RETURN"))
     private void onAddOptions(CallbackInfo ci) {
+        if (!(MinecraftClient.getInstance().currentScreen instanceof SkinOptionsScreen)) {
+            return;
+        }
 
         OptionElementFactory optionElementFactory = new OptionElementFactory(this, body, gameOptions);
         if (MinecraftClient.getInstance().player != null) {
             optionElementFactory = optionElementFactory.withHalfWidthRendering();
         }
-        
+
         optionElementFactory.addTextAsWidget(Text.translatable("armorhider.options.mod_title"));
-        
+
         var helmetOption = optionElementFactory.buildDoubleOption(
                 "armorhider.helmet.transparency", 
                 Text.translatable("armorhider.options.helmet.tooltip"), 
@@ -116,7 +120,7 @@ public abstract class SkinOptionsMixin extends Screen {
                 ClientConfigManager.get().bootsTransparency,
                 this::setBootsTransparency);
         optionElementFactory.addSimpleOptionAsWidget(bootsOption);
-        
+
         SimpleOption<Boolean> enableCombatDetection = optionElementFactory.buildBooleanOption(
                 Text.translatable("armorhider.options.combat_detection.title"),
                 Text.translatable("armorhider.options.combat_detection.tooltip"),
@@ -125,7 +129,7 @@ public abstract class SkinOptionsMixin extends Screen {
                 this::setCombatDetection
         );
         optionElementFactory.addSimpleOptionAsWidget(enableCombatDetection);
-        
+
         if (ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin) {
             SimpleOption<Boolean> combatHidingOnServer = optionElementFactory.buildBooleanOption(
                     Text.translatable("armorhider.options.combat_detection_server.title"),
@@ -155,13 +159,13 @@ public abstract class SkinOptionsMixin extends Screen {
         ClientConfigManager.get().legsTransparency = value;
         settingsChanged = true;
     }
-    
+
     @Unique
     private void setBootsTransparency(double value){
         ClientConfigManager.get().bootsTransparency = value;
         settingsChanged = true;
     }
-    
+
     @Unique
     private void setCombatDetection(boolean enabled) {
         ClientConfigManager.get().enableCombatDetection = enabled;
@@ -173,6 +177,6 @@ public abstract class SkinOptionsMixin extends Screen {
         newServerCombatDetection = enabled;
         serverSettingsChanged = true;
     }
-    
-    
+
+
 }
