@@ -5,13 +5,20 @@
 	"name": "armor-hider",
 	"description": "Small Fabric Server/Client mod to hide armor pieces based on player preferences.",
 	"authors": [
-		"zannagh"
+		{
+			"name": "zannagh",
+			"contact": {
+				"email": "mail@zannagh.me"
+			}
+		}
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"email": "mail@zannagh.me",
+		"homepage": "https://github.com/zannagh",
+		"sources": "https://github.com/zannagh/armor-hider",
+		"issues": "https://github.com/zannagh/armor-hider/issues"
 	},
-	"license": "CC0-1.0",
+	"license": "MIT",
 	"icon": "assets/armor-hider/icon.png",
 	"environment": "*",
 	"entrypoints": {
@@ -34,8 +41,5 @@
 		"minecraft": "~1.21.10",
 		"java": ">=21",
 		"fabric-api": "*"
-	},
-	"suggests": {
-		"another-mod": "*"
 	}
 }
