@@ -24,7 +24,7 @@ public abstract class HeadRenderMixin<S extends LivingEntityRenderState, M exten
             method = "render(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/command/OrderedRenderCommandQueue;ILnet/minecraft/client/render/entity/state/LivingEntityRenderState;FF)V",
             at = @At("HEAD"),
     cancellable = true)
-    private void grabHatRenderContext(MatrixStack matrixStack, OrderedRenderCommandQueue orderedRenderCommandQueue, int i, S livingEntityRenderState, float f, float g, CallbackInfo ci) {
+    private void grabSkullBlockRenderContext(MatrixStack matrixStack, OrderedRenderCommandQueue orderedRenderCommandQueue, int i, S livingEntityRenderState, float f, float g, CallbackInfo ci) {
         ArmorRenderPipeline.setupContext(null, EquipmentSlot.HEAD, livingEntityRenderState);
         
         if (!ArmorRenderPipeline.hasActiveContext()) {
@@ -48,7 +48,7 @@ public abstract class HeadRenderMixin<S extends LivingEntityRenderState, M exten
             method = "render(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/command/OrderedRenderCommandQueue;ILnet/minecraft/client/render/entity/state/LivingEntityRenderState;FF)V",
             at = @At("RETURN")
     )
-    private void resetHatRenderContext(MatrixStack matrixStack, OrderedRenderCommandQueue orderedRenderCommandQueue, int i, S livingEntityRenderState, float f, float g, CallbackInfo ci) {
+    private void resetSkullBlockRenderContext(MatrixStack matrixStack, OrderedRenderCommandQueue orderedRenderCommandQueue, int i, S livingEntityRenderState, float f, float g, CallbackInfo ci) {
         ArmorRenderPipeline.clearContext();
     }
 }
