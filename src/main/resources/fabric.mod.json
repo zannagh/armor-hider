@@ -8,18 +8,18 @@
 		"zannagh"
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"homepage": "https://github.com/zannagh/armor-hider",
+		"sources": "https://github.com/zannagh/armor-hider"
 	},
 	"license": "CC0-1.0",
 	"icon": "assets/armor-hider/icon.png",
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-          "de.zannagh.armorhider.ArmorHider"
+			"de.zannagh.armorhider.ArmorHider"
 		],
 		"client": [
-          "de.zannagh.armorhider.client.ArmorHiderClient"
+			"de.zannagh.armorhider.client.ArmorHiderClient"
 		]
 	},
 	"mixins": [
