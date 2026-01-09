@@ -5,7 +5,7 @@
 	"client": [
       "bodyKneesAndToes.ArmorFeatureRenderMixin",
       "bodyKneesAndToes.EquipmentRenderMixin",
-      "SkinOptionsMixin",
+      "OptionsScreenMixin",
       "LivingEntityMixin",
       "head.HeadRenderMixin",
       "head.SkullBlockRenderMixin",

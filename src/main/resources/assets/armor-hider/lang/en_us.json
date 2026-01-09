@@ -1,4 +1,6 @@
 {
+  "armorhider.options.title": "Armor Hider Settings",
+  "armorhider.options.button": "Armor Hider...",
   "armorhider.options.mod_title": "Zannagh's Armor Hider",
   "armorhider.options.helmet.button_text": "Helmet: %s",
   "armorhider.options.helmet.tooltip": "Adjusts the helmet opacity for your model between 0 (transparent) and 100% (visible).",
