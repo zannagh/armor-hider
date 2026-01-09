@@ -53,12 +53,10 @@ public abstract class SkinOptionsMixin extends Screen {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float deltaTicks) {
-        Screen screen = MinecraftClient.getInstance().currentScreen;
-        if (!(screen instanceof SkinOptionsScreen)) {
-            return;
-        }
         super.render(context, mouseX, mouseY, deltaTicks);
-        if (body != null) {
+
+        Screen screen = MinecraftClient.getInstance().currentScreen;
+        if (screen instanceof SkinOptionsScreen && body != null) {
             PlayerPreviewRenderer.renderPlayerPreview(context, body, mouseX, mouseY);
         }
     }
