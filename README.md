@@ -16,8 +16,10 @@ The settings are accessible via "Skin Customization" in game:
 Your locally set preferences (on your client) will get sent to the server on change or join and vice versa and player joining a server will retrieve the config library from the server in order to apply the player preferences to other clients.
 
 ## Settings
-* **Helmet**: Opacity slider (0-100%) for head slot, also applies to block like head items (e.g. skeleton block) or hats
-* **Chestplate**: Opacity slider (0-100%) for chest slot, also applies to Elytra
+* **Helmet**: Opacity slider (0-100%) for head slot, also applies to block like head items (e.g. skeleton block) if enabled via
+* **Affect Skulls**: Enable or disable that skulls are affected by the helmet setting
+* **Chestplate**: Opacity slider (0-100%) for chest slot, also applies to Elytra if enabled via
+* **Affect Elytra**: Enable or disable that Elytra are affected by the chestplate setting
 * **Leggings**: Opacity slider (0-100%) for legs slot
 * **Boots**: Opacity slider (0-100%) for boot slot
 * **Combat Detection**: Show your armor when you enter combat with another player or a mob
