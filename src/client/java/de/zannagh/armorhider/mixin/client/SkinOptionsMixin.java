@@ -9,12 +9,14 @@ package de.zannagh.armorhider.mixin.client;
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.OptionElementFactory;
+import de.zannagh.armorhider.gui.AdvancedArmorHiderSettingsScreen;
 import de.zannagh.armorhider.rendering.PlayerPreviewRenderer;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.option.GameOptionsScreen;
 import net.minecraft.client.gui.screen.option.SkinOptionsScreen;
+import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.OptionListWidget;
 import net.minecraft.client.option.GameOptions;
 import net.minecraft.client.option.SimpleOption;
@@ -52,6 +54,9 @@ public abstract class SkinOptionsMixin extends Screen {
     @Final
     @Shadow
     protected GameOptions gameOptions;
+
+    @Shadow
+    protected abstract void method_57731(ButtonWidget par1);
 
     protected SkinOptionsMixin(Text title) {
         super(title);
@@ -177,6 +182,13 @@ public abstract class SkinOptionsMixin extends Screen {
             );
             optionElementFactory.addSimpleOptionAsWidget(combatHidingOnServer);
         }
+
+        optionElementFactory.addElementAsWidget(ButtonWidget.builder(
+                Text.literal("Advanced..."), 
+                (press) -> {
+                    MinecraftClient.getInstance().setScreen(new AdvancedArmorHiderSettingsScreen(MinecraftClient.getInstance().currentScreen, gameOptions, title));
+                 })
+                .dimensions(body.getX(), body.getYOfNextEntry(), body.getRowWidth(), ButtonWidget.DEFAULT_HEIGHT).build());
     }
 
     @Unique

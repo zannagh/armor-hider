@@ -51,6 +51,15 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
     @SerializedName(value = "opacityAffectingHatOrSkull")
     public OpacityAffectingHatOrSkullItem opacityAffectingHatOrSkull;
     
+    @SerializedName(value = "globalArmorHiderToggle")
+    public GlobalArmorHiderToggleItem globalArmorHiderToggle;
+    
+    @SerializedName(value = "toggleArmorHiderForOthers")
+    public ToggleArmorHiderForOthersItem toggleArmorHiderForOthers;
+    
+    @SerializedName(value = "usePlayerSettingsWhenUndeterminable")
+    public UsePlayerSettingsWhenUndeterminable usePlayerSettingsWhenUndeterminable;
+    
     public PlayerUuid playerId;
     public PlayerName playerName;
 

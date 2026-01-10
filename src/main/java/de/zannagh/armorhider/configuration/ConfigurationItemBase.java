@@ -1,5 +1,7 @@
 package de.zannagh.armorhider.configuration;
 
+import de.zannagh.armorhider.configuration.items.BooleanConfigItem;
+
 public abstract class ConfigurationItemBase<T> {
 
     protected T value;
