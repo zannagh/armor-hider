@@ -7,15 +7,19 @@ import de.zannagh.armorhider.resources.PlayerConfig;
 import de.zannagh.armorhider.resources.ServerConfiguration;
 import de.zannagh.armorhider.resources.ServerWideSettings;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
 public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> {
     
+    public static final String DEFAULT_PLAYER_NAME = "dummy";
+    
+    public static final UUID DEFAULT_PLAYER_ID = UUID.fromString("00000000-0000-0000-0000-000000000000");
+    
     private final ConfigurationProvider<PlayerConfig> playerConfigProvider;
 
-    private PlayerConfig CURRENT = PlayerConfig.defaults(UUID.randomUUID(), "dummy");
+    private PlayerConfig CURRENT = PlayerConfig.defaults(DEFAULT_PLAYER_ID, DEFAULT_PLAYER_NAME);
     
     private ServerConfiguration serverConfiguration = new ServerConfiguration();
     
@@ -95,8 +99,8 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
     
     public void setValue(PlayerConfig cfg) { CURRENT = cfg; saveCurrent(); }
 
-    public PlayerConfig getConfigForPlayer(@Nullable String playerName) {
-        if (playerName != null && playerName.equals(ArmorHiderClient.getCurrentPlayerName())) {
+    public PlayerConfig getConfigForPlayer(@NotNull String playerName) {
+        if (playerName.equals(ArmorHiderClient.getCurrentPlayerName())) {
             return CURRENT;
         }
         
@@ -107,7 +111,7 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
         
         var isRemotePlayer = ArmorHiderClient.isPlayerRemotePlayer(playerName);
         
-        UUID playerId = UUID.randomUUID();
+        UUID playerId = DEFAULT_PLAYER_ID;
         if (isRemotePlayer.getA()) {
             playerId = isRemotePlayer.getB().getProfile().id();
             config = serverConfiguration.getPlayerConfigOrDefault(isRemotePlayer.getB().getProfile().id());

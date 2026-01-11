@@ -21,7 +21,7 @@ public class ArmorRenderPipeline {
 
     /// See ElytraRenderPriority. Skull should usually render ahead of Elytra, in case the Elytra is visually infront of the skull.
     public static final int SkullRenderPriority = 99;
-
+    
     /// Captures context for the render pipeline, used within other methods of the class.
     /// ItemStack can be null, slot can be null.
     public static void setupContext(ItemStack itemStack, EquipmentSlot slot, LivingEntityRenderState entityRenderState) {
@@ -66,7 +66,8 @@ public class ArmorRenderPipeline {
     }
 
     private static ArmorModificationInfo tryResolveConfigFromPlayerEntityState(EquipmentSlot slot, PlayerEntityRenderState state){
-        return new ArmorModificationInfo(slot, ArmorHiderClient.CLIENT_CONFIG_MANAGER.getConfigForPlayer(state.displayName == null ? null : state.displayName.getString()));
+        boolean isLocalPlayerEntityRenderState = state.displayName == null;
+        return new ArmorModificationInfo(slot, ArmorHiderClient.CLIENT_CONFIG_MANAGER.getConfigForPlayer(isLocalPlayerEntityRenderState ? ArmorHiderClient.getCurrentPlayerName() : state.displayName.getString()));
     }
 
     private static void setCurrentSlot(EquipmentSlot slot) {
