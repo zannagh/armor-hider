@@ -29,6 +29,11 @@ public class ServerConfigStore implements ConfigurationProvider<ServerConfigurat
         configurationProvider.saveCurrent();
     }
 
+    public void setGlobalOverride(Boolean enabled) {
+        configurationProvider.getValue().serverWideSettings.forceArmorHiderOff.setValue(enabled);
+        configurationProvider.saveCurrent();
+    }
+
     @Override
     public ServerConfiguration load() {
         return configurationProvider.load();

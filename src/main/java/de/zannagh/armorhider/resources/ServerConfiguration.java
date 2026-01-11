@@ -34,7 +34,7 @@ public class ServerConfiguration implements ConfigurationSource<ServerConfigurat
     }
     
     private static final java.lang.reflect.Type LEGACY_MAP_TYPE = new TypeToken<Map<UUID, PlayerConfig>>(){}.getType();
-    private boolean hasChangedComparedToSerializedContent = false;
+    private transient boolean hasChangedComparedToSerializedContent = false;
     Map<UUID, PlayerConfig> playerConfigs = new HashMap<>();
     
     Map<String, PlayerConfig> playerNameConfigs = new HashMap<>();
@@ -62,10 +62,16 @@ public class ServerConfiguration implements ConfigurationSource<ServerConfigurat
     }
     
     public PlayerConfig getPlayerConfigOrDefault(UUID uuid) {
+        if (uuid == null) {
+            return null;
+        }
         return playerConfigs.getOrDefault(uuid, null);
     }
     
     public PlayerConfig getPlayerConfigOrDefault(String name) {
+        if (name == null) {
+            return null;
+        }
         return playerNameConfigs.getOrDefault(name, null);
     }
     
@@ -78,6 +84,11 @@ public class ServerConfiguration implements ConfigurationSource<ServerConfigurat
         if (playerId != null) {
             playerConfigs.put(playerId, playerConfig);
         }
+    }
+    
+    public void put(PlayerConfig playerConfig) {
+        playerNameConfigs.put(playerConfig.playerName.getValue(), playerConfig);
+        playerConfigs.put(playerConfig.playerId.getValue(), playerConfig);
     }
     
     public String toJson() {
@@ -99,7 +110,7 @@ public class ServerConfiguration implements ConfigurationSource<ServerConfigurat
                 // Detect v3 by presence of old field and absence of new field in JSON
                 if (obj.has("enableCombatDetection") && !obj.has("serverWideSettings")) {
                     Boolean legacyCombatDetection = obj.get("enableCombatDetection").getAsBoolean();
-                    configuration.serverWideSettings = new ServerWideSettings(legacyCombatDetection);
+                    configuration.serverWideSettings = new ServerWideSettings(legacyCombatDetection, false);
                     ArmorHider.LOGGER.info("Migrated server config from v3 to v4 format (enableCombatDetection -> serverWideSettings).");
                     configuration.setHasChangedFromSerializedContent();
                 } else if (configuration.serverWideSettings == null) {
@@ -143,7 +154,7 @@ public class ServerConfiguration implements ConfigurationSource<ServerConfigurat
 
     @Contract("_ -> new")
     private static @NotNull ServerConfiguration fromLegacyFormat(Map<UUID, PlayerConfig> playerConfigs) {
-        return new ServerConfiguration(playerConfigs, new ServerWideSettings(true));
+        return new ServerConfiguration(playerConfigs, new ServerWideSettings(true, false));
     }
 
     @Override

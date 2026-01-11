@@ -23,7 +23,22 @@
   "armorhider.options.combat_detection.tooltip_narration": "Aktiviert die Kampferkennung, um deine Rüstung im Kampf anzuzeigen.",
   "armorhider.options.combat_detection_server.title": "Rüstung im Kampf (Server)",
   "armorhider.options.combat_detection_server.tooltip": "Aktiviert die Kampferkennung serverweit, um die Anzeige von Rüstung im Kampf zu erzwingen. Falls aktiviert, überschreibt dies individuelle Einstellungen.",
+  "armorhider.options.combat_detection_server.tooltip.disabled": "Berechtigungen konnten nicht ermittelt werden oder sind unzureichend, um die Einstellung zu ändern.",
   "armorhider.options.combat_detection_server.tooltip_narration": "Aktiviert die Kampferkennung serverweit, um die Anzeige von Rüstung im Kampf zu erzwingen. Falls aktiviert, überschreibt dies individuelle Einstellungen.",
+  "armorhider.options.force_armor_hider_off.title": "Armor Hider für alle Spieler deaktivieren: ",
+  "armorhider.options.force_armor_hider_off.tooltip": "Erzwingt die Deaktivierung von Armor Hider für alle Spieler. Dies überschreibt individuelle Einstellungen.",
+  "armorhider.options.force_armor_hider_off.tooltip.disabled": "Berechtigungen konnten nicht ermittelt werden oder sind unzureichend, um die Einstellung zu ändern.",
   "armorhider.options.toggle.on": "An",
-  "armorhider.options.toggle.off": "Aus"
+  "armorhider.options.toggle.off": "Aus",
+  "armorhider.options.admin.title": "Administrationseinstellungen",
+  "armorhider.options.regular.title": "Weitere Einstellungen",
+  "armorhider.options.use_settings_for_unknown.title": "Meine Einstellungen auf unbekannte Spieler anwenden",
+  "armorhider.options.use_settings_for_unknown.tooltip": "Ob deine eigenen Einstellungen oder die Standardeinstellungen (die das Rendering nicht beeinflussen) verwendet werden sollen, wenn die Einstellungen eines Spielers nicht ermittelt werden können. Hilfreich, wenn der Server den Mod nicht benutzt.",
+  "armorhider.options.use_settings_for_unknown.tooltip_narration": "Ob deine eigenen Einstellungen oder die Standardeinstellungen (die das Rendering nicht beeinflussen) verwendet werden sollen, wenn die Einstellungen eines Spielers nicht ermittelt werden können. Hilfreich, wenn der Server den Mod nicht benutzt.",
+  "armorhider.options.disable_local.title": "Armor Hider Funktionen deaktivieren",
+  "armorhider.options.disable_local.tooltip": "Aktiviert oder deaktiviert die Verwendung von Armor Hider global. Wenn der Server Armor Hider erzwingt, wird diese Einstellung ignoriert, da die Rüstung in jedem Fall angezeigt wird.",
+  "armorhider.options.disable_local.tooltip_narration": "Aktiviert oder deaktiviert die Verwendung von Armor Hider global. Wenn der Server Armor Hider erzwingt, wird diese Einstellung ignoriert, da die Rüstung in jedem Fall angezeigt wird.",
+  "armorhider.options.disable_others.title": "Armor Hider für andere Spieler deaktivieren",
+  "armorhider.options.disable_others.tooltip": "Deaktiviert die Verwendung von Armor Hider für die Rüstungen anderer Spieler. Wenn der Server Armor Hider erzwingt oder die globale Deaktivierung gesetzt ist, wird diese Einstellung ignoriert, da die Rüstung in jedem Fall angezeigt wird.",
+  "armorhider.options.disable_others.tooltip_narration": "Deaktiviert die Verwendung von Armor Hider für die Rüstungen anderer Spieler. Wenn der Server Armor Hider erzwingt oder die globale Deaktivierung gesetzt ist, wird diese Einstellung ignoriert, da die Rüstung in jedem Fall angezeigt wird."
 }
