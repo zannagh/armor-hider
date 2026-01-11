@@ -10,7 +10,6 @@ import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.network.PlayerListEntry;
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 import oshi.util.tuples.Pair;
 
 public class ArmorHiderClient implements ClientModInitializer {
@@ -23,8 +22,11 @@ public class ArmorHiderClient implements ClientModInitializer {
                 || (MinecraftClient.getInstance().getNetworkHandler() != null && MinecraftClient.getInstance().getNetworkHandler().getServerInfo() != null);
     }
     
-    public static @Nullable String getCurrentPlayerName() { 
-        return MinecraftClient.getInstance().player instanceof ClientPlayerEntity clientPlayer && clientPlayer.getDisplayName() instanceof net.minecraft.text.Text displayText ? displayText.getString() : null;
+    public static String getCurrentPlayerName() { 
+        return MinecraftClient.getInstance().player instanceof ClientPlayerEntity clientPlayer 
+                && clientPlayer.getDisplayName() instanceof net.minecraft.text.Text displayText 
+                ? displayText.getString() 
+                : ClientConfigManager.DEFAULT_PLAYER_NAME;
     }
     
     @Contract("_ -> new")
