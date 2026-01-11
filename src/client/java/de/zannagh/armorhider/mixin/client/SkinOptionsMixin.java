@@ -160,7 +160,7 @@ public abstract class SkinOptionsMixin extends Screen {
         
         optionElementFactory.addElementAsWidget(ButtonWidget.builder(
                 Text.literal("Advanced..."), 
-                (_) -> MinecraftClient.getInstance().setScreen(new AdvancedArmorHiderSettingsScreen(MinecraftClient.getInstance().currentScreen, gameOptions, title)))
+                (widget) -> MinecraftClient.getInstance().setScreen(new AdvancedArmorHiderSettingsScreen(MinecraftClient.getInstance().currentScreen, gameOptions, title)))
                 .dimensions(body.getX(), body.getYOfNextEntry(), body.getRowWidth(), ButtonWidget.DEFAULT_HEIGHT).build());
     }
     

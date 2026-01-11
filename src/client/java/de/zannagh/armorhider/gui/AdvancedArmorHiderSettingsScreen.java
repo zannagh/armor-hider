@@ -71,7 +71,7 @@ public class AdvancedArmorHiderSettingsScreen extends GameOptionsScreen {
                 serverForcingArmorHiderOffValue
         );
         
-        var cyclingWidget = cyclingWidgetBuilder.tooltip(_ ->{
+        var cyclingWidget = cyclingWidgetBuilder.tooltip(newValue ->{
             if (!ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin) {
                 return Tooltip.of(Text.translatable("armorhider.options.combat_detection_server.tooltip.disabled"));
             }
@@ -87,7 +87,7 @@ public class AdvancedArmorHiderSettingsScreen extends GameOptionsScreen {
                 }
         );
 
-        var armorHiderOffWidget = forceOnOffBuilder.tooltip(_ ->{
+        var armorHiderOffWidget = forceOnOffBuilder.tooltip(newValue ->{
             if (!ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin) {
                 return Tooltip.of(Text.translatable("armorhider.options.force_armor_hider_off.tooltip.disabled"));
             }
