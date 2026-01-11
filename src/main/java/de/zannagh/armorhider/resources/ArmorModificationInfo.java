@@ -20,7 +20,7 @@ public record ArmorModificationInfo(EquipmentSlot equipmentSlot, @NotNull Player
 
     public boolean shouldHide() {
         double transparency = getTransparency();
-        return transparency < ArmorOpacity.TRANSPARENCY_STEP + ArmorOpacity.TRANSPARENCY_STEP / 2;
+        return transparency < ArmorOpacity.TRANSPARENCY_STEP;
     }
 
     public boolean shouldModify() {
