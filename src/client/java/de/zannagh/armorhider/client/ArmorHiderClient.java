@@ -9,14 +9,13 @@ import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.network.PlayerListEntry;
 import org.jetbrains.annotations.Contract;
-import org.jspecify.annotations.NonNull;
 import oshi.util.tuples.Pair;
 
 public class ArmorHiderClient implements ClientModInitializer {
 
     public static Boolean isCurrentPlayerSinglePlayerHostOrAdmin = false;
     
-    public static @NonNull Boolean isClientConnectedToServer() {
+    public static Boolean isClientConnectedToServer() {
         return MinecraftClient.getInstance().isConnectedToLocalServer()
                 || MinecraftClient.getInstance().getServer() != null
                 || (MinecraftClient.getInstance().getNetworkHandler() != null && MinecraftClient.getInstance().getNetworkHandler().getServerInfo() != null);
@@ -30,7 +29,7 @@ public class ArmorHiderClient implements ClientModInitializer {
     }
     
     @Contract("_ -> new")
-    public static @NonNull Pair<Boolean, PlayerListEntry> isPlayerRemotePlayer(String playerName) {
+    public static Pair<Boolean, PlayerListEntry> isPlayerRemotePlayer(String playerName) {
         if (MinecraftClient.getInstance().getNetworkHandler() instanceof ClientPlayNetworkHandler networkHandler
                 && networkHandler.getCaseInsensitivePlayerInfo(playerName) instanceof PlayerListEntry entry
                 && entry.getDisplayName() != null) {

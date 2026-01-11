@@ -118,13 +118,7 @@ public class ArmorRenderPipeline {
             return originalLayer;
         }
 
-        double transparency = modification.GetTransparency();
-
-        if (transparency < 0.95) {
-            return RenderLayer.getEntityTranslucent(texture);
-        }
-        
-        return RenderLayers.entityTranslucent(texture);
+        return RenderLayer.getEntityTranslucent(texture);
     }
 
     public static RenderLayer getTrimRenderLayer(boolean decal, RenderLayer originalLayer) {

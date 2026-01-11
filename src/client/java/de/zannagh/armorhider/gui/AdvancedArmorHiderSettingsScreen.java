@@ -60,16 +60,14 @@ public class AdvancedArmorHiderSettingsScreen extends GameOptionsScreen {
         var forceArmorHiderOffText = Text.translatable("armorhider.options.force_armor_hider_off.title");
         
         var cyclingWidgetBuilder = CyclingButtonWidget.onOffBuilder(
-                ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin ? onText : CyclingButtonWidget.makeInactive(onText),
-                ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin ? offText : CyclingButtonWidget.makeInactive(offText),
-                serverCombatDetectionValue
-        );
+                onText,
+                offText
+        ).initially(serverCombatDetectionValue);
 
         var forceOnOffBuilder = CyclingButtonWidget.onOffBuilder(
-                ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin ? onText : CyclingButtonWidget.makeInactive(onText),
-                ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin ? offText : CyclingButtonWidget.makeInactive(offText),
-                serverForcingArmorHiderOffValue
-        );
+                onText,
+                offText
+        ).initially(serverForcingArmorHiderOffValue);
         
         var cyclingWidget = cyclingWidgetBuilder.tooltip(newValue ->{
             if (!ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin) {
@@ -77,7 +75,7 @@ public class AdvancedArmorHiderSettingsScreen extends GameOptionsScreen {
             }
             return Tooltip.of(Text.translatable("armorhider.options.combat_detection_server.tooltip"));
         }).build(
-                ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin ? combatDetectionServerText : CyclingButtonWidget.makeInactive(combatDetectionServerText),
+                combatDetectionServerText,
                 (widget, newValue) -> {
                     if (!ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin) {
                         widget.setValue(serverCombatDetectionValue);
@@ -93,7 +91,7 @@ public class AdvancedArmorHiderSettingsScreen extends GameOptionsScreen {
             }
             return Tooltip.of(Text.translatable("armorhider.options.force_armor_hider_off.tooltip"));
         }).build(
-                ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin ? forceArmorHiderOffText : CyclingButtonWidget.makeInactive(forceArmorHiderOffText),
+                forceArmorHiderOffText,
                 (widget, newValue) -> {
                     if (!ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin) {
                         widget.setValue(serverForcingArmorHiderOffValue);
