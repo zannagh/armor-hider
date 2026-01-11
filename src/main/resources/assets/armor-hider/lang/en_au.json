@@ -23,7 +23,22 @@
   "armorhider.options.combat_detection.tooltip_narration": "Enables detection of combat to show your armor when you are in combat.",
   "armorhider.options.combat_detection_server.title": "Armor in combat (server): ",
   "armorhider.options.combat_detection_server.tooltip": "Enables detection of combat server-wide to force showing armor when a player is in combat. If enabled, this will override individual's detection setting.",
+  "armorhider.options.combat_detection_server.tooltip.disabled": "Permissions couldn't be determined or are insufficient to change the setting.",
   "armorhider.options.combat_detection_server.tooltip_narration": "Enables detection of combat server-wide to force showing armor when a player is in combat. If enabled, this will override individual's detection setting.",
+  "armorhider.options.force_armor_hider_off.title": "Force Armor Hider off for all players: ",
+  "armorhider.options.force_armor_hider_off.tooltip": "Forces Armor Hider to be disabled for all players. This will override individual's settings.",
+  "armorhider.options.force_armor_hider_off.tooltip.disabled": "Permissions couldn't be determined or are insufficient to change the setting.",
   "armorhider.options.toggle.on": "ON",
-  "armorhider.options.toggle.off": "OFF"
+  "armorhider.options.toggle.off": "OFF",
+  "armorhider.options.admin.title": "Administrative Settings",
+  "armorhider.options.regular.title": "Other Settings",
+  "armorhider.options.use_settings_for_unknown.title": "Apply your settings to unknown players",
+  "armorhider.options.use_settings_for_unknown.tooltip": "Whether to use your own settings or the default settings (which do show armor as without the mod) when a player's settings cannot be determined (for example when using the mod only client side / on an unmodded server).",
+  "armorhider.options.use_settings_for_unknown.tooltip_narration": "Whether to use your own settings or the default settings (which do show armor as without the mod) when a player's settings cannot be determined (for example when using the mod only client side / on an unmodded server).",
+  "armorhider.options.disable_local.title": "Disable Armor Hider features",
+  "armorhider.options.disable_local.tooltip": "Enable or disable usage of Armor Hider globally. If the server is forcing Armor Hider off, this setting is ignored as armor will be shown in any case.",
+  "armorhider.options.disable_local.tooltip_narration": "Enable or disable usage of Armor Hider globally. If the server is forcing Armor Hider off, this setting is ignored as armor will be shown in any case.",
+  "armorhider.options.disable_others.title": "Disable Armor Hider for other players",
+  "armorhider.options.disable_others.tooltip": "Disable usage of Armor Hider for other player's armors. If the server is forcing Armor Hider off or the global disable is set, this setting is ignored as armor will be shown in any case.",
+  "armorhider.options.disable_others.tooltip_narration": "Disable usage of Armor Hider for other player's armors. If the server is forcing Armor Hider off or the global disable is set, this setting is ignored as armor will be shown in any case."
 }
