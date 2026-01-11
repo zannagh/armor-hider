@@ -46,10 +46,15 @@ public final class CommsManager {
                 ArmorHider.LOGGER.info("Non-admin player {} attempted to disable combat detection. Ignoring.", player.getUuidAsString());
                 return;
             }
+            
+            if (ServerRuntime.store.getConfig().serverWideSettings.enableCombatDetection.getValue() == payload.enableCombatDetection.getValue()
+                && ServerRuntime.store.getConfig().serverWideSettings.forceArmorHiderOff.getValue() == payload.forceArmorHiderOff.getValue()) {
+               return;
+            }
 
             ArmorHider.LOGGER.info("Admin player {} is updating server-wide combat detection to: {}", player.getUuidAsString(), payload.enableCombatDetection.getValue());
             ServerRuntime.store.setServerCombatDetection(payload.enableCombatDetection.getValue());
-
+            ServerRuntime.store.setGlobalOverride(payload.forceArmorHiderOff.getValue());
             sendToAllClientsButSender(player.getUuid(), ServerRuntime.store.getConfig());
         });
     }

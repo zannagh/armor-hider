@@ -24,7 +24,7 @@ public class PlayerPreviewRenderer {
         
         int rowWidth = RenderUtilities.getRowWidth(body);
         int rowLeft = RenderUtilities.getRowLeft(body);
-        int rowTop = RenderUtilities.getRowTop(body, armorHiderSegmentRow);
+        int rowTop = RenderUtilities.getRowTop(body, armorHiderSegmentRow + 1);
         int bodyTop = RenderUtilities.getBodyTop(body);
         int bodyBottom = RenderUtilities.getBodyBottom(body);
         int bodyWidth = RenderUtilities.getBodyWidth(body);
