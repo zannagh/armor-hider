@@ -7,16 +7,19 @@ import de.zannagh.armorhider.resources.PlayerConfig;
 import de.zannagh.armorhider.resources.ServerConfiguration;
 import de.zannagh.armorhider.resources.ServerWideSettings;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.PlayerListEntry;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
 public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> {
     
+    public static final String DEFAULT_PLAYER_NAME = "dummy";
+    
+    public static final UUID DEFAULT_PLAYER_ID = UUID.fromString("00000000-0000-0000-0000-000000000000");
+    
     private final ConfigurationProvider<PlayerConfig> playerConfigProvider;
 
-    private PlayerConfig CURRENT = PlayerConfig.defaults(UUID.randomUUID(), "dummy");
+    private PlayerConfig CURRENT = PlayerConfig.defaults(DEFAULT_PLAYER_ID, DEFAULT_PLAYER_NAME);
     
     private ServerConfiguration serverConfiguration = new ServerConfiguration();
     
@@ -61,11 +64,12 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
         return PlayerConfig.empty();
     }
 
-    public void setAndSendServerCombatDetection(boolean enabled){
+    public void setAndSendServerConfig(boolean combatDetection, boolean forceArmorHiderOff){
         if (!ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin) {
             return;
         }
-        serverConfiguration.serverWideSettings.enableCombatDetection.setValue(enabled);
+        serverConfiguration.serverWideSettings.enableCombatDetection.setValue(combatDetection);
+        serverConfiguration.serverWideSettings.forceArmorHiderOff.setValue(forceArmorHiderOff);
         setAndSendServerWideSettings(serverConfiguration.serverWideSettings);
     }
 
@@ -95,8 +99,8 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
     
     public void setValue(PlayerConfig cfg) { CURRENT = cfg; saveCurrent(); }
 
-    public PlayerConfig getConfigForPlayer(String playerName) {
-        if (playerName == null || playerName.equals(ArmorHiderClient.getCurrentPlayerName())) {
+    public PlayerConfig getConfigForPlayer(@NotNull String playerName) {
+        if (playerName.equals(ArmorHiderClient.getCurrentPlayerName())) {
             return CURRENT;
         }
         
@@ -104,22 +108,22 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
         if (config != null) {
             return config;
         }
-        else {
-            if (!Objects.requireNonNull(MinecraftClient.getInstance().getNetworkHandler()).getProfile().name().equals(playerName)) {
-                UUID playerId = null;
-                if (Objects.requireNonNull(MinecraftClient.getInstance().getNetworkHandler()).getCaseInsensitivePlayerInfo(playerName) instanceof PlayerListEntry entry) {
-                    playerId = entry.getProfile().id();
-                }
-                
-                serverConfiguration.put(playerName, playerId, CURRENT);
-                return CURRENT;
-            }
-            ArmorHider.LOGGER.warn("Failed to get config for player by id, trying to retrieve by player name. {} {}", playerName, playerName);
-            if (serverConfiguration.getPlayerConfigOrDefault(playerName) != null) {
-                return serverConfiguration.getPlayerConfigOrDefault(playerName);
+        
+        var isRemotePlayer = ArmorHiderClient.isPlayerRemotePlayer(playerName);
+        
+        UUID playerId = DEFAULT_PLAYER_ID;
+        if (isRemotePlayer.getA()) {
+            playerId = isRemotePlayer.getB().getProfile().id();
+            config = serverConfiguration.getPlayerConfigOrDefault(isRemotePlayer.getB().getProfile().id());
+            if (config != null) {
+                return config;
             }
         }
-        ArmorHider.LOGGER.warn("Failed to get config for player {}. Returning local settings.", playerName);
-        return CURRENT;
+        
+        if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().usePlayerSettingsWhenUndeterminable.getValue()) {
+            return ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().deepCopy(playerName, playerId);
+        }
+        
+        return PlayerConfig.defaults(playerId, playerName);
     }
 }
