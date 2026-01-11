@@ -95,7 +95,7 @@ public class OptionElementFactory {
         );
     }
 
-    private static ClickableWidget simpleOptionToGameOptionWidget(SimpleOption<?> simpleOption, GameOptions options, @Nullable OptionListWidget body, boolean fullWidth){
+    public static ClickableWidget simpleOptionToGameOptionWidget(SimpleOption<?> simpleOption, GameOptions options, @Nullable OptionListWidget body, boolean fullWidth){
         int rowWidth = RenderUtilities.getRowWidth(body);
         int rowLeft = RenderUtilities.getRowLeft(body);
         int y = RenderUtilities.getNextY(body);

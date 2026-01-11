@@ -5,7 +5,11 @@ import de.zannagh.armorhider.config.ClientConfigManager;
 import de.zannagh.armorhider.networking.ClientCommunicationManager;
 import net.fabricmc.api.ClientModInitializer;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.network.PlayerListEntry;
+import org.jetbrains.annotations.Contract;
+import oshi.util.tuples.Pair;
 
 public class ArmorHiderClient implements ClientModInitializer {
 
@@ -18,7 +22,20 @@ public class ArmorHiderClient implements ClientModInitializer {
     }
     
     public static String getCurrentPlayerName() { 
-        return MinecraftClient.getInstance().player instanceof ClientPlayerEntity clientPlayer && clientPlayer.getDisplayName() instanceof net.minecraft.text.Text displayText ? displayText.getString() : null;
+        return MinecraftClient.getInstance().player instanceof ClientPlayerEntity clientPlayer 
+                && clientPlayer.getDisplayName() instanceof net.minecraft.text.Text displayText 
+                ? displayText.getString() 
+                : ClientConfigManager.DEFAULT_PLAYER_NAME;
+    }
+    
+    @Contract("_ -> new")
+    public static Pair<Boolean, PlayerListEntry> isPlayerRemotePlayer(String playerName) {
+        if (MinecraftClient.getInstance().getNetworkHandler() instanceof ClientPlayNetworkHandler networkHandler
+                && networkHandler.getPlayerListEntry(playerName) instanceof PlayerListEntry entry
+                && entry.getDisplayName() != null) {
+            return new Pair<>(!entry.getDisplayName().getString().equals(getCurrentPlayerName()), entry);
+        }
+        return new Pair<>(false, null);
     }
     
     public static ClientConfigManager CLIENT_CONFIG_MANAGER;

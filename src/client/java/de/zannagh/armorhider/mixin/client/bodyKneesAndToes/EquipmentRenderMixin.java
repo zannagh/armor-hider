@@ -48,6 +48,20 @@ public class EquipmentRenderMixin<T extends LivingEntity, M extends BipedEntityM
     }
 
     // Hide glint when armor is hidden
+    
+    @WrapOperation(
+            method = "renderArmor",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/render/entity/feature/ArmorFeatureRenderer;renderArmorParts(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;ILnet/minecraft/client/render/entity/model/BipedEntityModel;ILnet/minecraft/util/Identifier;)V"
+            )
+    )
+    private void wrap(ArmorFeatureRenderer instance, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, A model, int i, Identifier identifier, Operation<Void> original){
+        if (!ArmorRenderPipeline.shouldHideEquipment()) {
+            original.call(instance, matrices, vertexConsumers, light, model, i, identifier);
+        }
+    }
+    
     @ModifyExpressionValue(
             method = "renderArmor",
             at = @At(
