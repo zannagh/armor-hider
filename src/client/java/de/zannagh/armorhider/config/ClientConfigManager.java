@@ -115,16 +115,11 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
                 return config;
             }
         }
-
-        var defaultConfigForUnknownPlayer = PlayerConfig.defaults(playerId, playerName);
         
         if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().usePlayerSettingsWhenUndeterminable.getValue()) {
-            defaultConfigForUnknownPlayer = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue();
-            defaultConfigForUnknownPlayer.playerName.setValue(playerName);
-            defaultConfigForUnknownPlayer.playerId.setValue(playerId);
-            return defaultConfigForUnknownPlayer;
+            return ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().deepCopy(playerName, playerId);
         }
         
-        return defaultConfigForUnknownPlayer;
+        return PlayerConfig.defaults(playerId, playerName);
     }
 }

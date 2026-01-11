@@ -111,4 +111,19 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
     public void setHasChangedFromSerializedContent() {
         hasChangedFromSerializedContent = true;
     }
+
+    public PlayerConfig deepCopy(String playerName, UUID playerId) {
+        var newConfig = new PlayerConfig(playerId, playerName);
+        newConfig.disableArmorHider.setValue(this.disableArmorHider.getValue());
+        newConfig.disableArmorHiderForOthers.setValue(this.disableArmorHiderForOthers.getValue());
+        newConfig.helmetOpacity.setValue(this.helmetOpacity.getValue());
+        newConfig.chestOpacity.setValue(this.chestOpacity.getValue());
+        newConfig.legsOpacity.setValue(this.legsOpacity.getValue());
+        newConfig.bootsOpacity.setValue(this.bootsOpacity.getValue());
+        newConfig.enableCombatDetection.setValue(this.enableCombatDetection.getValue());
+        newConfig.opacityAffectingHatOrSkull.setValue(this.opacityAffectingHatOrSkull.getValue());
+        newConfig.opacityAffectingElytra.setValue(this.opacityAffectingElytra.getValue());
+        newConfig.usePlayerSettingsWhenUndeterminable.setValue(this.usePlayerSettingsWhenUndeterminable.getValue());
+        return newConfig;
+    }
 }

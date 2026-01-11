@@ -31,8 +31,8 @@ public class ArmorHiderClient implements ClientModInitializer {
     public static @NonNull Pair<Boolean, PlayerListEntry> isPlayerRemotePlayer(String playerName) {
         if (MinecraftClient.getInstance().getNetworkHandler() instanceof ClientPlayNetworkHandler networkHandler
                 && networkHandler.getCaseInsensitivePlayerInfo(playerName) instanceof PlayerListEntry entry
-                && entry.getDisplayName() != null && entry.getDisplayName().getString().equals(getCurrentPlayerName())) {
-            return new Pair<>(true, entry);
+                && entry.getDisplayName() != null) {
+            return new Pair<>(!entry.getDisplayName().getString().equals(getCurrentPlayerName()), entry);
         }
         return new Pair<>(false, null);
     }
