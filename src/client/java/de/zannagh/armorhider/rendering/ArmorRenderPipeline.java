@@ -3,6 +3,7 @@ package de.zannagh.armorhider.rendering;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.common.ItemStackHelper;
 import de.zannagh.armorhider.resources.ArmorModificationInfo;
+import de.zannagh.armorhider.resources.ServerWideSettings;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.RenderLayers;
 import net.minecraft.client.render.entity.state.LivingEntityRenderState;
@@ -65,9 +66,7 @@ public class ArmorRenderPipeline {
     }
 
     private static ArmorModificationInfo tryResolveConfigFromPlayerEntityState(EquipmentSlot slot, PlayerEntityRenderState state){
-        return state.displayName == null
-                ? new ArmorModificationInfo(slot, ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue())
-                : new ArmorModificationInfo(slot, ArmorHiderClient.CLIENT_CONFIG_MANAGER.getConfigForPlayer(state.displayName.getString()));
+        return new ArmorModificationInfo(slot, ArmorHiderClient.CLIENT_CONFIG_MANAGER.getConfigForPlayer(state.displayName == null ? null : state.displayName.getString()));
     }
 
     private static void setCurrentSlot(EquipmentSlot slot) {
@@ -92,6 +91,13 @@ public class ArmorRenderPipeline {
     }
 
     public static boolean shouldModifyEquipment() {
+        if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableArmorHider.getValue()) {
+            return false;
+        }
+        if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.getServerConfig().serverWideSettings instanceof ServerWideSettings serverWideSettings
+                && serverWideSettings.forceArmorHiderOff.getValue()) {
+            return false;
+        }
         return ArmorModificationContext.shouldModifyEquipment();
     }
 
@@ -108,39 +114,29 @@ public class ArmorRenderPipeline {
 
     public static RenderLayer getRenderLayer(Identifier texture, RenderLayer originalLayer) {
         ArmorModificationInfo modification = getCurrentModification();
-        if (modification == null) {
+        if (modification == null || !modification.shouldModify() || !shouldModifyEquipment()) {
             return originalLayer;
         }
-
-        double transparency = modification.GetTransparency();
-
-        if (transparency < 0.95) {
-            return RenderLayers.entityTranslucent(texture);
-        }
-
-        return originalLayer;
+        
+        return RenderLayers.entityTranslucent(texture);
     }
 
     public static RenderLayer getTrimRenderLayer(boolean decal, RenderLayer originalLayer) {
         ArmorModificationInfo modification = getCurrentModification();
-        if (modification == null || !modification.ShouldModify()) {
+        if (modification == null || !modification.shouldModify() || !shouldModifyEquipment()) {
             return originalLayer;
         }
-
-        if (modification.GetTransparency() < 1) {
-            return RenderLayers.armorTranslucent(net.minecraft.client.render.TexturedRenderLayers.ARMOR_TRIMS_ATLAS_TEXTURE);
-        }
-
-        return originalLayer;
+        
+        return RenderLayers.armorTranslucent(net.minecraft.client.render.TexturedRenderLayers.ARMOR_TRIMS_ATLAS_TEXTURE);
     }
 
     public static int applyTransparency(int originalColor) {
         ArmorModificationInfo modification = getCurrentModification();
-        if (modification == null || !modification.ShouldModify()) {
+        if (modification == null || !modification.shouldModify() || !shouldModifyEquipment()) {
             return originalColor;
         }
-
-        double transparency = modification.GetTransparency();
+        
+        double transparency = modification.getTransparency();
         return ColorHelper.withAlpha(ColorHelper.channelFromFloat((float)transparency), originalColor);
     }
     //endregion

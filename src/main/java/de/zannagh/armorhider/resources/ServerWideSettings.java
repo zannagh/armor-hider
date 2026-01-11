@@ -1,29 +1,33 @@
 package de.zannagh.armorhider.resources;
 
 import com.google.gson.annotations.SerializedName;
-import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.configuration.ConfigurationSource;
 import de.zannagh.armorhider.configuration.items.implementations.CombatDetection;
+import de.zannagh.armorhider.configuration.items.implementations.ForceArmorHiderOffOnPlayers;
 import de.zannagh.armorhider.netPackets.CompressedJsonCodec;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
 
 public class ServerWideSettings implements ConfigurationSource<ServerWideSettings> {
     public static final Id<ServerWideSettings> PACKET_IDENTIFIER = new Id<>(Identifier.of("de.zannagh.armorhider", "server_wide_settings"));
 
-    private boolean hasChangedFromSerializedContent = false;
+    private transient boolean hasChangedFromSerializedContent = false;
 
     @SerializedName(value = "enableCombatDetection")
     public CombatDetection enableCombatDetection;
+    
+    @SerializedName(value = "forceArmorHiderOff")
+    public ForceArmorHiderOffOnPlayers forceArmorHiderOff;
 
     public ServerWideSettings() {
         this.enableCombatDetection = new CombatDetection();
+        this.forceArmorHiderOff = new ForceArmorHiderOffOnPlayers();
     }
 
-    public ServerWideSettings(Boolean enableCombatDetection) {
+    public ServerWideSettings(Boolean enableCombatDetection, Boolean forceArmorHiderOff) {
         this.enableCombatDetection = new CombatDetection(enableCombatDetection);
+        this.forceArmorHiderOff = new ForceArmorHiderOffOnPlayers(forceArmorHiderOff);
     }
 
     @Override

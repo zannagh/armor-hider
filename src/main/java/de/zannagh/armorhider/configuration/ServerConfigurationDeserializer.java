@@ -48,7 +48,7 @@ public class ServerConfigurationDeserializer implements TypeAdapterFactory {
                 // Handle v3 format migration: enableCombatDetection was a top-level Boolean field
                 if (obj.has("enableCombatDetection") && !obj.has("serverWideSettings")) {
                     Boolean legacyCombatDetection = obj.get("enableCombatDetection").getAsBoolean();
-                    config.serverWideSettings = new ServerWideSettings(legacyCombatDetection);
+                    config.serverWideSettings = new ServerWideSettings(legacyCombatDetection, false);
                     ArmorHider.LOGGER.info("Migrated server config from v3 to v4 format via network (enableCombatDetection -> serverWideSettings).");
                     config.setHasChangedFromSerializedContent();
                 } else if (config.serverWideSettings == null) {

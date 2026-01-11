@@ -23,7 +23,22 @@
   "armorhider.options.combat_detection.tooltip_narration": "Activa la detección de combate para mostrar tu armadura cuando estés en combate.",
   "armorhider.options.combat_detection_server.title": "Armadura en combate (servidor): ",
   "armorhider.options.combat_detection_server.tooltip": "Activa la detección de combate en todo el servidor para forzar que se muestre la armadura cuando un jugador está en combate. Si está activado, esto anulará la configuración individual.",
+  "armorhider.options.combat_detection_server.tooltip.disabled": "Los permisos no se pudieron determinar o son insuficientes para cambiar la configuración.",
   "armorhider.options.combat_detection_server.tooltip_narration": "Activa la detección de combate en todo el servidor para forzar que se muestre la armadura cuando un jugador está en combate. Si está activado, esto anulará la configuración individual.",
+  "armorhider.options.force_armor_hider_off.title": "Forzar Armor Hider desactivado para todos los jugadores: ",
+  "armorhider.options.force_armor_hider_off.tooltip": "Fuerza que Armor Hider esté desactivado para todos los jugadores. Esto anulará la configuración individual.",
+  "armorhider.options.force_armor_hider_off.tooltip.disabled": "Los permisos no se pudieron determinar o son insuficientes para cambiar la configuración.",
   "armorhider.options.toggle.on": "ACTIVADO",
-  "armorhider.options.toggle.off": "DESACTIVADO"
+  "armorhider.options.toggle.off": "DESACTIVADO",
+  "armorhider.options.admin.title": "Configuración Administrativa",
+  "armorhider.options.regular.title": "Otras Configuraciones",
+  "armorhider.options.use_settings_for_unknown.title": "Aplicar mi configuración a jugadores desconocidos",
+  "armorhider.options.use_settings_for_unknown.tooltip": "Si usar tu propia configuración o la configuración predeterminada (que no interfiere con el renderizado) cuando no se puede determinar la configuración de un jugador.",
+  "armorhider.options.use_settings_for_unknown.tooltip_narration": "Si usar tu propia configuración o la configuración predeterminada (que no interfiere con el renderizado) cuando no se puede determinar la configuración de un jugador.",
+  "armorhider.options.disable_local.title": "Desactivar funciones de Armor Hider",
+  "armorhider.options.disable_local.tooltip": "Activa o desactiva el uso de Armor Hider globalmente. Si el servidor está forzando Armor Hider a desactivado, esta configuración se ignora ya que la armadura se mostrará en cualquier caso.",
+  "armorhider.options.disable_local.tooltip_narration": "Activa o desactiva el uso de Armor Hider globalmente. Si el servidor está forzando Armor Hider a desactivado, esta configuración se ignora ya que la armadura se mostrará en cualquier caso.",
+  "armorhider.options.disable_others.title": "Desactivar Armor Hider para otros jugadores",
+  "armorhider.options.disable_others.tooltip": "Desactiva el uso de Armor Hider para las armaduras de otros jugadores. Si el servidor está forzando Armor Hider a desactivado o la desactivación global está configurada, esta configuración se ignora ya que la armadura se mostrará en cualquier caso.",
+  "armorhider.options.disable_others.tooltip_narration": "Desactiva el uso de Armor Hider para las armaduras de otros jugadores. Si el servidor está forzando Armor Hider a desactivado o la desactivación global está configurada, esta configuración se ignora ya que la armadura se mostrará en cualquier caso."
 }

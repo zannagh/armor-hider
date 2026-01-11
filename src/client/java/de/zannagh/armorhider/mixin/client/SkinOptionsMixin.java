@@ -9,13 +9,16 @@ package de.zannagh.armorhider.mixin.client;
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.OptionElementFactory;
+import de.zannagh.armorhider.gui.AdvancedArmorHiderSettingsScreen;
 import de.zannagh.armorhider.rendering.PlayerPreviewRenderer;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.option.GameOptionsScreen;
 import net.minecraft.client.gui.screen.option.SkinOptionsScreen;
+import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.OptionListWidget;
+import net.minecraft.client.gui.widget.TextWidget;
 import net.minecraft.client.option.GameOptions;
 import net.minecraft.client.option.SimpleOption;
 import net.minecraft.text.Text;
@@ -31,17 +34,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class SkinOptionsMixin extends Screen {
 
     // TODO: This may have to be extended into not sending network stuff if the server doesn't support it.
-    @Unique
-    private boolean hasUsedFallbackWhereServerDidntTranspondSettings = false;
-
+    
     @Unique
     private boolean settingsChanged;
-
-    @Unique
-    private boolean serverSettingsChanged;
-
-    @Unique
-    private boolean newServerCombatDetection;
 
     @Unique
     private boolean isSkinOptionsScreen;
@@ -75,10 +70,6 @@ public abstract class SkinOptionsMixin extends Screen {
             ArmorHider.LOGGER.info("Updating current player settings...");
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.saveCurrent();
         }
-        if (serverSettingsChanged && !hasUsedFallbackWhereServerDidntTranspondSettings) {
-            ArmorHider.LOGGER.info("Updating current server settings (if possible)...");
-            ArmorHiderClient.CLIENT_CONFIG_MANAGER.setAndSendServerCombatDetection(newServerCombatDetection);
-        }
         super.close();
     }
 
@@ -104,7 +95,14 @@ public abstract class SkinOptionsMixin extends Screen {
                 currentValue -> Text.translatable("armorhider.options.helmet.button_text", String.format("%.0f%%", currentValue * 100)),
                 ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().helmetOpacity.getValue(),
                 this::setHelmetTransparency);
-        optionElementFactory.addSimpleOptionAsWidget(helmetOption);
+        if (MinecraftClient.getInstance().player != null) {
+            body.addWidgetEntry(OptionElementFactory.simpleOptionToGameOptionWidget(helmetOption, gameOptions, body, false), 
+                    new TextWidget(Text.literal("Preview"), this.getTextRenderer()));
+        }
+        else {
+            optionElementFactory.addSimpleOptionAsWidget(helmetOption);
+        }
+        
 
         var skullOrHatOption = optionElementFactory.buildBooleanOption(
                 Text.translatable("armorhider.options.helmet_affection.title"),
@@ -159,32 +157,13 @@ public abstract class SkinOptionsMixin extends Screen {
                 this::setCombatDetection
         );
         optionElementFactory.addSimpleOptionAsWidget(enableCombatDetection);
-
-        if (ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin) {
-            var serverConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getServerConfig();
-            boolean serverCombatDetectionValue = serverConfig != null
-                    && serverConfig.serverWideSettings != null
-                    && serverConfig.serverWideSettings.enableCombatDetection != null
-                    ? serverConfig.serverWideSettings.enableCombatDetection.getValue()
-                    : getFallbackDefault();
-
-            SimpleOption<Boolean> combatHidingOnServer = optionElementFactory.buildBooleanOption(
-                    Text.translatable("armorhider.options.combat_detection_server.title"),
-                    Text.translatable("armorhider.options.combat_detection_server.tooltip"),
-                    Text.translatable("armorhider.options.combat_detection_server.tooltip_narration"),
-                    serverCombatDetectionValue,
-                    this::setServerCombatDetection
-            );
-            optionElementFactory.addSimpleOptionAsWidget(combatHidingOnServer);
-        }
+        
+        optionElementFactory.addElementAsWidget(ButtonWidget.builder(
+                Text.literal("Advanced..."), 
+                (_) -> MinecraftClient.getInstance().setScreen(new AdvancedArmorHiderSettingsScreen(MinecraftClient.getInstance().currentScreen, gameOptions, title)))
+                .dimensions(body.getX(), body.getYOfNextEntry(), body.getRowWidth(), ButtonWidget.DEFAULT_HEIGHT).build());
     }
-
-    @Unique
-    private boolean getFallbackDefault() {
-        // Server didn't have the mod, using default value
-        hasUsedFallbackWhereServerDidntTranspondSettings = true;
-        return true;
-    }
+    
 
     @Unique
     private void setOpacityAffectingHatOrSkull(Boolean value) {
@@ -228,9 +207,4 @@ public abstract class SkinOptionsMixin extends Screen {
         settingsChanged = true;
     }
 
-    @Unique
-    private void setServerCombatDetection(boolean enabled) {
-        newServerCombatDetection = enabled;
-        serverSettingsChanged = true;
-    }
 }

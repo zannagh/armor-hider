@@ -17,7 +17,7 @@ import java.util.UUID;
 
 public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
     
-    private boolean hasChangedFromSerializedContent;
+    private transient boolean hasChangedFromSerializedContent;
 
     public static final Id<PlayerConfig> PACKET_IDENTIFIER = new Id<>(Identifier.of("de.zannagh.armorhider", "settings_c2s_packet"));
     
@@ -51,6 +51,15 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
     @SerializedName(value = "opacityAffectingHatOrSkull")
     public OpacityAffectingHatOrSkullItem opacityAffectingHatOrSkull;
     
+    @SerializedName(value = "disableArmorHider", alternate = "globalArmorHiderToggle")
+    public DisableArmorHiderGlobally disableArmorHider;
+    
+    @SerializedName(value = "disableArmorHiderForOthers", alternate = "toggleArmorHiderForOthers")
+    public DisableArmorHiderForOthers disableArmorHiderForOthers;
+    
+    @SerializedName(value = "usePlayerSettingsWhenUndeterminable")
+    public UsePlayerSettingsWhenUndeterminable usePlayerSettingsWhenUndeterminable;
+    
     public PlayerUuid playerId;
     public PlayerName playerName;
 
@@ -70,6 +79,9 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         playerName = new PlayerName();
         opacityAffectingHatOrSkull = new OpacityAffectingHatOrSkullItem();
         opacityAffectingElytra = new OpacityAffectingElytraItem();
+        disableArmorHider = new DisableArmorHiderGlobally();
+        disableArmorHiderForOthers = new DisableArmorHiderForOthers();
+        usePlayerSettingsWhenUndeterminable = new UsePlayerSettingsWhenUndeterminable();
     }
 
     public static PlayerConfig deserialize(Reader reader){
