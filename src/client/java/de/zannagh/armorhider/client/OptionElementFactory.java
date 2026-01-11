@@ -59,7 +59,7 @@ public class OptionElementFactory {
         return new SimpleOption<>(
                 key,
                 new NarratedTooltipFactory<>(tooltip, narration),
-                (_, value) -> sliderTextProvider.apply(value),
+                (text, value) -> sliderTextProvider.apply(value),
                 new SimpleOption.ValidatingIntSliderCallbacks(0, 20)
                         .withModifier(v -> v / 20.0, v -> (int) Math.round(v * 20), true),
                 defaultValue,
@@ -82,7 +82,7 @@ public class OptionElementFactory {
         return SimpleOption.ofBoolean(
                 booleanKey,
                 new NarratedTooltipFactory<>(tooltip, narration),
-                (_, value) -> value ? Text.translatable("armorhider.options.toggle.on") : Text.translatable("armorhider.options.toggle.off"),
+                (text, value) -> value ? Text.translatable("armorhider.options.toggle.on") : Text.translatable("armorhider.options.toggle.off"),
                 defaultValue,
                 setter
         );
