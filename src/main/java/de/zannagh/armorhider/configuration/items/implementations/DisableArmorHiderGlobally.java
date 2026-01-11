@@ -2,16 +2,16 @@ package de.zannagh.armorhider.configuration.items.implementations;
 
 import de.zannagh.armorhider.configuration.items.BooleanConfigItem;
 
-public class GlobalArmorHiderToggleItem extends BooleanConfigItem {
-    public GlobalArmorHiderToggleItem(boolean currentValue) {
+public class DisableArmorHiderGlobally extends BooleanConfigItem {
+    public DisableArmorHiderGlobally(boolean currentValue) {
         super(currentValue);
     }
 
-    public GlobalArmorHiderToggleItem() {
+    public DisableArmorHiderGlobally() {
         super();
     }
     @Override
     public Boolean getDefaultValue() {
-        return true;
+        return false;
     }
 }

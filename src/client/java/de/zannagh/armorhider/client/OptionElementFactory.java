@@ -59,7 +59,7 @@ public class OptionElementFactory {
         return new SimpleOption<>(
                 key,
                 new NarratedTooltipFactory<>(tooltip, narration),
-                (text, value) -> sliderTextProvider.apply(value),
+                (_, value) -> sliderTextProvider.apply(value),
                 new SimpleOption.ValidatingIntSliderCallbacks(0, 20)
                         .withModifier(v -> v / 20.0, v -> (int) Math.round(v * 20), true),
                 defaultValue,
@@ -82,13 +82,13 @@ public class OptionElementFactory {
         return SimpleOption.ofBoolean(
                 booleanKey,
                 new NarratedTooltipFactory<>(tooltip, narration),
-                (text, value) -> value ? Text.translatable("armorhider.options.toggle.on") : Text.translatable("armorhider.options.toggle.off"),
+                (_, value) -> value ? Text.translatable("armorhider.options.toggle.on") : Text.translatable("armorhider.options.toggle.off"),
                 defaultValue,
                 setter
         );
     }
 
-    private static ClickableWidget simpleOptionToGameOptionWidget(SimpleOption<?> simpleOption, GameOptions options, @Nullable OptionListWidget body, boolean fullWidth){
+    public static ClickableWidget simpleOptionToGameOptionWidget(SimpleOption<?> simpleOption, GameOptions options, @Nullable OptionListWidget body, boolean fullWidth){
         int rowWidth = RenderUtilities.getRowWidth(body);
         int rowLeft = RenderUtilities.getRowLeft(body);
         int y = RenderUtilities.getNextY(body);

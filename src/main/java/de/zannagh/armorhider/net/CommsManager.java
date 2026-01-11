@@ -5,7 +5,6 @@ import de.zannagh.armorhider.*;
 import de.zannagh.armorhider.resources.PlayerConfig;
 import de.zannagh.armorhider.resources.ServerConfiguration;
 import de.zannagh.armorhider.resources.ServerWideSettings;
-import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -49,10 +48,15 @@ public final class CommsManager {
                 ArmorHider.LOGGER.info("Non-admin player {} attempted to change server settings. Ignoring.", player.getUuidAsString());
                 return;
             }
+            
+            if (ServerRuntime.store.getConfig().serverWideSettings.enableCombatDetection.getValue() == payload.enableCombatDetection.getValue()
+                && ServerRuntime.store.getConfig().serverWideSettings.forceArmorHiderOff.getValue() == payload.forceArmorHiderOff.getValue()) {
+               return;
+            }
 
             ArmorHider.LOGGER.info("Admin player {} is updating server-wide combat detection to: {}", player.getUuidAsString(), payload.enableCombatDetection.getValue());
             ServerRuntime.store.setServerCombatDetection(payload.enableCombatDetection.getValue());
-
+            ServerRuntime.store.setGlobalOverride(payload.forceArmorHiderOff.getValue());
             sendToAllClientsButSender(player.getUuid(), ServerRuntime.store.getConfig());
         });
     }

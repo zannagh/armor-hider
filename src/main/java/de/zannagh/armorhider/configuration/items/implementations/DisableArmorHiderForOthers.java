@@ -2,18 +2,18 @@ package de.zannagh.armorhider.configuration.items.implementations;
 
 import de.zannagh.armorhider.configuration.items.BooleanConfigItem;
 
-public class ToggleArmorHiderForOthersItem extends BooleanConfigItem {
+public class DisableArmorHiderForOthers extends BooleanConfigItem {
 
-    public ToggleArmorHiderForOthersItem(boolean currentValue) {
+    public DisableArmorHiderForOthers(boolean currentValue) {
         super(currentValue);
     }
 
-    public ToggleArmorHiderForOthersItem() {
+    public DisableArmorHiderForOthers() {
         super();
     }
    
     @Override
     public Boolean getDefaultValue() {
-        return true;
+        return false;
     }
 }

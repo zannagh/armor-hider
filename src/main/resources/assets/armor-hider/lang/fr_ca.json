@@ -23,7 +23,22 @@
   "armorhider.options.combat_detection.tooltip_narration": "Active la détection de combat pour afficher votre armure lorsque vous êtes en combat.",
   "armorhider.options.combat_detection_server.title": "Armure en combat (serveur): ",
   "armorhider.options.combat_detection_server.tooltip": "Active la détection de combat à l'échelle du serveur pour forcer l'affichage de l'armure lorsqu'un joueur est en combat. Si activé, cela remplacera les paramètres individuels.",
+  "armorhider.options.combat_detection_server.tooltip.disabled": "Les permissions n'ont pas pu être déterminées ou sont insuffisantes pour modifier le paramètre.",
   "armorhider.options.combat_detection_server.tooltip_narration": "Active la détection de combat à l'échelle du serveur pour forcer l'affichage de l'armure lorsqu'un joueur est en combat. Si activé, cela remplacera les paramètres individuels.",
+  "armorhider.options.force_armor_hider_off.title": "Forcer la désactivation d'Armor Hider pour tous les joueurs: ",
+  "armorhider.options.force_armor_hider_off.tooltip": "Force la désactivation d'Armor Hider pour tous les joueurs. Cela remplacera les paramètres individuels.",
+  "armorhider.options.force_armor_hider_off.tooltip.disabled": "Les permissions n'ont pas pu être déterminées ou sont insuffisantes pour modifier le paramètre.",
   "armorhider.options.toggle.on": "ACTIVÉ",
-  "armorhider.options.toggle.off": "DÉSACTIVÉ"
+  "armorhider.options.toggle.off": "DÉSACTIVÉ",
+  "armorhider.options.admin.title": "Paramètres Administratifs",
+  "armorhider.options.regular.title": "Autres Paramètres",
+  "armorhider.options.use_settings_for_unknown.title": "Appliquer mes paramètres aux joueurs inconnus",
+  "armorhider.options.use_settings_for_unknown.tooltip": "Utiliser vos propres paramètres ou les paramètres par défaut (qui n'interfèrent pas avec le rendu) lorsque les paramètres d'un joueur ne peuvent pas être déterminés.",
+  "armorhider.options.use_settings_for_unknown.tooltip_narration": "Utiliser vos propres paramètres ou les paramètres par défaut (qui n'interfèrent pas avec le rendu) lorsque les paramètres d'un joueur ne peuvent pas être déterminés.",
+  "armorhider.options.disable_local.title": "Désactiver les fonctionnalités d'Armor Hider",
+  "armorhider.options.disable_local.tooltip": "Active ou désactive l'utilisation d'Armor Hider globalement. Si le serveur force la désactivation d'Armor Hider, ce paramètre est ignoré car l'armure sera affichée dans tous les cas.",
+  "armorhider.options.disable_local.tooltip_narration": "Active ou désactive l'utilisation d'Armor Hider globalement. Si le serveur force la désactivation d'Armor Hider, ce paramètre est ignoré car l'armure sera affichée dans tous les cas.",
+  "armorhider.options.disable_others.title": "Désactiver Armor Hider pour les autres joueurs",
+  "armorhider.options.disable_others.tooltip": "Désactive l'utilisation d'Armor Hider pour les armures des autres joueurs. Si le serveur force la désactivation d'Armor Hider ou si la désactivation globale est définie, ce paramètre est ignoré car l'armure sera affichée dans tous les cas.",
+  "armorhider.options.disable_others.tooltip_narration": "Désactive l'utilisation d'Armor Hider pour les armures des autres joueurs. Si le serveur force la désactivation d'Armor Hider ou si la désactivation globale est définie, ce paramètre est ignoré car l'armure sera affichée dans tous les cas."
 }
