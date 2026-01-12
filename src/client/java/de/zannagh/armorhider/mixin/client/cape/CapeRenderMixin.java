@@ -20,7 +20,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(CapeFeatureRenderer.class)
 public abstract class CapeRenderMixin extends FeatureRenderer<PlayerEntityRenderState, PlayerEntityModel> {
     @Unique
-    private final ThreadLocal<PlayerEntityRenderState> playerEntityRenderState = ThreadLocal.withInitial(() -> null);
+    private final ThreadLocal<PlayerEntityRenderState> playerEntityRenderState = new ThreadLocal<>();
     
     public CapeRenderMixin(FeatureRendererContext<PlayerEntityRenderState, PlayerEntityModel> context) {
         super(context);
@@ -31,8 +31,7 @@ public abstract class CapeRenderMixin extends FeatureRenderer<PlayerEntityRender
             method = "render(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/command/OrderedRenderCommandQueue;ILnet/minecraft/client/render/entity/state/PlayerEntityRenderState;FF)V"
     )
     private void setupCapeRenderContext(MatrixStack matrixStack, OrderedRenderCommandQueue orderedRenderCommandQueue, int i, PlayerEntityRenderState playerEntityRenderState, float f, float g, CallbackInfo ci){
-        var itemStack = playerEntityRenderState.getMainHandItemStack(); // Using main hand item stack to prevent null reference issues. The exact item stack does not matter for this.
-        ArmorRenderPipeline.setupContext(itemStack, EquipmentSlot.CHEST, playerEntityRenderState);
+        ArmorRenderPipeline.setupContext(playerEntityRenderState.equippedChestStack, EquipmentSlot.CHEST, playerEntityRenderState);
         this.playerEntityRenderState.set(playerEntityRenderState);
         if (!ArmorRenderPipeline.shouldModifyEquipment() || ArmorRenderPipeline.renderStateDoesNotTargetPlayer(playerEntityRenderState)) {
             ArmorRenderPipeline.clearContext();
@@ -47,9 +46,9 @@ public abstract class CapeRenderMixin extends FeatureRenderer<PlayerEntityRender
             method = "render(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/command/OrderedRenderCommandQueue;ILnet/minecraft/client/render/entity/state/PlayerEntityRenderState;FF)V"
     )
     private void moveCapeWhenArmorHidden(MatrixStack instance, float x, float y, float z, Operation<Void> original) {
-        if (!ArmorRenderPipeline.hasActiveContext() && playerEntityRenderState.get() instanceof PlayerEntityRenderState entityRenderState) {
-            // Verify the context has been set up and if not, set it up by instance fields.
-            ArmorRenderPipeline.setupContext(entityRenderState.getMainHandItemStack(), EquipmentSlot.CHEST, entityRenderState);
+        if (!ArmorRenderPipeline.hasActiveContext() && playerEntityRenderState.get() != null) {
+            // Something failed on setting up the context, so set it up via instance field.
+            ArmorRenderPipeline.setupContext(playerEntityRenderState.get().equippedChestStack, EquipmentSlot.CHEST, playerEntityRenderState.get());
         }
         
         if (ArmorRenderPipeline.shouldHideEquipment()) {
