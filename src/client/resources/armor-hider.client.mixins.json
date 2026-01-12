@@ -3,13 +3,14 @@
 	"package": "de.zannagh.armorhider.mixin.client",
 	"compatibilityLevel": "JAVA_21",
 	"client": [
-      "bodyKneesAndToes.ArmorFeatureRenderMixin",
-      "bodyKneesAndToes.EquipmentRenderMixin",
-      "SkinOptionsMixin",
-      "LivingEntityMixin",
-      "head.HeadRenderMixin",
-      "head.SkullBlockRenderMixin",
-      "cape.ElytraRenderMixin"
+		"bodyKneesAndToes.ArmorFeatureRenderMixin",
+		"bodyKneesAndToes.EquipmentRenderMixin",
+		"SkinOptionsMixin",
+		"LivingEntityMixin",
+		"head.HeadRenderMixin",
+		"head.SkullBlockRenderMixin",
+		"cape.ElytraRenderMixin",
+		"cape.CapeRenderMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
