@@ -9,11 +9,13 @@ import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.configuration.ConfigurationSource;
 import de.zannagh.armorhider.netPackets.CompressedJsonCodec;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.Identifier;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -22,14 +24,14 @@ import java.util.*;
 
 public class ServerConfiguration implements ConfigurationSource<ServerConfiguration> {
     
-    public static final Id<ServerConfiguration> PACKET_IDENTIFIER = new Id<>(Identifier.of("de.zannagh.armorhider", "settings_s2c_packet"));
+    public static final Identifier PACKET_IDENTIFIER = Identifier.fromNamespaceAndPath("de.zannagh.armorhider", "settings_s2c_packet");
 
-    public PacketCodec<ByteBuf, ServerConfiguration> getCodec() {
+    public StreamCodec<ByteBuf, ServerConfiguration> getCodec() {
         return CompressedJsonCodec.create(ServerConfiguration.class);
     }
 
     @Override
-    public Id<ServerConfiguration> getId() {
+    public Identifier getId() {
         return PACKET_IDENTIFIER;
     }
     
@@ -54,8 +56,8 @@ public class ServerConfiguration implements ConfigurationSource<ServerConfigurat
         this.playerConfigs.values().forEach(c -> playerNameConfigs.put(c.playerName.getValue(), c));
     }
 
-    public PlayerConfig getPlayerConfigOrDefault(PlayerEntity player) {
-        if (getPlayerConfigOrDefault(player.getUuid()) instanceof PlayerConfig uuidConfig && Objects.equals(uuidConfig.playerName.getValue(), Objects.requireNonNull(player.getDisplayName()).getString())) {
+    public PlayerConfig getPlayerConfigOrDefault(Player player) {
+        if (getPlayerConfigOrDefault(player.getUUID()) instanceof PlayerConfig uuidConfig && Objects.equals(uuidConfig.playerName.getValue(), Objects.requireNonNull(player.getDisplayName()).getString())) {
             return uuidConfig;
         }
         return getPlayerConfigOrDefault(Objects.requireNonNull(player.getDisplayName()).getString());
@@ -166,4 +168,13 @@ public class ServerConfiguration implements ConfigurationSource<ServerConfigurat
     public void setHasChangedFromSerializedContent() {
         hasChangedComparedToSerializedContent = true;
     }
+
+    @Override
+    public @NonNull Type<? extends CustomPacketPayload> type() {
+        return new Type<>(PACKET_IDENTIFIER);
+    }
+    
+    public static final Type<ServerConfiguration> TYPE = new Type<>(PACKET_IDENTIFIER);
+    
+    public static final StreamCodec<ByteBuf, ServerConfiguration> STREAM_CODEC = CompressedJsonCodec.create(ServerConfiguration.class);
 }

@@ -2,7 +2,7 @@ package de.zannagh.armorhider.netPackets;
 
 import com.google.gson.Gson;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.codec.StreamCodec;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -27,14 +27,14 @@ public class CompressedJsonCodec {
      * @param <T> The type of object to serialize/deserialize
      * @return A PacketCodec for the given type
      */
-    public static <T> PacketCodec<ByteBuf, T> create(Class<T> clazz) {
-        return PacketCodec.of(
+    public static <T> StreamCodec<ByteBuf, T> create(Class<T> clazz) {
+        return StreamCodec.of(
                 CompressedJsonCodec::encode,
                 (buf) -> decode(buf, clazz)
         );
     }
 
-    private static <T> void encode(T value, ByteBuf buf) {
+    private static <T> void encode(ByteBuf byteBuf, T value) {
         try {
             ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
             try (GZIPOutputStream gzipStream = new GZIPOutputStream(byteStream);
@@ -43,8 +43,8 @@ public class CompressedJsonCodec {
             }
 
             byte[] compressed = byteStream.toByteArray();
-            buf.writeInt(compressed.length);
-            buf.writeBytes(compressed);
+            byteBuf.writeInt(compressed.length);
+            byteBuf.writeBytes(compressed);
         } catch (Exception e) {
             throw new RuntimeException("Failed to encode compressed JSON", e);
         }

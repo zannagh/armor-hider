@@ -1,6 +1,7 @@
 package de.zannagh.armorhider.common;
 
-import net.minecraft.item.ItemStack;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.ItemStack;
 
 public class ItemStackHelper {
     
@@ -8,6 +9,6 @@ public class ItemStackHelper {
         if (itemStack == null) {
             return false;
         }
-        return itemStack.getItem().toString().toLowerCase().contains("elytra");
+        return itemStack.getItem().toString().toLowerCase().contains("elytra") || itemStack.getComponents().has(DataComponents.GLIDER);
     }
 }

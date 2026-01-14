@@ -7,12 +7,8 @@ import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 
 public final class PayloadRegistrar {
     public static void registerPayloads(){
-        var playerConfig = PlayerConfig.empty();
-        PayloadTypeRegistry.playC2S().register(playerConfig.getId(), playerConfig.getCodec());
-
-        var serverConfig = new ServerConfiguration();
-        var serverWideSettings = new ServerWideSettings();
-        PayloadTypeRegistry.playS2C().register(serverConfig.getId(), serverConfig.getCodec());
-        PayloadTypeRegistry.playC2S().register(serverWideSettings.getId(), serverWideSettings.getCodec());
+        PayloadTypeRegistry.playC2S().register(PlayerConfig.TYPE, PlayerConfig.STREAM_CODEC);
+        PayloadTypeRegistry.playS2C().register(ServerConfiguration.TYPE, ServerConfiguration.STREAM_CODEC);
+        PayloadTypeRegistry.playC2S().register(ServerWideSettings.TYPE, ServerWideSettings.STREAM_CODEC);
     }
 }

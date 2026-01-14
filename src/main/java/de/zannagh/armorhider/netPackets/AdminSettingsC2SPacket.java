@@ -1,19 +1,21 @@
 package de.zannagh.armorhider.netPackets;
 
 import io.netty.buffer.ByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.util.Identifier;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.Identifier;
+import org.jspecify.annotations.NonNull;
 
-public record AdminSettingsC2SPacket(boolean enableCombatDetection) implements CustomPayload {
-    public static final Id<AdminSettingsC2SPacket> IDENTIFIER = new Id<>(Identifier.of("de.zannagh.armorhider", "admin_settings_c2s_packet"));
-    public static final PacketCodec<ByteBuf, AdminSettingsC2SPacket> PACKET_CODEC = PacketCodec.tuple(
-            PacketCodecs.BOOLEAN, c -> c.enableCombatDetection,
+public record AdminSettingsC2SPacket(boolean enableCombatDetection) implements CustomPacketPayload {
+    public static final Identifier IDENTIFIER = Identifier.fromNamespaceAndPath("de.zannagh.armorhider", "admin_settings_c2s_packet");
+    public static final StreamCodec<ByteBuf, AdminSettingsC2SPacket> PACKET_CODEC = StreamCodec.composite(
+            ByteBufCodecs.BOOL, c -> c.enableCombatDetection,
             AdminSettingsC2SPacket::new
     );
+
     @Override
-    public Id<? extends CustomPayload> getId() {
-        return IDENTIFIER;
+    public @NonNull Type<? extends CustomPacketPayload> type() {
+        return new Type<>(IDENTIFIER);
     }
 }

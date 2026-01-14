@@ -1,4 +1,3 @@
-
 package de.zannagh.armorhider.resources;
 
 import com.google.gson.annotations.SerializedName;
@@ -7,8 +6,9 @@ import de.zannagh.armorhider.configuration.ConfigurationSource;
 import de.zannagh.armorhider.configuration.items.implementations.*;
 import de.zannagh.armorhider.netPackets.CompressedJsonCodec;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.Identifier;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.NonNull;
 
@@ -19,14 +19,16 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
     
     private transient boolean hasChangedFromSerializedContent;
 
-    public static final Id<PlayerConfig> PACKET_IDENTIFIER = new Id<>(Identifier.of("de.zannagh.armorhider", "settings_c2s_packet"));
+    public static final Identifier PACKET_IDENTIFIER = Identifier.tryBuild("de.zannagh.armorhider", "settings_c2s_packet");
     
-    public PacketCodec<ByteBuf, PlayerConfig> getCodec() {
+    public StreamCodec<ByteBuf, PlayerConfig> getCodec() {
         return CompressedJsonCodec.create(PlayerConfig.class);
     }
+    
+    public static final StreamCodec<ByteBuf, PlayerConfig> STREAM_CODEC = CompressedJsonCodec.create(PlayerConfig.class);
 
     @Override
-    public Id<PlayerConfig> getId() {
+    public Identifier getId() {
         return PACKET_IDENTIFIER;
     }
     
@@ -126,4 +128,11 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         newConfig.usePlayerSettingsWhenUndeterminable.setValue(this.usePlayerSettingsWhenUndeterminable.getValue());
         return newConfig;
     }
+
+    @Override
+    public @NonNull Type<? extends CustomPacketPayload> type() {
+        return new Type<>(PACKET_IDENTIFIER);
+    }
+    
+    public static final Type<PlayerConfig> TYPE = new Type<>(PACKET_IDENTIFIER);
 }
