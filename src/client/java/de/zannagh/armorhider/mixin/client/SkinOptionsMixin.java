@@ -11,17 +11,14 @@ import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.OptionElementFactory;
 import de.zannagh.armorhider.gui.AdvancedArmorHiderSettingsScreen;
 import de.zannagh.armorhider.rendering.PlayerPreviewRenderer;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.screen.option.GameOptionsScreen;
-import net.minecraft.client.gui.screen.option.SkinOptionsScreen;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.gui.widget.OptionListWidget;
-import net.minecraft.client.gui.widget.TextWidget;
-import net.minecraft.client.option.GameOptions;
-import net.minecraft.client.option.SimpleOption;
-import net.minecraft.text.Text;
+import net.minecraft.client.Options;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.OptionsList;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.options.OptionsScreen;
+import net.minecraft.client.gui.screens.options.OptionsSubScreen;
+import net.minecraft.client.gui.screens.options.SkinCustomizationScreen;
+import net.minecraft.network.chat.Component;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -30,7 +27,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(GameOptionsScreen.class)
+@Mixin(OptionsSubScreen.class)
 public abstract class SkinOptionsMixin extends Screen {
 
     // TODO: This may have to be extended into not sending network stuff if the server doesn't support it.
@@ -42,21 +39,22 @@ public abstract class SkinOptionsMixin extends Screen {
     private boolean isSkinOptionsScreen;
 
     @Shadow
-    protected OptionListWidget body;
+    protected OptionsList list;
 
     @Final
     @Shadow
-    protected GameOptions gameOptions;
+    protected Options options;
 
-    protected SkinOptionsMixin(Text title) {
-        super(title);
+    protected SkinOptionsMixin(Component component) {
+        super(component);
     }
 
+
     @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float deltaTicks){
+    public void render(GuiGraphics context, int mouseX, int mouseY, float deltaTicks){
         super.render(context, mouseX, mouseY, deltaTicks);
-        if (body != null && isSkinOptionsScreen) {
-            PlayerPreviewRenderer.renderPlayerPreview(context, body, mouseX, mouseY);
+        if (list != null && isSkinOptionsScreen) {
+            PlayerPreviewRenderer.renderPlayerPreview(context, list, mouseX, mouseY);
         }
     }
 
@@ -75,13 +73,13 @@ public abstract class SkinOptionsMixin extends Screen {
 
     @Inject(method = "init", at = @At("RETURN"))
     private void onAddOptions(CallbackInfo ci) {
-        isSkinOptionsScreen = MinecraftClient.getInstance().currentScreen instanceof SkinOptionsScreen;
+        isSkinOptionsScreen = MinecraftClient.getInstance().currentScreen instanceof SkinCustomizationScreen;
 
         if (!isSkinOptionsScreen) {
             return;
         }
 
-        OptionElementFactory optionElementFactory = new OptionElementFactory(this, body, gameOptions);
+        OptionElementFactory optionElementFactory = new OptionElementFactory(this, body, options);
         if (MinecraftClient.getInstance().player != null) {
             optionElementFactory = optionElementFactory.withHalfWidthRendering();
         }
@@ -96,7 +94,7 @@ public abstract class SkinOptionsMixin extends Screen {
                 ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().helmetOpacity.getValue(),
                 this::setHelmetTransparency);
         if (MinecraftClient.getInstance().player != null) {
-            body.addWidgetEntry(OptionElementFactory.simpleOptionToGameOptionWidget(helmetOption, gameOptions, body, false), 
+            body.addWidgetEntry(OptionElementFactory.simpleOptionToGameOptionWidget(helmetOption, options, body, false), 
                     new TextWidget(Text.literal("Preview"), this.getTextRenderer()));
         }
         else {
@@ -160,7 +158,7 @@ public abstract class SkinOptionsMixin extends Screen {
         
         optionElementFactory.addElementAsWidget(ButtonWidget.builder(
                 Text.literal("Advanced..."), 
-                (widget) -> MinecraftClient.getInstance().setScreen(new AdvancedArmorHiderSettingsScreen(MinecraftClient.getInstance().currentScreen, gameOptions, title)))
+                (widget) -> MinecraftClient.getInstance().setScreen(new AdvancedArmorHiderSettingsScreen(MinecraftClient.getInstance().currentScreen, options, title)))
                 .dimensions(body.getX(), body.getYOfNextEntry(), body.getRowWidth(), ButtonWidget.DEFAULT_HEIGHT).build());
     }
     

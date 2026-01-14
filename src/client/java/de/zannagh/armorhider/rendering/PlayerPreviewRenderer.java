@@ -1,24 +1,22 @@
 package de.zannagh.armorhider.rendering;
-
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.ingame.InventoryScreen;
-import net.minecraft.client.gui.screen.option.SkinOptionsScreen;
-import net.minecraft.client.gui.widget.OptionListWidget;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.util.Colors;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.OptionsList;
+import net.minecraft.client.gui.screens.inventory.InventoryScreen;
+import net.minecraft.client.gui.screens.options.SkinCustomizationScreen;
+import net.minecraft.client.player.AbstractClientPlayer;
 
 import java.awt.*;
 
 public class PlayerPreviewRenderer {
     private static final int armorHiderSegmentRow = 5;
     
-    public static void renderPlayerPreview(DrawContext context, OptionListWidget body, int mouseX, int mouseY){
-        if (!(MinecraftClient.getInstance().player instanceof ClientPlayerEntity player)) {
+    public static void renderPlayerPreview(GuiGraphics graphics, OptionsList body, int mouseX, int mouseY){
+        if (!(Minecraft.getInstance().player instanceof AbstractClientPlayer player)) {
             return;
         }
         
-        if (!(MinecraftClient.getInstance().currentScreen instanceof SkinOptionsScreen)) {
+        if (!(Minecraft.getInstance().screen instanceof SkinCustomizationScreen)) {
             return;
         }
         
@@ -49,23 +47,23 @@ public class PlayerPreviewRenderer {
             return;
         }
 
-        context.enableScissor(
+        graphics.enableScissor(
                 bodyX,
                 bodyTop,
                 bodyX + bodyWidth,
                 bodyBottom
         );
 
-        context.fill(panelLeft, panelTop, panelRight, panelBottom, Color.darkGray.darker().getRGB());
+        graphics.fill(panelLeft, panelTop, panelRight, panelBottom, Color.darkGray.darker().getRGB());
 
-        int borderColor = Colors.LIGHT_GRAY;
-        context.fill(panelLeft, panelTop, panelRight, panelTop + 1, borderColor); // Top
-        context.fill(panelLeft, panelBottom - 1, panelRight, panelBottom, borderColor); // Bottom
-        context.fill(panelLeft, panelTop, panelLeft + 1, panelBottom, borderColor); // Left
-        context.fill(panelRight - 1, panelTop, panelRight, panelBottom, borderColor); // Right
+        int borderColor = Color.LIGHT_GRAY.getRGB();
+        graphics.fill(panelLeft, panelTop, panelRight, panelTop + 1, borderColor); // Top
+        graphics.fill(panelLeft, panelBottom - 1, panelRight, panelBottom, borderColor); // Bottom
+        graphics.fill(panelLeft, panelTop, panelLeft + 1, panelBottom, borderColor); // Left
+        graphics.fill(panelRight - 1, panelTop, panelRight, panelBottom, borderColor); // Right
 
-        InventoryScreen.drawEntity(
-                context,
+        InventoryScreen.renderEntityInInventoryFollowsMouse(
+                graphics,
                 panelLeft,
                 panelTop - margin,
                 panelRight,
@@ -77,6 +75,6 @@ public class PlayerPreviewRenderer {
                 player
         );
 
-        context.disableScissor();
+        graphics.disableScissor();
     }
 }

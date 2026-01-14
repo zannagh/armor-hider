@@ -8,11 +8,12 @@ package de.zannagh.armorhider.mixin.client;
 
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.common.CombatManager;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.network.OtherClientPlayerEntity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.client.player.AbstractClientPlayer;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.player.RemotePlayer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.LivingEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -24,31 +25,31 @@ import java.util.Objects;
 @Mixin(LivingEntity.class)
 public class LivingEntityMixin {
     @Inject(
-            method = "onDamaged",
+            method = "actuallyHurt",
             at = @At(value = "HEAD")
     )
-    private void triggerCombat(DamageSource damageSource, CallbackInfo ci) {
-        if (damageSource.getAttacker() == null) {
+    private void triggerCombat(ServerLevel serverLevel, DamageSource damageSource, float f, CallbackInfo ci) {
+        if (damageSource.getEntity() == null) {
             return;
         }
 
-        if ((Object) this instanceof ClientPlayerEntity player) {
+        if ((Object) this instanceof LocalPlayer player) {
             if (shouldLogCombatForPlayer(player)) {
                 CombatManager.logCombat(player.getDisplayName().getString());
             }
         }
-        if ((Object) this instanceof OtherClientPlayerEntity otherPlayer) {
+        if ((Object) this instanceof AbstractClientPlayer otherPlayer) {
             if (shouldLogCombatForPlayer(otherPlayer)) {
                 CombatManager.logCombat(otherPlayer.getDisplayName().getString());
             }
         }
 
-        if (damageSource.getAttacker() instanceof ClientPlayerEntity player) {
+        if (damageSource.getEntity() instanceof LocalPlayer player) {
             if (shouldLogCombatForPlayer(player)) {
                 CombatManager.logCombat(Objects.requireNonNull(player.getDisplayName()).getString());
             }
         }
-        if (damageSource.getAttacker() instanceof OtherClientPlayerEntity otherPlayer) {
+        if (damageSource.getEntity() instanceof AbstractClientPlayer otherPlayer) {
             if (shouldLogCombatForPlayer(otherPlayer)) {
                 CombatManager.logCombat(Objects.requireNonNull(otherPlayer.getDisplayName()).getString());
             }
@@ -68,8 +69,8 @@ public class LivingEntityMixin {
      * @return true if combat should be logged for this player
      */
     @Unique
-    private static boolean shouldLogCombatForPlayer(PlayerEntity player) {
-        boolean isClientPlayer = !(player instanceof OtherClientPlayerEntity);
+    private static boolean shouldLogCombatForPlayer(AbstractClientPlayer player) {
+        boolean isClientPlayer = !(player instanceof RemotePlayer);
 
         // Null safety: Check if server config and serverWideSettings are available
         var serverConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getServerConfig();

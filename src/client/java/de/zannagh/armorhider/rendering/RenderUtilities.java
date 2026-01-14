@@ -1,20 +1,20 @@
 package de.zannagh.armorhider.rendering;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.navigation.NavigationDirection;
-import net.minecraft.client.gui.widget.OptionListWidget;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.components.OptionsList;
+import net.minecraft.client.gui.navigation.ScreenDirection;
 import org.jetbrains.annotations.Nullable;
 
 public final class RenderUtilities {
     
-    public static int getRowWidth(@Nullable OptionListWidget body){
+    public static int getRowWidth(@Nullable OptionsList body){
         int rowWidth;
         if (body == null) {
-            if (MinecraftClient.getInstance().currentScreen == null) {
-                rowWidth = MinecraftClient.getInstance().getWindow().getWidth();
+            if (Minecraft.getInstance().screen == null) {
+                rowWidth = Minecraft.getInstance().getWindow().getScreenWidth();
             }
             else {
-                rowWidth = MinecraftClient.getInstance().currentScreen.width;
+                rowWidth = Minecraft.getInstance().screen.width;
             }
         }
         else {
@@ -23,10 +23,10 @@ public final class RenderUtilities {
         return rowWidth;
     }
     
-    public static int getRowLeft(@Nullable OptionListWidget body) {
+    public static int getRowLeft(@Nullable OptionsList body) {
         int rowLeft = 0;
-        if (body == null && MinecraftClient.getInstance().currentScreen != null) {
-            rowLeft = MinecraftClient.getInstance().currentScreen.getBorder(NavigationDirection.LEFT).getLeft();
+        if (body == null && Minecraft.getInstance().screen != null) {
+            rowLeft = Minecraft.getInstance().screen.getRectangle().getBorder(ScreenDirection.LEFT).left();
         }
         else if (body != null) {
             rowLeft = body.getRowLeft();
@@ -34,19 +34,19 @@ public final class RenderUtilities {
         return rowLeft;
     }
     
-    public static int getNextY(@Nullable OptionListWidget body){
+    public static int getNextY(@Nullable OptionsList body){
         
         int y = 0;
         if (body != null) {
-            y = body.getYOfNextEntry();
+            y = body.getNextY();
         }
         return y;
     }
     
-    public static int getRowTop(@Nullable OptionListWidget body, int index) {
+    public static int getRowTop(@Nullable OptionsList body, int index) {
         int y = 0;
-        if (body == null && MinecraftClient.getInstance().currentScreen != null) {
-            y = MinecraftClient.getInstance().currentScreen.getBorder(NavigationDirection.DOWN).getBottom();
+        if (body == null && Minecraft.getInstance().screen != null) {
+            y = Minecraft.getInstance().screen.getRectangle().getBorder(ScreenDirection.DOWN).bottom();
         }
         else if (body != null) {
             y = body.getRowTop(index);
@@ -54,10 +54,10 @@ public final class RenderUtilities {
         return y;
     }
     
-    public static int getBodyTop(@Nullable OptionListWidget body){
+    public static int getBodyTop(@Nullable OptionsList body){
         int y = 0;
-        if (body == null && MinecraftClient.getInstance().currentScreen != null) {
-            y = MinecraftClient.getInstance().currentScreen.getBorder(NavigationDirection.DOWN).getTop();
+        if (body == null && Minecraft.getInstance().screen != null) {
+            y = Minecraft.getInstance().screen.getRectangle().getBorder(ScreenDirection.DOWN).top();
         }
         else if (body != null) {
             y = body.getY();
@@ -65,10 +65,10 @@ public final class RenderUtilities {
         return y;
     }
     
-    public static int getBodyBottom(@Nullable OptionListWidget body){
+    public static int getBodyBottom(@Nullable OptionsList body){
         int y = 0;
-        if (body == null && MinecraftClient.getInstance().currentScreen != null) {
-            y = MinecraftClient.getInstance().currentScreen.getBorder(NavigationDirection.DOWN).getBottom();
+        if (body == null && Minecraft.getInstance().screen != null) {
+            y = Minecraft.getInstance().screen.getRectangle().getBorder(ScreenDirection.DOWN).bottom();
         }
         else if (body != null) {
             y = body.getBottom();
@@ -76,10 +76,10 @@ public final class RenderUtilities {
         return y;
     }
     
-    public static int getBodyX(@Nullable OptionListWidget body) {
+    public static int getBodyX(@Nullable OptionsList body) {
         int x = 0;
-        if (body == null && MinecraftClient.getInstance().currentScreen != null) {
-            x = MinecraftClient.getInstance().currentScreen.getBorder(NavigationDirection.LEFT).getLeft();
+        if (body == null && Minecraft.getInstance().screen != null) {
+            x = Minecraft.getInstance().screen.getRectangle().getBorder(ScreenDirection.LEFT).left();
         }
         else if (body != null) {
             x = body.getY();
@@ -87,10 +87,10 @@ public final class RenderUtilities {
         return x;
     }
     
-    public static int getBodyWidth(@Nullable OptionListWidget body) {
+    public static int getBodyWidth(@Nullable OptionsList body) {
         int width = 0;
-        if (body == null && MinecraftClient.getInstance().currentScreen != null) {
-            width = MinecraftClient.getInstance().currentScreen.width;
+        if (body == null && Minecraft.getInstance().screen != null) {
+            width = Minecraft.getInstance().screen.width;
         }
         else if (body != null) {
             width = body.getWidth();
