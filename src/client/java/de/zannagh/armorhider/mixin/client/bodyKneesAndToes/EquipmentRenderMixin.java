@@ -9,6 +9,8 @@ package de.zannagh.armorhider.mixin.client.bodyKneesAndToes;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import de.zannagh.armorhider.common.ItemStackHelper;
+import de.zannagh.armorhider.compat.elytratrinket.ElytraTrinketMixinPlugin;
 import de.zannagh.armorhider.rendering.ArmorRenderPipeline;
 import net.minecraft.client.model.Model;
 import net.minecraft.client.render.RenderLayer;
@@ -40,6 +42,9 @@ public class EquipmentRenderMixin {
             argsOnly = true
     )
     private static int modifyRenderOrder(int k, EquipmentModel.LayerType layerType, RegistryKey<EquipmentAsset> assetKey, Model<?> model, Object object, ItemStack itemStack) {
+        if (ItemStackHelper.itemStackContainsElytra(itemStack) && ElytraTrinketMixinPlugin.isElytraTrinketLoaded){
+            return k;
+        }
         return ArmorRenderPipeline.modifyRenderPriority(k, itemStack);
     }
 
