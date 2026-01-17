@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "de.zannagh.armorhider.compat.elytratrinket",
+  "plugin": "de.zannagh.armorhider.compat.elytratrinket.ElytraTrinketMixinPlugin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+  ],
+  "client": [
+  ],
+  "injectors": {
+    "defaultRequire": 0
+  }
+}
