@@ -9,13 +9,13 @@ import java.util.List;
 import java.util.Set;
 
 public final class ElytraTrinketMixinPlugin implements IMixinConfigPlugin {
-    public static boolean IsElytraTrinketLoaded = false;
+    public static boolean isElytraTrinketLoaded = false;
     private static final String MIXIN_PACKAGE = "elytratrims";
     
     @Override
     public void onLoad(String mixinPackage) {
         if (FabricLoader.getInstance().isModLoaded(MIXIN_PACKAGE)) {
-            IsElytraTrinketLoaded = true;
+            isElytraTrinketLoaded = true;
         }
     }
 
@@ -28,7 +28,7 @@ public final class ElytraTrinketMixinPlugin implements IMixinConfigPlugin {
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
         var isLoaded = FabricLoader.getInstance().isModLoaded(MIXIN_PACKAGE);
         if (isLoaded) {
-            IsElytraTrinketLoaded = true;
+            isElytraTrinketLoaded = true;
         }
         return isLoaded;
     }

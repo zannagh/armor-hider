@@ -42,7 +42,7 @@ public class EquipmentRenderMixin {
             argsOnly = true
     )
     private static int modifyRenderOrder(int k, EquipmentModel.LayerType layerType, RegistryKey<EquipmentAsset> assetKey, Model<?> model, Object object, ItemStack itemStack) {
-        if (ItemStackHelper.itemStackContainsElytra(itemStack) && ElytraTrinketMixinPlugin.IsElytraTrinketLoaded){
+        if (ItemStackHelper.itemStackContainsElytra(itemStack) && ElytraTrinketMixinPlugin.isElytraTrinketLoaded){
             return k;
         }
         return ArmorRenderPipeline.modifyRenderPriority(k, itemStack);
