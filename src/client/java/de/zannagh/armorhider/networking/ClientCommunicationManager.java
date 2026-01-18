@@ -2,12 +2,13 @@ package de.zannagh.armorhider.networking;
 
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.resources.PlayerConfig;
 import de.zannagh.armorhider.resources.ServerConfiguration;
-import de.zannagh.armorhider.resources.ServerWideSettings;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+import net.minecraft.client.multiplayer.ClientPacketListener;
+import net.minecraft.client.multiplayer.ServerData;
+import net.minecraft.core.RegistryAccess;
+
+import java.rmi.registry.Registry;
+
 
 public final class ClientCommunicationManager {
     public static void initClient() {
@@ -22,13 +23,13 @@ public final class ClientCommunicationManager {
             assert client.player != null;
             var playerName = client.player.getName().getString();
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.updateName(playerName);
-            ArmorHiderClient.CLIENT_CONFIG_MANAGER.updateId(handler.getProfile().id());
+            ArmorHiderClient.CLIENT_CONFIG_MANAGER.updateId(handler.getLocalGameProfile().id());
             var currentConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue();
 
-            if (client.getServer() != null) {
+            if (client.getCurrentServer() instanceof ServerData serverData) {
                 try {
-                    var currentPlayerPermissionLevel = client.getServer().getPermissionLevel(client.player.getPlayerConfigEntry()).getLevel().getLevel();
-                   ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin = currentPlayerPermissionLevel >= 3;
+                    var currentPlayerPermissionLevel = 2;
+                    ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin = serverData.isLan(); // TODO Figure this out
                 }
                 catch (Exception ignored) {
                     ArmorHider.LOGGER.error("Failed to set permissions for player {}.", playerName);

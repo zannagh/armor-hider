@@ -6,7 +6,9 @@ import de.zannagh.armorhider.common.ConfigurationProvider;
 import de.zannagh.armorhider.resources.PlayerConfig;
 import de.zannagh.armorhider.resources.ServerConfiguration;
 import de.zannagh.armorhider.resources.ServerWideSettings;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientPacketListener;
+import net.minecraft.network.protocol.Packet;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -49,9 +51,10 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
     
     public void save(PlayerConfig config){
         playerConfigProvider.save(config);
-        if (ArmorHiderClient.isClientConnectedToServer()) {
+        if (ArmorHiderClient.isClientConnectedToServer()
+            && Minecraft.getInstance().getConnection() instanceof ClientPacketListener clientNetwork) {
             ArmorHider.LOGGER.info("Sending to server...");
-            ClientPlayNetworking.send(getValue());
+            clientNetwork.send(getValue()); // TODO: CustomPacketPayload to Packet?
             ArmorHider.LOGGER.info("Send client config package to server.");
         }
     }

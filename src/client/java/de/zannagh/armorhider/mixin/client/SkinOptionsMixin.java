@@ -11,8 +11,10 @@ import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.OptionElementFactory;
 import de.zannagh.armorhider.gui.AdvancedArmorHiderSettingsScreen;
 import de.zannagh.armorhider.rendering.PlayerPreviewRenderer;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.OptionsList;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.options.OptionsScreen;
@@ -59,28 +61,28 @@ public abstract class SkinOptionsMixin extends Screen {
     }
 
     @Override
-    public void close() {
+    public void onClose() {
         if (!isSkinOptionsScreen) {
-            super.close();
+            super.onClose();
             return;
         }
         if (settingsChanged) {
             ArmorHider.LOGGER.info("Updating current player settings...");
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.saveCurrent();
         }
-        super.close();
+        super.onClose();
     }
 
     @Inject(method = "init", at = @At("RETURN"))
     private void onAddOptions(CallbackInfo ci) {
-        isSkinOptionsScreen = MinecraftClient.getInstance().currentScreen instanceof SkinCustomizationScreen;
+        isSkinOptionsScreen = Minecraft.getInstance().screen instanceof SkinCustomizationScreen;
 
         if (!isSkinOptionsScreen) {
             return;
         }
 
         OptionElementFactory optionElementFactory = new OptionElementFactory(this, body, options);
-        if (MinecraftClient.getInstance().player != null) {
+        if (Minecraft.getInstance().player != null) {
             optionElementFactory = optionElementFactory.withHalfWidthRendering();
         }
 
@@ -94,7 +96,7 @@ public abstract class SkinOptionsMixin extends Screen {
                 ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().helmetOpacity.getValue(),
                 this::setHelmetTransparency);
         if (MinecraftClient.getInstance().player != null) {
-            body.addWidgetEntry(OptionElementFactory.simpleOptionToGameOptionWidget(helmetOption, options, body, false), 
+            list.addSmall(OptionElementFactory.simpleOptionToGameOptionWidget(helmetOption, options, list, false), 
                     new TextWidget(Text.literal("Preview"), this.getTextRenderer()));
         }
         else {
@@ -148,17 +150,17 @@ public abstract class SkinOptionsMixin extends Screen {
         optionElementFactory.addSimpleOptionAsWidget(bootsOption);
 
         SimpleOption<Boolean> enableCombatDetection = optionElementFactory.buildBooleanOption(
-                Text.translatable("armorhider.options.combat_detection.title"),
-                Text.translatable("armorhider.options.combat_detection.tooltip"),
-                Text.translatable("armorhider.options.combat_detection.tooltip_narration"),
+                Component.translatable("armorhider.options.combat_detection.title"),
+                Component.translatable("armorhider.options.combat_detection.tooltip"),
+                Component.translatable("armorhider.options.combat_detection.tooltip_narration"),
                 ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().enableCombatDetection.getValue(),
                 this::setCombatDetection
         );
         optionElementFactory.addSimpleOptionAsWidget(enableCombatDetection);
         
-        optionElementFactory.addElementAsWidget(ButtonWidget.builder(
-                Text.literal("Advanced..."), 
-                (widget) -> MinecraftClient.getInstance().setScreen(new AdvancedArmorHiderSettingsScreen(MinecraftClient.getInstance().currentScreen, options, title)))
+        optionElementFactory.addElementAsWidget(Button.builder(
+                Component.literal("Advanced..."), 
+                (widget) -> Minecraft.getInstance().setScreen(new AdvancedArmorHiderSettingsScreen(Minecraft.getInstance().screen, options, title)))
                 .dimensions(body.getX(), body.getYOfNextEntry(), body.getRowWidth(), ButtonWidget.DEFAULT_HEIGHT).build());
     }
     

@@ -4,14 +4,11 @@ import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.common.ItemStackHelper;
 import de.zannagh.armorhider.resources.ArmorModificationInfo;
 import de.zannagh.armorhider.resources.ServerWideSettings;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.RenderLayers;
-import net.minecraft.client.render.entity.state.LivingEntityRenderState;
-import net.minecraft.client.render.entity.state.PlayerEntityRenderState;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.ColorHelper;
+import net.minecraft.client.renderer.entity.layers.RenderLayer;
+import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.ItemStack;
 
 public class ArmorRenderPipeline {
 
@@ -35,10 +32,10 @@ public class ArmorRenderPipeline {
             ArmorModificationContext.setCurrentSlot(EquipmentSlot.CHEST);
         }
 
-        if (entityRenderState instanceof PlayerEntityRenderState playerEntityRenderState && getCurrentSlot() != null) {
+        if (getCurrentSlot() != null) {
             var configByEntityState = tryResolveConfigFromPlayerEntityState(
                     getCurrentSlot(),
-                    playerEntityRenderState
+                    entityRenderState
             );
             setCurrentModification(configByEntityState);
         }
@@ -106,7 +103,7 @@ public class ArmorRenderPipeline {
         return !(renderState instanceof PlayerEntityRenderState);
     }
 
-    public static int modifyRenderPriority(int originalPriority, ItemStack itemStack) {
+    public static int modifyRenderPriority(int originalPriority, net.minecraft.world.item.ItemStack itemStack) {
         if (ItemStackHelper.itemStackContainsElytra(itemStack)) {
             return ElytraRenderPriority; // Render after all armor (which uses priority 1)
         }
@@ -119,7 +116,7 @@ public class ArmorRenderPipeline {
             return originalLayer;
         }
         
-        return RenderLayers.entityTranslucent(texture);
+        return RenderLayer.(texture);
     }
 
     public static RenderLayer getTrimRenderLayer(boolean decal, RenderLayer originalLayer) {

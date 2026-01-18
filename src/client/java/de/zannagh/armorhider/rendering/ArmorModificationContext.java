@@ -2,7 +2,7 @@ package de.zannagh.armorhider.rendering;
 
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.resources.ArmorModificationInfo;
-import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.world.entity.EquipmentSlot;
 
 class ArmorModificationContext {
 
