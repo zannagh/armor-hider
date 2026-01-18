@@ -1,8 +1,12 @@
 {
 	"required": true,
 	"package": "de.zannagh.armorhider.mixin",
-	"compatibilityLevel": "JAVA_25",
+	"compatibilityLevel": "JAVA_21",
 	"mixins": [
+		"networking.CustomPayloadCodecMixin",
+		"networking.MinecraftServerMixin",
+		"networking.ServerGamePacketListenerMixin",
+		"networking.ServerLoginMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

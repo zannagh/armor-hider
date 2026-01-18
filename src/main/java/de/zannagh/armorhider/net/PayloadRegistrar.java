@@ -1,14 +1,17 @@
 package de.zannagh.armorhider.net;
 
-import de.zannagh.armorhider.resources.PlayerConfig;
-import de.zannagh.armorhider.resources.ServerConfiguration;
-import de.zannagh.armorhider.resources.ServerWideSettings;
-import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
-
+/**
+ * Payload registration utility.
+ * Now uses the custom PayloadRegistry instead of Fabric API's PayloadTypeRegistry.
+ */
 public final class PayloadRegistrar {
-    public static void registerPayloads(){
-        PayloadTypeRegistry.playC2S().register(PlayerConfig.TYPE, PlayerConfig.STREAM_CODEC);
-        PayloadTypeRegistry.playS2C().register(ServerConfiguration.TYPE, ServerConfiguration.STREAM_CODEC);
-        PayloadTypeRegistry.playC2S().register(ServerWideSettings.TYPE, ServerWideSettings.STREAM_CODEC);
+
+    /**
+     * Register all custom payloads.
+     * This must be called early during mod initialization,
+     * before the codec system is used.
+     */
+    public static void registerPayloads() {
+        PayloadRegistry.init();
     }
 }

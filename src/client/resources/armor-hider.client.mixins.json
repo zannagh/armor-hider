@@ -10,7 +10,8 @@
 		"head.HeadRenderMixin",
 		"head.SkullBlockRenderMixin",
 		"cape.ElytraRenderMixin",
-		"cape.CapeRenderMixin"
+		"cape.CapeRenderMixin",
+		"networking.ClientPacketListenerMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

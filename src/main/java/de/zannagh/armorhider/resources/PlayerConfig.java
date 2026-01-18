@@ -19,7 +19,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
     
     private transient boolean hasChangedFromSerializedContent;
 
-    public static final Identifier PACKET_IDENTIFIER = Identifier.tryBuild("de.zannagh.armorhider", "settings_c2s_packet");
+    public static final Identifier PACKET_IDENTIFIER = Identifier.fromNamespaceAndPath("de.zannagh.armorhider", "settings_c2s_packet");
     
     public StreamCodec<ByteBuf, PlayerConfig> getCodec() {
         return CompressedJsonCodec.create(PlayerConfig.class);

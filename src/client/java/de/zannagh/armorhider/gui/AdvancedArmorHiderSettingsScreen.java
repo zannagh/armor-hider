@@ -6,7 +6,6 @@ import de.zannagh.armorhider.client.OptionElementFactory;
 import de.zannagh.armorhider.rendering.RenderUtilities;
 import net.minecraft.client.Options;
 import net.minecraft.client.gui.components.*;
-import net.minecraft.client.gui.screens.options.OptionsScreen;
 import net.minecraft.client.gui.screens.options.OptionsSubScreen;
 import net.minecraft.network.chat.Component;
 
@@ -59,17 +58,8 @@ public class AdvancedArmorHiderSettingsScreen extends OptionsSubScreen {
         var combatDetectionServerText = Component.translatable("armorhider.options.combat_detection_server.title");
         var forceArmorHiderOffText = Component.translatable("armorhider.options.force_armor_hider_off.title");
         
-        var cyclingWidgetBuilder = CycleButton.booleanBuilder(
-                ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin ? onText : CyclingButtonWidget.makeInactive(onText),
-                ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin ? offText : CyclingButtonWidget.makeInactive(offText),
-                serverCombatDetectionValue
-        );
-
-        var forceOnOffBuilder = CycleButton.booleanBuilder(
-                ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin ? onText : CyclingButtonWidget.makeInactive(onText),
-                ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin ? offText : CyclingButtonWidget.makeInactive(offText),
-                serverForcingArmorHiderOffValue
-        );
+        var cyclingWidgetBuilder = CycleButton.booleanBuilder(onText, offText, serverCombatDetectionValue);
+        var forceOnOffBuilder = CycleButton.booleanBuilder(onText, offText, serverForcingArmorHiderOffValue);
         
         var cyclingWidget = cyclingWidgetBuilder.withTooltip(newValue ->{
             if (!ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin) {
@@ -77,7 +67,7 @@ public class AdvancedArmorHiderSettingsScreen extends OptionsSubScreen {
             }
             return Tooltip.create(Component.translatable("armorhider.options.combat_detection_server.tooltip"));
         }).create(
-                ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin ? combatDetectionServerText : CyclingButtonWidget.makeInactive(combatDetectionServerText),
+                combatDetectionServerText,
                 (widget, newValue) -> {
                     if (!ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin) {
                         widget.setValue(serverCombatDetectionValue);
@@ -93,7 +83,7 @@ public class AdvancedArmorHiderSettingsScreen extends OptionsSubScreen {
             }
             return Tooltip.create(Component.translatable("armorhider.options.force_armor_hider_off.tooltip"));
         }).create(
-                ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin ? forceArmorHiderOffText : AbstractWidget.WithInactiveMessage(), // TODO: Inactive message
+                forceArmorHiderOffText,
                 (widget, newValue) -> {
                     if (!ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin) {
                         widget.setValue(serverForcingArmorHiderOffValue);
@@ -102,6 +92,10 @@ public class AdvancedArmorHiderSettingsScreen extends OptionsSubScreen {
                     setForceArmorHiderOff(newValue);
                 }
         );
+        if (!ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin) {
+            armorHiderOffWidget.active = false;
+            cyclingWidget.active = false;
+        }
         
         cyclingWidget.setSize(RenderUtilities.getRowWidth(list), 20);
         armorHiderOffWidget.setSize(RenderUtilities.getRowWidth(list), 20);

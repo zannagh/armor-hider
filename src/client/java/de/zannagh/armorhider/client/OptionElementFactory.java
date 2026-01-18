@@ -60,7 +60,7 @@ public class OptionElementFactory {
                 key,
                 new NarratedTooltipFactory<>(tooltip, narration),
                 (text, value) -> sliderTextProvider.apply(value),
-                new OptionInstance<>.IntRange(0, 20)
+                new OptionInstance.IntRange(0, 20)
                         .xmap(v -> v / 20.0, v -> (int) Math.round(v * 20), true),
                 defaultValue,
                 setter

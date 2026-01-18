@@ -11,30 +11,51 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.rendering.ArmorRenderPipeline;
+import de.zannagh.armorhider.resources.ArmorModificationInfo;
 import net.minecraft.client.model.Model;
+import net.minecraft.client.renderer.OrderedSubmitNodeCollector;
+import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.layers.EquipmentLayerRenderer;
+import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.EquipmentClientInfo;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.util.ARGB;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.equipment.EquipmentAsset;
-import org.jspecify.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+/**
+ * Mixin to intercept equipment rendering and apply armor hiding/transparency.
+ *
+ * This mixin supports:
+ * - Hiding armor completely (opacity = 0)
+ * - Semi-transparent armor rendering
+ * - Disabling glint when armor is hidden/transparent
+ * - Translucent render layers for armor and trims
+ */
 @Mixin(EquipmentLayerRenderer.class)
 public class EquipmentRenderMixin {
+
+
     @ModifyVariable(
-            method = "renderLayers(Lnet/minecraft/client/resources/model/EquipmentClientInfo$LayerType;Lnet/minecraft/resources/ResourceKey;Lnet/minecraft/client/model/Model;Ljava/lang/Object;Lnet/minecraft/world/item/ItemStack;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;II)V",
+            method = "renderLayers(Lnet/minecraft/client/resources/model/EquipmentClientInfo$LayerType;Lnet/minecraft/resources/ResourceKey;Lnet/minecraft/client/model/Model;Ljava/lang/Object;Lnet/minecraft/world/item/ItemStack;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/resources/Identifier;II)V",
             at = @At("HEAD"),
             ordinal = 2,
             argsOnly = true
     )
-    private static int modifyRenderOrder(int k, EquipmentClientInfo.LayerType layerType, Object assetKey, Model<?> model, Object object, ItemStack itemStack) {
-        return ArmorRenderPipeline.modifyRenderPriority(k, itemStack);
+    private static int modifyRenderOrder(int value) {
+        return ArmorRenderPipeline.modifyRenderPriority(value, false);
     }
 
     @Inject(
@@ -43,14 +64,19 @@ public class EquipmentRenderMixin {
             cancellable = true
     )
     private static <S> void interceptRender(EquipmentClientInfo.LayerType layerType, ResourceKey<EquipmentAsset> resourceKey, Model<? super S> model, S object, ItemStack itemStack, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int i, int j, CallbackInfo ci) {
+        var equippable = itemStack.get(DataComponents.EQUIPPABLE);
+        if (equippable == null) {
+            return;
+        }
 
-        ArmorRenderPipeline.setupContext(itemStack, null, (LivingEntityRenderState) object);
+        var slot = equippable.slot();
+        ArmorRenderPipeline.setupContext(itemStack, slot, (HumanoidRenderState) object);
 
         if (!ArmorRenderPipeline.shouldModifyEquipment() || ArmorRenderPipeline.renderStateDoesNotTargetPlayer(object)) {
             return;
         }
 
-        if (layerType == EquipmentModel.LayerType.WINGS && !ArmorRenderPipeline.getCurrentModification().playerConfig().opacityAffectingElytra.getValue()) {
+        if (layerType == EquipmentClientInfo.LayerType.WINGS && !ArmorRenderPipeline.getCurrentModification().playerConfig().opacityAffectingElytra.getValue()) {
             ArmorRenderPipeline.clearContext();
             return;
         }
@@ -59,80 +85,122 @@ public class EquipmentRenderMixin {
             ci.cancel();
         }
     }
-    
-    @WrapOperation(
-            method = "render(Lnet/minecraft/client/render/entity/equipment/EquipmentModel$LayerType;Lnet/minecraft/registry/RegistryKey;Lnet/minecraft/client/model/Model;Ljava/lang/Object;Lnet/minecraft/item/ItemStack;Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/command/OrderedRenderCommandQueue;II)V",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/client/render/entity/equipment/EquipmentRenderer;render(Lnet/minecraft/client/render/entity/equipment/EquipmentModel$LayerType;Lnet/minecraft/registry/RegistryKey;Lnet/minecraft/client/model/Model;Ljava/lang/Object;Lnet/minecraft/item/ItemStack;Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/command/OrderedRenderCommandQueue;ILnet/minecraft/util/Identifier;II)V"
-            )
+
+    @Inject(
+            method = "renderLayers(Lnet/minecraft/client/resources/model/EquipmentClientInfo$LayerType;Lnet/minecraft/resources/ResourceKey;Lnet/minecraft/client/model/Model;Ljava/lang/Object;Lnet/minecraft/world/item/ItemStack;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;II)V",
+            at = @At("RETURN")
     )
-    private static <S> void wrap(EquipmentRenderer instance, EquipmentModel.LayerType layerType, RegistryKey<EquipmentAsset> assetKey, Model<? super S> model, S state, ItemStack stack, MatrixStack matrices, OrderedRenderCommandQueue queue, int light, @Nullable Identifier textureId, int outlineColor, int initialOrder, Operation<Void> original){
-        if (!ArmorRenderPipeline.shouldHideEquipment()) {
-            original.call(instance, layerType, assetKey, model, state, stack, matrices, queue, light, textureId, outlineColor, initialOrder);
-        }
+    private static <S> void resetContext(EquipmentClientInfo.LayerType layerType, ResourceKey<EquipmentAsset> resourceKey, Model<? super S> model, S object, ItemStack itemStack, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int i, int j, CallbackInfo ci) {
+        ArmorRenderPipeline.clearContext();
     }
-    
+
+    // ==================== Transparency Features ====================
+
+    /**
+     * Disables enchantment glint when armor transparency is 0 (fully hidden).
+     * Wraps the hasFoil() check in renderLayers.
+     */
     @ModifyExpressionValue(
-            method = "render(Lnet/minecraft/client/render/entity/equipment/EquipmentModel$LayerType;Lnet/minecraft/registry/RegistryKey;Lnet/minecraft/client/model/Model;Ljava/lang/Object;Lnet/minecraft/item/ItemStack;Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/command/OrderedRenderCommandQueue;ILnet/minecraft/util/Identifier;II)V",
+            method = "renderLayers(Lnet/minecraft/client/resources/model/EquipmentClientInfo$LayerType;Lnet/minecraft/resources/ResourceKey;Lnet/minecraft/client/model/Model;Ljava/lang/Object;Lnet/minecraft/world/item/ItemStack;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/resources/Identifier;II)V",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/item/ItemStack;hasGlint()Z"
+                    target = "Lnet/minecraft/world/item/ItemStack;hasFoil()Z"
             )
     )
     private boolean modifyGlint(boolean original) {
-        return original && !ArmorRenderPipeline.shouldHideEquipment();
+        ArmorModificationInfo modification = ArmorRenderPipeline.getCurrentModification();
+        if (modification != null && modification.shouldModify() && ArmorRenderPipeline.shouldModifyEquipment()) {
+            // Disable glint if transparency is low enough (armor hidden or nearly hidden)
+            double transparency = modification.getTransparency();
+            // Hide glint when armor is hidden
+            return original && transparency > 0;
+        }
+        return original;
     }
 
+    /**
+     * Changes armor render layer to translucent when transparency is applied.
+     * Wraps the RenderTypes.armorCutoutNoCull() call.
+     */
     @WrapOperation(
-            method = "render(Lnet/minecraft/client/render/entity/equipment/EquipmentModel$LayerType;Lnet/minecraft/registry/RegistryKey;Lnet/minecraft/client/model/Model;Ljava/lang/Object;Lnet/minecraft/item/ItemStack;Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/command/OrderedRenderCommandQueue;ILnet/minecraft/util/Identifier;II)V",
+            method = "renderLayers(Lnet/minecraft/client/resources/model/EquipmentClientInfo$LayerType;Lnet/minecraft/resources/ResourceKey;Lnet/minecraft/client/model/Model;Ljava/lang/Object;Lnet/minecraft/world/item/ItemStack;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/resources/Identifier;II)V",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/client/render/RenderLayers;armorCutoutNoCull(Lnet/minecraft/util/Identifier;)Lnet/minecraft/client/render/RenderLayer;"
+                    target = "Lnet/minecraft/client/renderer/rendertype/RenderTypes;armorCutoutNoCull(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/rendertype/RenderType;"
             )
     )
-    private static <S> RenderLayer modifyArmourCutoutNoCull(Identifier texture, Operation<RenderLayer> original) {
-        return ArmorRenderPipeline.getRenderLayer(texture, original.call(texture));
+    private RenderType modifyArmorRenderLayer(Identifier texture, Operation<RenderType> original) {
+        ArmorModificationInfo modification = ArmorRenderPipeline.getCurrentModification();
+        if (modification != null && modification.shouldModify() && ArmorRenderPipeline.shouldModifyEquipment()) {
+            double transparency = modification.getTransparency();
+            if (transparency < 1.0 && transparency > 0) {
+                // Use translucent render layer for semi-transparent armor
+                return RenderTypes.armorTranslucent(texture);
+            }
+        }
+        return original.call(texture);
     }
 
+    /**
+     * Changes armor trim render layer to translucent when transparency is applied.
+     * Wraps the Sheets.armorTrimsSheet() call.
+     */
     @WrapOperation(
-            method = "render(Lnet/minecraft/client/render/entity/equipment/EquipmentModel$LayerType;Lnet/minecraft/registry/RegistryKey;Lnet/minecraft/client/model/Model;Ljava/lang/Object;Lnet/minecraft/item/ItemStack;Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/command/OrderedRenderCommandQueue;ILnet/minecraft/util/Identifier;II)V",
+            method = "renderLayers(Lnet/minecraft/client/resources/model/EquipmentClientInfo$LayerType;Lnet/minecraft/resources/ResourceKey;Lnet/minecraft/client/model/Model;Ljava/lang/Object;Lnet/minecraft/world/item/ItemStack;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/resources/Identifier;II)V",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/client/render/TexturedRenderLayers;getArmorTrims(Z)Lnet/minecraft/client/render/RenderLayer;"
+                    target = "Lnet/minecraft/client/renderer/Sheets;armorTrimsSheet(Z)Lnet/minecraft/client/renderer/rendertype/RenderType;"
             )
     )
-    private RenderLayer modifyTrimRenderLayer(boolean decal, Operation<RenderLayer> original) {
-        return ArmorRenderPipeline.getTrimRenderLayer(decal, original.call(decal));
+    private RenderType modifyTrimRenderLayer(boolean decal, Operation<RenderType> original) {
+        ArmorModificationInfo modification = ArmorRenderPipeline.getCurrentModification();
+        if (modification != null && modification.shouldModify() && ArmorRenderPipeline.shouldModifyEquipment()) {
+            double transparency = modification.getTransparency();
+            if (transparency < 1.0 && transparency > 0) {
+                // Use translucent render layer for semi-transparent trims
+                return RenderTypes.armorTranslucent(Sheets.ARMOR_TRIMS_SHEET);
+            }
+        }
+        return original.call(decal);
     }
 
+    /**
+     * Applies transparency to the armor color by wrapping the submitModel call.
+     * This intercepts the color parameter and modifies the alpha channel.
+     */
     @WrapOperation(
-        method = "render(Lnet/minecraft/client/render/entity/equipment/EquipmentModel$LayerType;Lnet/minecraft/registry/RegistryKey;Lnet/minecraft/client/model/Model;Ljava/lang/Object;Lnet/minecraft/item/ItemStack;Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/command/OrderedRenderCommandQueue;ILnet/minecraft/util/Identifier;II)V",
-        at = @At(
-                value = "INVOKE",
-                target = "Lnet/minecraft/client/render/command/RenderCommandQueue;submitModel(Lnet/minecraft/client/model/Model;Ljava/lang/Object;Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/RenderLayer;IIILnet/minecraft/client/texture/Sprite;ILnet/minecraft/client/render/command/ModelCommandRenderer$CrumblingOverlayCommand;)V"
-        )
+            method = "renderLayers(Lnet/minecraft/client/resources/model/EquipmentClientInfo$LayerType;Lnet/minecraft/resources/ResourceKey;Lnet/minecraft/client/model/Model;Ljava/lang/Object;Lnet/minecraft/world/item/ItemStack;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/resources/Identifier;II)V",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/renderer/OrderedSubmitNodeCollector;submitModel(Lnet/minecraft/client/model/Model;Ljava/lang/Object;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/rendertype/RenderType;IIILnet/minecraft/client/renderer/texture/TextureAtlasSprite;ILnet/minecraft/client/renderer/feature/ModelFeatureRenderer$CrumblingOverlay;)V"
+            )
     )
-    private static <S> void modifyColor(RenderCommandQueue instance, Model<? super S> model, S s, MatrixStack matrixStack, RenderLayer renderLayer, int light, int overlay, int tintedColor, Sprite sprite, int outlineColor, ModelCommandRenderer.CrumblingOverlayCommand crumblingOverlayCommand, Operation<Void> original) {
+    private <S> void modifyArmorColor(
+            OrderedSubmitNodeCollector collector,
+            Model<? super S> model,
+            S state,
+            PoseStack poseStack,
+            RenderType renderType,
+            int light,
+            int overlay,
+            int color,
+            TextureAtlasSprite sprite,
+            int param9,
+            ModelFeatureRenderer.CrumblingOverlay crumblingOverlay,
+            Operation<Void> original) {
 
-        if (!ArmorRenderPipeline.hasActiveContext()) {
-            ArmorRenderPipeline.addContext(s);
+        int modifiedColor = color;
+        ArmorModificationInfo modification = ArmorRenderPipeline.getCurrentModification();
+        if (modification != null && modification.shouldModify() && ArmorRenderPipeline.shouldModifyEquipment()) {
+            double transparency = modification.getTransparency();
+            if (transparency < 1.0 && transparency > 0) {
+                // Apply transparency to the alpha channel of the color
+                int alpha = (int) (transparency * 255);
+                // Preserve RGB, modify alpha
+                modifiedColor = ARGB.color(alpha, ARGB.red(color), ARGB.green(color), ARGB.blue(color));
+            }
         }
 
-        if (ArmorRenderPipeline.renderStateDoesNotTargetPlayer(s)) {
-            original.call(instance, model, s, matrixStack, renderLayer, light, overlay, tintedColor, sprite, outlineColor, crumblingOverlayCommand);
-            return;
-        }
-
-        int modifiedColor = ArmorRenderPipeline.applyTransparency(tintedColor);
-        original.call(instance, model, s, matrixStack, renderLayer, light, overlay, modifiedColor, sprite, outlineColor, crumblingOverlayCommand);
-    }
-
-    @Inject(
-            method = "render(Lnet/minecraft/client/render/entity/equipment/EquipmentModel$LayerType;Lnet/minecraft/registry/RegistryKey;Lnet/minecraft/client/model/Model;Ljava/lang/Object;Lnet/minecraft/item/ItemStack;Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/command/OrderedRenderCommandQueue;ILnet/minecraft/util/Identifier;II)V",
-            at = @At("RETURN")
-    )
-    private static <S> void resetContext(EquipmentModel.LayerType layerType, RegistryKey<EquipmentAsset> assetKey, Model<? super S> model, S object, ItemStack itemStack, MatrixStack matrixStack, OrderedRenderCommandQueue orderedRenderCommandQueue, int i, Identifier identifier, int j, int k, CallbackInfo ci) {
-        ArmorRenderPipeline.clearContext();
+        original.call(collector, model, state, poseStack, renderType, light, overlay, modifiedColor, sprite, param9, crumblingOverlay);
     }
 }

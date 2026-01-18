@@ -2,61 +2,61 @@ package de.zannagh.armorhider.mixin.client.head;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.rendering.ArmorRenderPipeline;
-import net.minecraft.block.SkullBlock;
-import net.minecraft.client.model.Model;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.RenderLayers;
-import net.minecraft.client.render.block.entity.SkullBlockEntityRenderer;
-import net.minecraft.client.render.command.ModelCommandRenderer;
-import net.minecraft.client.render.command.OrderedRenderCommandQueue;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.model.object.skull.SkullModelBase;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.blockentity.SkullBlockRenderer;
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.core.Direction;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.level.block.SkullBlock;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
-@Mixin(SkullBlockEntityRenderer.class)
+@Mixin(SkullBlockRenderer.class)
 public abstract class SkullBlockRenderMixin {
     @WrapOperation(
-            method = "render(Lnet/minecraft/util/math/Direction;FFLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/command/OrderedRenderCommandQueue;ILnet/minecraft/client/render/block/entity/SkullBlockEntityModel;Lnet/minecraft/client/render/RenderLayer;ILnet/minecraft/client/render/command/ModelCommandRenderer$CrumblingOverlayCommand;)V",
+            method = "submit(Lnet/minecraft/client/renderer/blockentity/state/SkullBlockRenderState;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;Lnet/minecraft/client/renderer/state/CameraRenderState;)V",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/client/render/command/OrderedRenderCommandQueue;submitModel(Lnet/minecraft/client/model/Model;Ljava/lang/Object;Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/RenderLayer;IIILnet/minecraft/client/render/command/ModelCommandRenderer$CrumblingOverlayCommand;)V"
+                    target = "Lnet/minecraft/client/renderer/blockentity/SkullBlockRenderer;submitSkull(Lnet/minecraft/core/Direction;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/client/model/object/skull/SkullModelBase;Lnet/minecraft/client/renderer/rendertype/RenderType;ILnet/minecraft/client/renderer/feature/ModelFeatureRenderer$CrumblingOverlay;)V"
             )
     )
-    private static <S> void modifyTransparency(OrderedRenderCommandQueue instance, Model<? super S> model, S o, MatrixStack matrixStack, RenderLayer renderLayer, int light, int overlay, int outlineColor, ModelCommandRenderer.CrumblingOverlayCommand crumblingOverlayCommand, Operation<Void> original){
+    private static <S> void modifyTransparency(Direction direction, float f, float g, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int i, SkullModelBase skullModelBase, RenderType renderType, int j, ModelFeatureRenderer.CrumblingOverlay crumblingOverlay, Operation<Void> original){
         
         if (ArmorRenderPipeline.hasActiveContext() && ArmorRenderPipeline.shouldModifyEquipment()) {
             if (!ArmorRenderPipeline.getCurrentModification().playerConfig().opacityAffectingHatOrSkull.getValue()) {
-                original.call(instance, model, o, matrixStack, renderLayer, light, overlay, outlineColor, crumblingOverlayCommand);
+                original.call(direction, f, g, poseStack, submitNodeCollector, i, skullModelBase, renderType, j, crumblingOverlay);
                 return;
             }
-            var newColor = ArmorRenderPipeline.applyTransparency(-1);
-            instance.getBatchingQueue(ArmorRenderPipeline.SkullRenderPriority).submitModel(model, o, matrixStack, renderLayer, light, overlay, newColor , null, outlineColor, crumblingOverlayCommand);
+            var newColor = ArmorRenderPipeline.applyTransparency(0);
+            original.call(direction, f, g, poseStack, submitNodeCollector, i, skullModelBase, renderType, newColor, crumblingOverlay);
         } else {
-            original.call(instance, model, o, matrixStack, renderLayer, light, overlay, outlineColor, crumblingOverlayCommand);
+            original.call(direction, f, g, poseStack, submitNodeCollector, i, skullModelBase, renderType, j, crumblingOverlay);
         }
     }
 
     @WrapOperation(
-            method = "renderSkull",
+            method = "resolveSkullRenderType",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/client/render/block/entity/SkullBlockEntityRenderer;getCutoutRenderLayer(Lnet/minecraft/block/SkullBlock$SkullType;Lnet/minecraft/util/Identifier;)Lnet/minecraft/client/render/RenderLayer;"
+                    target = "Lnet/minecraft/client/renderer/blockentity/SkullBlockRenderer;getSkullRenderType(Lnet/minecraft/world/level/block/SkullBlock$Type;Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/rendertype/RenderType;"
             )
     )
-    private static RenderLayer modifySkullTransparency(SkullBlock.SkullType type, Identifier texture, Operation<RenderLayer> original) {
-        return ArmorRenderPipeline.getRenderLayer(texture, original.call(type, texture));
+    private static RenderType modifySkullTransparency(SkullBlock.Type type, Identifier identifier, Operation<RenderType> original) {
+        return ArmorRenderPipeline.getRenderLayer(identifier, original.call(type, identifier));
     }
 
     @WrapOperation(
-            method = "getCutoutRenderLayer",
+            method = "getSkullRenderType",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/client/render/RenderLayers;entityCutoutNoCullZOffset(Lnet/minecraft/util/Identifier;)Lnet/minecraft/client/render/RenderLayer;"
+                    target = "Lnet/minecraft/client/renderer/rendertype/RenderTypes;entityCutoutNoCullZOffset(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/rendertype/RenderType;"
             )
     )
-    private static RenderLayer getCutoutRenderLayer(Identifier texture, Operation<RenderLayer> original) {
+    private static RenderType getCutoutRenderLayer(Identifier texture, Operation<RenderType> original) {
         return ArmorRenderPipeline.getRenderLayer(texture, original.call(texture));
     }
 }
