@@ -14,6 +14,7 @@ import net.minecraft.client.renderer.Sheets;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,6 +46,9 @@ public class ArmorRenderPipeline {
     /// ItemStack can be null, slot can be null.
     public static void setupContext(@Nullable ItemStack itemStack, @NotNull EquipmentSlot slot, HumanoidRenderState entityRenderState) {
         setCurrentSlot(slot);
+        if (itemStack != null) {
+            ArmorModificationContext.setCurrentItemStack(itemStack);
+        }
         
         // If current slot is null and elytra rendering is requested, set slot to chest
         if (ArmorModificationContext.getCurrentSlot() == null && ItemStackHelper.itemStackContainsElytra(itemStack)) {
@@ -57,19 +61,6 @@ public class ArmorRenderPipeline {
                     entityRenderState
             );
             setCurrentModification(configByEntityState);
-        }
-    }
-
-    /// In case context is missing (current modification information), this tries to add the missing context from the entity render state.
-    public static void addContext(Object entityRenderState) {
-        if (getCurrentModification() == null 
-                && getCurrentSlot() != null
-                && entityRenderState instanceof LivingEntityRenderState playerEntityRenderState) {
-            var config = tryResolveConfigFromPlayerEntityState(
-                    ArmorRenderPipeline.getCurrentSlot(),
-                    playerEntityRenderState
-            );
-            setCurrentModification(config);
         }
     }
 
@@ -129,11 +120,38 @@ public class ArmorRenderPipeline {
         return !(renderState instanceof AvatarRenderState);
     }
 
-    public static int modifyRenderPriority(int originalPriority, boolean isElytra) {
-        if (isElytra) {
+    public static int modifyRenderPriority(int originalPriority) {
+        if (getCurrentModification() != null && ArmorModificationContext.getCurrentItemStack().is(Items.ELYTRA)) {
             return ElytraRenderPriority; // Render after all armor (which uses priority 1)
         }
+        if (getCurrentModification() != null && 
+                (ArmorModificationContext.getCurrentItemStack().is(Items.SKELETON_SKULL)
+                || ArmorModificationContext.getCurrentItemStack().is(Items.WITHER_SKELETON_SKULL)
+                || ArmorModificationContext.getCurrentItemStack().is(Items.PLAYER_HEAD)
+                || ArmorModificationContext.getCurrentItemStack().is(Items.ZOMBIE_HEAD)
+                || ArmorModificationContext.getCurrentItemStack().is(Items.CREEPER_HEAD)
+                || ArmorModificationContext.getCurrentItemStack().is(Items.DRAGON_HEAD)
+                || ArmorModificationContext.getCurrentItemStack().is(Items.PIGLIN_HEAD))) {
+            return SkullRenderPriority; // Render after all armor (which uses priority 1)
+        }
         return originalPriority;
+    }
+    
+    public static RenderType getSkullRenderLayer(Identifier texture, RenderType originalLayer) {
+        ArmorModificationInfo modification = getCurrentModification();
+        if (modification == null || !modification.shouldModify() || !shouldModifyEquipment()) {
+            return originalLayer;
+        }
+        // Only change render type if skull/hat opacity is enabled
+        if (!modification.playerConfig().opacityAffectingHatOrSkull.getValue()) {
+            return originalLayer;
+        }
+        // Only use translucent if actually applying transparency (not fully hidden or fully visible)
+        double transparency = modification.getTransparency();
+        if (transparency < 1.0 && transparency > 0) {
+            return RenderTypes.entityTranslucent(texture);
+        }
+        return originalLayer;
     }
 
     public static RenderType getRenderLayer(Identifier texture, RenderType originalLayer) {

@@ -2,69 +2,59 @@ package de.zannagh.armorhider.mixin.client.cape;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.rendering.ArmorRenderPipeline;
-import net.minecraft.client.render.command.OrderedRenderCommandQueue;
-import net.minecraft.client.render.entity.feature.CapeFeatureRenderer;
-import net.minecraft.client.render.entity.feature.FeatureRenderer;
-import net.minecraft.client.render.entity.feature.FeatureRendererContext;
-import net.minecraft.client.render.entity.model.PlayerEntityModel;
-import net.minecraft.client.render.entity.state.PlayerEntityRenderState;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.entity.layers.CapeLayer;
+import net.minecraft.client.renderer.entity.state.AvatarRenderState;
+import net.minecraft.world.entity.EquipmentSlot;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(CapeFeatureRenderer.class)
-public abstract class CapeRenderMixin extends FeatureRenderer<PlayerEntityRenderState, PlayerEntityModel> {
+/**
+ * Mixin to adjust cape rendering when armor is hidden.
+ * Moves the cape back to the proper position when chest armor is hidden.
+ */
+@Mixin(CapeLayer.class)
+public class CapeRenderMixin {
+
     @Unique
-    private final ThreadLocal<PlayerEntityRenderState> playerEntityRenderState = new ThreadLocal<>();
-    
-    public CapeRenderMixin(FeatureRendererContext<PlayerEntityRenderState, PlayerEntityModel> context) {
-        super(context);
-    }
-    
+    private static final ThreadLocal<AvatarRenderState> currentPlayerRenderState = new ThreadLocal<>();
+
     @Inject(
-            at = @At("HEAD"),
-            method = "render(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/command/OrderedRenderCommandQueue;ILnet/minecraft/client/render/entity/state/PlayerEntityRenderState;FF)V"
+            method = "submit(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/client/renderer/entity/state/AvatarRenderState;FF)V",
+            at = @At("HEAD")
     )
-    private void setupCapeRenderContext(MatrixStack matrixStack, OrderedRenderCommandQueue orderedRenderCommandQueue, int i, PlayerEntityRenderState playerEntityRenderState, float f, float g, CallbackInfo ci){
-        ArmorRenderPipeline.setupContext(playerEntityRenderState.equippedChestStack, EquipmentSlot.CHEST, playerEntityRenderState);
-        this.playerEntityRenderState.set(playerEntityRenderState);
-        if (!ArmorRenderPipeline.shouldModifyEquipment() || ArmorRenderPipeline.renderStateDoesNotTargetPlayer(playerEntityRenderState)) {
-            ArmorRenderPipeline.clearContext();
-        }
+    private void setupCapeRenderContext(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int light, AvatarRenderState avatarRenderState, float f, float g, CallbackInfo ci) {
+        ArmorRenderPipeline.setupContext(null, EquipmentSlot.CHEST, avatarRenderState);
+        currentPlayerRenderState.set(avatarRenderState);
     }
 
     @WrapOperation(
+            method = "submit(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/client/renderer/entity/state/AvatarRenderState;FF)V",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/client/util/math/MatrixStack;translate(FFF)V"
-            ),
-            method = "render(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/command/OrderedRenderCommandQueue;ILnet/minecraft/client/render/entity/state/PlayerEntityRenderState;FF)V"
+                    target = "Lcom/mojang/blaze3d/vertex/PoseStack;translate(FFF)V"
+            )
     )
-    private void moveCapeWhenArmorHidden(MatrixStack instance, float x, float y, float z, Operation<Void> original) {
-        if (!ArmorRenderPipeline.hasActiveContext() && playerEntityRenderState.get() != null) {
-            // Something failed on setting up the context, so set it up via instance field.
-            ArmorRenderPipeline.setupContext(playerEntityRenderState.get().equippedChestStack, EquipmentSlot.CHEST, playerEntityRenderState.get());
-        }
-        
+    private void moveCapeWhenArmorHidden(PoseStack instance, float x, float y, float z, Operation<Void> original) {
         if (ArmorRenderPipeline.shouldHideEquipment()) {
+            // Move cape back to body when armor is hidden (no offset needed)
             original.call(instance, 0F, 0F, 0F);
-            return;
+        } else {
+            original.call(instance, x, y, z);
         }
-        
-        original.call(instance, x, y, z);
     }
 
     @Inject(
-            at = @At("TAIL"),
-            method = "render(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/command/OrderedRenderCommandQueue;ILnet/minecraft/client/render/entity/state/PlayerEntityRenderState;FF)V"
+            method = "submit(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/client/renderer/entity/state/AvatarRenderState;FF)V",
+            at = @At("RETURN")
     )
-    private void releaseCapeContext(MatrixStack matrixStack, OrderedRenderCommandQueue orderedRenderCommandQueue, int i, PlayerEntityRenderState playerEntityRenderState, float f, float g, CallbackInfo ci){
+    private void releaseCapeContext(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int light, AvatarRenderState avatarRenderState, float f, float g, CallbackInfo ci) {
         ArmorRenderPipeline.clearContext();
-        this.playerEntityRenderState.remove();
+        currentPlayerRenderState.remove();
     }
 }

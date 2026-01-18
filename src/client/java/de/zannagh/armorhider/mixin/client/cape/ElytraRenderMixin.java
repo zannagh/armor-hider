@@ -6,6 +6,11 @@ import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.layers.WingsLayer;
 import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.ItemLike;
+import org.jspecify.annotations.NonNull;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -19,8 +24,13 @@ public class ElytraRenderMixin {
         cancellable = true
     )
     private <S extends HumanoidRenderState, M extends EntityModel<S>> void interceptElytraRender(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int i, S humanoidRenderState, float f, float g, CallbackInfo ci){
-        ArmorRenderPipeline.setupContext(null, net.minecraft.world.entity.EquipmentSlot.CHEST, humanoidRenderState);
-        
+        ArmorRenderPipeline.setupContext(new ItemStack(new ItemLike() {
+            @Override
+            public @NonNull Item asItem() {
+                return Items.ELYTRA;
+            }
+        }), net.minecraft.world.entity.EquipmentSlot.CHEST, humanoidRenderState);
+
         if (!ArmorRenderPipeline.hasActiveContext() || !ArmorRenderPipeline.shouldModifyEquipment()) {
             ArmorRenderPipeline.clearContext();
             return;
@@ -39,7 +49,8 @@ public class ElytraRenderMixin {
             return;
         }
 
-        ArmorRenderPipeline.clearContext();
+        // DON'T clear context here - let EquipmentRenderMixin handle transparency
+        // Context will be cleared by releaseContext() at RETURN
     }
 
     @Inject(

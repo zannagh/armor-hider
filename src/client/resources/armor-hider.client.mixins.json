@@ -7,11 +7,12 @@
 		"bodyKneesAndToes.EquipmentRenderMixin",
 		"SkinOptionsMixin",
 		"LivingEntityMixin",
-		"head.HeadRenderMixin",
+		"head.CustomHeadLayerMixin",
 		"head.SkullBlockRenderMixin",
 		"cape.ElytraRenderMixin",
 		"cape.CapeRenderMixin",
-		"networking.ClientPacketListenerMixin"
+		"networking.ClientPacketListenerMixin",
+		"lang.ClientLanguageMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

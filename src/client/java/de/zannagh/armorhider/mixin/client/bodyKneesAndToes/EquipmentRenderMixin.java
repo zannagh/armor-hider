@@ -55,7 +55,7 @@ public class EquipmentRenderMixin {
             argsOnly = true
     )
     private static int modifyRenderOrder(int value) {
-        return ArmorRenderPipeline.modifyRenderPriority(value, false);
+        return ArmorRenderPipeline.modifyRenderPriority(value);
     }
 
     @Inject(

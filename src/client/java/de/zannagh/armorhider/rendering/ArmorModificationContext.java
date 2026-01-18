@@ -3,14 +3,24 @@ package de.zannagh.armorhider.rendering;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.resources.ArmorModificationInfo;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.NotNull;
 
 class ArmorModificationContext {
-
+    private static final ThreadLocal<ItemStack> currentItemStack = ThreadLocal.withInitial(() -> ItemStack.EMPTY);
     private static final ThreadLocal<EquipmentSlot> currentSlot = ThreadLocal.withInitial(() -> null);
     private static final ThreadLocal<ArmorModificationInfo> currentModification = ThreadLocal.withInitial(() -> null);
 
     public static EquipmentSlot getCurrentSlot() {
         return currentSlot.get();
+    }
+    
+    public static void setCurrentItemStack(@NotNull ItemStack stack) {
+        currentItemStack.set(stack);
+    }
+    
+    public static ItemStack getCurrentItemStack() {
+        return currentItemStack.get();
     }
 
     public static void setCurrentSlot(EquipmentSlot slot) {
@@ -47,5 +57,6 @@ class ArmorModificationContext {
     public static void clearAll() {
         currentSlot.remove();
         currentModification.remove();
+        currentItemStack.set(ItemStack.EMPTY);
     }
 }

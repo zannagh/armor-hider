@@ -47,7 +47,7 @@ public class OptionElementFactory {
     }
     
     private AbstractWidget buildTextWidget(MutableComponent text) {
-        return new MultiLineTextWidget(text, screen.getFont());
+        return new MultiLineTextWidget(text, screen.getFont()).setCentered(true);
     }
     
     public OptionInstance<Double> buildDoubleOption(String key,
@@ -72,11 +72,11 @@ public class OptionElementFactory {
                                                     @Nullable MutableComponent narration,
                                                     Boolean defaultValue,
                                                     Consumer<Boolean> setter) {
+        // Extract the translation key from TranslatableContents, or fall back to getString()
         String booleanKey;
-        if (key.withStyle(Style.EMPTY).toString() instanceof String textString && !textString.isEmpty()) {
-            booleanKey = textString.contains(":") ? textString.split(":")[0] : textString;
-        }
-        else {
+        if (key.getContents() instanceof net.minecraft.network.chat.contents.TranslatableContents translatableContents) {
+            booleanKey = translatableContents.getKey();
+        } else {
             booleanKey = key.getString();
         }
         return OptionInstance.createBoolean(
