@@ -3,15 +3,12 @@ package de.zannagh.armorhider.configuration;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.Identifier;
 
 /**
  * Marker interface for configuration classes that should have their
  * ConfigurationItemBase fields automatically initialized when missing from JSON.
  */
 public interface ConfigurationSource<T> extends CustomPacketPayload {
-
-    Identifier getId();
 
     StreamCodec<ByteBuf, T> getCodec();
 

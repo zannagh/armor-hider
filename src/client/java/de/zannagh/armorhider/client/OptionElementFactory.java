@@ -68,8 +68,13 @@ public class OptionElementFactory {
                 key,
                 new NarratedTooltipFactory<>(tooltip, narration),
                 (text, value) -> sliderTextProvider.apply(value),
-                new OptionInstance.IntRange(0, 20)
-                        .xmap(v -> v / 20.0, v -> (int) Math.round(v * 20), true),
+                //? if >= 1.21.11 { 
+                new OptionInstance.IntRange(0, 20).xmap(v -> v / 20.0, v -> (int) Math.round(v * 20), true)
+                //?}
+                //? if = 1.21.10 || 1.21.9 {
+                /*new OptionInstance.IntRange(0, 20).xmap(v -> v / 20.0, v -> (int) Math.round(v * 20))
+                *///?}
+                ,
                 defaultValue,
                 setter
         );

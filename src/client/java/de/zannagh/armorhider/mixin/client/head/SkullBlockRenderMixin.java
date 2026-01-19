@@ -8,8 +8,6 @@ import net.minecraft.client.model.Model;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.SkullBlockRenderer;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
-import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.SkullBlock;
 import net.minecraft.world.level.block.entity.SkullBlockEntity;
 import org.spongepowered.asm.mixin.Mixin;
@@ -17,9 +15,20 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+//?if >= 1.21.11 {
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.resources.Identifier;
+//? }
+//? if = 1.21.10 || 1.21.9 {
+/*import net.minecraft.client.renderer.RenderType;
+import net.minecraft.resources.ResourceLocation;
+*///?}
+
 @Mixin(SkullBlockRenderer.class)
 public abstract class SkullBlockRenderMixin {
 
+    //? if >= 1.21.11 {
+    
     @WrapOperation(
             method = "submitSkull",
             at = @At(
@@ -28,6 +37,17 @@ public abstract class SkullBlockRenderMixin {
             )
     )
     private static <S> void modifyTransparency(SubmitNodeCollector instance, Model<? super S> model, S o, PoseStack poseStack, RenderType renderType, int i, int j, int k, ModelFeatureRenderer.CrumblingOverlay crumblingOverlay, Operation<Void> original) {
+    //?}
+    //? if = 1.21.10 || 1.21.9 {
+    /*@WrapOperation(
+            method = "submitSkull",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/renderer/SubmitNodeCollector;submitModel(Lnet/minecraft/client/model/Model;Ljava/lang/Object;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/RenderType;IIILnet/minecraft/client/renderer/feature/ModelFeatureRenderer$CrumblingOverlay;)V"
+            )
+    )
+    private static <S> void modifyTransparency(SubmitNodeCollector instance, Model<? super S> model, S o, PoseStack poseStack, RenderType renderType, int i, int j, int k, ModelFeatureRenderer.CrumblingOverlay crumblingOverlay, Operation<Void> original) {
+    *///?}
         try {
             if (ArmorRenderPipeline.noContext() || !ArmorRenderPipeline.shouldModifyEquipment()) {
                 original.call(instance, model, o, poseStack, renderType, i, j, k, crumblingOverlay);
@@ -45,6 +65,8 @@ public abstract class SkullBlockRenderMixin {
         }
     }
 
+    //? if >= 1.21.11 {
+    
     @WrapOperation(
             method = "resolveSkullRenderType",
             at = @At(
@@ -53,9 +75,22 @@ public abstract class SkullBlockRenderMixin {
             )
     )
     private static RenderType getSkullRenderType(SkullBlock.Type type, Identifier identifier, Operation<RenderType> original) {
+    //?}
+    //? if = 1.21.10 || 1.21.9 {
+    /*@WrapOperation(
+            method = "resolveSkullRenderType",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/renderer/blockentity/SkullBlockRenderer;getSkullRenderType(Lnet/minecraft/world/level/block/SkullBlock$Type;Lnet/minecraft/resources/ResourceLocation;)Lnet/minecraft/client/renderer/RenderType;"
+            )
+    )
+    private static RenderType getSkullRenderType(SkullBlock.Type type, ResourceLocation identifier, Operation<RenderType> original) {
+    *///?}
         return ArmorRenderPipeline.getSkullRenderLayer(identifier, original.call(type, identifier));
     }
 
+    //? if >= 1.21.11 {
+    
     @WrapOperation(
             method = "getSkullRenderType",
             at = @At(
@@ -64,6 +99,17 @@ public abstract class SkullBlockRenderMixin {
             )
     )
     private static RenderType getCutoutRenderLayer(Identifier texture, Operation<RenderType> original) {
+    //?}
+    //? if = 1.21.10 || 1.21.9 {
+    /*@WrapOperation(
+            method = "getSkullRenderType",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/renderer/RenderType;entityCutoutNoCullZOffset(Lnet/minecraft/resources/ResourceLocation;)Lnet/minecraft/client/renderer/RenderType;"
+            )
+    )
+    private static RenderType getCutoutRenderLayer(ResourceLocation texture, Operation<RenderType> original) {
+    *///?}
         return ArmorRenderPipeline.getSkullRenderLayer(texture, original.call(texture));
     }
 
