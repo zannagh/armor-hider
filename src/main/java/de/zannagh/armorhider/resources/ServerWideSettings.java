@@ -55,6 +55,6 @@ public class ServerWideSettings implements ConfigurationSource<ServerWideSetting
 
     @Override
     public @NonNull Type<? extends CustomPacketPayload> type() {
-        return new Type<>(PACKET_IDENTIFIER);
+        return TYPE;
     }
 }

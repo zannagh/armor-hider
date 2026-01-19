@@ -172,6 +172,6 @@ public class ServerConfiguration implements ConfigurationSource<ServerConfigurat
 
     @Override
     public @NonNull Type<? extends CustomPacketPayload> type() {
-        return new Type<>(PACKET_IDENTIFIER);
+        return TYPE;
     }
 }

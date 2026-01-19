@@ -118,6 +118,6 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
 
     @Override
     public @NonNull Type<? extends CustomPacketPayload> type() {
-        return new Type<>(PACKET_IDENTIFIER);
+        return TYPE;
     }
 }
