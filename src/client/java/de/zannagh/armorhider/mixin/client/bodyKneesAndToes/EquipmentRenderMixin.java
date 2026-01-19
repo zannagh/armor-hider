@@ -3,7 +3,8 @@ package de.zannagh.armorhider.mixin.client.bodyKneesAndToes;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import com.mojang.blaze3d.vertex.PoseStack;
+import de.zannagh.armorhider.common.ItemStackHelper;
+import de.zannagh.armorhider.compat.elytratrinket.ElytraTrinketMixinPlugin;
 import de.zannagh.armorhider.rendering.ArmorRenderPipeline;
 import de.zannagh.armorhider.resources.ArmorModificationInfo;
 import net.minecraft.client.model.Model;
@@ -37,8 +38,11 @@ public class EquipmentRenderMixin {
             ordinal = 2,
             argsOnly = true
     )
-    private static int modifyRenderOrder(int value) {
-        return ArmorRenderPipeline.modifyRenderPriority(value);
+    private static int modifyRenderOrder(int k, EquipmentModel.LayerType layerType, RegistryKey<EquipmentAsset> assetKey, Model<?> model, Object object, ItemStack itemStack) {
+        if (ItemStackHelper.itemStackContainsElytra(itemStack) && ElytraTrinketMixinPlugin.isElytraTrinketLoaded){
+            return k;
+        }
+        return ArmorRenderPipeline.modifyRenderPriority(k, itemStack);
     }
 
     @Inject(
