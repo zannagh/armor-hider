@@ -42,6 +42,10 @@ public class ArmorRenderPipeline {
             setCurrentModification(configByEntityState);
         }
     }
+    
+    public static void setupContext(EquipmentSlot slot, HumanoidRenderState entityRenderState) {
+        setupContext(null, slot, entityRenderState);
+    }
 
     /// Captures context for the render pipeline, used within other methods of the class.
     /// ItemStack can be null, slot can be null.
@@ -122,20 +126,16 @@ public class ArmorRenderPipeline {
     }
 
     public static int modifyRenderPriority(int originalPriority) {
-        if (getCurrentModification() != null && ArmorModificationContext.getCurrentItemStack().is(Items.ELYTRA)) {
+        if (getCurrentModification() == null) {
+            return originalPriority;
+        }
+        if (ArmorModificationContext.getCurrentItemStack().is(Items.ELYTRA)) {
             return ElytraRenderPriority; // Render after all armor (which uses priority 1)
         }
-        if (getCurrentModification() != null &&
-                (ArmorModificationContext.getCurrentItemStack().is(Items.SKELETON_SKULL)
-                        || ArmorModificationContext.getCurrentItemStack().is(Items.WITHER_SKELETON_SKULL)
-                        || ArmorModificationContext.getCurrentItemStack().is(Items.PLAYER_HEAD)
-                        || ArmorModificationContext.getCurrentItemStack().is(Items.ZOMBIE_HEAD)
-                        || ArmorModificationContext.getCurrentItemStack().is(Items.CREEPER_HEAD)
-                        || ArmorModificationContext.getCurrentItemStack().is(Items.DRAGON_HEAD)
-                        || ArmorModificationContext.getCurrentItemStack().is(Items.PIGLIN_HEAD))) {
+        if (ItemsUtil.isSkullBlockItem(ArmorModificationContext.getCurrentItemStack().getItem())) {
             return SkullRenderPriority; // Render after all armor (which uses priority 1)
         }
-        return originalPriority;
+        return originalPriority; // Fallback, return original.
     }
 
     public static RenderType getSkullRenderLayer(Identifier texture, RenderType originalLayer) {

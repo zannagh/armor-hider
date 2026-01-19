@@ -2,6 +2,7 @@ package de.zannagh.armorhider.mixin.client.head;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.rendering.ArmorRenderPipeline;
+import de.zannagh.armorhider.util.ItemsUtil;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.layers.CustomHeadLayer;
 import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
@@ -23,9 +24,8 @@ public abstract class CustomHeadLayerMixin {
     )
     private <S extends LivingEntityRenderState> void interceptHeadLayerRender(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int i, S livingEntityRenderState, float f, float g, CallbackInfo ci) {
         if (livingEntityRenderState instanceof HumanoidRenderState humanoidState) {
-            ArmorRenderPipeline.setupContext(null, net.minecraft.world.entity.EquipmentSlot.HEAD, humanoidState);
+            ArmorRenderPipeline.setupContext(net.minecraft.world.entity.EquipmentSlot.HEAD, humanoidState);
         }
-
     }
 
     @Inject(
@@ -33,14 +33,14 @@ public abstract class CustomHeadLayerMixin {
             at = @At("HEAD")
     )
     private void grabSkullRenderContext(LivingEntityRenderState livingEntityRenderState, SkullBlock.Type type, CallbackInfoReturnable<RenderType> cir) {
-        if (livingEntityRenderState instanceof HumanoidRenderState humanoidState) {
-            ArmorRenderPipeline.setupContext(null, net.minecraft.world.entity.EquipmentSlot.HEAD, humanoidState);
+        if (ArmorRenderPipeline.noContext() && livingEntityRenderState instanceof HumanoidRenderState humanoidState) {
+            ArmorRenderPipeline.setupContext(ItemsUtil.getItemStackFromSkullBlockType(type), net.minecraft.world.entity.EquipmentSlot.HEAD, humanoidState);
         }
     }
 
     @Inject(
             method = "submit(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;FF)V",
-            at = @At("HEAD")
+            at = @At("TAIL")
     )
     private <S extends LivingEntityRenderState> void releaseContext(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int i, S livingEntityRenderState, float f, float g, CallbackInfo ci) {
         ArmorRenderPipeline.clearContext();

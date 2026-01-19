@@ -1,6 +1,7 @@
 package de.zannagh.armorhider.net;
 
 import de.zannagh.armorhider.ArmorHider;
+import de.zannagh.armorhider.netPackets.PermissionPacket;
 import de.zannagh.armorhider.resources.PlayerConfig;
 import de.zannagh.armorhider.resources.ServerConfiguration;
 import de.zannagh.armorhider.resources.ServerWideSettings;
@@ -81,6 +82,7 @@ public final class PayloadRegistry {
         registerC2S(PlayerConfig.TYPE, PlayerConfig.STREAM_CODEC);
         registerC2S(ServerWideSettings.TYPE, ServerWideSettings.STREAM_CODEC);
         registerS2C(ServerConfiguration.TYPE, ServerConfiguration.STREAM_CODEC);
+        registerS2C(PermissionPacket.TYPE, PermissionPacket.STREAM_CODEC);
     }
 
     public record PayloadEntry<T extends CustomPacketPayload>(

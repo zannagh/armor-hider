@@ -2,6 +2,7 @@
 package de.zannagh.armorhider.net;
 
 import de.zannagh.armorhider.ArmorHider;
+import de.zannagh.armorhider.netPackets.PermissionPacket;
 import de.zannagh.armorhider.resources.PlayerConfig;
 import de.zannagh.armorhider.resources.ServerConfiguration;
 import de.zannagh.armorhider.resources.ServerWideSettings;
@@ -17,6 +18,11 @@ public final class CommsManager {
             ArmorHider.LOGGER.info("Player joined with ID {}. Sending current server config to client...", player.getStringUUID());
             var currentConfig = ServerRuntime.store.getConfig();
             sendToClient(player, currentConfig);
+        });
+        
+        ServerConnectionEvents.registerJoin((player, server) -> {
+            var permissionLevel = server.getProfilePermissions(player.nameAndId()).level().id();
+            sendToClient(player, new PermissionPacket(permissionLevel));
         });
 
         // Register PlayerConfig handler (C2S)
@@ -70,6 +76,10 @@ public final class CommsManager {
             ServerRuntime.store.setGlobalOverride(payload.forceArmorHiderOff.getValue());
             sendToAllClientsButSender(player.getUUID(), ServerRuntime.store.getConfig());
         });
+    }
+
+    private static void sendToClient(ServerPlayer player, PermissionPacket permissions) {
+        PacketSender.sendToPlayer(player, permissions);
     }
 
     private static void sendToClient(ServerPlayer player, ServerConfiguration config) {
