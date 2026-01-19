@@ -195,8 +195,8 @@ public class EquipmentRenderMixin {
             )
     )
     private <S> int modifyArmorColor(EquipmentClientInfo.Layer layer, int i, Operation<Integer> original) {
-        
-        return ArmorRenderPipeline.applyArmorTransparency(i);
+        int originalColor = original.call(layer, i);
+        return ArmorRenderPipeline.applyArmorTransparency(originalColor);
     }
     *///?}
 }

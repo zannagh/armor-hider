@@ -183,6 +183,11 @@ public class ArmorRenderPipeline {
         if (modification == null || !modification.shouldModify() || !shouldModifyEquipment()) {
             return originalLayer;
         }
+        // Only use translucent render type when actually applying transparency (not fully opaque or hidden)
+        double transparency = modification.getTransparency();
+        if (transparency >= 1.0 || transparency <= 0) {
+            return originalLayer;
+        }
         //? if >= 1.21.11 {
         return RenderTypes.armorTranslucent(texture);
          //?}
@@ -196,7 +201,11 @@ public class ArmorRenderPipeline {
         if (modification == null || !modification.shouldModify() || !shouldModifyEquipment()) {
             return originalLayer;
         }
-        // Use armor trims sheet atlas for translucent trim rendering
+        // Only use translucent render type when actually applying transparency
+        double transparency = modification.getTransparency();
+        if (transparency >= 1.0 || transparency <= 0) {
+            return originalLayer;
+        }
         //? if >= 1.21.11 {
         return RenderTypes.armorTranslucent(Sheets.ARMOR_TRIMS_SHEET);
          //?}
