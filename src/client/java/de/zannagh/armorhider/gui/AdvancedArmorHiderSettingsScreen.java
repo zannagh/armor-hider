@@ -5,11 +5,11 @@ import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.OptionElementFactory;
 import de.zannagh.armorhider.rendering.RenderUtilities;
 import net.minecraft.client.Options;
-import net.minecraft.client.gui.components.*;
+import net.minecraft.client.gui.components.CycleButton;
+import net.minecraft.client.gui.components.MultiLineTextWidget;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.options.OptionsSubScreen;
 import net.minecraft.network.chat.Component;
-
-import java.awt.*;
 
 public class AdvancedArmorHiderSettingsScreen extends OptionsSubScreen {
 
@@ -18,26 +18,26 @@ public class AdvancedArmorHiderSettingsScreen extends OptionsSubScreen {
     private boolean serverSettingsChanged;
 
     private boolean newServerCombatDetection;
-    
+
     private boolean setForceArmorHiderOff;
-    
+
     private boolean localSettingsChanged;
-    
+
     private boolean setDisableOthers;
-    
+
     private boolean setUseLocalSettingsForOthersWhenUnknown;
-    
+
     private boolean setDisableLocal;
-    
+
     public AdvancedArmorHiderSettingsScreen(net.minecraft.client.gui.screens.Screen parent, Options gameOptions, Component title) {
         super(parent, gameOptions, title);
     }
 
-    
+
     @Override
     protected void addOptions() {
         OptionElementFactory optionElementFactory = new OptionElementFactory(this, list, options);
-        
+
         var adminCategory = new MultiLineTextWidget(RenderUtilities.getRowWidth(list), 20, Component.translatable("armorhider.options.admin.title"), this.getFont());
         optionElementFactory.addElementAsWidget(adminCategory);
         var serverConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getServerConfig();
@@ -46,22 +46,22 @@ public class AdvancedArmorHiderSettingsScreen extends OptionsSubScreen {
                 && serverConfig.serverWideSettings.enableCombatDetection != null
                 ? serverConfig.serverWideSettings.enableCombatDetection.getValue()
                 : getFallbackDefault(true);
-        
+
         boolean serverForcingArmorHiderOffValue = serverConfig != null
                 && serverConfig.serverWideSettings != null
                 && serverConfig.serverWideSettings.forceArmorHiderOff != null
                 ? serverConfig.serverWideSettings.forceArmorHiderOff.getValue()
                 : getFallbackDefault(false);
-        
+
         var onText = Component.translatable("armorhider.options.toggle.on");
         var offText = Component.translatable("armorhider.options.toggle.off");
         var combatDetectionServerText = Component.translatable("armorhider.options.combat_detection_server.title");
         var forceArmorHiderOffText = Component.translatable("armorhider.options.force_armor_hider_off.title");
-        
+
         var cyclingWidgetBuilder = CycleButton.booleanBuilder(onText, offText, serverCombatDetectionValue);
         var forceOnOffBuilder = CycleButton.booleanBuilder(onText, offText, serverForcingArmorHiderOffValue);
-        
-        var cyclingWidget = cyclingWidgetBuilder.withTooltip(newValue ->{
+
+        var cyclingWidget = cyclingWidgetBuilder.withTooltip(newValue -> {
             if (!ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin) {
                 return Tooltip.create(Component.translatable("armorhider.options.combat_detection_server.tooltip.disabled"));
             }
@@ -77,7 +77,7 @@ public class AdvancedArmorHiderSettingsScreen extends OptionsSubScreen {
                 }
         );
 
-        var armorHiderOffWidget = forceOnOffBuilder.withTooltip(newValue ->{
+        var armorHiderOffWidget = forceOnOffBuilder.withTooltip(newValue -> {
             if (!ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin) {
                 return Tooltip.create(Component.translatable("armorhider.options.force_armor_hider_off.tooltip.disabled"));
             }
@@ -96,16 +96,16 @@ public class AdvancedArmorHiderSettingsScreen extends OptionsSubScreen {
             armorHiderOffWidget.active = false;
             cyclingWidget.active = false;
         }
-        
+
         cyclingWidget.setSize(RenderUtilities.getRowWidth(list), 20);
         armorHiderOffWidget.setSize(RenderUtilities.getRowWidth(list), 20);
-        
+
         optionElementFactory.addElementAsWidget(cyclingWidget);
         optionElementFactory.addElementAsWidget(armorHiderOffWidget);
 
         var regularCategory = new MultiLineTextWidget(RenderUtilities.getRowWidth(list), 20, Component.translatable("armorhider.options.regular.title"), this.getFont());
         optionElementFactory.addElementAsWidget(regularCategory);
-        
+
         var settingsToUse = optionElementFactory.buildBooleanOption(
                 Component.translatable("armorhider.options.use_settings_for_unknown.title"),
                 Component.translatable("armorhider.options.use_settings_for_unknown.tooltip"),
@@ -121,7 +121,7 @@ public class AdvancedArmorHiderSettingsScreen extends OptionsSubScreen {
                 ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableArmorHider.getValue(),
                 this::setDisableLocal
         );
-        
+
         var otherToggle = optionElementFactory.buildBooleanOption(
                 Component.translatable("armorhider.options.disable_others.title"),
                 Component.translatable("armorhider.options.disable_others.tooltip"),
@@ -129,14 +129,14 @@ public class AdvancedArmorHiderSettingsScreen extends OptionsSubScreen {
                 ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableArmorHiderForOthers.getValue(),
                 this::setDisableOthers
         );
-        
+
         optionElementFactory.addSimpleOptionAsWidget(settingsToUse);
         optionElementFactory.addSimpleOptionAsWidget(globalToggle);
         optionElementFactory.addSimpleOptionAsWidget(otherToggle);
     }
-    
+
     @Override
-    public void onClose(){
+    public void onClose() {
         if (serverSettingsChanged && !hasUsedFallbackWhereServerDidntTranspondSettings) {
             ArmorHider.LOGGER.info("Updating current server settings (if possible)...");
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.setAndSendServerConfig(newServerCombatDetection, setForceArmorHiderOff);
@@ -171,18 +171,18 @@ public class AdvancedArmorHiderSettingsScreen extends OptionsSubScreen {
         setForceArmorHiderOff = enabled;
         serverSettingsChanged = true;
     }
-    
-    private void setDisableOthers(boolean enabled){
+
+    private void setDisableOthers(boolean enabled) {
         setDisableOthers = enabled;
         localSettingsChanged = true;
     }
-    
-    private void setUseLocalSettingsForOthersWhenUnknown(boolean enabled){
+
+    private void setUseLocalSettingsForOthersWhenUnknown(boolean enabled) {
         setUseLocalSettingsForOthersWhenUnknown = enabled;
         localSettingsChanged = true;
     }
-    
-    private void setDisableLocal(boolean enabled){
+
+    private void setDisableLocal(boolean enabled) {
         setDisableLocal = enabled;
         localSettingsChanged = true;
     }

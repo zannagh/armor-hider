@@ -14,17 +14,17 @@ class ArmorModificationContext {
     public static EquipmentSlot getCurrentSlot() {
         return currentSlot.get();
     }
-    
-    public static void setCurrentItemStack(@NotNull ItemStack stack) {
-        currentItemStack.set(stack);
+
+    public static void setCurrentSlot(EquipmentSlot slot) {
+        currentSlot.set(slot);
     }
-    
+
     public static ItemStack getCurrentItemStack() {
         return currentItemStack.get();
     }
 
-    public static void setCurrentSlot(EquipmentSlot slot) {
-        currentSlot.set(slot);
+    public static void setCurrentItemStack(@NotNull ItemStack stack) {
+        currentItemStack.set(stack);
     }
 
     public static ArmorModificationInfo getCurrentModification() {
@@ -47,7 +47,7 @@ class ArmorModificationContext {
     public static boolean shouldModifyEquipment() {
         ArmorModificationInfo modification = currentModification.get();
         if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableArmorHiderForOthers.getValue()
-                && modification != null 
+                && modification != null
                 && modification.isConfigForRemotePlayer(ArmorHiderClient.getCurrentPlayerName())) {
             return false;
         }

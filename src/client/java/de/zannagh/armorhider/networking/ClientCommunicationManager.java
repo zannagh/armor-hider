@@ -13,7 +13,6 @@ import net.minecraft.client.multiplayer.ServerData;
 public final class ClientCommunicationManager {
 
     public static void initClient() {
-        // Register ServerConfiguration handler (S2C)
         PayloadRegistry.registerS2CHandler(ServerConfiguration.TYPE, ctx -> {
             if (!(ctx.payload() instanceof ServerConfiguration payload)) {
                 return;
@@ -24,7 +23,6 @@ public final class ClientCommunicationManager {
             ArmorHider.LOGGER.info("Armor Hider successfully set configuration from server.");
         });
 
-        // Register client join handler
         ClientConnectionEvents.registerJoin((handler, client) -> {
             assert client.player != null;
             var playerName = client.player.getName().getString();

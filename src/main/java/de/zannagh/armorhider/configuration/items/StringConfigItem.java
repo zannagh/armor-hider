@@ -7,8 +7,8 @@ public abstract class StringConfigItem extends ConfigurationItemBase<String> {
     public StringConfigItem(String currentValue) {
         super(currentValue);
     }
-    
-    public StringConfigItem(){
+
+    public StringConfigItem() {
         super();
     }
 }

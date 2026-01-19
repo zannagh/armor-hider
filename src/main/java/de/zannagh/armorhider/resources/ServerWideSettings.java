@@ -13,15 +13,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 
 public class ServerWideSettings implements ConfigurationSource<ServerWideSettings> {
-    @NotNull public static final Identifier PACKET_IDENTIFIER = Identifier.fromNamespaceAndPath("de.zannagh.armorhider", "server_wide_settings");
-
-    private transient boolean hasChangedFromSerializedContent = false;
-
+    @NotNull
+    public static final Identifier PACKET_IDENTIFIER = Identifier.fromNamespaceAndPath("de.zannagh.armorhider", "server_wide_settings");
+    public static final Type<ServerWideSettings> TYPE = new Type<>(PACKET_IDENTIFIER);
+    public static final StreamCodec<ByteBuf, ServerWideSettings> STREAM_CODEC = CompressedJsonCodec.create(ServerWideSettings.class);
     @SerializedName(value = "enableCombatDetection")
     public CombatDetection enableCombatDetection;
-    
     @SerializedName(value = "forceArmorHiderOff")
     public ForceArmorHiderOffOnPlayers forceArmorHiderOff;
+    private transient boolean hasChangedFromSerializedContent = false;
 
     public ServerWideSettings() {
         this.enableCombatDetection = new CombatDetection();
@@ -57,8 +57,4 @@ public class ServerWideSettings implements ConfigurationSource<ServerWideSetting
     public @NonNull Type<? extends CustomPacketPayload> type() {
         return new Type<>(PACKET_IDENTIFIER);
     }
-    
-    public static final Type<ServerWideSettings> TYPE = new Type<>(PACKET_IDENTIFIER);
-    
-    public static final StreamCodec<ByteBuf, ServerWideSettings> STREAM_CODEC = CompressedJsonCodec.create(ServerWideSettings.class);
 }

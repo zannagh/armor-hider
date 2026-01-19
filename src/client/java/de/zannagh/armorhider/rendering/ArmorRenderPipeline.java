@@ -2,16 +2,17 @@ package de.zannagh.armorhider.rendering;
 
 import com.mojang.authlib.GameProfile;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.common.ItemStackHelper;
 import de.zannagh.armorhider.resources.ArmorModificationInfo;
 import de.zannagh.armorhider.resources.ServerWideSettings;
+import de.zannagh.armorhider.util.ItemsUtil;
+import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.entity.state.AvatarRenderState;
 import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
-import net.minecraft.client.renderer.Sheets;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.ARGB;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -20,7 +21,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class ArmorRenderPipeline {
 
-    /// Elytra to render as last item in usual armor queue (armor items usually use k 0-3) as it 
+    /// Elytra to render as last item in usual armor queue (armor items usually use k 0-3) as it
     /// has the highest chance to overlap other items.
     public static final int ElytraRenderPriority = 100;
 
@@ -32,7 +33,7 @@ public class ArmorRenderPipeline {
         if (slot != null) {
             setCurrentSlot(slot);
         }
-        
+
         if (getCurrentSlot() != null) {
             var configByEntityState = tryResolveConfigFromPlayerEntityState(
                     getCurrentSlot(),
@@ -41,7 +42,7 @@ public class ArmorRenderPipeline {
             setCurrentModification(configByEntityState);
         }
     }
-    
+
     /// Captures context for the render pipeline, used within other methods of the class.
     /// ItemStack can be null, slot can be null.
     public static void setupContext(@Nullable ItemStack itemStack, @NotNull EquipmentSlot slot, HumanoidRenderState entityRenderState) {
@@ -49,9 +50,9 @@ public class ArmorRenderPipeline {
         if (itemStack != null) {
             ArmorModificationContext.setCurrentItemStack(itemStack);
         }
-        
+
         // If current slot is null and elytra rendering is requested, set slot to chest
-        if (ArmorModificationContext.getCurrentSlot() == null && ItemStackHelper.itemStackContainsElytra(itemStack)) {
+        if (ArmorModificationContext.getCurrentSlot() == null && ItemsUtil.itemStackContainsElytra(itemStack)) {
             ArmorModificationContext.setCurrentSlot(EquipmentSlot.CHEST);
         }
 
@@ -64,19 +65,19 @@ public class ArmorRenderPipeline {
         }
     }
 
-    public static boolean hasActiveContext() {
-        return ArmorModificationContext.hasActiveContext();
+    public static boolean noContext() {
+        return !ArmorModificationContext.hasActiveContext();
     }
 
     public static void clearContext() {
         ArmorModificationContext.clearAll();
     }
 
-    private static ArmorModificationInfo tryResolveConfigFromPlayerEntityState(@NotNull EquipmentSlot slot, String name){
+    private static ArmorModificationInfo tryResolveConfigFromPlayerEntityState(@NotNull EquipmentSlot slot, String name) {
         return new ArmorModificationInfo(slot, ArmorHiderClient.CLIENT_CONFIG_MANAGER.getConfigForPlayer(name));
     }
-    
-    private static ArmorModificationInfo tryResolveConfigFromPlayerEntityState(@NotNull EquipmentSlot slot, LivingEntityRenderState state){
+
+    private static ArmorModificationInfo tryResolveConfigFromPlayerEntityState(@NotNull EquipmentSlot slot, LivingEntityRenderState state) {
         // In official mappings, displayName is called nameTag and is in EntityRenderState
         boolean isLocalPlayerEntityRenderState = state.nameTag == null;
         return new ArmorModificationInfo(slot, ArmorHiderClient.CLIENT_CONFIG_MANAGER.getConfigForPlayer(
@@ -84,12 +85,12 @@ public class ArmorRenderPipeline {
         ));
     }
 
-    private static void setCurrentSlot(@NotNull EquipmentSlot slot) {
-        ArmorModificationContext.setCurrentSlot(slot);
-    }
-
     private static EquipmentSlot getCurrentSlot() {
         return ArmorModificationContext.getCurrentSlot();
+    }
+
+    private static void setCurrentSlot(@NotNull EquipmentSlot slot) {
+        ArmorModificationContext.setCurrentSlot(slot);
     }
 
     public static ArmorModificationInfo getCurrentModification() {
@@ -124,19 +125,19 @@ public class ArmorRenderPipeline {
         if (getCurrentModification() != null && ArmorModificationContext.getCurrentItemStack().is(Items.ELYTRA)) {
             return ElytraRenderPriority; // Render after all armor (which uses priority 1)
         }
-        if (getCurrentModification() != null && 
+        if (getCurrentModification() != null &&
                 (ArmorModificationContext.getCurrentItemStack().is(Items.SKELETON_SKULL)
-                || ArmorModificationContext.getCurrentItemStack().is(Items.WITHER_SKELETON_SKULL)
-                || ArmorModificationContext.getCurrentItemStack().is(Items.PLAYER_HEAD)
-                || ArmorModificationContext.getCurrentItemStack().is(Items.ZOMBIE_HEAD)
-                || ArmorModificationContext.getCurrentItemStack().is(Items.CREEPER_HEAD)
-                || ArmorModificationContext.getCurrentItemStack().is(Items.DRAGON_HEAD)
-                || ArmorModificationContext.getCurrentItemStack().is(Items.PIGLIN_HEAD))) {
+                        || ArmorModificationContext.getCurrentItemStack().is(Items.WITHER_SKELETON_SKULL)
+                        || ArmorModificationContext.getCurrentItemStack().is(Items.PLAYER_HEAD)
+                        || ArmorModificationContext.getCurrentItemStack().is(Items.ZOMBIE_HEAD)
+                        || ArmorModificationContext.getCurrentItemStack().is(Items.CREEPER_HEAD)
+                        || ArmorModificationContext.getCurrentItemStack().is(Items.DRAGON_HEAD)
+                        || ArmorModificationContext.getCurrentItemStack().is(Items.PIGLIN_HEAD))) {
             return SkullRenderPriority; // Render after all armor (which uses priority 1)
         }
         return originalPriority;
     }
-    
+
     public static RenderType getSkullRenderLayer(Identifier texture, RenderType originalLayer) {
         ArmorModificationInfo modification = getCurrentModification();
         if (modification == null || !modification.shouldModify() || !shouldModifyEquipment()) {
@@ -154,7 +155,7 @@ public class ArmorRenderPipeline {
         return originalLayer;
     }
 
-    public static RenderType getRenderLayer(Identifier texture, RenderType originalLayer) {
+    public static RenderType getTranslucentArmorRenderTypeIfApplicable(Identifier texture, RenderType originalLayer) {
         ArmorModificationInfo modification = getCurrentModification();
         if (modification == null || !modification.shouldModify() || !shouldModifyEquipment()) {
             return originalLayer;
@@ -171,22 +172,23 @@ public class ArmorRenderPipeline {
         return RenderTypes.armorTranslucent(Sheets.ARMOR_TRIMS_SHEET);
     }
 
-    public static int applyTransparency(int originalColor) {
-        ArmorModificationInfo modification = getCurrentModification();
-        if (modification == null || !modification.shouldModify() || !shouldModifyEquipment()) {
-            return originalColor;
-        }
-
-        double transparency = modification.getTransparency();
-        if (transparency < 1.0 && transparency > 0) {
-            // Apply transparency to the alpha channel using ARGB format
+    public static int applyArmorTransparency(int originalColor) {
+        if (getCurrentModification() != null && getCurrentModification().shouldModify() && shouldModifyEquipment()) {
+            double transparency = getCurrentModification().getTransparency();
             int alpha = (int) (transparency * 255);
-            int red = (originalColor >> 16) & 0xFF;
-            int green = (originalColor >> 8) & 0xFF;
-            int blue = originalColor & 0xFF;
-            return (alpha << 24) | (red << 16) | (green << 8) | blue;
+            return ARGB.color(alpha, ARGB.red(originalColor), ARGB.green(originalColor), ARGB.blue(originalColor));
         }
         return originalColor;
+    }
+
+    public static int applyTransparencyFromWhite(int original) {
+        ArmorModificationInfo modification = getCurrentModification();
+        if (modification == null || !modification.shouldModify() || !shouldModifyEquipment()) {
+            return original;
+        }
+        double transparency = ArmorRenderPipeline.getCurrentModification().getTransparency();
+        int alpha = (int) (transparency * 255);
+        return ARGB.color(alpha, 255, 255, 255);
     }
     //endregion
 }

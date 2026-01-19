@@ -1,20 +1,19 @@
 package de.zannagh.armorhider.resources;
 
-import com.google.gson.reflect.TypeToken;
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.common.ConfigurationProvider;
 
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
-import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class ServerConfigFileProvider implements ConfigurationProvider<ServerConfiguration> {
     private final Path file;
     private ServerConfiguration CURRENT = new ServerConfiguration();
-    public ServerConfigFileProvider(Path file){
+
+    public ServerConfigFileProvider(Path file) {
         this.file = file;
         CURRENT = load();
     }
@@ -61,13 +60,13 @@ public class ServerConfigFileProvider implements ConfigurationProvider<ServerCon
     }
 
     @Override
-    public void setValue(ServerConfiguration newValue) {
-        CURRENT = newValue;
+    public ServerConfiguration getValue() {
+        return CURRENT;
     }
 
     @Override
-    public ServerConfiguration getValue() {
-        return CURRENT;
+    public void setValue(ServerConfiguration newValue) {
+        CURRENT = newValue;
     }
 
     @Override

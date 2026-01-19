@@ -5,14 +5,16 @@ import de.zannagh.armorhider.resources.PlayerConfig;
 
 import java.util.UUID;
 
-public class StringPlayerConfigProvider implements ConfigurationProvider<PlayerConfig>{
-    
+public class StringPlayerConfigProvider implements ConfigurationProvider<PlayerConfig> {
+
+    PlayerConfig current;
     private String configuration;
+
     public StringPlayerConfigProvider(String configuration) {
         this.configuration = configuration;
         current = load();
     }
-    PlayerConfig current;
+
     @Override
     public PlayerConfig load() {
         if (configuration.isEmpty()) {
@@ -34,13 +36,13 @@ public class StringPlayerConfigProvider implements ConfigurationProvider<PlayerC
     }
 
     @Override
-    public void setValue(PlayerConfig newValue) {
-        current = newValue;
+    public PlayerConfig getValue() {
+        return current;
     }
 
     @Override
-    public PlayerConfig getValue() {
-        return current;
+    public void setValue(PlayerConfig newValue) {
+        current = newValue;
     }
 
     @Override

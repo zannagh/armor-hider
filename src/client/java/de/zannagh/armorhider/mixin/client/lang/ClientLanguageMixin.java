@@ -22,6 +22,8 @@ import java.util.Map;
 /**
  * Mixin to inject mod translations into the language system without Fabric API.
  * This loads lang files from the mod's resources and adds them to the translation map.
+ * <p>
+ * This class is claude generated :)
  */
 @Mixin(ClientLanguage.class)
 public class ClientLanguageMixin {
@@ -32,10 +34,6 @@ public class ClientLanguageMixin {
     @Unique
     private static final ThreadLocal<List<String>> armorHider$currentLanguages = new ThreadLocal<>();
 
-    /**
-     * Intercept the Map.copyOf call for the translations map
-     * and inject our translations before it becomes immutable.
-     */
     @WrapOperation(
             method = "loadFrom",
             at = @At(
@@ -47,7 +45,7 @@ public class ClientLanguageMixin {
             Map<K, V> map,
             Operation<Map<K, V>> original
     ) {
-        // The map at this point contains String -> String translations
+        // Load translation map.
         @SuppressWarnings("unchecked")
         Map<String, String> stringMap = (Map<String, String>) map;
 

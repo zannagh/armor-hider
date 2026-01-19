@@ -10,6 +10,7 @@ public class OpacityAffectingHatOrSkullItem extends BooleanConfigItem {
     public OpacityAffectingHatOrSkullItem() {
         super();
     }
+
     @Override
     public Boolean getDefaultValue() {
         return false;

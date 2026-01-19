@@ -16,13 +16,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(ServerLoginPacketListenerImpl.class)
 public abstract class ServerLoginMixin implements ServerLoginPacketListener, TickablePacketListener {
 
-    @Shadow
-    private GameProfile authenticatedProfile;
-    
     @Final
     @Shadow
     MinecraftServer server;
-    
+    @Shadow
+    private GameProfile authenticatedProfile;
+
     @Inject(method = "finishLoginAndWaitForClient", at = @At(value = "TAIL"))
     private void handlePlayerJoin(CallbackInfo ci) {
         var player = this.server.getPlayerList().getPlayer(authenticatedProfile.id());

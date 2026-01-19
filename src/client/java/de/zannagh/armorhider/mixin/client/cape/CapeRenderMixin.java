@@ -14,10 +14,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-/**
- * Mixin to adjust cape rendering when armor is hidden.
- * Moves the cape back to the proper position when chest armor is hidden.
- */
 @Mixin(CapeLayer.class)
 public class CapeRenderMixin {
 

@@ -14,5 +14,8 @@ public final class ServerRuntime {
         server = s;
         store = new ServerConfigStore();
     }
-    public static void put(UUID id, PlayerConfig c) { store.put(id, c); }
+
+    public static void put(UUID id, PlayerConfig c) {
+        store.put(id, c);
+    }
 }

@@ -13,10 +13,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
-/**
- * Registry for custom packet payloads without Fabric API.
- * Stores payload types and their codecs for both C2S and S2C directions.
- */
 public final class PayloadRegistry {
 
     private static final Map<Identifier, PayloadEntry<?>> C2S_PAYLOADS = new HashMap<>();
@@ -24,16 +20,6 @@ public final class PayloadRegistry {
 
     private static final Map<Identifier, Consumer<PayloadHandlerContext<?>>> C2S_HANDLERS = new HashMap<>();
     private static final Map<Identifier, Consumer<PayloadHandlerContext<?>>> S2C_HANDLERS = new HashMap<>();
-
-    public record PayloadEntry<T extends CustomPacketPayload>(
-            CustomPacketPayload.Type<T> type,
-            StreamCodec<? super ByteBuf, T> codec
-    ) {}
-
-    public record PayloadHandlerContext<T extends CustomPacketPayload>(
-            T payload,
-            Object context
-    ) {}
 
     /**
      * Register a C2S (client to server) payload type.
@@ -75,14 +61,6 @@ public final class PayloadRegistry {
         S2C_HANDLERS.put(type.id(), (Consumer<PayloadHandlerContext<?>>) (Consumer<?>) handler);
     }
 
-    public static PayloadEntry<?> getC2SPayload(Identifier id) {
-        return C2S_PAYLOADS.get(id);
-    }
-
-    public static PayloadEntry<?> getS2CPayload(Identifier id) {
-        return S2C_PAYLOADS.get(id);
-    }
-
     public static Consumer<PayloadHandlerContext<?>> getC2SHandler(Identifier id) {
         return C2S_HANDLERS.get(id);
     }
@@ -99,26 +77,21 @@ public final class PayloadRegistry {
         return S2C_PAYLOADS;
     }
 
-    public static boolean hasC2S(Identifier id) {
-        return C2S_PAYLOADS.containsKey(id);
-    }
-
-    public static boolean hasS2C(Identifier id) {
-        return S2C_PAYLOADS.containsKey(id);
-    }
-
-    /**
-     * Initialize all payload registrations.
-     * Called during mod initialization.
-     */
     public static void init() {
-        // Register C2S payloads (client -> server)
         registerC2S(PlayerConfig.TYPE, PlayerConfig.STREAM_CODEC);
         registerC2S(ServerWideSettings.TYPE, ServerWideSettings.STREAM_CODEC);
-
-        // Register S2C payloads (server -> client)
         registerS2C(ServerConfiguration.TYPE, ServerConfiguration.STREAM_CODEC);
+    }
 
-        ArmorHider.LOGGER.info("Payload registry initialized");
+    public record PayloadEntry<T extends CustomPacketPayload>(
+            CustomPacketPayload.Type<T> type,
+            StreamCodec<? super ByteBuf, T> codec
+    ) {
+    }
+
+    public record PayloadHandlerContext<T extends CustomPacketPayload>(
+            T payload,
+            Object context
+    ) {
     }
 }

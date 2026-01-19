@@ -7,7 +7,7 @@ import de.zannagh.armorhider.configuration.ConfigurationItemSerializer;
 import de.zannagh.armorhider.configuration.ConfigurationSourceSerializer;
 import de.zannagh.armorhider.configuration.ServerConfigurationDeserializer;
 import de.zannagh.armorhider.net.CommsManager;
-import de.zannagh.armorhider.net.PayloadRegistrar;
+import de.zannagh.armorhider.net.PayloadRegistry;
 import de.zannagh.armorhider.net.ServerLifecycleEvents;
 import de.zannagh.armorhider.net.ServerRuntime;
 import de.zannagh.armorhider.netPackets.CompressedJsonCodec;
@@ -40,7 +40,7 @@ public class ArmorHider implements ModInitializer {
         });
 
         CompressedJsonCodec.setGson(GSON);
-        PayloadRegistrar.registerPayloads();
+        PayloadRegistry.init();
         CommsManager.initServer();
         LOGGER.info("Initialized!");
     }

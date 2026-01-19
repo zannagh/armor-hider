@@ -12,28 +12,12 @@ import java.util.List;
  */
 public final class ClientConnectionEvents {
 
-    /**
-     * Functional interface for join handlers.
-     */
-    @FunctionalInterface
-    public interface JoinHandler {
-        void onJoin(ClientPacketListener handler, Minecraft client);
-    }
-
     private static final List<JoinHandler> JOIN_HANDLERS = new ArrayList<>();
 
-    /**
-     * Register a handler for when the client joins a server and is ready to play.
-     * This is equivalent to ClientPlayConnectionEvents.JOIN in Fabric API.
-     */
     public static void registerJoin(JoinHandler handler) {
         JOIN_HANDLERS.add(handler);
     }
 
-    /**
-     * Called by the mixin when the client joins a server.
-     * Do not call this directly.
-     */
     public static void onClientJoin(ClientPacketListener handler, Minecraft client) {
         for (var h : JOIN_HANDLERS) {
             try {
@@ -42,5 +26,10 @@ public final class ClientConnectionEvents {
                 de.zannagh.armorhider.ArmorHider.LOGGER.error("Error in client join handler", e);
             }
         }
+    }
+
+    @FunctionalInterface
+    public interface JoinHandler {
+        void onJoin(ClientPacketListener handler, Minecraft client);
     }
 }

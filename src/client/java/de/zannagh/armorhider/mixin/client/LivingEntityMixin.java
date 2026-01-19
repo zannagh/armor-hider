@@ -24,39 +24,6 @@ import java.util.Objects;
 
 @Mixin(LivingEntity.class)
 public class LivingEntityMixin {
-    @Inject(
-            method = "actuallyHurt",
-            at = @At(value = "HEAD")
-    )
-    private void triggerCombat(ServerLevel serverLevel, DamageSource damageSource, float f, CallbackInfo ci) {
-        if (damageSource.getEntity() == null) {
-            return;
-        }
-
-        if ((Object) this instanceof LocalPlayer player) {
-            if (shouldLogCombatForPlayer(player)) {
-                CombatManager.logCombat(player.getDisplayName().getString());
-            }
-        }
-        if ((Object) this instanceof AbstractClientPlayer otherPlayer) {
-            if (shouldLogCombatForPlayer(otherPlayer)) {
-                CombatManager.logCombat(otherPlayer.getDisplayName().getString());
-            }
-        }
-
-        if (damageSource.getEntity() instanceof LocalPlayer player) {
-            if (shouldLogCombatForPlayer(player)) {
-                CombatManager.logCombat(Objects.requireNonNull(player.getDisplayName()).getString());
-            }
-        }
-        if (damageSource.getEntity() instanceof AbstractClientPlayer otherPlayer) {
-            if (shouldLogCombatForPlayer(otherPlayer)) {
-                CombatManager.logCombat(Objects.requireNonNull(otherPlayer.getDisplayName()).getString());
-            }
-        }
-        
-    }
-
     /**
      * Determines if combat should be logged for a specific player.
      * <p>
@@ -93,5 +60,38 @@ public class LivingEntityMixin {
         }
 
         return playerUsesCombatDetection;
+    }
+
+    @Inject(
+            method = "actuallyHurt",
+            at = @At(value = "HEAD")
+    )
+    private void triggerCombat(ServerLevel serverLevel, DamageSource damageSource, float f, CallbackInfo ci) {
+        if (damageSource.getEntity() == null) {
+            return;
+        }
+
+        if ((Object) this instanceof LocalPlayer player) {
+            if (shouldLogCombatForPlayer(player)) {
+                CombatManager.logCombat(player.getDisplayName().getString());
+            }
+        }
+        if ((Object) this instanceof AbstractClientPlayer otherPlayer) {
+            if (shouldLogCombatForPlayer(otherPlayer)) {
+                CombatManager.logCombat(otherPlayer.getDisplayName().getString());
+            }
+        }
+
+        if (damageSource.getEntity() instanceof LocalPlayer player) {
+            if (shouldLogCombatForPlayer(player)) {
+                CombatManager.logCombat(Objects.requireNonNull(player.getDisplayName()).getString());
+            }
+        }
+        if (damageSource.getEntity() instanceof AbstractClientPlayer otherPlayer) {
+            if (shouldLogCombatForPlayer(otherPlayer)) {
+                CombatManager.logCombat(Objects.requireNonNull(otherPlayer.getDisplayName()).getString());
+            }
+        }
+
     }
 }

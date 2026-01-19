@@ -1,8 +1,5 @@
 package de.zannagh.armorhider;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import de.zannagh.armorhider.config.ClientConfigManager;
 import de.zannagh.armorhider.configuration.items.implementations.ArmorOpacity;
 import org.junit.jupiter.api.DisplayName;
@@ -10,12 +7,28 @@ import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 
 class PlayerConfigurationTests {
-    
+
+    private static String getVersion3PlayerConfig() {
+        return """
+                {
+                  "helmetOpacity": 0.35,
+                  "chestOpacity": 0.35,
+                  "legsOpacity": 0.2,
+                  "bootsOpacity": 0.25,
+                  "playerId": "6f7d35ad-9152-3823-9277-b683a91158a3",
+                  "playerName": "Player446",
+                  "enableCombatDetection": true
+                }""";
+    }
+
     @Test
     @DisplayName("Read from v1 configuration")
-    void readV1(){
+    void readV1() {
         String v1Json = """
                 {
                   "helmetTransparency": 0.35,
@@ -38,7 +51,7 @@ class PlayerConfigurationTests {
 
     @Test
     @DisplayName("Read from v1 configuration")
-    void readV2(){
+    void readV2() {
         String v2Json = """
                 {
                   "helmetTransparency": 0.35,
@@ -62,7 +75,7 @@ class PlayerConfigurationTests {
 
     @Test
     @DisplayName("Read from partly configuration")
-    void shouldReplaceMissingValuesWithDefault(){
+    void shouldReplaceMissingValuesWithDefault() {
         String v2JsonMissingBoots = """
                 {
                   "helmetTransparency": 0.35,
@@ -86,7 +99,7 @@ class PlayerConfigurationTests {
 
     @Test
     @DisplayName("Read from v3 configuration")
-    void readV3(){
+    void readV3() {
         var configurationProvider = new StringPlayerConfigProvider(getVersion3PlayerConfig());
         var currentConfig = configurationProvider.getValue();
         assertEquals(0.35, currentConfig.helmetOpacity.getValue());
@@ -97,10 +110,10 @@ class PlayerConfigurationTests {
         assertEquals("Player446", currentConfig.playerName.getValue());
         assertEquals(true, currentConfig.enableCombatDetection.getValue());
     }
-    
+
     @Test
     @DisplayName("Read from Config Manager")
-    void readFromConfigManager(){
+    void readFromConfigManager() {
         ClientConfigManager configManager = new ClientConfigManager(new StringPlayerConfigProvider(getVersion3PlayerConfig()));
         var currentConfig = configManager.getValue();
         assertEquals(0.35, currentConfig.helmetOpacity.getValue());
@@ -110,18 +123,5 @@ class PlayerConfigurationTests {
         assertEquals(UUID.fromString("6f7d35ad-9152-3823-9277-b683a91158a3"), currentConfig.playerId.getValue());
         assertEquals("Player446", currentConfig.playerName.getValue());
         assertEquals(true, currentConfig.enableCombatDetection.getValue());
-    }
-
-    private static String getVersion3PlayerConfig() {
-        return """
-                {
-                  "helmetOpacity": 0.35,
-                  "chestOpacity": 0.35,
-                  "legsOpacity": 0.2,
-                  "bootsOpacity": 0.25,
-                  "playerId": "6f7d35ad-9152-3823-9277-b683a91158a3",
-                  "playerName": "Player446",
-                  "enableCombatDetection": true
-                }""";
     }
 }

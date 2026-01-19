@@ -4,25 +4,29 @@ import de.zannagh.armorhider.common.ConfigurationProvider;
 
 import java.io.File;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 public class ServerConfigStore implements ConfigurationProvider<ServerConfiguration> {
-    
+
     private final ConfigurationProvider<ServerConfiguration> configurationProvider;
 
-    public ServerConfigStore(){
+    public ServerConfigStore() {
         this(new File("config", "armor-hider-server.json").toPath());
     }
-    
-    public ServerConfigStore(Path file) { 
+
+    public ServerConfigStore(Path file) {
         this.configurationProvider = new ServerConfigFileProvider(file);
     }
-    
-    public ServerConfigStore(ConfigurationProvider<ServerConfiguration> configurationProvider){
+
+    public ServerConfigStore(ConfigurationProvider<ServerConfiguration> configurationProvider) {
         this.configurationProvider = configurationProvider;
     }
 
-    public ServerConfiguration getConfig() { return configurationProvider.getValue(); }
+    public ServerConfiguration getConfig() {
+        return configurationProvider.getValue();
+    }
 
     public void setServerCombatDetection(Boolean enabled) {
         configurationProvider.getValue().serverWideSettings.enableCombatDetection.setValue(enabled);
@@ -44,15 +48,14 @@ public class ServerConfigStore implements ConfigurationProvider<ServerConfigurat
         configurationProvider.save(currentValue);
     }
 
+    @Override
+    public ServerConfiguration getValue() {
+        return configurationProvider.getValue();
+    }
 
     @Override
     public void setValue(ServerConfiguration newValue) {
         configurationProvider.setValue(newValue);
-    }
-
-    @Override
-    public ServerConfiguration getValue() {
-        return configurationProvider.getValue();
     }
 
     @Override
@@ -69,7 +72,7 @@ public class ServerConfigStore implements ConfigurationProvider<ServerConfigurat
         configurationProvider.getValue().playerConfigs.put(uuid, cfg);
         Map<UUID, PlayerConfig> overwrites = new HashMap<>();
         configurationProvider.getValue().playerConfigs.forEach((e, k) -> {
-            if (k.playerName.getValue().equals(cfg.playerName.getValue())){
+            if (k.playerName.getValue().equals(cfg.playerName.getValue())) {
                 overwrites.put(e, k);
             }
         });

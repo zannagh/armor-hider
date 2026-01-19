@@ -15,16 +15,16 @@ import java.util.zip.GZIPOutputStream;
 public class CompressedJsonCodec {
 
     private static volatile Gson GSON = new Gson();
-    
+
     public static void setGson(Gson gson) {
         GSON = gson;
     }
-    
+
     /**
      * Creates a PacketCodec that serializes objects to compressed JSON.
      *
      * @param clazz The class type to deserialize to
-     * @param <T> The type of object to serialize/deserialize
+     * @param <T>   The type of object to serialize/deserialize
      * @return A PacketCodec for the given type
      */
     public static <T> StreamCodec<ByteBuf, T> create(Class<T> clazz) {

@@ -9,10 +9,6 @@ import net.minecraft.server.level.ServerPlayer;
 
 import java.util.UUID;
 
-/**
- * Server-side communication manager.
- * Handles packet registration and events without Fabric API.
- */
 public final class CommsManager {
 
     public static void initServer() {
@@ -50,13 +46,14 @@ public final class CommsManager {
             if (!(ctx.payload() instanceof ServerWideSettings payload)) {
                 return;
             }
-            if (!(ctx.context() instanceof ServerPayloadContext serverCtx)) {
+            if (!(ctx.context() instanceof ServerPayloadContext(
+                    ServerPlayer player, net.minecraft.server.MinecraftServer server
+            ))) {
                 return;
             }
 
             ArmorHider.LOGGER.info("Server received admin settings packet.");
-            var player = serverCtx.player();
-            var currentPlayerPermissionLevel = serverCtx.server().getProfilePermissions(player.nameAndId()).level().id();
+            var currentPlayerPermissionLevel = server.getProfilePermissions(player.nameAndId()).level().id();
 
             if (currentPlayerPermissionLevel < 3) {
                 ArmorHider.LOGGER.info("Non-admin player {} attempted to change server settings. Ignoring.", player.getStringUUID());

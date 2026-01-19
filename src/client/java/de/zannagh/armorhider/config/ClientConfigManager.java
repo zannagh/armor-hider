@@ -11,20 +11,20 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.UUID;
 
 public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> {
-    
+
     public static final String DEFAULT_PLAYER_NAME = "dummy";
-    
+
     public static final UUID DEFAULT_PLAYER_ID = UUID.fromString("00000000-0000-0000-0000-000000000000");
-    
+
     private final ConfigurationProvider<PlayerConfig> playerConfigProvider;
 
     private PlayerConfig CURRENT = PlayerConfig.defaults(DEFAULT_PLAYER_ID, DEFAULT_PLAYER_NAME);
-    
+
     private ServerConfiguration serverConfiguration = new ServerConfiguration();
-    
+
     public ClientConfigManager() {
         this.playerConfigProvider = new PlayerConfigFileProvider();
         CURRENT = load();
@@ -34,7 +34,7 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
         this.playerConfigProvider = configurationProvider;
         CURRENT = load();
     }
-    
+
     public void updateName(String name) {
         CURRENT.playerName.setValue(name);
         saveCurrent();
@@ -44,15 +44,15 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
         CURRENT.playerId.setValue(id);
         saveCurrent();
     }
-    
+
     public PlayerConfig load() {
         return playerConfigProvider.getValue();
     }
-    
-    public void save(PlayerConfig config){
+
+    public void save(PlayerConfig config) {
         playerConfigProvider.save(config);
         if (ArmorHiderClient.isClientConnectedToServer()
-            && Minecraft.getInstance().getConnection() instanceof ClientPacketListener clientNetwork) {
+                && Minecraft.getInstance().getConnection() instanceof ClientPacketListener clientNetwork) {
             ArmorHider.LOGGER.info("Sending to server...");
             ClientPacketSender.sendToServer(config);
             ArmorHider.LOGGER.info("Send client config package to server.");
@@ -67,7 +67,7 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
         return PlayerConfig.empty();
     }
 
-    public void setAndSendServerConfig(boolean combatDetection, boolean forceArmorHiderOff){
+    public void setAndSendServerConfig(boolean combatDetection, boolean forceArmorHiderOff) {
         if (!ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin) {
             return;
         }
@@ -85,7 +85,20 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
         ArmorHider.LOGGER.info("Sending server-wide settings to server...");
         ClientPacketSender.sendToServer(serverWideSettings);
     }
-    
+
+    public PlayerConfig getValue() {
+        return CURRENT;
+    }
+
+    public void setValue(PlayerConfig cfg) {
+        CURRENT = cfg;
+        saveCurrent();
+    }
+
+    public ServerConfiguration getServerConfig() {
+        return serverConfiguration;
+    }
+
     public void setServerConfig(ServerConfiguration serverConfig) {
         ArmorHider.LOGGER.info("Setting server config...");
         if (serverConfig.serverWideSettings == null) {
@@ -96,24 +109,18 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
         serverConfiguration = serverConfig;
     }
 
-    public PlayerConfig getValue() { return CURRENT; }
-    
-    public ServerConfiguration getServerConfig() { return serverConfiguration; }
-    
-    public void setValue(PlayerConfig cfg) { CURRENT = cfg; saveCurrent(); }
-
     public PlayerConfig getConfigForPlayer(@NotNull String playerName) {
         if (playerName.equals(ArmorHiderClient.getCurrentPlayerName())) {
             return CURRENT;
         }
-        
+
         var config = serverConfiguration.getPlayerConfigOrDefault(playerName);
         if (config != null) {
             return config;
         }
-        
+
         var isRemotePlayer = ArmorHiderClient.isPlayerRemotePlayer(playerName);
-        
+
         UUID playerId = DEFAULT_PLAYER_ID;
         if (isRemotePlayer.getA()) {
             playerId = isRemotePlayer.getB().getProfile().id();
@@ -122,11 +129,11 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
                 return config;
             }
         }
-        
+
         if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().usePlayerSettingsWhenUndeterminable.getValue()) {
             return ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().deepCopy(playerName, playerId);
         }
-        
+
         return PlayerConfig.defaults(playerId, playerName);
     }
 }

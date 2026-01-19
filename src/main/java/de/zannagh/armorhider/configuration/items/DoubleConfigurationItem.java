@@ -8,7 +8,7 @@ public abstract class DoubleConfigurationItem extends ConfigurationItemBase<Doub
         super(currentValue);
     }
 
-    public DoubleConfigurationItem(){
+    public DoubleConfigurationItem() {
         super();
     }
 }

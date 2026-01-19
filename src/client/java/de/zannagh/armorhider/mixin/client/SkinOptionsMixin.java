@@ -35,19 +35,16 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class SkinOptionsMixin extends Screen {
 
     // TODO: This may have to be extended into not sending network stuff if the server doesn't support it.
-    
-    @Unique
-    private boolean settingsChanged;
-
-    @Unique
-    private boolean isSkinOptionsScreen;
 
     @Shadow
     protected OptionsList list;
-
     @Final
     @Shadow
     protected Options options;
+    @Unique
+    private boolean settingsChanged;
+    @Unique
+    private boolean isSkinOptionsScreen;
 
     protected SkinOptionsMixin(Component component) {
         super(component);
@@ -55,7 +52,7 @@ public abstract class SkinOptionsMixin extends Screen {
 
 
     @Override
-    public void render(@NonNull GuiGraphics context, int mouseX, int mouseY, float deltaTicks){
+    public void render(@NonNull GuiGraphics context, int mouseX, int mouseY, float deltaTicks) {
         super.render(context, mouseX, mouseY, deltaTicks);
         if (list != null && isSkinOptionsScreen) {
             PlayerPreviewRenderer.renderPlayerPreview(context, list, mouseX, mouseY);
@@ -98,13 +95,12 @@ public abstract class SkinOptionsMixin extends Screen {
                 ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().helmetOpacity.getValue(),
                 this::setHelmetTransparency);
         if (Minecraft.getInstance().player != null) {
-            list.addSmall(OptionElementFactory.simpleOptionToGameOptionWidget(helmetOption, options, list, false), 
+            list.addSmall(OptionElementFactory.simpleOptionToGameOptionWidget(helmetOption, options, list, false),
                     new MultiLineTextWidget(Component.literal("Preview"), this.getFont()));
-        }
-        else {
+        } else {
             optionElementFactory.addSimpleOptionAsWidget(helmetOption);
         }
-        
+
 
         var skullOrHatOption = optionElementFactory.buildBooleanOption(
                 Component.translatable("armorhider.options.helmet_affection.title"),
@@ -159,13 +155,13 @@ public abstract class SkinOptionsMixin extends Screen {
                 this::setCombatDetection
         );
         optionElementFactory.addSimpleOptionAsWidget(enableCombatDetection);
-        
+
         optionElementFactory.addElementAsWidget(Button.builder(
-                Component.literal("Advanced..."), 
-                (widget) -> Minecraft.getInstance().setScreen(new AdvancedArmorHiderSettingsScreen(Minecraft.getInstance().screen, options, title)))
+                        Component.literal("Advanced..."),
+                        (widget) -> Minecraft.getInstance().setScreen(new AdvancedArmorHiderSettingsScreen(Minecraft.getInstance().screen, options, title)))
                 .pos(list.getX(), list.getNextY()).size(list.getRowWidth(), Button.DEFAULT_HEIGHT).build());
     }
-    
+
 
     @Unique
     private void setOpacityAffectingHatOrSkull(Boolean value) {
@@ -180,25 +176,25 @@ public abstract class SkinOptionsMixin extends Screen {
     }
 
     @Unique
-    private void setHelmetTransparency(double value){
+    private void setHelmetTransparency(double value) {
         ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().helmetOpacity.setValue(value);
         settingsChanged = true;
     }
 
     @Unique
-    private void setChestTransparency(double value){
+    private void setChestTransparency(double value) {
         ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().chestOpacity.setValue(value);
         settingsChanged = true;
     }
 
     @Unique
-    private void setLegsTransparency(double value){
+    private void setLegsTransparency(double value) {
         ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().legsOpacity.setValue(value);
         settingsChanged = true;
     }
 
     @Unique
-    private void setBootsTransparency(double value){
+    private void setBootsTransparency(double value) {
         ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().bootsOpacity.setValue(value);
         settingsChanged = true;
     }

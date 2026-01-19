@@ -5,8 +5,8 @@
 
 name: build
 on:
-  pull_request: 
-  push: 
+  pull_request:
+  push:
     branches:
       - main
       - 'release/**'
@@ -36,20 +36,20 @@ jobs:
       - name: Set Version Properties
         id: version
         uses: gittools/actions/gitversion/execute@v4.2.0
-          
+
       - name: make gradle wrapper executable
         run: chmod +x ./gradlew
-        
+
       - name: build
         run: ./gradlew build -PsemVer="${{ steps.version.outputs.majorMinorPatch }}-${{ steps.version.outputs.commitsSinceVersionSource }}" -Pprerelease="True"
-        
+
       - name: sanitize branch name
         id: branch
         run: |
           SAFE_BRANCH="${{ steps.version.outputs.branchName }}"
           SAFE_BRANCH="${SAFE_BRANCH//\//-}"
           echo "value=$SAFE_BRANCH" >> "$GITHUB_OUTPUT"
-          
+
       - name: capture build artifacts
         uses: actions/upload-artifact@v6
         with:

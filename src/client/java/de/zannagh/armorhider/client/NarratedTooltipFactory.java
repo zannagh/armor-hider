@@ -9,7 +9,7 @@ import org.jetbrains.annotations.Nullable;
 public final class NarratedTooltipFactory<T> implements OptionInstance.TooltipSupplier<T> {
     private final String tooltipKey;
     private final String narrationKey;
-    
+
     private final MutableComponent translation;
     private final MutableComponent narration;
 
@@ -19,7 +19,7 @@ public final class NarratedTooltipFactory<T> implements OptionInstance.TooltipSu
         this.translation = null;
         this.narration = null;
     }
-    
+
     public NarratedTooltipFactory(MutableComponent translation, @Nullable MutableComponent narration) {
         this.translation = translation;
         this.narration = narration;
@@ -41,7 +41,7 @@ public final class NarratedTooltipFactory<T> implements OptionInstance.TooltipSu
             }
             return Tooltip.create(Component.translatable(tooltipKey));
         }
-        
+
         return Tooltip.create(Component.literal(""));
     }
 }

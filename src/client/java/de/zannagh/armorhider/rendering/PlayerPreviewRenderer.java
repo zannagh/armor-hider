@@ -1,4 +1,5 @@
 package de.zannagh.armorhider.rendering;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.OptionsList;
@@ -10,16 +11,16 @@ import java.awt.*;
 
 public class PlayerPreviewRenderer {
     private static final int armorHiderSegmentRow = 5;
-    
-    public static void renderPlayerPreview(GuiGraphics graphics, OptionsList body, int mouseX, int mouseY){
+
+    public static void renderPlayerPreview(GuiGraphics graphics, OptionsList body, int mouseX, int mouseY) {
         if (!(Minecraft.getInstance().player instanceof AbstractClientPlayer player)) {
             return;
         }
-        
+
         if (!(Minecraft.getInstance().screen instanceof SkinCustomizationScreen)) {
             return;
         }
-        
+
         int rowWidth = RenderUtilities.getRowWidth(body);
         int rowLeft = RenderUtilities.getRowLeft(body);
         int rowTop = RenderUtilities.getRowTop(body, armorHiderSegmentRow + 1);
@@ -27,7 +28,7 @@ public class PlayerPreviewRenderer {
         int bodyBottom = RenderUtilities.getBodyBottom(body);
         int bodyWidth = RenderUtilities.getBodyWidth(body);
         int bodyX = RenderUtilities.getBodyX(body);
-        
+
         int margin = 20;
 
         int rightHalfWidth = rowWidth / 2;
@@ -68,7 +69,7 @@ public class PlayerPreviewRenderer {
                 panelTop - margin,
                 panelRight,
                 panelBottom,
-                (int)Math.round(previewSize * 0.5),
+                (int) Math.round(previewSize * 0.5),
                 0.25f,
                 (float) mouseX,
                 (float) mouseY,

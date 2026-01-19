@@ -6,7 +6,7 @@ import net.minecraft.world.entity.EquipmentSlot;
 import org.jetbrains.annotations.NotNull;
 
 public record ArmorModificationInfo(EquipmentSlot equipmentSlot, @NotNull PlayerConfig playerConfig) {
-    
+
     public double getTransparency() {
         var setting = switch (equipmentSlot) {
             case HEAD -> playerConfig.helmetOpacity.getValue();
@@ -27,7 +27,7 @@ public record ArmorModificationInfo(EquipmentSlot equipmentSlot, @NotNull Player
         double transparency = getTransparency();
         return transparency < 1 - ArmorOpacity.TRANSPARENCY_STEP / 2;
     }
-    
+
     public boolean isConfigForRemotePlayer(String localPlayerName) {
         return !playerConfig.playerName.getValue().equals(localPlayerName);
     }

@@ -13,25 +13,24 @@ import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.NonNull;
 import oshi.util.tuples.Pair;
 
-import java.awt.*;
-
 public class ArmorHiderClient implements ClientModInitializer {
 
     public static Boolean isCurrentPlayerSinglePlayerHostOrAdmin = false;
-    
+    public static ClientConfigManager CLIENT_CONFIG_MANAGER;
+
     public static @NonNull Boolean isClientConnectedToServer() {
         return Minecraft.getInstance().isLocalServer()
                 || Minecraft.getInstance().getCurrentServer() != null
                 || (Minecraft.getInstance().getConnection() != null && Minecraft.getInstance().getConnection().getServerData() != null);
     }
-    
-    public static String getCurrentPlayerName() { 
-        return Minecraft.getInstance().player instanceof Player clientPlayer 
-                && clientPlayer.getDisplayName() instanceof Component displayText 
-                ? displayText.getString() 
+
+    public static String getCurrentPlayerName() {
+        return Minecraft.getInstance().player instanceof Player clientPlayer
+                && clientPlayer.getDisplayName() instanceof Component displayText
+                ? displayText.getString()
                 : ClientConfigManager.DEFAULT_PLAYER_NAME;
     }
-    
+
     @Contract("_ -> new")
     public static @NonNull Pair<Boolean, PlayerInfo> isPlayerRemotePlayer(String playerName) {
         if (Minecraft.getInstance().getConnection() instanceof ClientPacketListener networkHandler
@@ -41,11 +40,9 @@ public class ArmorHiderClient implements ClientModInitializer {
         }
         return new Pair<>(false, null);
     }
-    
-    public static ClientConfigManager CLIENT_CONFIG_MANAGER;
-    
+
     @Override
-	public void onInitializeClient() {
+    public void onInitializeClient() {
         ArmorHider.LOGGER.info("Armor Hider client initializing...");
         ClientCommunicationManager.initClient();
         CLIENT_CONFIG_MANAGER = new ClientConfigManager();
