@@ -52,7 +52,7 @@ public final class ClientCommunicationManager {
             }
 
             if (!ArmorHiderClient.isClientConnectedToServer()) {
-                ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin = client.isSingleplayer()   ;
+                ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin = client.isSingleplayer();
             }
 
             ClientPacketSender.sendToServer(currentConfig);

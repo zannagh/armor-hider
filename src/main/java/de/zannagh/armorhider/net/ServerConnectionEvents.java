@@ -1,6 +1,8 @@
 package de.zannagh.armorhider.net;
 
 import com.mojang.authlib.GameProfile;
+import de.zannagh.armorhider.ArmorHider;
+import de.zannagh.armorhider.util.ExponentialBackoffHelper;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 
@@ -16,8 +18,7 @@ public final class ServerConnectionEvents {
 
     private static final List<BiConsumer<ServerPlayer, MinecraftServer>> JOIN_HANDLERS = new ArrayList<>();
     private static final Map<UUID, Long> RECENT_JOINS = new ConcurrentHashMap<>();
-    private static final long PLAYER_WAIT_TIMEOUT_MS = 5000;
-    private static final long POLL_INTERVAL_MS = 50;
+    private static final int PLAYER_WAIT_TIMEOUT_MS = 5000;
     private static final long DEDUPE_WINDOW_MS = 2000;
 
     public static void registerJoin(BiConsumer<ServerPlayer, MinecraftServer> handler) {
@@ -36,45 +37,24 @@ public final class ServerConnectionEvents {
         RECENT_JOINS.put(playerId, now);
 
         CompletableFuture.runAsync(() -> {
-            long startTime = System.currentTimeMillis();
-            ServerPlayer player = null;
-
-            while (System.currentTimeMillis() - startTime < PLAYER_WAIT_TIMEOUT_MS) {
+            ServerPlayer player;
+            var backoff = new ExponentialBackoffHelper(PLAYER_WAIT_TIMEOUT_MS);
+            do {
                 player = server.getPlayerList().getPlayer(playerId);
                 if (player != null) {
                     break;
                 }
-                try {
-                    Thread.sleep(POLL_INTERVAL_MS);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    return;
-                }
             }
-
-            if (player == null) {
-                de.zannagh.armorhider.ArmorHider.LOGGER.warn(
-                    "Timed out waiting for player {} ({}) to appear in player list",
-                    playerName, playerId
-                );
+            while (backoff.shouldContinue());
+            
+            if (backoff.hasTimedOut) {
+                ArmorHider.LOGGER.warn("Timed out waiting for player {} ({}) to appear in player list after {} ms", playerName, playerId, backoff.getElapsedMillisSinceFirstAttempt());
                 return;
             }
 
             final ServerPlayer foundPlayer = player;
             server.execute(() -> invokeHandlers(foundPlayer, server));
         });
-    }
-
-    public static void onPlayerJoin(ServerPlayer player, MinecraftServer server) {
-        UUID playerId = player.getUUID();
-        long now = System.currentTimeMillis();
-        Long lastJoin = RECENT_JOINS.get(playerId);
-        if (lastJoin != null && (now - lastJoin) < DEDUPE_WINDOW_MS) {
-            return;
-        }
-        RECENT_JOINS.put(playerId, now);
-
-        invokeHandlers(player, server);
     }
 
     private static void invokeHandlers(ServerPlayer player, MinecraftServer server) {
