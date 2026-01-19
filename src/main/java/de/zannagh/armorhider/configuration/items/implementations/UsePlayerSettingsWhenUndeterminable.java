@@ -11,7 +11,7 @@ public class UsePlayerSettingsWhenUndeterminable extends BooleanConfigItem {
     public UsePlayerSettingsWhenUndeterminable() {
         super();
     }
-    
+
     @Override
     public Boolean getDefaultValue() {
         return true;

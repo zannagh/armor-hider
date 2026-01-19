@@ -6,29 +6,22 @@
 
 package de.zannagh.armorhider.mixin.client.bodyKneesAndToes;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.rendering.ArmorRenderPipeline;
-import net.minecraft.client.render.command.OrderedRenderCommandQueue;
-import net.minecraft.client.render.entity.feature.ArmorFeatureRenderer;
-import net.minecraft.client.render.entity.state.BipedEntityRenderState;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.item.ItemStack;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
+import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(ArmorFeatureRenderer.class)
+@Mixin(HumanoidArmorLayer.class)
 public class ArmorFeatureRenderMixin {
-    @Inject(method = "renderArmor", at = @At("HEAD"))
-    private void captureContext(
-            MatrixStack matrices,
-            OrderedRenderCommandQueue vertexConsumers,
-            ItemStack stack,
-            EquipmentSlot slot,
-            int light,
-            BipedEntityRenderState armorModel,
-            CallbackInfo ci) {
-        ArmorRenderPipeline.setupContext(stack, slot, armorModel);
+    @Inject(method = "renderArmorPiece", at = @At("HEAD"))
+    private <S extends HumanoidRenderState> void captureContext(
+            PoseStack poseStack, SubmitNodeCollector submitNodeCollector, net.minecraft.world.item.ItemStack itemStack, net.minecraft.world.entity.EquipmentSlot equipmentSlot, int i, S humanoidRenderState, CallbackInfo ci) {
+        ArmorRenderPipeline.setupContext(itemStack, equipmentSlot, humanoidRenderState);
     }
 }
+

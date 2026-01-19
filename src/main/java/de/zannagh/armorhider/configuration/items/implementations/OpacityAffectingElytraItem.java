@@ -10,6 +10,7 @@ public class OpacityAffectingElytraItem extends BooleanConfigItem {
     public OpacityAffectingElytraItem() {
         super();
     }
+
     @Override
     public Boolean getDefaultValue() {
         return false;

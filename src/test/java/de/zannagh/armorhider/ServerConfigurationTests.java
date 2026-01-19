@@ -61,68 +61,68 @@ public class ServerConfigurationTests {
     void readV2() {
         //region json
         String v2Json = """
-            {
-                "playerConfigs": {
-                     "da6fa5b1-bd84-361d-8771-656d46818daa": {
-                       "helmetTransparency": 0.3,
-                       "chestTransparency": 0.55,
-                       "legsTransparency": 1.0,
-                       "bootsTransparency": 0.0,
-                       "playerId": "da6fa5b1-bd84-361d-8771-656d46818daa",
-                       "playerName": "Player706",
-                       "enableCombatDetection": false
-                     },
-                     "81ef6cf6-107d-35d0-bf6b-c2f04f3d07c4": {
-                       "helmetTransparency": 1.0,
-                       "chestTransparency": 1.0,
-                       "legsTransparency": 0.25,
-                       "bootsTransparency": 1.0,
-                       "playerId": "81ef6cf6-107d-35d0-bf6b-c2f04f3d07c4",
-                       "playerName": "Player354",
-                       "enableCombatDetection": false
-                     },
-                     "94cce2b9-df97-3b51-a97b-9838f894b678": {
-                       "helmetTransparency": 0.1,
-                       "chestTransparency": 0.2,
-                       "legsTransparency": 0.05,
-                       "bootsTransparency": 1.0,
-                       "playerId": "94cce2b9-df97-3b51-a97b-9838f894b678",
-                       "playerName": "Player393",
-                       "enableCombatDetection": false
-                     }
-                },
-                "playerNameConfigs": {
-                     "Player706": {
-                       "helmetTransparency": 0.3,
-                       "chestTransparency": 0.55,
-                       "legsTransparency": 1.0,
-                       "bootsTransparency": 0.0,
-                       "playerId": "da6fa5b1-bd84-361d-8771-656d46818daa",
-                       "playerName": "Player706",
-                       "enableCombatDetection": false
-                     },
-                     "Player354": {
-                       "helmetTransparency": 1.0,
-                       "chestTransparency": 1.0,
-                       "legsTransparency": 0.25,
-                       "bootsTransparency": 1.0,
-                       "playerId": "81ef6cf6-107d-35d0-bf6b-c2f04f3d07c4",
-                       "playerName": "Player354",
-                       "enableCombatDetection": false
-                     },
-                     "Player393": {
-                       "helmetTransparency": 0.1,
-                       "chestTransparency": 0.2,
-                       "legsTransparency": 0.05,
-                       "bootsTransparency": 1.0,
-                       "playerId": "94cce2b9-df97-3b51-a97b-9838f894b678",
-                       "playerName": "Player393",
-                       "enableCombatDetection": false
-                     }
-                },
-                "enableCombatDetection": true
-            }
-            """;
+                {
+                    "playerConfigs": {
+                         "da6fa5b1-bd84-361d-8771-656d46818daa": {
+                           "helmetTransparency": 0.3,
+                           "chestTransparency": 0.55,
+                           "legsTransparency": 1.0,
+                           "bootsTransparency": 0.0,
+                           "playerId": "da6fa5b1-bd84-361d-8771-656d46818daa",
+                           "playerName": "Player706",
+                           "enableCombatDetection": false
+                         },
+                         "81ef6cf6-107d-35d0-bf6b-c2f04f3d07c4": {
+                           "helmetTransparency": 1.0,
+                           "chestTransparency": 1.0,
+                           "legsTransparency": 0.25,
+                           "bootsTransparency": 1.0,
+                           "playerId": "81ef6cf6-107d-35d0-bf6b-c2f04f3d07c4",
+                           "playerName": "Player354",
+                           "enableCombatDetection": false
+                         },
+                         "94cce2b9-df97-3b51-a97b-9838f894b678": {
+                           "helmetTransparency": 0.1,
+                           "chestTransparency": 0.2,
+                           "legsTransparency": 0.05,
+                           "bootsTransparency": 1.0,
+                           "playerId": "94cce2b9-df97-3b51-a97b-9838f894b678",
+                           "playerName": "Player393",
+                           "enableCombatDetection": false
+                         }
+                    },
+                    "playerNameConfigs": {
+                         "Player706": {
+                           "helmetTransparency": 0.3,
+                           "chestTransparency": 0.55,
+                           "legsTransparency": 1.0,
+                           "bootsTransparency": 0.0,
+                           "playerId": "da6fa5b1-bd84-361d-8771-656d46818daa",
+                           "playerName": "Player706",
+                           "enableCombatDetection": false
+                         },
+                         "Player354": {
+                           "helmetTransparency": 1.0,
+                           "chestTransparency": 1.0,
+                           "legsTransparency": 0.25,
+                           "bootsTransparency": 1.0,
+                           "playerId": "81ef6cf6-107d-35d0-bf6b-c2f04f3d07c4",
+                           "playerName": "Player354",
+                           "enableCombatDetection": false
+                         },
+                         "Player393": {
+                           "helmetTransparency": 0.1,
+                           "chestTransparency": 0.2,
+                           "legsTransparency": 0.05,
+                           "bootsTransparency": 1.0,
+                           "playerId": "94cce2b9-df97-3b51-a97b-9838f894b678",
+                           "playerName": "Player393",
+                           "enableCombatDetection": false
+                         }
+                    },
+                    "enableCombatDetection": true
+                }
+                """;
         //endregion
         var configProvider = new StringServerConfigProvider(v2Json);
         var currentConfig = configProvider.getValue();
@@ -138,63 +138,63 @@ public class ServerConfigurationTests {
     void readPartlyConfig() {
         //region json
         String v2Json = """
-            {
-                "playerConfigs": {
-                     "da6fa5b1-bd84-361d-8771-656d46818daa": {
-                       "helmetTransparency": 0.3,
-                       "chestTransparency": 0.55,
-                       "legsTransparency": 1.0,
-                       "bootsTransparency": 0.0,
-                       "playerId": "da6fa5b1-bd84-361d-8771-656d46818daa",
-                       "playerName": "Player706",
-                       "enableCombatDetection": false
-                     },
-                     "81ef6cf6-107d-35d0-bf6b-c2f04f3d07c4": {
-                       "helmetTransparency": 1.0,
-                       "chestTransparency": 1.0,
-                       "legsTransparency": 0.25,
-                       "bootsTransparency": 1.0,
-                       "playerId": "81ef6cf6-107d-35d0-bf6b-c2f04f3d07c4",
-                       "playerName": "Player354"
-                     },
-                     "94cce2b9-df97-3b51-a97b-9838f894b678": {
-                       "helmetTransparency": 0.1,
-                       "chestTransparency": 0.2,
-                       "legsTransparency": 0.05,
-                       "bootsTransparency": 1.0,
-                       "playerId": "94cce2b9-df97-3b51-a97b-9838f894b678",
-                       "playerName": "Player393"
-                     }
-                },
-                "playerNameConfigs": {
-                     "Player706": {
-                       "helmetTransparency": 0.3,
-                       "chestTransparency": 0.55,
-                       "legsTransparency": 1.0,
-                       "bootsTransparency": 0.0,
-                       "playerId": "da6fa5b1-bd84-361d-8771-656d46818daa",
-                       "playerName": "Player706",
-                       "enableCombatDetection": false
-                     },
-                     "Player354": {
-                       "helmetTransparency": 1.0,
-                       "chestTransparency": 1.0,
-                       "legsTransparency": 0.25,
-                       "bootsTransparency": 1.0,
-                       "playerId": "81ef6cf6-107d-35d0-bf6b-c2f04f3d07c4",
-                       "playerName": "Player354"
-                     },
-                     "Player393": {
-                       "helmetTransparency": 0.1,
-                       "chestTransparency": 0.2,
-                       "legsTransparency": 0.05,
-                       "bootsTransparency": 1.0,
-                       "playerId": "94cce2b9-df97-3b51-a97b-9838f894b678",
-                       "playerName": "Player393"
-                     }
+                {
+                    "playerConfigs": {
+                         "da6fa5b1-bd84-361d-8771-656d46818daa": {
+                           "helmetTransparency": 0.3,
+                           "chestTransparency": 0.55,
+                           "legsTransparency": 1.0,
+                           "bootsTransparency": 0.0,
+                           "playerId": "da6fa5b1-bd84-361d-8771-656d46818daa",
+                           "playerName": "Player706",
+                           "enableCombatDetection": false
+                         },
+                         "81ef6cf6-107d-35d0-bf6b-c2f04f3d07c4": {
+                           "helmetTransparency": 1.0,
+                           "chestTransparency": 1.0,
+                           "legsTransparency": 0.25,
+                           "bootsTransparency": 1.0,
+                           "playerId": "81ef6cf6-107d-35d0-bf6b-c2f04f3d07c4",
+                           "playerName": "Player354"
+                         },
+                         "94cce2b9-df97-3b51-a97b-9838f894b678": {
+                           "helmetTransparency": 0.1,
+                           "chestTransparency": 0.2,
+                           "legsTransparency": 0.05,
+                           "bootsTransparency": 1.0,
+                           "playerId": "94cce2b9-df97-3b51-a97b-9838f894b678",
+                           "playerName": "Player393"
+                         }
+                    },
+                    "playerNameConfigs": {
+                         "Player706": {
+                           "helmetTransparency": 0.3,
+                           "chestTransparency": 0.55,
+                           "legsTransparency": 1.0,
+                           "bootsTransparency": 0.0,
+                           "playerId": "da6fa5b1-bd84-361d-8771-656d46818daa",
+                           "playerName": "Player706",
+                           "enableCombatDetection": false
+                         },
+                         "Player354": {
+                           "helmetTransparency": 1.0,
+                           "chestTransparency": 1.0,
+                           "legsTransparency": 0.25,
+                           "bootsTransparency": 1.0,
+                           "playerId": "81ef6cf6-107d-35d0-bf6b-c2f04f3d07c4",
+                           "playerName": "Player354"
+                         },
+                         "Player393": {
+                           "helmetTransparency": 0.1,
+                           "chestTransparency": 0.2,
+                           "legsTransparency": 0.05,
+                           "bootsTransparency": 1.0,
+                           "playerId": "94cce2b9-df97-3b51-a97b-9838f894b678",
+                           "playerName": "Player393"
+                         }
+                    }
                 }
-            }
-            """;
+                """;
         //endregion
         var configProvider = new StringServerConfigProvider(v2Json);
         var currentConfig = configProvider.getValue();
@@ -210,21 +210,21 @@ public class ServerConfigurationTests {
     void readV3MigrateToV4() {
         //region json - v3 format with top-level enableCombatDetection
         String v3Json = """
-            {
-                "playerConfigs": {
-                     "da6fa5b1-bd84-361d-8771-656d46818daa": {
-                       "helmetOpacity": 0.5,
-                       "chestOpacity": 0.75,
-                       "legsOpacity": 1.0,
-                       "bootsOpacity": 0.25,
-                       "playerId": "da6fa5b1-bd84-361d-8771-656d46818daa",
-                       "playerName": "TestPlayer",
-                       "enableCombatDetection": true
-                     }
-                },
-                "enableCombatDetection": false
-            }
-            """;
+                {
+                    "playerConfigs": {
+                         "da6fa5b1-bd84-361d-8771-656d46818daa": {
+                           "helmetOpacity": 0.5,
+                           "chestOpacity": 0.75,
+                           "legsOpacity": 1.0,
+                           "bootsOpacity": 0.25,
+                           "playerId": "da6fa5b1-bd84-361d-8771-656d46818daa",
+                           "playerName": "TestPlayer",
+                           "enableCombatDetection": true
+                         }
+                    },
+                    "enableCombatDetection": false
+                }
+                """;
         //endregion
         var configProvider = new StringServerConfigProvider(v3Json);
         var currentConfig = configProvider.getValue();
@@ -244,23 +244,23 @@ public class ServerConfigurationTests {
     void readV4() {
         //region json - v4 format with serverWideSettings object
         String v4Json = """
-            {
-                "playerConfigs": {
-                     "da6fa5b1-bd84-361d-8771-656d46818daa": {
-                       "helmetOpacity": 0.2,
-                       "chestOpacity": 0.4,
-                       "legsOpacity": 0.6,
-                       "bootsOpacity": 0.8,
-                       "playerId": "da6fa5b1-bd84-361d-8771-656d46818daa",
-                       "playerName": "ModernPlayer",
-                       "enableCombatDetection": false
-                     }
-                },
-                "serverWideSettings": {
-                    "enableCombatDetection": true
+                {
+                    "playerConfigs": {
+                         "da6fa5b1-bd84-361d-8771-656d46818daa": {
+                           "helmetOpacity": 0.2,
+                           "chestOpacity": 0.4,
+                           "legsOpacity": 0.6,
+                           "bootsOpacity": 0.8,
+                           "playerId": "da6fa5b1-bd84-361d-8771-656d46818daa",
+                           "playerName": "ModernPlayer",
+                           "enableCombatDetection": false
+                         }
+                    },
+                    "serverWideSettings": {
+                        "enableCombatDetection": true
+                    }
                 }
-            }
-            """;
+                """;
         //endregion
         var configProvider = new StringServerConfigProvider(v4Json);
         var currentConfig = configProvider.getValue();
@@ -283,7 +283,7 @@ public class ServerConfigurationTests {
 
         HashMap<Integer, Boolean> sizeAcceptable = new HashMap<>();
         for (int playerCount : playerCounts) {
-            
+
             StringServerConfigProvider provider = ServerConfigProviderMock.createServerConfigWithPlayers(playerCount);
             ServerConfiguration config = provider.getValue();
 
@@ -308,7 +308,7 @@ public class ServerConfigurationTests {
                 buffer.release();
             }
         }
-        
+
         boolean allSizesAcceptable = true;
 
         for (var entry : sizeAcceptable.entrySet()) {
@@ -328,21 +328,21 @@ public class ServerConfigurationTests {
 
         // Test 1: 0.4.x config with enableCombatDetection = false
         String v3ConfigFalse = """
-            {
-                "playerConfigs": {
-                     "da6fa5b1-bd84-361d-8771-656d46818daa": {
-                       "helmetOpacity": 0.5,
-                       "chestOpacity": 0.75,
-                       "legsOpacity": 1.0,
-                       "bootsOpacity": 0.25,
-                       "playerId": "da6fa5b1-bd84-361d-8771-656d46818daa",
-                       "playerName": "TestPlayer",
-                       "enableCombatDetection": true
-                     }
-                },
-                "enableCombatDetection": false
-            }
-            """;
+                {
+                    "playerConfigs": {
+                         "da6fa5b1-bd84-361d-8771-656d46818daa": {
+                           "helmetOpacity": 0.5,
+                           "chestOpacity": 0.75,
+                           "legsOpacity": 1.0,
+                           "bootsOpacity": 0.25,
+                           "playerId": "da6fa5b1-bd84-361d-8771-656d46818daa",
+                           "playerName": "TestPlayer",
+                           "enableCombatDetection": true
+                         }
+                    },
+                    "enableCombatDetection": false
+                }
+                """;
 
         ServerConfiguration config1 = ArmorHider.GSON.fromJson(v3ConfigFalse, ServerConfiguration.class);
         assertNotNull(config1, "Config should not be null");
@@ -353,11 +353,11 @@ public class ServerConfigurationTests {
 
         // Test 2: 0.4.x config with enableCombatDetection = true
         String v3ConfigTrue = """
-            {
-                "playerConfigs": {},
-                "enableCombatDetection": true
-            }
-            """;
+                {
+                    "playerConfigs": {},
+                    "enableCombatDetection": true
+                }
+                """;
 
         ServerConfiguration config2 = ArmorHider.GSON.fromJson(v3ConfigTrue, ServerConfiguration.class);
         assertNotNull(config2, "Config should not be null");
@@ -368,10 +368,10 @@ public class ServerConfigurationTests {
 
         // Test 3: 0.4.x config without enableCombatDetection field (should use default)
         String v3ConfigNoField = """
-            {
-                "playerConfigs": {}
-            }
-            """;
+                {
+                    "playerConfigs": {}
+                }
+                """;
 
         ServerConfiguration config3 = ArmorHider.GSON.fromJson(v3ConfigNoField, ServerConfiguration.class);
         assertNotNull(config3, "Config should not be null");

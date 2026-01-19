@@ -1,4 +1,3 @@
-
 package de.zannagh.armorhider.resources;
 
 import com.google.gson.annotations.SerializedName;
@@ -7,8 +6,9 @@ import de.zannagh.armorhider.configuration.ConfigurationSource;
 import de.zannagh.armorhider.configuration.items.implementations.*;
 import de.zannagh.armorhider.netPackets.CompressedJsonCodec;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.Identifier;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.NonNull;
 
@@ -16,59 +16,39 @@ import java.io.Reader;
 import java.util.UUID;
 
 public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
-    
-    private transient boolean hasChangedFromSerializedContent;
 
-    public static final Id<PlayerConfig> PACKET_IDENTIFIER = new Id<>(Identifier.of("de.zannagh.armorhider", "settings_c2s_packet"));
-    
-    public PacketCodec<ByteBuf, PlayerConfig> getCodec() {
-        return CompressedJsonCodec.create(PlayerConfig.class);
-    }
-
-    @Override
-    public Id<PlayerConfig> getId() {
-        return PACKET_IDENTIFIER;
-    }
-    
+    public static final Identifier PACKET_IDENTIFIER = Identifier.fromNamespaceAndPath("de.zannagh.armorhider", "settings_c2s_packet");
+    public static final StreamCodec<ByteBuf, PlayerConfig> STREAM_CODEC = CompressedJsonCodec.create(PlayerConfig.class);
+    public static final Type<PlayerConfig> TYPE = new Type<>(PACKET_IDENTIFIER);
     @SerializedName(value = "helmetOpacity", alternate = {"helmetTransparency"})
     public ArmorOpacity helmetOpacity;
-    
     @SerializedName(value = "chestOpacity", alternate = {"chestTransparency"})
     public ArmorOpacity chestOpacity;
-
     @SerializedName(value = "legsOpacity", alternate = {"legsTransparency"})
     public ArmorOpacity legsOpacity;
-
     @SerializedName(value = "bootsOpacity", alternate = {"bootsTransparency"})
     public ArmorOpacity bootsOpacity;
-    
     @SerializedName(value = "enableCombatDetection")
     public CombatDetection enableCombatDetection;
-    
     @SerializedName(value = "opacityAffectingElytra")
     public OpacityAffectingElytraItem opacityAffectingElytra;
-    
     @SerializedName(value = "opacityAffectingHatOrSkull")
     public OpacityAffectingHatOrSkullItem opacityAffectingHatOrSkull;
-    
     @SerializedName(value = "disableArmorHider", alternate = "globalArmorHiderToggle")
     public DisableArmorHiderGlobally disableArmorHider;
-    
     @SerializedName(value = "disableArmorHiderForOthers", alternate = "toggleArmorHiderForOthers")
     public DisableArmorHiderForOthers disableArmorHiderForOthers;
-    
     @SerializedName(value = "usePlayerSettingsWhenUndeterminable")
     public UsePlayerSettingsWhenUndeterminable usePlayerSettingsWhenUndeterminable;
-    
     public PlayerUuid playerId;
     public PlayerName playerName;
-
+    private transient boolean hasChangedFromSerializedContent;
     public PlayerConfig(UUID uuid, String name) {
         this();
         this.playerId = new PlayerUuid(uuid);
         this.playerName = new PlayerName(name);
     }
-    
+
     public PlayerConfig() {
         helmetOpacity = new ArmorOpacity();
         chestOpacity = new ArmorOpacity();
@@ -84,11 +64,11 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         usePlayerSettingsWhenUndeterminable = new UsePlayerSettingsWhenUndeterminable();
     }
 
-    public static PlayerConfig deserialize(Reader reader){
+    public static PlayerConfig deserialize(Reader reader) {
         return ArmorHider.GSON.fromJson(reader, PlayerConfig.class);
     }
 
-    public static PlayerConfig deserialize(String content){
+    public static PlayerConfig deserialize(String content) {
         return ArmorHider.GSON.fromJson(content, PlayerConfig.class);
     }
 
@@ -96,10 +76,19 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
     public static @NonNull PlayerConfig empty() {
         return new PlayerConfig();
     }
-    
+
     @Contract("_, _ -> new")
     public static @NonNull PlayerConfig defaults(UUID playerId, String playerName) {
         return new PlayerConfig(playerId, playerName);
+    }
+
+    public StreamCodec<ByteBuf, PlayerConfig> getCodec() {
+        return CompressedJsonCodec.create(PlayerConfig.class);
+    }
+
+    @Override
+    public Identifier getId() {
+        return PACKET_IDENTIFIER;
     }
 
     @Override
@@ -125,5 +114,10 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         newConfig.opacityAffectingElytra.setValue(this.opacityAffectingElytra.getValue());
         newConfig.usePlayerSettingsWhenUndeterminable.setValue(this.usePlayerSettingsWhenUndeterminable.getValue());
         return newConfig;
+    }
+
+    @Override
+    public @NonNull Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 }

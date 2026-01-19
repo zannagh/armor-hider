@@ -2,7 +2,7 @@ name: "CodeQL"
 
 on:
   push:
-    branches: 
+    branches:
       - "main"
       - 'release/**'
     paths-ignore:
@@ -11,7 +11,7 @@ on:
       - '**/*.png'
       - '**/*.yml'
   pull_request:
-    branches: 
+    branches:
       - "main"
       - 'release/**'
     paths-ignore:

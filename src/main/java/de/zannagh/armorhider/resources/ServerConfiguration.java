@@ -9,11 +9,13 @@ import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.configuration.ConfigurationSource;
 import de.zannagh.armorhider.netPackets.CompressedJsonCodec;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.Identifier;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -21,26 +23,18 @@ import java.io.StringReader;
 import java.util.*;
 
 public class ServerConfiguration implements ConfigurationSource<ServerConfiguration> {
-    
-    public static final Id<ServerConfiguration> PACKET_IDENTIFIER = new Id<>(Identifier.of("de.zannagh.armorhider", "settings_s2c_packet"));
 
-    public PacketCodec<ByteBuf, ServerConfiguration> getCodec() {
-        return CompressedJsonCodec.create(ServerConfiguration.class);
-    }
-
-    @Override
-    public Id<ServerConfiguration> getId() {
-        return PACKET_IDENTIFIER;
-    }
-    
-    private static final java.lang.reflect.Type LEGACY_MAP_TYPE = new TypeToken<Map<UUID, PlayerConfig>>(){}.getType();
-    private transient boolean hasChangedComparedToSerializedContent = false;
-    Map<UUID, PlayerConfig> playerConfigs = new HashMap<>();
-    
-    Map<String, PlayerConfig> playerNameConfigs = new HashMap<>();
-
+    public static final Identifier PACKET_IDENTIFIER = Identifier.fromNamespaceAndPath("de.zannagh.armorhider", "settings_s2c_packet");
+    public static final Type<ServerConfiguration> TYPE = new Type<>(PACKET_IDENTIFIER);
+    public static final StreamCodec<ByteBuf, ServerConfiguration> STREAM_CODEC = CompressedJsonCodec.create(ServerConfiguration.class);
+    private static final java.lang.reflect.Type LEGACY_MAP_TYPE = new TypeToken<Map<UUID, PlayerConfig>>() {
+    }.getType();
     @SerializedName(value = "serverWideSettings")
     public ServerWideSettings serverWideSettings;
+    Map<UUID, PlayerConfig> playerConfigs = new HashMap<>();
+
+    Map<String, PlayerConfig> playerNameConfigs = new HashMap<>();
+    private transient boolean hasChangedComparedToSerializedContent = false;
 
     public ServerConfiguration() {
         // Always initialize serverWideSettings with defaults to prevent null pointer exceptions
@@ -54,47 +48,6 @@ public class ServerConfiguration implements ConfigurationSource<ServerConfigurat
         this.playerConfigs.values().forEach(c -> playerNameConfigs.put(c.playerName.getValue(), c));
     }
 
-    public PlayerConfig getPlayerConfigOrDefault(PlayerEntity player) {
-        if (getPlayerConfigOrDefault(player.getUuid()) instanceof PlayerConfig uuidConfig && Objects.equals(uuidConfig.playerName.getValue(), Objects.requireNonNull(player.getDisplayName()).getString())) {
-            return uuidConfig;
-        }
-        return getPlayerConfigOrDefault(Objects.requireNonNull(player.getDisplayName()).getString());
-    }
-    
-    public PlayerConfig getPlayerConfigOrDefault(UUID uuid) {
-        if (uuid == null) {
-            return null;
-        }
-        return playerConfigs.getOrDefault(uuid, null);
-    }
-    
-    public PlayerConfig getPlayerConfigOrDefault(String name) {
-        if (name == null) {
-            return null;
-        }
-        return playerNameConfigs.getOrDefault(name, null);
-    }
-    
-    public List<PlayerConfig> getPlayerConfigs() {
-        return new ArrayList<>(playerConfigs.values());
-    }
-    
-    public void put(@NotNull String playerName, UUID playerId, PlayerConfig playerConfig) {
-        playerNameConfigs.put(playerName, playerConfig);
-        if (playerId != null) {
-            playerConfigs.put(playerId, playerConfig);
-        }
-    }
-    
-    public void put(PlayerConfig playerConfig) {
-        playerNameConfigs.put(playerConfig.playerName.getValue(), playerConfig);
-        playerConfigs.put(playerConfig.playerId.getValue(), playerConfig);
-    }
-    
-    public String toJson() {
-        return ArmorHider.GSON.toJson(this);
-    }
-    
     public static @NotNull ServerConfiguration deserialize(Reader reader) throws IOException {
         JsonElement element = JsonParser.parseReader(reader);
         ServerConfiguration configuration;
@@ -123,14 +76,14 @@ public class ServerConfiguration implements ConfigurationSource<ServerConfigurat
 
                 // Check if any player configs changed during deserialization
                 if (configuration.playerConfigs.values().stream().anyMatch(PlayerConfig::hasChangedFromSerializedContent) ||
-                    configuration.playerNameConfigs.values().stream().anyMatch(PlayerConfig::hasChangedFromSerializedContent) ||
-                    configuration.serverWideSettings.hasChangedFromSerializedContent()) {
+                        configuration.playerNameConfigs.values().stream().anyMatch(PlayerConfig::hasChangedFromSerializedContent) ||
+                        configuration.serverWideSettings.hasChangedFromSerializedContent()) {
                     configuration.setHasChangedFromSerializedContent();
                 }
 
                 // Rebuild playerNameConfigs map if needed
                 configuration.playerConfigs.values().forEach(c ->
-                    configuration.playerNameConfigs.put(c.playerName.getValue(), c));
+                        configuration.playerNameConfigs.put(c.playerName.getValue(), c));
 
                 return configuration;
             } else {
@@ -146,7 +99,7 @@ public class ServerConfiguration implements ConfigurationSource<ServerConfigurat
         }
         throw new IOException("Failed to deserialize server configuration. Invalid format or content.");
     }
-    
+
     public static @NotNull ServerConfiguration deserialize(String content) throws IOException {
         StringReader reader = new StringReader(content);
         return deserialize(reader);
@@ -157,6 +110,56 @@ public class ServerConfiguration implements ConfigurationSource<ServerConfigurat
         return new ServerConfiguration(playerConfigs, new ServerWideSettings(true, false));
     }
 
+    public StreamCodec<ByteBuf, ServerConfiguration> getCodec() {
+        return CompressedJsonCodec.create(ServerConfiguration.class);
+    }
+
+    @Override
+    public Identifier getId() {
+        return PACKET_IDENTIFIER;
+    }
+
+    public PlayerConfig getPlayerConfigOrDefault(Player player) {
+        if (getPlayerConfigOrDefault(player.getUUID()) instanceof PlayerConfig uuidConfig && Objects.equals(uuidConfig.playerName.getValue(), Objects.requireNonNull(player.getDisplayName()).getString())) {
+            return uuidConfig;
+        }
+        return getPlayerConfigOrDefault(Objects.requireNonNull(player.getDisplayName()).getString());
+    }
+
+    public PlayerConfig getPlayerConfigOrDefault(UUID uuid) {
+        if (uuid == null) {
+            return null;
+        }
+        return playerConfigs.getOrDefault(uuid, null);
+    }
+
+    public PlayerConfig getPlayerConfigOrDefault(String name) {
+        if (name == null) {
+            return null;
+        }
+        return playerNameConfigs.getOrDefault(name, null);
+    }
+
+    public List<PlayerConfig> getPlayerConfigs() {
+        return new ArrayList<>(playerConfigs.values());
+    }
+
+    public void put(@NotNull String playerName, UUID playerId, PlayerConfig playerConfig) {
+        playerNameConfigs.put(playerName, playerConfig);
+        if (playerId != null) {
+            playerConfigs.put(playerId, playerConfig);
+        }
+    }
+
+    public void put(PlayerConfig playerConfig) {
+        playerNameConfigs.put(playerConfig.playerName.getValue(), playerConfig);
+        playerConfigs.put(playerConfig.playerId.getValue(), playerConfig);
+    }
+
+    public String toJson() {
+        return ArmorHider.GSON.toJson(this);
+    }
+
     @Override
     public boolean hasChangedFromSerializedContent() {
         return hasChangedComparedToSerializedContent;
@@ -165,5 +168,10 @@ public class ServerConfiguration implements ConfigurationSource<ServerConfigurat
     @Override
     public void setHasChangedFromSerializedContent() {
         hasChangedComparedToSerializedContent = true;
+    }
+
+    @Override
+    public @NonNull Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 }

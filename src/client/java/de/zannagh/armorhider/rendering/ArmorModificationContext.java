@@ -2,10 +2,12 @@ package de.zannagh.armorhider.rendering;
 
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.resources.ArmorModificationInfo;
-import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.NotNull;
 
 class ArmorModificationContext {
-
+    private static final ThreadLocal<ItemStack> currentItemStack = ThreadLocal.withInitial(() -> ItemStack.EMPTY);
     private static final ThreadLocal<EquipmentSlot> currentSlot = ThreadLocal.withInitial(() -> null);
     private static final ThreadLocal<ArmorModificationInfo> currentModification = ThreadLocal.withInitial(() -> null);
 
@@ -15,6 +17,14 @@ class ArmorModificationContext {
 
     public static void setCurrentSlot(EquipmentSlot slot) {
         currentSlot.set(slot);
+    }
+
+    public static ItemStack getCurrentItemStack() {
+        return currentItemStack.get();
+    }
+
+    public static void setCurrentItemStack(@NotNull ItemStack stack) {
+        currentItemStack.set(stack);
     }
 
     public static ArmorModificationInfo getCurrentModification() {
@@ -37,7 +47,7 @@ class ArmorModificationContext {
     public static boolean shouldModifyEquipment() {
         ArmorModificationInfo modification = currentModification.get();
         if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableArmorHiderForOthers.getValue()
-                && modification != null 
+                && modification != null
                 && modification.isConfigForRemotePlayer(ArmorHiderClient.getCurrentPlayerName())) {
             return false;
         }
@@ -47,5 +57,6 @@ class ArmorModificationContext {
     public static void clearAll() {
         currentSlot.remove();
         currentModification.remove();
+        currentItemStack.set(ItemStack.EMPTY);
     }
 }

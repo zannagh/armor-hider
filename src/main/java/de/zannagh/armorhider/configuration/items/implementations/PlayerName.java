@@ -7,7 +7,7 @@ public class PlayerName extends StringConfigItem {
     public PlayerName(String currentValue) {
         super(currentValue);
     }
-    
+
     public PlayerName() {
         super();
     }

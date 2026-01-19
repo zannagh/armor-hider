@@ -2,7 +2,7 @@ package de.zannagh.armorhider.netPackets;
 
 import com.google.gson.Gson;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.codec.StreamCodec;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -15,26 +15,26 @@ import java.util.zip.GZIPOutputStream;
 public class CompressedJsonCodec {
 
     private static volatile Gson GSON = new Gson();
-    
+
     public static void setGson(Gson gson) {
         GSON = gson;
     }
-    
+
     /**
      * Creates a PacketCodec that serializes objects to compressed JSON.
      *
      * @param clazz The class type to deserialize to
-     * @param <T> The type of object to serialize/deserialize
+     * @param <T>   The type of object to serialize/deserialize
      * @return A PacketCodec for the given type
      */
-    public static <T> PacketCodec<ByteBuf, T> create(Class<T> clazz) {
-        return PacketCodec.of(
+    public static <T> StreamCodec<ByteBuf, T> create(Class<T> clazz) {
+        return StreamCodec.of(
                 CompressedJsonCodec::encode,
                 (buf) -> decode(buf, clazz)
         );
     }
 
-    private static <T> void encode(T value, ByteBuf buf) {
+    private static <T> void encode(ByteBuf byteBuf, T value) {
         try {
             ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
             try (GZIPOutputStream gzipStream = new GZIPOutputStream(byteStream);
@@ -43,8 +43,8 @@ public class CompressedJsonCodec {
             }
 
             byte[] compressed = byteStream.toByteArray();
-            buf.writeInt(compressed.length);
-            buf.writeBytes(compressed);
+            byteBuf.writeInt(compressed.length);
+            byteBuf.writeBytes(compressed);
         } catch (Exception e) {
             throw new RuntimeException("Failed to encode compressed JSON", e);
         }

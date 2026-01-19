@@ -10,6 +10,7 @@ public class DisableArmorHiderGlobally extends BooleanConfigItem {
     public DisableArmorHiderGlobally() {
         super();
     }
+
     @Override
     public Boolean getDefaultValue() {
         return false;

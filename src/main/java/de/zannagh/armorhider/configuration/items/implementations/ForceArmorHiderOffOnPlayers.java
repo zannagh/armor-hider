@@ -11,7 +11,7 @@ public class ForceArmorHiderOffOnPlayers extends BooleanConfigItem {
     public ForceArmorHiderOffOnPlayers() {
         super();
     }
-   
+
     @Override
     public Boolean getDefaultValue() {
         return false;

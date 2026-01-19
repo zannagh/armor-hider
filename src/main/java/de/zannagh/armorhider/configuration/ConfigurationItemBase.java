@@ -1,7 +1,5 @@
 package de.zannagh.armorhider.configuration;
 
-import de.zannagh.armorhider.configuration.items.BooleanConfigItem;
-
 public abstract class ConfigurationItemBase<T> {
 
     protected T value;
@@ -9,7 +7,7 @@ public abstract class ConfigurationItemBase<T> {
     public ConfigurationItemBase(T actualValue) {
         this.value = actualValue;
     }
-    
+
     public ConfigurationItemBase() {
         this.value = getDefaultValue();
     }

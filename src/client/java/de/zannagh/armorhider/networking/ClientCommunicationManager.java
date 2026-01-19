@@ -2,43 +2,60 @@ package de.zannagh.armorhider.networking;
 
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.resources.PlayerConfig;
+import de.zannagh.armorhider.net.PayloadRegistry;
+import de.zannagh.armorhider.netPackets.PermissionPacket;
 import de.zannagh.armorhider.resources.ServerConfiguration;
-import de.zannagh.armorhider.resources.ServerWideSettings;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+import net.minecraft.client.multiplayer.ServerData;
 
+/**
+ * Client-side communication manager.
+ * Handles packet registration and events without Fabric API.
+ */
 public final class ClientCommunicationManager {
+
     public static void initClient() {
-        
-        ClientPlayNetworking.registerGlobalReceiver(ServerConfiguration.PACKET_IDENTIFIER, (payload, context) -> {
+        PayloadRegistry.registerS2CHandler(ServerConfiguration.TYPE, ctx -> {
+            if (!(ctx.payload() instanceof ServerConfiguration payload)) {
+                return;
+            }
+
             ArmorHider.LOGGER.info("Armor Hider received configuration from server.");
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.setServerConfig(payload);
             ArmorHider.LOGGER.info("Armor Hider successfully set configuration from server.");
         });
 
-        ClientPlayConnectionEvents.JOIN.register((handler, packetSender, client) -> {
+        PayloadRegistry.registerS2CHandler(PermissionPacket.TYPE, ctx -> {
+            if (!(ctx.payload() instanceof PermissionPacket payload)) {
+                return;
+            }
+
+            if (payload.permissionLevel >= 3) {
+                ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin = true;
+            }
+        });
+
+        ClientConnectionEvents.registerJoin((handler, client) -> {
             assert client.player != null;
             var playerName = client.player.getName().getString();
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.updateName(playerName);
-            ArmorHiderClient.CLIENT_CONFIG_MANAGER.updateId(handler.getProfile().id());
+            ArmorHiderClient.CLIENT_CONFIG_MANAGER.updateId(handler.getLocalGameProfile().id());
             var currentConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue();
 
-            if (client.getServer() != null) {
+            if (client.getCurrentServer() instanceof ServerData serverData) {
                 try {
-                    var currentPlayerPermissionLevel = client.getServer().getPermissionLevel(client.player.getPlayerConfigEntry()).getLevel().getLevel();
-                   ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin = currentPlayerPermissionLevel >= 3;
-                }
-                catch (Exception ignored) {
+                    boolean isLanServer = serverData.isLan();
+                    boolean isSinglePlayer = client.isSingleplayer();
+                    ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin = isSinglePlayer || isLanServer;
+                } catch (Exception ignored) {
                     ArmorHider.LOGGER.error("Failed to set permissions for player {}.", playerName);
                 }
             }
 
             if (!ArmorHiderClient.isClientConnectedToServer()) {
-                ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin = true;
+                ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin = client.isSingleplayer();
             }
-            ClientPlayNetworking.send(currentConfig);
+
+            ClientPacketSender.sendToServer(currentConfig);
         });
     }
 }

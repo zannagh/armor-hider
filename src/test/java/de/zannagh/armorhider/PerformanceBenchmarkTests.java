@@ -14,13 +14,27 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class PerformanceBenchmarkTests {
     static int ITERATIONS_PER_PLAYER_COUNT = 500;
-    
+
     static double ALLOWED_RATIO_DEVIATION = 1.7;
+
+    private static boolean isIntervalsOverlap(BenchmarkStats regularStats, BenchmarkStats reflectionStats) {
+        double ciDivisor = Math.sqrt(ITERATIONS_PER_PLAYER_COUNT);
+        double regularCI = 1.96 * regularStats.stdDev / ciDivisor;
+        double reflectionCI = 1.96 * reflectionStats.stdDev / ciDivisor;
+
+        double regularLower = regularStats.mean - regularCI;
+        double regularUpper = regularStats.mean + regularCI;
+        double reflectionLower = reflectionStats.mean - reflectionCI;
+        double reflectionUpper = reflectionStats.mean + reflectionCI;
+
+        // Confidence interval overlap
+        return !(reflectionLower > regularUpper || regularLower > reflectionUpper);
+    }
 
     @Test
     @DisplayName("Serialization Performance Benchmark - up to 300 players")
     void testSerializationPerformance() {
-        int[] playerCounts = { 1, 10, 50, 100, 300 };
+        int[] playerCounts = {1, 10, 50, 100, 300};
         var gson = new GsonBuilder().setPrettyPrinting().create();
 
         List<BenchmarkResult> results = new ArrayList<>();
@@ -165,20 +179,6 @@ public class PerformanceBenchmarkTests {
                         reflectionStats.mean / 1_000_000.0, reflectionStats.stdDev / 1_000_000.0));
     }
 
-    private static boolean isIntervalsOverlap(BenchmarkStats regularStats, BenchmarkStats reflectionStats) {
-        double ciDivisor = Math.sqrt(ITERATIONS_PER_PLAYER_COUNT);
-        double regularCI = 1.96 * regularStats.stdDev / ciDivisor;
-        double reflectionCI = 1.96 * reflectionStats.stdDev / ciDivisor;
-
-        double regularLower = regularStats.mean - regularCI;
-        double regularUpper = regularStats.mean + regularCI;
-        double reflectionLower = reflectionStats.mean - reflectionCI;
-        double reflectionUpper = reflectionStats.mean + reflectionCI;
-
-        // Confidence interval overlap
-        return !(reflectionLower > regularUpper || regularLower > reflectionUpper);
-    }
-
     private void printSummaryTables(List<BenchmarkResult> results) {
         System.out.println("\n" + "=".repeat(80));
         System.out.println("DESERIALIZATION PERFORMANCE SUMMARY");
@@ -224,6 +224,38 @@ public class PerformanceBenchmarkTests {
         System.out.println("=".repeat(80) + "\n");
     }
 
+    private BenchmarkStats calculateStats(long[] times) {
+
+        double min;
+        double max;
+        double mean;
+        double stdDev;
+
+        long sum = 0;
+        min = Long.MAX_VALUE;
+        max = Long.MIN_VALUE;
+
+        for (long time : times) {
+            sum += time;
+            if (time < min) {
+                min = time;
+            }
+            if (time > max) {
+                max = time;
+            }
+        }
+        mean = (double) sum / times.length;
+
+        double varianceSum = 0;
+        for (long time : times) {
+            double diff = time - mean;
+            varianceSum += diff * diff;
+        }
+        stdDev = Math.sqrt(varianceSum / times.length);
+
+        return new BenchmarkStats(mean, stdDev, min, max);
+    }
+
     private static class BenchmarkResult {
         int playerCount;
         BenchmarkStats regularSerialization;
@@ -250,37 +282,6 @@ public class PerformanceBenchmarkTests {
         }
     }
 
-    private record BenchmarkStats(double mean, double stdDev, double min, double max) {}
-
-    private BenchmarkStats calculateStats(long[] times) {
-        
-        double min;
-        double max;
-        double mean;
-        double stdDev;
-        
-        long sum = 0;
-        min = Long.MAX_VALUE;
-        max = Long.MIN_VALUE;
-
-        for (long time : times) {
-            sum += time;
-            if (time < min) {
-                min = time;
-            }
-            if (time > max) {
-                max = time;
-            }
-        }
-        mean = (double) sum / times.length;
-
-        double varianceSum = 0;
-        for (long time : times) {
-            double diff = time - mean;
-            varianceSum += diff * diff;
-        }
-        stdDev = Math.sqrt(varianceSum / times.length);
-
-        return new BenchmarkStats(mean, stdDev, min, max);
+    private record BenchmarkStats(double mean, double stdDev, double min, double max) {
     }
 }

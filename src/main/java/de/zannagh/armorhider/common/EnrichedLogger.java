@@ -4,19 +4,19 @@ import org.slf4j.Logger;
 import org.slf4j.Marker;
 
 public class EnrichedLogger implements Logger {
+    private final Logger del;
+
+    public EnrichedLogger(Logger delegate) {
+        del = delegate;
+    }
+
+    private static String formatMessage(String message) {
+        return "[Zannagh's Armor Hider] - " + message;
+    }
+
     @Override
     public String getName() {
         return "armor-hider-logger";
-    }
-    
-    private static String formatMessage(String message){
-        return "[Zannagh's Armor Hider] - " + message;
-    }
-    
-    private final Logger del;
-    
-    public EnrichedLogger(Logger delegate){
-        del = delegate;
     }
 
     @Override

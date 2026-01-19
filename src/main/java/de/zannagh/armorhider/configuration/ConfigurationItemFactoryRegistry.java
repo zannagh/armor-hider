@@ -7,14 +7,16 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
 import java.net.URL;
-import java.util.*;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 
 /**
  * Centralized registry for ConfigurationItemBase factory methods.
@@ -53,7 +55,7 @@ public class ConfigurationItemFactoryRegistry {
         }
         return DEFAULT_FACTORIES.get(clazz);
     }
-    
+
     private static void registerFactoriesForClass(Class<? extends ConfigurationItemBase<?>> clazz) {
         try {
             Constructor<?>[] constructors = clazz.getDeclaredConstructors();
@@ -70,8 +72,8 @@ public class ConfigurationItemFactoryRegistry {
 
             if (singleParamConstructor == null) {
                 throw new IllegalStateException(
-                    "ConfigurationItemBase implementation " + clazz.getName() +
-                    " must have a constructor that takes exactly one parameter (the value).");
+                        "ConfigurationItemBase implementation " + clazz.getName() +
+                                " must have a constructor that takes exactly one parameter (the value).");
             }
 
             Constructor<?> finalSingleParamConstructor = singleParamConstructor;
@@ -137,7 +139,7 @@ public class ConfigurationItemFactoryRegistry {
                     }
                 }
             }
-            
+
         } catch (Exception e) {
             throw new RuntimeException("Failed to scan for ConfigurationItemBase implementations", e);
         }

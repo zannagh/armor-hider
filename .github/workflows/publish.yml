@@ -1,7 +1,7 @@
 name: publish
-on: 
+on:
   release:
-    types: [published]
+    types: [ published ]
   workflow_dispatch:
 
 jobs:
@@ -36,17 +36,17 @@ jobs:
       - name: build
         if: ${{ github.event_name == 'release' }}
         run: ./gradlew build -PsemVer="${{ steps.version.outputs.majorMinorPatch }}" -Pprerelease="${{ github.event.release.prerelease }}"
-      
+
       - name: buildWhenDispatch
         if: ${{ github.event_name != 'release' }}
         run: ./gradlew build -PsemVer="${{ steps.version.outputs.majorMinorPatch }}-${{ steps.version.outputs.commitsSinceVersionSource }}" -Pprerelease="true"
-      
+
       - name: capture build artifacts
         uses: actions/upload-artifact@v6
         with:
           name: build-output
           path: build/libs/
-      
+  
   upload:
     if: ${{ github.event_name == 'release' }}
     needs: build

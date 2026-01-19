@@ -13,16 +13,16 @@ import java.nio.file.Path;
 import java.util.UUID;
 
 public class PlayerConfigFileProvider implements ConfigurationProvider<PlayerConfig> {
-    
+
     private final Path FILE;
-    
+
     private PlayerConfig current;
-    
+
     public PlayerConfigFileProvider() {
         FILE = new File("config", "armor-hider.json").toPath();
         current = load();
     }
-    
+
     @Override
     public PlayerConfig getValue() {
         return current;
@@ -32,7 +32,7 @@ public class PlayerConfigFileProvider implements ConfigurationProvider<PlayerCon
     public void setValue(PlayerConfig newValue) {
         current = newValue;
     }
-    
+
     @Override
     public PlayerConfig load() {
         try {
@@ -69,9 +69,9 @@ public class PlayerConfigFileProvider implements ConfigurationProvider<PlayerCon
             ArmorHider.LOGGER.error("Failed to save client config!", e);
         }
     }
-    
+
     @Override
-    public void saveCurrent(){
+    public void saveCurrent() {
         save(current);
     }
 

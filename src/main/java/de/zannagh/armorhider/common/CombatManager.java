@@ -5,39 +5,39 @@ import java.util.HashMap;
 import java.util.Map;
 
 public final class CombatManager {
-    
+
     private static final double fadePer25Ms = 0.005;
     private static final Map<String, Long> combatTimes = new HashMap<>();
-    
-    private static void clearCombatTimesOlderThanTenSeconds(){
+
+    private static void clearCombatTimesOlderThanTenSeconds() {
         var removalKeys = new ArrayList<String>();
-        combatTimes.forEach((k, v ) ->{
+        combatTimes.forEach((k, v) -> {
             if (System.currentTimeMillis() - v > 10000f) {
                 removalKeys.add(k);
             }
         });
         removalKeys.forEach(combatTimes::remove);
     }
-    
-    public static void logCombat(String player){
+
+    public static void logCombat(String player) {
         clearCombatTimesOlderThanTenSeconds();
         combatTimes.put(player, System.currentTimeMillis());
     }
-    
-    public static double transformTransparencyBasedOnCombat(String playerName, double transparency){
+
+    public static double transformTransparencyBasedOnCombat(String playerName, double transparency) {
         clearCombatTimesOlderThanTenSeconds();
         if (playerName.isEmpty()) {
             return transparency;
         }
-        if (combatTimes.containsKey(playerName)){
+        if (combatTimes.containsKey(playerName)) {
             var lastCombatTime = combatTimes.get(playerName);
-            
-            var milliSecondDiff =  System.currentTimeMillis() - lastCombatTime;
+
+            var milliSecondDiff = System.currentTimeMillis() - lastCombatTime;
             var steps = milliSecondDiff / 25;
             var fade = steps * fadePer25Ms;
-            
+
             double result = 1 - fade;
-            if (result < transparency){
+            if (result < transparency) {
                 return transparency;
             }
             if (result >= 1) {

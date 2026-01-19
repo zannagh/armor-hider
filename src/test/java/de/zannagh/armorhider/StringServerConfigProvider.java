@@ -6,16 +6,16 @@ import de.zannagh.armorhider.resources.ServerConfiguration;
 import java.io.IOException;
 
 public class StringServerConfigProvider implements ConfigurationProvider<ServerConfiguration> {
-    
+
     private String configuration;
-    
+
     private ServerConfiguration current;
-    
-    public StringServerConfigProvider(String configuration){
+
+    public StringServerConfigProvider(String configuration) {
         this.configuration = configuration;
         current = load();
     }
-    
+
     @Override
     public ServerConfiguration load() {
         if (configuration.isEmpty()) {
@@ -41,13 +41,13 @@ public class StringServerConfigProvider implements ConfigurationProvider<ServerC
     }
 
     @Override
-    public void setValue(ServerConfiguration newValue) {
-        current = newValue;
+    public ServerConfiguration getValue() {
+        return current;
     }
 
     @Override
-    public ServerConfiguration getValue() {
-        return current;
+    public void setValue(ServerConfiguration newValue) {
+        current = newValue;
     }
 
     @Override

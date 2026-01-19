@@ -11,7 +11,7 @@ public class DisableArmorHiderForOthers extends BooleanConfigItem {
     public DisableArmorHiderForOthers() {
         super();
     }
-   
+
     @Override
     public Boolean getDefaultValue() {
         return false;
