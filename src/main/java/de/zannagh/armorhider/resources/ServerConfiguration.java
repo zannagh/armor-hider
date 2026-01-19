@@ -11,7 +11,7 @@ import de.zannagh.armorhider.netPackets.CompressedJsonCodec;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.Identifier;
+
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -22,9 +22,22 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.util.*;
 
+//? if >= 1.21.11 {
+import net.minecraft.resources.Identifier;
+//?}
+//? if = 1.21.10 || 1.21.9 {
+/*import net.minecraft.resources.ResourceLocation;
+*///?}
+
 public class ServerConfiguration implements ConfigurationSource<ServerConfiguration> {
 
+    //? if >= 1.21.11 {
     public static final Identifier PACKET_IDENTIFIER = Identifier.fromNamespaceAndPath("de.zannagh.armorhider", "settings_s2c_packet");
+    //?}
+    //? if = 1.21.10 || 1.21.9 {
+    /*public static final ResourceLocation PACKET_IDENTIFIER = ResourceLocation.fromNamespaceAndPath("armorhider", "settings_s2c_packet");
+    *///?}
+    
     public static final Type<ServerConfiguration> TYPE = new Type<>(PACKET_IDENTIFIER);
     public static final StreamCodec<ByteBuf, ServerConfiguration> STREAM_CODEC = CompressedJsonCodec.create(ServerConfiguration.class);
     private static final java.lang.reflect.Type LEGACY_MAP_TYPE = new TypeToken<Map<UUID, PlayerConfig>>() {
@@ -112,11 +125,6 @@ public class ServerConfiguration implements ConfigurationSource<ServerConfigurat
 
     public StreamCodec<ByteBuf, ServerConfiguration> getCodec() {
         return CompressedJsonCodec.create(ServerConfiguration.class);
-    }
-
-    @Override
-    public Identifier getId() {
-        return PACKET_IDENTIFIER;
     }
 
     public PlayerConfig getPlayerConfigOrDefault(Player player) {

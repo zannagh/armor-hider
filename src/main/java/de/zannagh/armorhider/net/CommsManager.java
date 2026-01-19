@@ -6,6 +6,7 @@ import de.zannagh.armorhider.netPackets.PermissionPacket;
 import de.zannagh.armorhider.resources.PlayerConfig;
 import de.zannagh.armorhider.resources.ServerConfiguration;
 import de.zannagh.armorhider.resources.ServerWideSettings;
+import de.zannagh.armorhider.util.ServerUtil;
 import net.minecraft.server.level.ServerPlayer;
 
 import java.util.UUID;
@@ -21,7 +22,14 @@ public final class CommsManager {
         });
         
         ServerConnectionEvents.registerJoin((player, server) -> {
-            var permissionLevel = server.getProfilePermissions(player.nameAndId()).level().id();
+            int permissionLevel;
+            //? if >= 1.21.11 {
+            permissionLevel = server.getProfilePermissions(player.nameAndId()).level().id();
+            sendToClient(player, new PermissionPacket(permissionLevel));
+            //?}
+            //? if = 1.21.10 || 1.21.9 {
+            /*permissionLevel = server.getProfilePermissions(player.nameAndId());
+            *///?}
             sendToClient(player, new PermissionPacket(permissionLevel));
         });
 
@@ -59,7 +67,7 @@ public final class CommsManager {
             }
 
             ArmorHider.LOGGER.info("Server received admin settings packet.");
-            var currentPlayerPermissionLevel = server.getProfilePermissions(player.nameAndId()).level().id();
+            var currentPlayerPermissionLevel = ServerUtil.getPermissionLevelForPlayer(player, server);
 
             if (currentPlayerPermissionLevel < 3) {
                 ArmorHider.LOGGER.info("Non-admin player {} attempted to change server settings. Ignoring.", player.getStringUUID());

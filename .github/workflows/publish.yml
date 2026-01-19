@@ -45,7 +45,12 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: build-output
-          path: build/libs/
+          path: versions/1.21.10/build/libs/
+      - name: capture 1.21.11 build artifacts
+        uses: actions/upload-artifact@v6
+        with:
+          name: build-output
+          path: versions/1.21.11/build/libs/
   
   upload:
     if: ${{ github.event_name == 'release' }}

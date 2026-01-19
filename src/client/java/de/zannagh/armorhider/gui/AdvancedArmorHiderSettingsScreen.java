@@ -58,8 +58,14 @@ public class AdvancedArmorHiderSettingsScreen extends OptionsSubScreen {
         var combatDetectionServerText = Component.translatable("armorhider.options.combat_detection_server.title");
         var forceArmorHiderOffText = Component.translatable("armorhider.options.force_armor_hider_off.title");
 
+        //? if >= 1.21.11 {
         var cyclingWidgetBuilder = CycleButton.booleanBuilder(onText, offText, serverCombatDetectionValue);
         var forceOnOffBuilder = CycleButton.booleanBuilder(onText, offText, serverForcingArmorHiderOffValue);
+        //?}
+        //? if = 1.21.10 || 1.21.9 {
+        /*var cyclingWidgetBuilder = CycleButton.booleanBuilder(onText, offText).withInitialValue(serverCombatDetectionValue);
+        var forceOnOffBuilder = CycleButton.booleanBuilder(onText, offText).withInitialValue(serverForcingArmorHiderOffValue);
+        *///?}
 
         var cyclingWidget = cyclingWidgetBuilder.withTooltip(newValue -> {
             if (!ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin) {

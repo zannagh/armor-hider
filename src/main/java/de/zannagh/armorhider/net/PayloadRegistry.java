@@ -8,19 +8,34 @@ import de.zannagh.armorhider.resources.ServerWideSettings;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.Identifier;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
+//? if >= 1.21.11 {
+import net.minecraft.resources.Identifier;
+ //?}
+//? if = 1.21.10 || 1.21.9 {
+/*import net.minecraft.resources.ResourceLocation;
+*///?}
+
 public final class PayloadRegistry {
 
+    //? if >= 1.21.11 {
     private static final Map<Identifier, PayloadEntry<?>> C2S_PAYLOADS = new HashMap<>();
     private static final Map<Identifier, PayloadEntry<?>> S2C_PAYLOADS = new HashMap<>();
 
     private static final Map<Identifier, Consumer<PayloadHandlerContext<?>>> C2S_HANDLERS = new HashMap<>();
     private static final Map<Identifier, Consumer<PayloadHandlerContext<?>>> S2C_HANDLERS = new HashMap<>();
+    //?}
+    //? if = 1.21.10 || 1.21.9 {
+    /*private static final Map<ResourceLocation, PayloadEntry<?>> C2S_PAYLOADS = new HashMap<>();
+    private static final Map<ResourceLocation, PayloadEntry<?>> S2C_PAYLOADS = new HashMap<>();
+
+    private static final Map<ResourceLocation, Consumer<PayloadHandlerContext<?>>> C2S_HANDLERS = new HashMap<>();
+    private static final Map<ResourceLocation, Consumer<PayloadHandlerContext<?>>> S2C_HANDLERS = new HashMap<>();
+    *///?}
 
     /**
      * Register a C2S (client to server) payload type.
@@ -62,6 +77,7 @@ public final class PayloadRegistry {
         S2C_HANDLERS.put(type.id(), (Consumer<PayloadHandlerContext<?>>) (Consumer<?>) handler);
     }
 
+    //? if >= 1.21.11 {
     public static Consumer<PayloadHandlerContext<?>> getC2SHandler(Identifier id) {
         return C2S_HANDLERS.get(id);
     }
@@ -77,6 +93,25 @@ public final class PayloadRegistry {
     public static Map<Identifier, PayloadEntry<?>> getAllS2C() {
         return S2C_PAYLOADS;
     }
+    //?}
+
+    //? if = 1.21.10 || 1.21.9 {
+    /*public static Consumer<PayloadHandlerContext<?>> getC2SHandler(ResourceLocation id) {
+        return C2S_HANDLERS.get(id);
+    }
+
+    public static Consumer<PayloadHandlerContext<?>> getS2CHandler(ResourceLocation id) {
+        return S2C_HANDLERS.get(id);
+    }
+
+    public static Map<ResourceLocation, PayloadEntry<?>> getAllC2S() {
+        return C2S_PAYLOADS;
+    }
+
+    public static Map<ResourceLocation, PayloadEntry<?>> getAllS2C() {
+        return S2C_PAYLOADS;
+    }
+    *///?}
 
     public static void init() {
         registerC2S(PlayerConfig.TYPE, PlayerConfig.STREAM_CODEC);

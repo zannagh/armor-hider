@@ -9,15 +9,22 @@ import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.entity.state.AvatarRenderState;
 import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
-import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.client.renderer.rendertype.RenderTypes;
-import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+//?if >= 1.21.11 {
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.resources.Identifier;
+//? }
+//? if = 1.21.10 || 1.21.9 {
+/*import net.minecraft.client.renderer.RenderType;
+import net.minecraft.resources.ResourceLocation;
+*///?}
 
 public class ArmorRenderPipeline {
 
@@ -138,7 +145,12 @@ public class ArmorRenderPipeline {
         return originalPriority; // Fallback, return original.
     }
 
+    //? if >= 1.21.11 {
     public static RenderType getSkullRenderLayer(Identifier texture, RenderType originalLayer) {
+    //?}
+    //? if = 1.21.10 || 1.21.9 {
+    /*public static RenderType getSkullRenderLayer(ResourceLocation texture, RenderType originalLayer) {
+    *///?}
         ArmorModificationInfo modification = getCurrentModification();
         if (modification == null || !modification.shouldModify() || !shouldModifyEquipment()) {
             return originalLayer;
@@ -150,17 +162,33 @@ public class ArmorRenderPipeline {
         // Only use translucent if actually applying transparency (not fully hidden or fully visible)
         double transparency = modification.getTransparency();
         if (transparency < 1.0 && transparency > 0) {
+            //? if >= 1.21.11 {
             return RenderTypes.entityTranslucent(texture);
+            //?}
+            //? if = 1.21.10 || 1.21.9 {
+            /*return RenderType.entityTranslucent(texture);
+            *///?}
+            
         }
         return originalLayer;
     }
 
+    //? if >= 1.21.11 {
     public static RenderType getTranslucentArmorRenderTypeIfApplicable(Identifier texture, RenderType originalLayer) {
+     //?}
+    //? if = 1.21.10 || 1.21.9 {
+    /*public static RenderType getTranslucentArmorRenderTypeIfApplicable(ResourceLocation texture, RenderType originalLayer) {
+        *///?}
         ArmorModificationInfo modification = getCurrentModification();
         if (modification == null || !modification.shouldModify() || !shouldModifyEquipment()) {
             return originalLayer;
         }
+        //? if >= 1.21.11 {
         return RenderTypes.armorTranslucent(texture);
+         //?}
+        //? if = 1.21.10 || 1.21.9 {
+        /*return RenderType.armorTranslucent(texture);
+        *///?}
     }
 
     public static RenderType getTrimRenderLayer(boolean decal, RenderType originalLayer) {
@@ -169,7 +197,12 @@ public class ArmorRenderPipeline {
             return originalLayer;
         }
         // Use armor trims sheet atlas for translucent trim rendering
+        //? if >= 1.21.11 {
         return RenderTypes.armorTranslucent(Sheets.ARMOR_TRIMS_SHEET);
+         //?}
+        //? if = 1.21.10 || 1.21.9 {
+        /*return RenderType.armorTranslucent(Sheets.ARMOR_TRIMS_SHEET);
+        *///?}
     }
 
     public static int applyArmorTransparency(int originalColor) {

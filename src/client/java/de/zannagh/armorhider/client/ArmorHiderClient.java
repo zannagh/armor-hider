@@ -18,6 +18,13 @@ public class ArmorHiderClient implements ClientModInitializer {
     public static Boolean isCurrentPlayerSinglePlayerHostOrAdmin = false;
     public static ClientConfigManager CLIENT_CONFIG_MANAGER;
 
+    @Override
+    public void onInitializeClient() {
+        ArmorHider.LOGGER.info("Armor Hider client initializing...");
+        ClientCommunicationManager.initClient();
+        CLIENT_CONFIG_MANAGER = new ClientConfigManager();
+    }
+    
     public static @NonNull Boolean isClientConnectedToServer() {
         return Minecraft.getInstance().isLocalServer()
                 || Minecraft.getInstance().getCurrentServer() != null
@@ -41,10 +48,5 @@ public class ArmorHiderClient implements ClientModInitializer {
         return new Pair<>(false, null);
     }
 
-    @Override
-    public void onInitializeClient() {
-        ArmorHider.LOGGER.info("Armor Hider client initializing...");
-        ClientCommunicationManager.initClient();
-        CLIENT_CONFIG_MANAGER = new ClientConfigManager();
-    }
+    
 }

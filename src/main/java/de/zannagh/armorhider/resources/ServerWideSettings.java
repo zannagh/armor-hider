@@ -8,14 +8,25 @@ import de.zannagh.armorhider.netPackets.CompressedJsonCodec;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.Identifier;
-import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 
+//? if >= 1.21.11 {
+import net.minecraft.resources.Identifier;
+ //?}
+//? if = 1.21.10 || 1.21.9 {
+/*import net.minecraft.resources.ResourceLocation;
+*///?}
+
 public class ServerWideSettings implements ConfigurationSource<ServerWideSettings> {
-    @NotNull
+
+    //? if >= 1.21.11 {
     public static final Identifier PACKET_IDENTIFIER = Identifier.fromNamespaceAndPath("de.zannagh.armorhider", "server_wide_settings");
+     //?}
+    //? if = 1.21.10 || 1.21.9 {
+    /*public static final ResourceLocation PACKET_IDENTIFIER = ResourceLocation.fromNamespaceAndPath("armorhider", "server_wide_settings");
+    *///?}
     public static final Type<ServerWideSettings> TYPE = new Type<>(PACKET_IDENTIFIER);
+     
     public static final StreamCodec<ByteBuf, ServerWideSettings> STREAM_CODEC = CompressedJsonCodec.create(ServerWideSettings.class);
     @SerializedName(value = "enableCombatDetection")
     public CombatDetection enableCombatDetection;
@@ -31,11 +42,6 @@ public class ServerWideSettings implements ConfigurationSource<ServerWideSetting
     public ServerWideSettings(Boolean enableCombatDetection, Boolean forceArmorHiderOff) {
         this.enableCombatDetection = new CombatDetection(enableCombatDetection);
         this.forceArmorHiderOff = new ForceArmorHiderOffOnPlayers(forceArmorHiderOff);
-    }
-
-    @Override
-    public Identifier getId() {
-        return PACKET_IDENTIFIER;
     }
 
     @Override
