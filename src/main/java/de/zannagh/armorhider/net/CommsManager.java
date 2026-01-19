@@ -25,7 +25,6 @@ public final class CommsManager {
             int permissionLevel;
             //? if >= 1.21.11 {
             permissionLevel = server.getProfilePermissions(player.nameAndId()).level().id();
-            sendToClient(player, new PermissionPacket(permissionLevel));
             //?}
             //? if = 1.21.10 || 1.21.9 {
             /*permissionLevel = server.getProfilePermissions(player.nameAndId());
