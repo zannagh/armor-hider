@@ -1,5 +1,5 @@
 plugins {
-    id("net.fabricmc.fabric-loom-remap") version "1.14-SNAPSHOT"
+    id("net.fabricmc.fabric-loom") version "1.14-SNAPSHOT"
     id("maven-publish")
 }
 
@@ -48,13 +48,15 @@ loom {
     // Shared run directory for all versions
     runConfigs.configureEach {
         runDir = "run"
+        // Explicitly set game version for Fabric Loader (26.1 snapshots use non-semantic versioning)
+        vmArg("-Dfabric.gameVersion=${stonecutter.current.project}")
     }
 }
 
 dependencies {
     minecraft("com.mojang:minecraft:${stonecutter.current.project}")
-    mappings(loom.officialMojangMappings())
-    modImplementation("net.fabricmc:fabric-loader:${property("loader_version")}")
+    // No mappings needed for unobfuscated Minecraft 26.1+
+    implementation("net.fabricmc:fabric-loader:${property("loader_version")}")
 
     compileOnly("org.jspecify:jspecify:1.0.0")
 
@@ -65,34 +67,19 @@ dependencies {
 
 tasks.processResources {
     inputs.property("version", project.version)
-    inputs.property("minecraft_version", stonecutter.current.project)
+    inputs.property("minecraft_version", "26.1-alpha.4")
 
     filesMatching("fabric.mod.json") {
         expand(
             "version" to project.version,
-            "minecraft_version" to stonecutter.current.project
+            "minecraft_version" to "26.1-alpha.4"
         )
     }
 }
 
-val javaVersion: JavaVersion
-    get() {
-        return when {
-            sc.current.parsed >= "1.20.6" -> JavaVersion.VERSION_21
-            sc.current.parsed >= "1.18" -> JavaVersion.VERSION_17
-            sc.current.parsed >= "1.17" -> JavaVersion.VERSION_16
-            else -> JavaVersion.VERSION_1_8
-        }
-    }
-val javaVersionAsInt: Int
-    get() {
-        return when {
-            sc.current.parsed >= "1.20.6" -> 21
-            sc.current.parsed >= "1.18" -> 17
-            sc.current.parsed >= "1.17" -> 16
-            else -> 18
-        }
-    }
+// Minecraft 26.1+ requires Java 25
+val javaVersion = JavaVersion.VERSION_25
+val javaVersionAsInt = 25
 
 tasks.withType<JavaCompile>().configureEach {
     options.release.set(javaVersionAsInt)
