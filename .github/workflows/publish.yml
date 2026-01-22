@@ -37,29 +37,26 @@ jobs:
         if: ${{ github.event_name == 'release' && !contains(github.event.release.name, 'preview') }}
         run: ./gradlew build -PsemVer="${{ steps.version.outputs.majorMinorPatch }}" -Pprerelease="${{ github.event.release.prerelease }}"
 
+      - name: Extract preview version number
+        if: ${{ github.event_name == 'release' && contains(github.event.release.name, 'preview') }}
+        id: preview
+        run: |
+          PREVIEW_NUM=$(echo "${{ github.event.release.name }}" | grep -oE '[0-9]+$')
+          echo "number=$PREVIEW_NUM" >> $GITHUB_OUTPUT
+
       - name: buildPreview
         if: ${{ github.event_name == 'release' && contains(github.event.release.name, 'preview') }}
-        run: ./gradlew build -PsemVer="${{ steps.version.outputs.majorMinorPatch }}" -Pprerelease="True"
+        run: ./gradlew build -PsemVer="${{ steps.version.outputs.majorMinorPatch }}" -Pprerelease="True" -PpreReleaseVersion="${{ steps.preview.outputs.number }}"
 
       - name: buildWhenDispatch
         if: ${{ github.event_name != 'release' }}
         run: ./gradlew build -PsemVer="${{ steps.version.outputs.majorMinorPatch }}-${{ steps.version.outputs.commitsSinceVersionSource }}" -Pprerelease="true"
 
-      - name: capture 1.21.9 build artifacts
+      - name: capture build artifacts
         uses: actions/upload-artifact@v6
         with:
-          name: 1.21.9-${{ steps.version.outputs.majorMinorPatch }}
-          path: versions/1.21.9/build/libs/
-      - name: capture 1.21.10 build artifacts
-        uses: actions/upload-artifact@v6
-        with:
-          name: 1.21.10-${{ steps.version.outputs.majorMinorPatch }}
-          path: versions/1.21.10/build/libs/
-      - name: capture 1.21.11 build artifacts
-        uses: actions/upload-artifact@v6
-        with:
-          name: 1.21.11-${{ steps.version.outputs.majorMinorPatch }}
-          path: versions/1.21.11/build/libs/
+          name: armor-hider-${{ steps.version.outputs.majorMinorPatch }}
+          path: versions/**/build/libs/
   
   upload:
     if: ${{ github.event_name == 'release' }}

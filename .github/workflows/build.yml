@@ -53,5 +53,5 @@ jobs:
       - name: capture build artifacts
         uses: actions/upload-artifact@v6
         with:
-          name: ${{ steps.branch.outputs.value }}-${{ steps.version.outputs.majorMinorPatch}}-${{ steps.version.outputs.commitsSinceVersionSource }}
-          path: build/libs/
+          name: armor-hider-${{ steps.version.outputs.majorMinorPatch }}-${{ steps.version.outputs.commitsSinceVersionSource }}
+          path: versions/**/build/libs/

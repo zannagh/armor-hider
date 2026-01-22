@@ -20,7 +20,17 @@ fun getGitVersion(): String {
         "$modLoader-${getVersionFromGitVersionOrTag(gameVersion)}"
     }
 
-    return if (isPreRelease) "$buildVersion-preview" else buildVersion
+    return if (isPreRelease) {
+        val preReleaseVersion = findProperty("preReleaseVersion")?.toString() ?: ""
+        if (preReleaseVersion.isNotEmpty()) {
+            "$buildVersion-preview.$preReleaseVersion"
+        } else {
+            "$buildVersion-preview"
+        }
+    } 
+    else {
+        buildVersion
+    }
 }
 
 version = getGitVersion()
