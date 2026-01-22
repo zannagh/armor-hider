@@ -13,8 +13,13 @@ plugins {
 
 stonecutter {
     create(rootProject) {
-        versions("1.21.9", "1.21.10", "1.21.11", "26.1-snapshot-4")
-        vcsVersion = "1.21.11"
+        versions(
+            "1.21.9",
+            "1.21.10", 
+            "1.21.11", 
+            "26.1-snapshot-4")
+        vcsVersion = "1.21.11" // Latest stable
+        
         // Use different build files for obfuscated (1.x) vs unobfuscated (26.x) versions
         mapBuilds { _, data ->
             if (data.version.startsWith("26.")) "build-deobf.gradle.kts" else "build.gradle.kts"
