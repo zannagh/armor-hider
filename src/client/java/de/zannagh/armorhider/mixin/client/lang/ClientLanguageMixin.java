@@ -51,7 +51,7 @@ public class ClientLanguageMixin {
     //? if >= 1.21 {
     //private static <K, V> Map<K, V> injectTranslationsBeforeCopy(Map<K, V> map, Operation<Map<K, V>> original) {
     //?}    
-    // if < 1.21 {
+    //? if < 1.21 {
     private static <K, V> ImmutableMap<K, V> injectTranslationsBeforeCopy(Map<K, V> map, Operation<ImmutableMap<K, V>> original) {
         //?}
         // Load translation map.

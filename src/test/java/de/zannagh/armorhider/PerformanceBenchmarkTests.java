@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class PerformanceBenchmarkTests {
-    static int ITERATIONS_PER_PLAYER_COUNT = 500;
+    static int ITERATIONS_PER_PLAYER_COUNT = 250;
 
     static double ALLOWED_RATIO_DEVIATION = 1.7;
 

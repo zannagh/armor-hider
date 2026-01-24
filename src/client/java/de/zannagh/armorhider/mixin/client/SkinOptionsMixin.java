@@ -46,7 +46,7 @@ public abstract class SkinOptionsMixin extends Screen {
     @Final
     @Shadow
     protected Options options;
-    *///}
+    *///?}
     
     //? if < 1.21 {
     @Unique
