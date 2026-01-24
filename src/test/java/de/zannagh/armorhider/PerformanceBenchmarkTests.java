@@ -2,7 +2,9 @@ package de.zannagh.armorhider;
 
 import com.google.common.base.Stopwatch;
 import com.google.gson.GsonBuilder;
+import de.zannagh.armorhider.configuration.ConfigurationItemFactoryRegistry;
 import de.zannagh.armorhider.resources.ServerConfiguration;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -13,6 +15,11 @@ import java.util.concurrent.TimeUnit;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class PerformanceBenchmarkTests {
+    @BeforeAll
+    static void initializeFactories() {
+        ConfigurationItemFactoryRegistry.initialize();
+    }
+
     static int ITERATIONS_PER_PLAYER_COUNT = 500;
 
     static double ALLOWED_RATIO_DEVIATION = 1.7;

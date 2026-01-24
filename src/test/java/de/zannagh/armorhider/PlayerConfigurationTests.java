@@ -1,7 +1,9 @@
 package de.zannagh.armorhider;
 
 import de.zannagh.armorhider.config.ClientConfigManager;
+import de.zannagh.armorhider.configuration.ConfigurationItemFactoryRegistry;
 import de.zannagh.armorhider.configuration.items.implementations.ArmorOpacity;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -12,6 +14,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
 class PlayerConfigurationTests {
+
+    @BeforeAll
+    static void initializeFactories() {
+        ConfigurationItemFactoryRegistry.initialize();
+    }
 
     private static String getVersion3PlayerConfig() {
         return """

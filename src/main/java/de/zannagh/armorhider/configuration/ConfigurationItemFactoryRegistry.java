@@ -25,10 +25,14 @@ public class ConfigurationItemFactoryRegistry {
         // Explicitly register all ConfigurationItemBase implementations
         registerFactoriesForClass(ArmorOpacity.class);
         registerFactoriesForClass(CombatDetection.class);
+        registerFactoriesForClass(DisableArmorHiderForOthers.class);
+        registerFactoriesForClass(DisableArmorHiderGlobally.class);
+        registerFactoriesForClass(ForceArmorHiderOffOnPlayers.class);
         registerFactoriesForClass(OpacityAffectingElytraItem.class);
         registerFactoriesForClass(OpacityAffectingHatOrSkullItem.class);
         registerFactoriesForClass(PlayerName.class);
         registerFactoriesForClass(PlayerUuid.class);
+        registerFactoriesForClass(UsePlayerSettingsWhenUndeterminable.class);
 
         initialized = true;
     }
