@@ -95,13 +95,13 @@ public class CapeRenderMixin {
             method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/player/AbstractClientPlayer;FFFFFF)V",
             at = @At(
                     value = "INVOKE",
-                    target = "Lcom/mojang/blaze3d/vertex/PoseStack;translate(DDD)V"
+                    target = "Lcom/mojang/blaze3d/vertex/PoseStack;translate(FFF)V"
             )
     )
-    private void moveCapeWhenArmorHidden(PoseStack instance, double x, double y, double z, Operation<Void> original) {
+    private void moveCapeWhenArmorHidden(PoseStack instance, float x, float y, float z, Operation<Void> original) {
         if (ArmorRenderPipeline.shouldHideEquipment()) {
             // Move cape back to body when armor is hidden (no offset needed)
-            original.call(instance, 0D, 0D, 0D);
+            original.call(instance, 0F, 0F, 0F);
         } else {
             original.call(instance, x, y, z);
         }
