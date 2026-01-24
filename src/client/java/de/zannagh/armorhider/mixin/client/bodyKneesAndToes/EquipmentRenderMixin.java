@@ -69,6 +69,13 @@ public class EquipmentRenderMixin {
             return;
         }
 
+        // FIX START: Check if the render state is actually a HumanoidRenderState before casting.
+        // This prevents ClassCastException when rendering non-humanoid entities with equipment (e.g., Wolves with Armor).
+        if (!(object instanceof HumanoidRenderState)) {
+            return;
+        }
+        // FIX END
+
         var slot = equippable.slot();
         ArmorRenderPipeline.setupContext(itemStack, slot, (HumanoidRenderState) object);
 
