@@ -23,7 +23,13 @@ public class LivingEntityMixin {
             method = "actuallyHurt",
             at = @At(value = "HEAD")
     )
-    private void triggerCombat(ServerLevel serverLevel, DamageSource damageSource, float f, CallbackInfo ci) {
+    //? if > 1.21 {
+    /*private void triggerCombat(ServerLevel serverLevel, DamageSource damageSource, float f, CallbackInfo ci) {
+    *///?}
+    //? if < 1.21 {
+    private void triggerCombat(DamageSource damageSource, float f, CallbackInfo ci) {
+    //?}
+        
         if (damageSource.getEntity() == null) {
             return;
         }

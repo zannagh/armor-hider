@@ -4,7 +4,8 @@
 // | https://github.com/enjarai/show-me-your-skin        |
 // | --------------------------------------------------- |
 
-package de.zannagh.armorhider.mixin.client.bodyKneesAndToes;
+//? if >= 1.21.9 {
+/*package de.zannagh.armorhider.mixin.client.bodyKneesAndToes;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.rendering.ArmorRenderPipeline;
@@ -24,4 +25,14 @@ public class ArmorFeatureRenderMixin {
         ArmorRenderPipeline.setupContext(itemStack, equipmentSlot, humanoidRenderState);
     }
 }
+*///?}
+
+//? if < 1.21.9 {
+package de.zannagh.armorhider.mixin.client.bodyKneesAndToes;
+
+// This mixin is not needed in 1.20.x - HumanoidArmorLayerMixin handles context capture
+public class ArmorFeatureRenderMixin {
+    // Empty - context capture is done in HumanoidArmorLayerMixin for 1.20.x
+}
+//?}
 

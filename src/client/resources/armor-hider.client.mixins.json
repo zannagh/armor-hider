@@ -1,18 +1,16 @@
 {
   "required": true,
   "package": "de.zannagh.armorhider.mixin.client",
-  "compatibilityLevel": "JAVA_21",
+  "compatibilityLevel": "${java_version}",
   "client": [
-	  "LivingEntityMixin",
-	  "SkinOptionsMixin",
-	  "bodyKneesAndToes.ArmorFeatureRenderMixin",
-	  "bodyKneesAndToes.EquipmentRenderMixin",
-	  "cape.CapeRenderMixin",
-	  "cape.ElytraRenderMixin",
-	  "head.CustomHeadLayerMixin",
-	  "head.SkullBlockRenderMixin",
-	  "lang.ClientLanguageMixin",
-	  "networking.ClientPacketListenerMixin"
+    "LivingEntityMixin",
+    "SkinOptionsMixin",
+    "cape.CapeRenderMixin",
+    "cape.ElytraRenderMixin",
+    "head.CustomHeadLayerMixin",
+    "head.SkullBlockRenderMixin",
+    "lang.ClientLanguageMixin",
+    "${mixin_string}"
   ],
   "injectors": {
     "defaultRequire": 1

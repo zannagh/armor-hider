@@ -20,16 +20,36 @@ public abstract class ServerLoginMixin implements ServerLoginPacketListener, Tic
     @Final
     @Shadow
     MinecraftServer server;
+    
+    //? if >= 1.21 {
+    /*
     @Shadow
     private GameProfile authenticatedProfile;
+    *///?}
+    
+    //? if < 1.21 {
+    @Shadow
+    GameProfile gameProfile;
+    //?}
 
-    @Inject(method = "finishLoginAndWaitForClient", at = @At(value = "TAIL"))
+    //? if >= 1.20.5 {
+    /*@Inject(method = "finishLoginAndWaitForClient", at = @At(value = "TAIL"))
     private void handlePlayerJoin(CallbackInfo ci) {
         raiseLoginEvent();
     }
+    *///?}
+    //? if < 1.20.5 {
+    @Inject(method = "handleAcceptedLogin", at = @At(value = "TAIL"))
+    private void handlePlayerJoin(CallbackInfo ci) {
+        raiseLoginEvent();
+    }
+    //?}
     
     @Unique
     private void raiseLoginEvent(){
+        //? if < 1.21 {
+        var authenticatedProfile = gameProfile;
+        //?}
         if (authenticatedProfile == null) {
             return;
         }

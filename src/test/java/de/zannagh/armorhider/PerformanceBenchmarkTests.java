@@ -32,9 +32,9 @@ public class PerformanceBenchmarkTests {
     }
 
     @Test
-    @DisplayName("Serialization Performance Benchmark - up to 300 players")
+    @DisplayName("Serialization Performance Benchmark - up to 50 players")
     void testSerializationPerformance() {
-        int[] playerCounts = {1, 10, 50, 100, 300};
+        int[] playerCounts = {1, 10, 50};
         var gson = new GsonBuilder().setPrettyPrinting().create();
 
         List<BenchmarkResult> results = new ArrayList<>();

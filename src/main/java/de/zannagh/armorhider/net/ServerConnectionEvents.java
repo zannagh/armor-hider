@@ -26,8 +26,14 @@ public final class ServerConnectionEvents {
     }
 
     public static void onPlayerJoin(GameProfile profile, MinecraftServer server) {
-        UUID playerId = profile.id();
+        //? if >= 1.21.9 {
+        /*UUID playerId = profile.id();
         String playerName = profile.name();
+        *///?}
+        //? if < 1.21.9 {
+        UUID playerId = profile.getId();
+        String playerName = profile.getName();
+        //?}
 
         long now = System.currentTimeMillis();
         Long lastJoin = RECENT_JOINS.get(playerId);
@@ -46,7 +52,7 @@ public final class ServerConnectionEvents {
                 }
             }
             while (backoff.shouldContinue());
-            
+
             if (backoff.hasTimedOut) {
                 ArmorHider.LOGGER.warn("Timed out waiting for player {} ({}) to appear in player list after {} ms", playerName, playerId, backoff.getElapsedMillisSinceFirstAttempt());
                 return;

@@ -7,10 +7,12 @@ import com.google.gson.annotations.SerializedName;
 import com.google.gson.reflect.TypeToken;
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.configuration.ConfigurationSource;
-import de.zannagh.armorhider.netPackets.CompressedJsonCodec;
+//? if >= 1.20.5 {
+/*import de.zannagh.armorhider.netPackets.CompressedJsonCodec;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+*///?}
 
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.Contract;
@@ -23,23 +25,26 @@ import java.io.StringReader;
 import java.util.*;
 
 //? if >= 1.21.11 {
-import net.minecraft.resources.Identifier;
-//?}
-//? if = 1.21.10 || 1.21.9 {
+/*import net.minecraft.resources.Identifier;
+*///?}
+//? if >= 1.20.5 && < 1.21.11 {
 /*import net.minecraft.resources.ResourceLocation;
 *///?}
 
 public class ServerConfiguration implements ConfigurationSource<ServerConfiguration> {
 
     //? if >= 1.21.11 {
-    public static final Identifier PACKET_IDENTIFIER = Identifier.fromNamespaceAndPath("de.zannagh.armorhider", "settings_s2c_packet");
-    //?}
-    //? if = 1.21.10 || 1.21.9 {
+    /*public static final Identifier PACKET_IDENTIFIER = Identifier.fromNamespaceAndPath("de.zannagh.armorhider", "settings_s2c_packet");
+    *///?}
+    //? if >= 1.20.5 && < 1.21.11 {
     /*public static final ResourceLocation PACKET_IDENTIFIER = ResourceLocation.fromNamespaceAndPath("armorhider", "settings_s2c_packet");
     *///?}
-    
-    public static final Type<ServerConfiguration> TYPE = new Type<>(PACKET_IDENTIFIER);
+
+    //? if >= 1.20.5 {
+    /*public static final Type<ServerConfiguration> TYPE = new Type<>(PACKET_IDENTIFIER);
     public static final StreamCodec<ByteBuf, ServerConfiguration> STREAM_CODEC = CompressedJsonCodec.create(ServerConfiguration.class);
+    *///?}
+
     private static final java.lang.reflect.Type LEGACY_MAP_TYPE = new TypeToken<Map<UUID, PlayerConfig>>() {
     }.getType();
     @SerializedName(value = "serverWideSettings")
@@ -123,12 +128,15 @@ public class ServerConfiguration implements ConfigurationSource<ServerConfigurat
         return new ServerConfiguration(playerConfigs, new ServerWideSettings(true, false));
     }
 
-    public StreamCodec<ByteBuf, ServerConfiguration> getCodec() {
+    //? if >= 1.20.5 {
+    /*public StreamCodec<ByteBuf, ServerConfiguration> getCodec() {
         return CompressedJsonCodec.create(ServerConfiguration.class);
     }
+    *///?}
 
     public PlayerConfig getPlayerConfigOrDefault(Player player) {
-        if (getPlayerConfigOrDefault(player.getUUID()) instanceof PlayerConfig uuidConfig && Objects.equals(uuidConfig.playerName.getValue(), Objects.requireNonNull(player.getDisplayName()).getString())) {
+        PlayerConfig uuidConfig = getPlayerConfigOrDefault(player.getUUID());
+        if (uuidConfig != null && Objects.equals(uuidConfig.playerName.getValue(), Objects.requireNonNull(player.getDisplayName()).getString())) {
             return uuidConfig;
         }
         return getPlayerConfigOrDefault(Objects.requireNonNull(player.getDisplayName()).getString());
@@ -178,8 +186,10 @@ public class ServerConfiguration implements ConfigurationSource<ServerConfigurat
         hasChangedComparedToSerializedContent = true;
     }
 
-    @Override
+    //? if >= 1.20.5 {
+    /*@Override
     public @NonNull Type<? extends CustomPacketPayload> type() {
         return TYPE;
     }
+    *///?}
 }

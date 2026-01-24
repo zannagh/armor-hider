@@ -1,5 +1,6 @@
 package de.zannagh.armorhider.mixin.client.lang;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -8,6 +9,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import de.zannagh.armorhider.ArmorHider;
 import net.minecraft.client.resources.language.ClientLanguage;
 import net.minecraft.server.packs.resources.ResourceManager;
+import org.apache.logging.log4j.core.appender.rolling.action.IfAccumulatedFileCount;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -38,13 +40,20 @@ public class ClientLanguageMixin {
             method = "loadFrom",
             at = @At(
                     value = "INVOKE",
-                    target = "Ljava/util/Map;copyOf(Ljava/util/Map;)Ljava/util/Map;"
+                    //? if >= 1.21 {
+                    //target = "Ljava/util/Map;copyOf(Ljava/util/Map;)Ljava/util/Map;"
+                    //?}
+                    //? if < 1.21 {
+                    target = "Lcom/google/common/collect/ImmutableMap;copyOf(Ljava/util/Map;)Lcom/google/common/collect/ImmutableMap;"
+                    //?}
             )
     )
-    private static <K, V> Map<K, V> injectTranslationsBeforeCopy(
-            Map<K, V> map,
-            Operation<Map<K, V>> original
-    ) {
+    //? if >= 1.21 {
+    //private static <K, V> Map<K, V> injectTranslationsBeforeCopy(Map<K, V> map, Operation<Map<K, V>> original) {
+    //?}    
+    // if < 1.21 {
+    private static <K, V> ImmutableMap<K, V> injectTranslationsBeforeCopy(Map<K, V> map, Operation<ImmutableMap<K, V>> original) {
+        //?}
         // Load translation map.
         @SuppressWarnings("unchecked")
         Map<String, String> stringMap = (Map<String, String>) map;
@@ -64,7 +73,6 @@ public class ClientLanguageMixin {
             // Clean up thread local
             armorHider$currentLanguages.remove();
         }
-
         return original.call(map);
     }
 
@@ -75,8 +83,14 @@ public class ClientLanguageMixin {
     @WrapOperation(
             method = "loadFrom",
             at = @At(
-                    value = "NEW",
-                    target = "java/util/HashMap"
+                    //? if >= 1.21 {
+                    //value = "NEW",
+                    //target = "java/util/HashMap"
+                    //?}
+                    //? if < 1.21 {
+                    value = "INVOKE",
+                    target = "Lcom/google/common/collect/Maps;newHashMap()Ljava/util/HashMap;"
+                    //?}
             )
     )
     private static <K, V> java.util.HashMap<K, V> captureLanguages(

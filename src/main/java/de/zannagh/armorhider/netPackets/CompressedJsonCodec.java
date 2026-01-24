@@ -2,7 +2,9 @@ package de.zannagh.armorhider.netPackets;
 
 import com.google.gson.Gson;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.network.codec.StreamCodec;
+//? if >= 1.20.5 {
+/*import net.minecraft.network.codec.StreamCodec;
+*///?}
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -20,19 +22,15 @@ public class CompressedJsonCodec {
         GSON = gson;
     }
 
-    /**
-     * Creates a PacketCodec that serializes objects to compressed JSON.
-     *
-     * @param clazz The class type to deserialize to
-     * @param <T>   The type of object to serialize/deserialize
-     * @return A PacketCodec for the given type
-     */
+    //? if >= 1.20.5 {
+    /*// Creates a PacketCodec that serializes objects to compressed JSON.
     public static <T> StreamCodec<ByteBuf, T> create(Class<T> clazz) {
         return StreamCodec.of(
                 CompressedJsonCodec::encode,
                 (buf) -> decode(buf, clazz)
         );
     }
+    *///?}
 
     private static <T> void encode(ByteBuf byteBuf, T value) {
         try {
@@ -64,5 +62,15 @@ public class CompressedJsonCodec {
         } catch (Exception e) {
             throw new RuntimeException("Failed to decode compressed JSON", e);
         }
+    }
+
+    // Public encode method for legacy (1.20.x) packet handling.
+    public static <T> void encodeLegacy(T value, ByteBuf buf) {
+        encode(buf, value);
+    }
+
+    // Public decode method for legacy (1.20.x) packet handling.
+    public static <T> T decodeLegacy(ByteBuf buf, Class<T> clazz) {
+        return decode(buf, clazz);
     }
 }

@@ -51,8 +51,8 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
 
     public void save(PlayerConfig config) {
         playerConfigProvider.save(config);
-        if (ArmorHiderClient.isClientConnectedToServer()
-                && Minecraft.getInstance().getConnection() instanceof ClientPacketListener clientNetwork) {
+        ClientPacketListener clientNetwork = Minecraft.getInstance().getConnection();
+        if (ArmorHiderClient.isClientConnectedToServer() && clientNetwork != null) {
             ArmorHider.LOGGER.info("Sending to server...");
             ClientPacketSender.sendToServer(config);
             ArmorHider.LOGGER.info("Send client config package to server.");
@@ -123,8 +123,14 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
 
         UUID playerId = DEFAULT_PLAYER_ID;
         if (isRemotePlayer.getA()) {
-            playerId = isRemotePlayer.getB().getProfile().id();
+            //? if >= 1.21.9 {
+            /*playerId = isRemotePlayer.getB().getProfile().id();
             config = serverConfiguration.getPlayerConfigOrDefault(isRemotePlayer.getB().getProfile().id());
+            *///?}
+            //? if < 1.21.9 {
+            playerId = isRemotePlayer.getB().getProfile().getId();
+            config = serverConfiguration.getPlayerConfigOrDefault(isRemotePlayer.getB().getProfile().getId());
+            //?}
             if (config != null) {
                 return config;
             }

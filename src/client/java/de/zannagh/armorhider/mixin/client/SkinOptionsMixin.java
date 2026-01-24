@@ -19,14 +19,16 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.MultiLineTextWidget;
 import net.minecraft.client.gui.components.OptionsList;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.gui.screens.options.OptionsSubScreen;
+//? if >= 1.21 {
+/*import net.minecraft.client.gui.screens.options.OptionsSubScreen;
 import net.minecraft.client.gui.screens.options.SkinCustomizationScreen;
+*///?}
+//? if < 1.21 {
+import net.minecraft.client.gui.screens.OptionsSubScreen;
+import net.minecraft.client.gui.screens.SkinCustomizationScreen;
+//?}
 import net.minecraft.network.chat.Component;
-import org.jspecify.annotations.NonNull;
-import org.spongepowered.asm.mixin.Final;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -36,51 +38,115 @@ public abstract class SkinOptionsMixin extends Screen {
 
     // TODO: This may have to be extended into not sending network stuff if the server doesn't support it.
 
+    //?if >= 1.21 {
+    /*
     @Shadow
     protected OptionsList list;
+    
     @Final
     @Shadow
     protected Options options;
+    *///}
+    
+    //? if < 1.21 {
+    @Unique
+    private OptionsList list;
+    
+    @Mutable
+    @Final
+    @Shadow
+    protected Screen lastScreen;
+
+    @Mutable
+    @Final
+    @Shadow
+    protected Options options;
+    
+    //?}
+    
     @Unique
     private boolean settingsChanged;
     @Unique
     private boolean isSkinOptionsScreen;
 
+    //? if >= 1.21 {
+    /*
     protected SkinOptionsMixin(Component component) {
         super(component);
     }
+    *///?}
+    
+    //? if < 1.21 {
+    public SkinOptionsMixin(Screen screen, Options options, Component component) {
+        super(component);
+        this.lastScreen = screen;
+        this.options = options;
+    }
+    //?}
+    
+    //? if < 1.21 {
+    @Inject(
+            method = "basicListRender",
+            at = @At("HEAD")
+    )
+    private void interceptBasicListRender(GuiGraphics guiGraphics, OptionsList optionsList, int i, int j, float f, CallbackInfo ci) {
+        list = optionsList;
+    }
 
-
-    @Override
-    public void render(@NonNull GuiGraphics context, int mouseX, int mouseY, float deltaTicks) {
-        super.render(context, mouseX, mouseY, deltaTicks);
+    @Inject(
+            method = "basicListRender",
+            at = @At("RETURN")
+    )
+    private void onRenderReturn(GuiGraphics context, OptionsList optionsList, int mouseX, int mouseY, float deltaTicks, CallbackInfo ci) {
         if (list != null && isSkinOptionsScreen) {
             PlayerPreviewRenderer.renderPlayerPreview(context, list, mouseX, mouseY);
         }
     }
+    //?}
 
-    @Override
-    public void onClose() {
+    //? if >= 1.21 {
+    /*@Inject(method = "render(Lnet/minecraft/client/gui/GuiGraphics;IIF)V", at = @At("RETURN"))
+    private void onRender(GuiGraphics context, int mouseX, int mouseY, float deltaTicks, CallbackInfo ci) {
+        if (list != null && isSkinOptionsScreen) {
+            PlayerPreviewRenderer.renderPlayerPreview(context, list, mouseX, mouseY);
+        }
+    }
+    *///?}
+
+    @Inject(method = "onClose()V", at = @At("HEAD"))
+    private void onCloseHead(CallbackInfo ci) {
         if (!isSkinOptionsScreen) {
-            super.onClose();
             return;
         }
         if (settingsChanged) {
             ArmorHider.LOGGER.info("Updating current player settings...");
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.saveCurrent();
         }
-        super.onClose();
     }
 
-    @Inject(method = "init", at = @At("RETURN"))
+    @Inject(
+            //?if >= 1.21 {
+            // method = "init",
+            //?}
+            //?if < 1.21 {
+            method = "<init>", 
+            //?}
+            at = @At("RETURN"))
     private void onAddOptions(CallbackInfo ci) {
-        isSkinOptionsScreen = Minecraft.getInstance().screen instanceof SkinCustomizationScreen;
+        Screen self = (Screen)(Object)this;
+        isSkinOptionsScreen = Minecraft.getInstance().screen instanceof SkinCustomizationScreen
+            || self instanceof SkinCustomizationScreen;
 
         if (!isSkinOptionsScreen) {
             return;
         }
 
-        OptionElementFactory optionElementFactory = new OptionElementFactory(this, list, options);
+        // Cast to Screen to avoid mixin class reference in lambda/method reference bytecode
+        
+        OptionElementFactory optionElementFactory = new OptionElementFactory(self, list, options);
+        //? if < 1.21.9 {
+        optionElementFactory = optionElementFactory.withWidgetAdder(widget -> addRenderableWidget(widget));
+        //?}
         if (Minecraft.getInstance().player != null) {
             optionElementFactory = optionElementFactory.withHalfWidthRendering();
         }
@@ -93,10 +159,15 @@ public abstract class SkinOptionsMixin extends Screen {
                 Component.translatable("armorhider.options.helmet.tooltip_narration"),
                 currentValue -> Component.translatable("armorhider.options.helmet.button_text", String.format("%.0f%%", currentValue * 100)),
                 ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().helmetOpacity.getValue(),
-                this::setHelmetTransparency);
+                value -> setHelmetTransparency(value));
         if (Minecraft.getInstance().player != null) {
-            list.addSmall(OptionElementFactory.simpleOptionToGameOptionWidget(helmetOption, options, list, false),
+            //? if >= 1.21.9 {
+            /*list.addSmall(OptionElementFactory.simpleOptionToGameOptionWidget(helmetOption, options, list, false),
                     new MultiLineTextWidget(Component.literal("Preview"), this.getFont()));
+            *///?}
+            //? if < 1.21.9 {
+            optionElementFactory.addSimpleOptionAsWidget(helmetOption);
+            //?}
         } else {
             optionElementFactory.addSimpleOptionAsWidget(helmetOption);
         }
@@ -107,7 +178,7 @@ public abstract class SkinOptionsMixin extends Screen {
                 Component.translatable("armorhider.options.helmet_affection.tooltip"),
                 Component.translatable("armorhider.options.helmet_affection.tooltip_narration"),
                 ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().opacityAffectingHatOrSkull.getValue(),
-                this::setOpacityAffectingHatOrSkull
+                value -> setOpacityAffectingHatOrSkull(value)
         );
         optionElementFactory.addSimpleOptionAsWidget(skullOrHatOption);
 
@@ -117,7 +188,7 @@ public abstract class SkinOptionsMixin extends Screen {
                 Component.translatable("armorhider.options.chestplate.tooltip_narration"),
                 currentValue -> Component.translatable("armorhider.options.chestplate.button_text", String.format("%.0f%%", currentValue * 100)),
                 ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().chestOpacity.getValue(),
-                this::setChestTransparency);
+                value -> setChestTransparency(value));
         optionElementFactory.addSimpleOptionAsWidget(chestOption);
 
         var elytraOption = optionElementFactory.buildBooleanOption(
@@ -125,7 +196,7 @@ public abstract class SkinOptionsMixin extends Screen {
                 Component.translatable("armorhider.options.elytra_affection.tooltip"),
                 Component.translatable("armorhider.options.elytra_affection.tooltip_narration"),
                 ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().opacityAffectingElytra.getValue(),
-                this::setOpacityAffectingElytra
+                value -> setOpacityAffectingElytra(value)
         );
         optionElementFactory.addSimpleOptionAsWidget(elytraOption);
 
@@ -135,7 +206,7 @@ public abstract class SkinOptionsMixin extends Screen {
                 Component.translatable("armorhider.options.leggings.tooltip_narration"),
                 currentValue -> Component.translatable("armorhider.options.leggings.button_text", String.format("%.0f%%", currentValue * 100)),
                 ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().legsOpacity.getValue(),
-                this::setLegsTransparency);
+                value -> setLegsTransparency(value));
         optionElementFactory.addSimpleOptionAsWidget(legsOption);
 
         var bootsOption = optionElementFactory.buildDoubleOption(
@@ -144,7 +215,7 @@ public abstract class SkinOptionsMixin extends Screen {
                 Component.translatable("armorhider.options.boots.tooltip_narration"),
                 currentValue -> Component.translatable("armorhider.options.boots.button_text", String.format("%.0f%%", currentValue * 100)),
                 ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().bootsOpacity.getValue(),
-                this::setBootsTransparency);
+                value -> setBootsTransparency(value));
         optionElementFactory.addSimpleOptionAsWidget(bootsOption);
 
         OptionInstance<Boolean> enableCombatDetection = optionElementFactory.buildBooleanOption(
@@ -152,14 +223,25 @@ public abstract class SkinOptionsMixin extends Screen {
                 Component.translatable("armorhider.options.combat_detection.tooltip"),
                 Component.translatable("armorhider.options.combat_detection.tooltip_narration"),
                 ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().enableCombatDetection.getValue(),
-                this::setCombatDetection
+                value -> setCombatDetection(value)
         );
         optionElementFactory.addSimpleOptionAsWidget(enableCombatDetection);
 
-        optionElementFactory.addElementAsWidget(Button.builder(
+        //? if >= 1.21.9 {
+        /*optionElementFactory.addElementAsWidget(Button.builder(
                         Component.literal("Advanced..."),
                         (widget) -> Minecraft.getInstance().setScreen(new AdvancedArmorHiderSettingsScreen(Minecraft.getInstance().screen, options, title)))
                 .pos(list.getX(), list.getNextY()).size(list.getRowWidth(), Button.DEFAULT_HEIGHT).build());
+        *///?}
+        //? if < 1.21.9 {
+        int rowWidth = de.zannagh.armorhider.rendering.RenderUtilities.getRowWidth(list);
+        int rowLeft = de.zannagh.armorhider.rendering.RenderUtilities.getRowLeft(list);
+        int nextY = de.zannagh.armorhider.rendering.RenderUtilities.getNextY(list);
+        optionElementFactory.addElementAsWidget(Button.builder(
+                        Component.literal("Advanced..."),
+                        (widget) -> Minecraft.getInstance().setScreen(new AdvancedArmorHiderSettingsScreen(Minecraft.getInstance().screen, options, title)))
+                .pos(rowLeft, nextY).size(rowWidth, Button.DEFAULT_HEIGHT).build());
+        //?}
     }
 
 

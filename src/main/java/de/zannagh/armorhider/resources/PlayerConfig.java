@@ -4,10 +4,12 @@ import com.google.gson.annotations.SerializedName;
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.configuration.ConfigurationSource;
 import de.zannagh.armorhider.configuration.items.implementations.*;
-import de.zannagh.armorhider.netPackets.CompressedJsonCodec;
+//? if >= 1.20.5 {
+/*import de.zannagh.armorhider.netPackets.CompressedJsonCodec;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+*///?}
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.NonNull;
 
@@ -15,24 +17,28 @@ import java.io.Reader;
 import java.util.UUID;
 
 //? if >= 1.21.11 {
-import net.minecraft.resources.Identifier;
- //?}
-//? if = 1.21.10 || 1.21.9 {
+/*import net.minecraft.resources.Identifier;
+ *///?}
+//? if >= 1.20.5 && < 1.21.11 {
 /*import net.minecraft.resources.ResourceLocation;
 *///?}
 
 public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
 
     //? if >= 1.21.11 {
-    public static final Identifier PACKET_IDENTIFIER = Identifier.fromNamespaceAndPath("de.zannagh.armorhider", "settings_c2s_packet");
-    //?}
+    /*public static final Identifier PACKET_IDENTIFIER = Identifier.fromNamespaceAndPath("de.zannagh.armorhider", "settings_c2s_packet");
+    *///?}
 
-    //? if = 1.21.10 || 1.21.9 {
+    //? if >= 1.20.5 && < 1.21.11 {
     /*public static final ResourceLocation PACKET_IDENTIFIER = ResourceLocation.fromNamespaceAndPath("armorhider", "settings_c2s_packet");
     *///?}
-    public static final StreamCodec<ByteBuf, PlayerConfig> STREAM_CODEC = CompressedJsonCodec.create(PlayerConfig.class);
-     
+
+    //? if >= 1.20.5 {
+    /*public static final StreamCodec<ByteBuf, PlayerConfig> STREAM_CODEC = CompressedJsonCodec.create(PlayerConfig.class);
+
     public static final Type<PlayerConfig> TYPE = new Type<>(PACKET_IDENTIFIER);
+    *///?}
+
     @SerializedName(value = "helmetOpacity", alternate = {"helmetTransparency"})
     public ArmorOpacity helmetOpacity;
     @SerializedName(value = "chestOpacity", alternate = {"chestTransparency"})
@@ -95,9 +101,11 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         return new PlayerConfig(playerId, playerName);
     }
 
-    public StreamCodec<ByteBuf, PlayerConfig> getCodec() {
+    //? if >= 1.20.5 {
+    /*public StreamCodec<ByteBuf, PlayerConfig> getCodec() {
         return CompressedJsonCodec.create(PlayerConfig.class);
     }
+    *///?}
 
     @Override
     public boolean hasChangedFromSerializedContent() {
@@ -124,8 +132,10 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         return newConfig;
     }
 
-    @Override
+    //? if >= 1.20.5 {
+    /*@Override
     public @NonNull Type<? extends CustomPacketPayload> type() {
         return TYPE;
     }
+    *///?}
 }

@@ -24,65 +24,98 @@ public final class CommsManager {
         ServerConnectionEvents.registerJoin((player, server) -> {
             int permissionLevel;
             //? if >= 1.21.11 {
-            permissionLevel = server.getProfilePermissions(player.nameAndId()).level().id();
-            //?}
-            //? if = 1.21.10 || 1.21.9 {
+            /*permissionLevel = server.getProfilePermissions(player.nameAndId()).level().id();
+            *///?}
+            //? if >= 1.21.9 && < 1.21.11 {
             /*permissionLevel = server.getProfilePermissions(player.nameAndId());
             *///?}
+            //? if < 1.21.9 {
+            permissionLevel = server.getProfilePermissions(player.getGameProfile());
+            //?}
             sendToClient(player, new PermissionPacket(permissionLevel));
         });
 
         // Register PlayerConfig handler (C2S)
-        PayloadRegistry.registerC2SHandler(PlayerConfig.TYPE, ctx -> {
+        //? if >= 1.20.5 {
+        /*PayloadRegistry.registerC2SHandler(PlayerConfig.TYPE, ctx -> {
             if (!(ctx.payload() instanceof PlayerConfig config)) {
                 return;
             }
             if (!(ctx.context() instanceof ServerPayloadContext serverCtx)) {
                 return;
             }
-
-            ArmorHider.LOGGER.info("Server received settings packet from {}", serverCtx.player().getStringUUID());
-
-            try {
-                ServerRuntime.put(config.playerId.getValue(), config);
-                ServerRuntime.store.saveCurrent();
-
-                var currentConfig = ServerRuntime.store.getConfig();
-                sendToAllClientsButSender(config.playerId.getValue(), currentConfig);
-            } catch (Exception e) {
-                ArmorHider.LOGGER.error("Failed to store player data!", e);
-            }
+            handlePlayerConfigReceived(config, serverCtx);
         });
+        *///?}
+        //? if < 1.20.5 {
+        LegacyPacketHandler.registerC2SHandler(LegacyPacketHandler.getPlayerConfigChannel(), ctx -> {
+            if (!(ctx.payload() instanceof PlayerConfig config)) {
+                return;
+            }
+            if (!(ctx.context() instanceof ServerPayloadContext serverCtx)) {
+                return;
+            }
+            handlePlayerConfigReceived(config, serverCtx);
+        });
+        //?}
 
         // Register ServerWideSettings handler (C2S)
-        PayloadRegistry.registerC2SHandler(ServerWideSettings.TYPE, ctx -> {
+        //? if >= 1.20.5 {
+        /*PayloadRegistry.registerC2SHandler(ServerWideSettings.TYPE, ctx -> {
             if (!(ctx.payload() instanceof ServerWideSettings payload)) {
                 return;
             }
-            if (!(ctx.context() instanceof ServerPayloadContext(
-                    ServerPlayer player, net.minecraft.server.MinecraftServer server
-            ))) {
+            if (!(ctx.context() instanceof ServerPayloadContext serverCtx)) {
                 return;
             }
-
-            ArmorHider.LOGGER.info("Server received admin settings packet.");
-            var currentPlayerPermissionLevel = ServerUtil.getPermissionLevelForPlayer(player, server);
-
-            if (currentPlayerPermissionLevel < 3) {
-                ArmorHider.LOGGER.info("Non-admin player {} attempted to change server settings. Ignoring.", player.getStringUUID());
-                return;
-            }
-
-            if (ServerRuntime.store.getConfig().serverWideSettings.enableCombatDetection.getValue() == payload.enableCombatDetection.getValue()
-                    && ServerRuntime.store.getConfig().serverWideSettings.forceArmorHiderOff.getValue() == payload.forceArmorHiderOff.getValue()) {
-                return;
-            }
-
-            ArmorHider.LOGGER.info("Admin player {} is updating server-wide combat detection to: {}", player.getStringUUID(), payload.enableCombatDetection.getValue());
-            ServerRuntime.store.setServerCombatDetection(payload.enableCombatDetection.getValue());
-            ServerRuntime.store.setGlobalOverride(payload.forceArmorHiderOff.getValue());
-            sendToAllClientsButSender(player.getUUID(), ServerRuntime.store.getConfig());
+            handleServerWideSettingsReceived(payload, serverCtx.player(), serverCtx.server());
         });
+        *///?}
+        //? if < 1.20.5 {
+        LegacyPacketHandler.registerC2SHandler(LegacyPacketHandler.getServerWideSettingsChannel(), ctx -> {
+            if (!(ctx.payload() instanceof ServerWideSettings payload)) {
+                return;
+            }
+            if (!(ctx.context() instanceof ServerPayloadContext serverCtx)) {
+                return;
+            }
+            handleServerWideSettingsReceived(payload, serverCtx.player(), serverCtx.server());
+        });
+        //?}
+    }
+
+    private static void handlePlayerConfigReceived(PlayerConfig config, ServerPayloadContext serverCtx) {
+        ArmorHider.LOGGER.info("Server received settings packet from {}", serverCtx.player().getStringUUID());
+
+        try {
+            ServerRuntime.put(config.playerId.getValue(), config);
+            ServerRuntime.store.saveCurrent();
+
+            var currentConfig = ServerRuntime.store.getConfig();
+            sendToAllClientsButSender(config.playerId.getValue(), currentConfig);
+        } catch (Exception e) {
+            ArmorHider.LOGGER.error("Failed to store player data!", e);
+        }
+    }
+
+    private static void handleServerWideSettingsReceived(ServerWideSettings payload, ServerPlayer player, net.minecraft.server.MinecraftServer server) {
+        ArmorHider.LOGGER.info("Server received admin settings packet.");
+        var currentPlayerPermissionLevel = ServerUtil.getPermissionLevelForPlayer(player, server);
+
+        if (currentPlayerPermissionLevel < 3) {
+            ArmorHider.LOGGER.info("Non-admin player {} attempted to change server settings. Ignoring.", player.getStringUUID());
+            return;
+        }
+
+        if (ServerRuntime.store.getConfig().serverWideSettings.enableCombatDetection.getValue() == payload.enableCombatDetection.getValue()
+                && ServerRuntime.store.getConfig().serverWideSettings.forceArmorHiderOff.getValue() == payload.forceArmorHiderOff.getValue()) {
+            return;
+        }
+
+        ArmorHider.LOGGER.info("Admin player {} is updating server-wide combat detection to: {}", player.getStringUUID(), payload.enableCombatDetection.getValue());
+        ServerRuntime.store.setServerCombatDetection(payload.enableCombatDetection.getValue());
+        ServerRuntime.store.setGlobalOverride(payload.forceArmorHiderOff.getValue());
+        sendToAllClientsButSender(player.getUUID(), ServerRuntime.store.getConfig());
     }
 
     private static void sendToClient(ServerPlayer player, PermissionPacket permissions) {

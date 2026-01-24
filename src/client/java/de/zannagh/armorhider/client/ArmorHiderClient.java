@@ -32,20 +32,42 @@ public class ArmorHiderClient implements ClientModInitializer {
     }
 
     public static String getCurrentPlayerName() {
-        return Minecraft.getInstance().player instanceof Player clientPlayer
-                && clientPlayer.getDisplayName() instanceof Component displayText
-                ? displayText.getString()
-                : ClientConfigManager.DEFAULT_PLAYER_NAME;
+        Player clientPlayer = Minecraft.getInstance().player;
+        if (clientPlayer == null) {
+            return ClientConfigManager.DEFAULT_PLAYER_NAME;
+        }
+        Component displayText = clientPlayer.getDisplayName();
+        if (displayText == null) {
+            return ClientConfigManager.DEFAULT_PLAYER_NAME;
+        }
+        return displayText.getString();
     }
 
     @Contract("_ -> new")
     public static @NonNull Pair<Boolean, PlayerInfo> isPlayerRemotePlayer(String playerName) {
-        if (Minecraft.getInstance().getConnection() instanceof ClientPacketListener networkHandler
-                && networkHandler.getPlayerInfoIgnoreCase(playerName) instanceof PlayerInfo entry
-                && entry.getProfile().name() != null) {
-            return new Pair<>(!entry.getProfile().name().equals(getCurrentPlayerName()), entry);
+        ClientPacketListener networkHandler = Minecraft.getInstance().getConnection();
+        if (networkHandler == null) {
+            return new Pair<>(false, null);
         }
-        return new Pair<>(false, null);
+        //? if >= 1.21.9 {
+        /*PlayerInfo entry = networkHandler.getPlayerInfoIgnoreCase(playerName);
+        *///?}
+        //? if < 1.21.9 {
+        PlayerInfo entry = networkHandler.getPlayerInfo(playerName);
+        //?}
+        if (entry == null) {
+            return new Pair<>(false, null);
+        }
+        //? if >= 1.21.9 {
+        /*String profileName = entry.getProfile().name();
+        *///?}
+        //? if < 1.21.9 {
+        String profileName = entry.getProfile().getName();
+        //?}
+        if (profileName == null) {
+            return new Pair<>(false, null);
+        }
+        return new Pair<>(!profileName.equals(getCurrentPlayerName()), entry);
     }
 
     

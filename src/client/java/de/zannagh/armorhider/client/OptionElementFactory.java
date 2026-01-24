@@ -19,12 +19,23 @@ public class OptionElementFactory {
     private final OptionsList body;
     private final Options gameOptions;
     private boolean renderOptionsFullWidth = true;
+    //? if < 1.21.9 {
+    private Consumer<AbstractWidget> widgetAdder;
+    //?}
 
     public OptionElementFactory(Screen screen, @Nullable OptionsList body, @Nullable Options gameOptions) {
         this.screen = screen;
         this.body = body;
         this.gameOptions = gameOptions;
     }
+
+    //? if < 1.21.9 {
+    // In 1.20.x, set a callback for adding arbitrary widgets since we can't access protected methods
+    public OptionElementFactory withWidgetAdder(Consumer<AbstractWidget> adder) {
+        this.widgetAdder = adder;
+        return this;
+    }
+    //?}
 
     public static AbstractWidget simpleOptionToGameOptionWidget(OptionInstance<?> simpleOption, Options options, @Nullable OptionsList body, boolean fullWidth) {
         int rowWidth = RenderUtilities.getRowWidth(body);
@@ -40,7 +51,15 @@ public class OptionElementFactory {
     }
 
     public <T> void addSimpleOptionAsWidget(OptionInstance<T> option) {
-        addElementAsWidget(simpleOptionToGameOptionWidget(option, gameOptions, body, renderOptionsFullWidth));
+        //? if >= 1.21.9 {
+        /*addElementAsWidget(simpleOptionToGameOptionWidget(option, gameOptions, body, renderOptionsFullWidth));
+        *///?}
+        //? if < 1.21.9 {
+        // In 1.20.x, add OptionInstance directly to the list
+        if (body != null) {
+            body.addBig(option);
+        }
+        //?}
     }
 
     public void addTextAsWidget(MutableComponent text) {
@@ -48,14 +67,27 @@ public class OptionElementFactory {
     }
 
     public final void addElementAsWidget(AbstractWidget widget) {
-        if (body == null) {
+        //? if >= 1.21.9 {
+        /*if (body == null) {
             return;
         }
         body.addSmall(widget, null);
+        *///?}
+        //? if < 1.21.9 {
+        // In 1.20.x, use the callback if provided, otherwise skip
+        if (widgetAdder != null) {
+            widgetAdder.accept(widget);
+        }
+        //?}
     }
 
     private AbstractWidget buildTextWidget(MutableComponent text) {
-        return new MultiLineTextWidget(text, screen.getFont()).setCentered(true);
+        //? if >= 1.21.9 {
+        /*return new MultiLineTextWidget(text, screen.getFont()).setCentered(true);
+        *///?}
+        //? if < 1.21.9 {
+        return new MultiLineTextWidget(text, net.minecraft.client.Minecraft.getInstance().font).setCentered(true);
+        //?}
     }
 
     public OptionInstance<Double> buildDoubleOption(String key,
@@ -68,12 +100,15 @@ public class OptionElementFactory {
                 key,
                 new NarratedTooltipFactory<>(tooltip, narration),
                 (text, value) -> sliderTextProvider.apply(value),
-                //? if >= 1.21.11 { 
-                new OptionInstance.IntRange(0, 20).xmap(v -> v / 20.0, v -> (int) Math.round(v * 20), true)
-                //?}
-                //? if = 1.21.10 || 1.21.9 {
+                //? if >= 1.21.11 {
+                /*new OptionInstance.IntRange(0, 20).xmap(v -> v / 20.0, v -> (int) Math.round(v * 20), true)
+                *///?}
+                //? if >= 1.20.5 && < 1.21.11 {
                 /*new OptionInstance.IntRange(0, 20).xmap(v -> v / 20.0, v -> (int) Math.round(v * 20))
                 *///?}
+                //? if < 1.20.5 {
+                OptionInstance.UnitDouble.INSTANCE
+                //?}
                 ,
                 defaultValue,
                 setter
