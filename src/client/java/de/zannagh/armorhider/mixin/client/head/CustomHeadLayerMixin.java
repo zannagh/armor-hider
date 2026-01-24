@@ -1,5 +1,5 @@
 //? if >= 1.21.9 {
-/*package de.zannagh.armorhider.mixin.client.head;
+package de.zannagh.armorhider.mixin.client.head;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.rendering.ArmorRenderPipeline;
@@ -16,12 +16,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 //?if >= 1.21.11 {
-/^import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.resources.Identifier;
-^///? }
+//? }
 //? if >= 1.21.9 && < 1.21.11 {
-/^import net.minecraft.client.renderer.RenderType;
-^///?}
+/*import net.minecraft.client.renderer.RenderType;
+*///?}
 
 @Mixin(CustomHeadLayer.class)
 public abstract class CustomHeadLayerMixin {
@@ -54,10 +54,10 @@ public abstract class CustomHeadLayerMixin {
         ArmorRenderPipeline.clearContext();
     }
 }
-*///?}
+//?}
 
 //? if < 1.21.9 {
-package de.zannagh.armorhider.mixin.client.head;
+/*package de.zannagh.armorhider.mixin.client.head;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.rendering.ArmorRenderPipeline;
@@ -109,4 +109,4 @@ public abstract class CustomHeadLayerMixin<T extends LivingEntity> {
         ArmorRenderPipeline.clearContext();
     }
 }
-//?}
+*///?}

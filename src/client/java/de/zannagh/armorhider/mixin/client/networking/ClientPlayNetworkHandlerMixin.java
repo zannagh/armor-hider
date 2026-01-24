@@ -1,5 +1,5 @@
 //? if < 1.20.5 {
-package de.zannagh.armorhider.mixin.client.networking;
+/*package de.zannagh.armorhider.mixin.client.networking;
 
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.net.LegacyPacketHandler;
@@ -71,4 +71,4 @@ public abstract class ClientPlayNetworkHandlerMixin {
         ClientConnectionEvents.onClientJoin(listener, minecraft);
     }
 }
-//?}
+*///?}

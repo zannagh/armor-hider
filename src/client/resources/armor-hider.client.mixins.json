@@ -4,7 +4,7 @@
   "compatibilityLevel": "${java_version}",
   "client": [
     "LivingEntityMixin",
-    "SkinOptionsMixin",
+    "${options_screen_mixin_string}",
     "cape.CapeRenderMixin",
     "cape.ElytraRenderMixin",
     "head.CustomHeadLayerMixin",

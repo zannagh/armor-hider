@@ -1,5 +1,5 @@
 //? if >= 1.20.5 {
-/*package de.zannagh.armorhider.configuration;
+package de.zannagh.armorhider.configuration;
 
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -18,10 +18,10 @@ public interface ConfigurationSource<T> extends CustomPacketPayload {
     // Marks the configuration source as having been modified from its serialized state.
     void setHasChangedFromSerializedContent();
 }
-*///?}
+//?}
 
 //? if < 1.20.5 {
-package de.zannagh.armorhider.configuration;
+/*package de.zannagh.armorhider.configuration;
 
 // Marker interface for configuration classes that should have their
 // ConfigurationItemBase fields automatically initialized when missing from JSON.
@@ -35,4 +35,4 @@ public interface ConfigurationSource<T> {
     // Marks the configuration source as having been modified from its serialized state.
     void setHasChangedFromSerializedContent();
 }
-//?}
+*///?}

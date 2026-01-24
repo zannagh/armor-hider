@@ -3,8 +3,8 @@ package de.zannagh.armorhider.netPackets;
 import com.google.gson.Gson;
 import io.netty.buffer.ByteBuf;
 //? if >= 1.20.5 {
-/*import net.minecraft.network.codec.StreamCodec;
-*///?}
+import net.minecraft.network.codec.StreamCodec;
+//?}
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -23,14 +23,14 @@ public class CompressedJsonCodec {
     }
 
     //? if >= 1.20.5 {
-    /*// Creates a PacketCodec that serializes objects to compressed JSON.
+    // Creates a PacketCodec that serializes objects to compressed JSON.
     public static <T> StreamCodec<ByteBuf, T> create(Class<T> clazz) {
         return StreamCodec.of(
                 CompressedJsonCodec::encode,
                 (buf) -> decode(buf, clazz)
         );
     }
-    *///?}
+    //?}
 
     private static <T> void encode(ByteBuf byteBuf, T value) {
         try {

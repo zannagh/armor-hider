@@ -5,16 +5,16 @@ import de.zannagh.armorhider.configuration.ConfigurationSource;
 import de.zannagh.armorhider.configuration.items.implementations.CombatDetection;
 import de.zannagh.armorhider.configuration.items.implementations.ForceArmorHiderOffOnPlayers;
 //? if >= 1.20.5 {
-/*import de.zannagh.armorhider.netPackets.CompressedJsonCodec;
+import de.zannagh.armorhider.netPackets.CompressedJsonCodec;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-*///?}
+//?}
 import org.jspecify.annotations.NonNull;
 
 //? if >= 1.21.11 {
-/*import net.minecraft.resources.Identifier;
- *///?}
+import net.minecraft.resources.Identifier;
+ //?}
 //? if >= 1.20.5 && < 1.21.11 {
 /*import net.minecraft.resources.ResourceLocation;
 *///?}
@@ -22,17 +22,17 @@ import org.jspecify.annotations.NonNull;
 public class ServerWideSettings implements ConfigurationSource<ServerWideSettings> {
 
     //? if >= 1.21.11 {
-    /*public static final Identifier PACKET_IDENTIFIER = Identifier.fromNamespaceAndPath("de.zannagh.armorhider", "server_wide_settings");
-     *///?}
+    public static final Identifier PACKET_IDENTIFIER = Identifier.fromNamespaceAndPath("de.zannagh.armorhider", "server_wide_settings");
+     //?}
     //? if >= 1.20.5 && < 1.21.11 {
     /*public static final ResourceLocation PACKET_IDENTIFIER = ResourceLocation.fromNamespaceAndPath("armorhider", "server_wide_settings");
     *///?}
 
     //? if >= 1.20.5 {
-    /*public static final Type<ServerWideSettings> TYPE = new Type<>(PACKET_IDENTIFIER);
+    public static final Type<ServerWideSettings> TYPE = new Type<>(PACKET_IDENTIFIER);
 
     public static final StreamCodec<ByteBuf, ServerWideSettings> STREAM_CODEC = CompressedJsonCodec.create(ServerWideSettings.class);
-    *///?}
+    //?}
 
     @SerializedName(value = "enableCombatDetection")
     public CombatDetection enableCombatDetection;
@@ -51,11 +51,11 @@ public class ServerWideSettings implements ConfigurationSource<ServerWideSetting
     }
 
     //? if >= 1.20.5 {
-    /*@Override
+    @Override
     public StreamCodec<ByteBuf, ServerWideSettings> getCodec() {
         return CompressedJsonCodec.create(ServerWideSettings.class);
     }
-    *///?}
+    //?}
 
     @Override
     public boolean hasChangedFromSerializedContent() {
@@ -68,9 +68,9 @@ public class ServerWideSettings implements ConfigurationSource<ServerWideSetting
     }
 
     //? if >= 1.20.5 {
-    /*@Override
+    @Override
     public @NonNull Type<? extends CustomPacketPayload> type() {
         return TYPE;
     }
-    *///?}
+    //?}
 }

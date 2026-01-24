@@ -118,7 +118,7 @@ public class HumanoidArmorLayerMixin<T extends LivingEntity, M extends HumanoidM
 *///?}
 
 //? if < 1.21 {
-package de.zannagh.armorhider.mixin.client.bodyKneesAndToes;
+/*package de.zannagh.armorhider.mixin.client.bodyKneesAndToes;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
@@ -224,4 +224,4 @@ public class HumanoidArmorLayerMixin<T extends LivingEntity, M extends HumanoidM
         original.call(model, poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, modifiedAlpha);
     }
 }
-//?}
+*///?}

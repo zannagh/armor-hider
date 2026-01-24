@@ -1,8 +1,8 @@
 package de.zannagh.armorhider.util;
 
 //? if >= 1.21 {
-/*import net.minecraft.core.component.DataComponents;
-*///?}
+import net.minecraft.core.component.DataComponents;
+//?}
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -31,7 +31,7 @@ public final class ItemsUtil {
             return ItemStack.EMPTY;
         }
         //? if >= 1.21 {
-        /*return switch (type) {
+        return switch (type) {
             case SkullBlock.Types.SKELETON -> new ItemStack(Items.SKELETON_SKULL);
             case SkullBlock.Types.DRAGON -> new ItemStack(Items.DRAGON_HEAD);
             case SkullBlock.Types.WITHER_SKELETON -> new ItemStack(Items.WITHER_SKELETON_SKULL);
@@ -41,9 +41,9 @@ public final class ItemsUtil {
             case SkullBlock.Types.PIGLIN -> new ItemStack(Items.PIGLIN_HEAD);
             default -> ItemStack.EMPTY;
         };
-        *///?}
+        //?}
         //? if < 1.21 {
-        if (type == SkullBlock.Types.SKELETON) {
+        /*if (type == SkullBlock.Types.SKELETON) {
             return new ItemStack(Items.SKELETON_SKULL);
         } else if (type == SkullBlock.Types.DRAGON) {
             return new ItemStack(Items.DRAGON_HEAD);
@@ -60,7 +60,7 @@ public final class ItemsUtil {
         } else {
             return ItemStack.EMPTY;
         }
-        //?}
+        *///?}
     }
 
     public static boolean isSkullBlockItem(Item item) {
@@ -72,10 +72,10 @@ public final class ItemsUtil {
             return false;
         }
         //? if >= 1.21.9 {
-        /*return itemStack.getComponents().has(DataComponents.GLIDER) || itemStack.is(ELYTRA_ITEM_STACK.getItem()) || itemStack.getItem().toString().toLowerCase().contains("elytra");
-        *///?}
-        //? if < 1.21.9 {
-        return itemStack.is(ELYTRA_ITEM_STACK.getItem()) || itemStack.getItem().toString().toLowerCase().contains("elytra");
+        return itemStack.getComponents().has(DataComponents.GLIDER) || itemStack.is(ELYTRA_ITEM_STACK.getItem()) || itemStack.getItem().toString().toLowerCase().contains("elytra");
         //?}
+        //? if < 1.21.9 {
+        /*return itemStack.is(ELYTRA_ITEM_STACK.getItem()) || itemStack.getItem().toString().toLowerCase().contains("elytra");
+        *///?}
     }
 }

@@ -1,5 +1,5 @@
 //? if >= 1.21.9 {
-/*package de.zannagh.armorhider.mixin.client.head;
+package de.zannagh.armorhider.mixin.client.head;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -17,20 +17,20 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 //?if >= 1.21.11 {
-/^import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.resources.Identifier;
-^///? }
+//? }
 //? if >= 1.21.9 && < 1.21.11 {
-/^import net.minecraft.client.renderer.RenderType;
+/*import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
-^///?}
+*///?}
 
 @Mixin(SkullBlockRenderer.class)
 public abstract class SkullBlockRenderMixin {
 
     //? if >= 1.21.11 {
     
-    /^@WrapOperation(
+    @WrapOperation(
             method = "submitSkull",
             at = @At(
                     value = "INVOKE",
@@ -38,9 +38,9 @@ public abstract class SkullBlockRenderMixin {
             )
     )
     private static <S> void modifyTransparency(SubmitNodeCollector instance, Model<? super S> model, S o, PoseStack poseStack, RenderType renderType, int i, int j, int k, ModelFeatureRenderer.CrumblingOverlay crumblingOverlay, Operation<Void> original) {
-    ^///?}
+    //?}
     //? if >= 1.21.9 && < 1.21.11 {
-    /^@WrapOperation(
+    /*@WrapOperation(
             method = "submitSkull",
             at = @At(
                     value = "INVOKE",
@@ -48,7 +48,7 @@ public abstract class SkullBlockRenderMixin {
             )
     )
     private static <S> void modifyTransparency(SubmitNodeCollector instance, Model<? super S> model, S o, PoseStack poseStack, RenderType renderType, int i, int j, int k, ModelFeatureRenderer.CrumblingOverlay crumblingOverlay, Operation<Void> original) {
-    ^///?}
+    *///?}
         try {
             if (ArmorRenderPipeline.noContext() || !ArmorRenderPipeline.shouldModifyEquipment()) {
                 original.call(instance, model, o, poseStack, renderType, i, j, k, crumblingOverlay);
@@ -68,7 +68,7 @@ public abstract class SkullBlockRenderMixin {
 
     //? if >= 1.21.11 {
     
-    /^@WrapOperation(
+    @WrapOperation(
             method = "resolveSkullRenderType",
             at = @At(
                     value = "INVOKE",
@@ -76,9 +76,9 @@ public abstract class SkullBlockRenderMixin {
             )
     )
     private static RenderType getSkullRenderType(SkullBlock.Type type, Identifier identifier, Operation<RenderType> original) {
-    ^///?}
+    //?}
     //? if >= 1.21.9 && < 1.21.11 {
-    /^@WrapOperation(
+    /*@WrapOperation(
             method = "resolveSkullRenderType",
             at = @At(
                     value = "INVOKE",
@@ -86,13 +86,13 @@ public abstract class SkullBlockRenderMixin {
             )
     )
     private static RenderType getSkullRenderType(SkullBlock.Type type, ResourceLocation identifier, Operation<RenderType> original) {
-    ^///?}
+    *///?}
         return ArmorRenderPipeline.getSkullRenderLayer(identifier, original.call(type, identifier));
     }
 
     //? if >= 1.21.11 {
     
-    /^@WrapOperation(
+    @WrapOperation(
             method = "getSkullRenderType",
             at = @At(
                     value = "INVOKE",
@@ -100,9 +100,9 @@ public abstract class SkullBlockRenderMixin {
             )
     )
     private static RenderType getCutoutRenderLayer(Identifier texture, Operation<RenderType> original) {
-    ^///?}
+    //?}
     //? if >= 1.21.9 && < 1.21.11 {
-    /^@WrapOperation(
+    /*@WrapOperation(
             method = "getSkullRenderType",
             at = @At(
                     value = "INVOKE",
@@ -110,7 +110,7 @@ public abstract class SkullBlockRenderMixin {
             )
     )
     private static RenderType getCutoutRenderLayer(ResourceLocation texture, Operation<RenderType> original) {
-    ^///?}
+    *///?}
         return ArmorRenderPipeline.getSkullRenderLayer(texture, original.call(texture));
     }
 
@@ -124,7 +124,7 @@ public abstract class SkullBlockRenderMixin {
         }
     }
 }
-*///?}
+//?}
 
 //? if >= 1.21 && < 1.21.9 {
 /*package de.zannagh.armorhider.mixin.client.head;
@@ -190,7 +190,7 @@ public abstract class SkullBlockRenderMixin {
 *///?}
 
 //? if < 1.21 {
-package de.zannagh.armorhider.mixin.client.head;
+/*package de.zannagh.armorhider.mixin.client.head;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -250,4 +250,4 @@ public abstract class SkullBlockRenderMixin {
         return ArmorRenderPipeline.getSkullRenderLayer(texture, original.call(texture));
     }
 }
-//?}
+*///?}

@@ -24,31 +24,20 @@ public final class CommsManager {
         ServerConnectionEvents.registerJoin((player, server) -> {
             int permissionLevel;
             //? if >= 1.21.11 {
-            /*permissionLevel = server.getProfilePermissions(player.nameAndId()).level().id();
-            *///?}
+            permissionLevel = server.getProfilePermissions(player.nameAndId()).level().id();
+            //?}
             //? if >= 1.21.9 && < 1.21.11 {
             /*permissionLevel = server.getProfilePermissions(player.nameAndId());
             *///?}
             //? if < 1.21.9 {
-            permissionLevel = server.getProfilePermissions(player.getGameProfile());
-            //?}
+            /*permissionLevel = server.getProfilePermissions(player.getGameProfile());
+            *///?}
             sendToClient(player, new PermissionPacket(permissionLevel));
         });
 
         // Register PlayerConfig handler (C2S)
         //? if >= 1.20.5 {
-        /*PayloadRegistry.registerC2SHandler(PlayerConfig.TYPE, ctx -> {
-            if (!(ctx.payload() instanceof PlayerConfig config)) {
-                return;
-            }
-            if (!(ctx.context() instanceof ServerPayloadContext serverCtx)) {
-                return;
-            }
-            handlePlayerConfigReceived(config, serverCtx);
-        });
-        *///?}
-        //? if < 1.20.5 {
-        LegacyPacketHandler.registerC2SHandler(LegacyPacketHandler.getPlayerConfigChannel(), ctx -> {
+        PayloadRegistry.registerC2SHandler(PlayerConfig.TYPE, ctx -> {
             if (!(ctx.payload() instanceof PlayerConfig config)) {
                 return;
             }
@@ -58,21 +47,21 @@ public final class CommsManager {
             handlePlayerConfigReceived(config, serverCtx);
         });
         //?}
+        //? if < 1.20.5 {
+        /*LegacyPacketHandler.registerC2SHandler(LegacyPacketHandler.getPlayerConfigChannel(), ctx -> {
+            if (!(ctx.payload() instanceof PlayerConfig config)) {
+                return;
+            }
+            if (!(ctx.context() instanceof ServerPayloadContext serverCtx)) {
+                return;
+            }
+            handlePlayerConfigReceived(config, serverCtx);
+        });
+        *///?}
 
         // Register ServerWideSettings handler (C2S)
         //? if >= 1.20.5 {
-        /*PayloadRegistry.registerC2SHandler(ServerWideSettings.TYPE, ctx -> {
-            if (!(ctx.payload() instanceof ServerWideSettings payload)) {
-                return;
-            }
-            if (!(ctx.context() instanceof ServerPayloadContext serverCtx)) {
-                return;
-            }
-            handleServerWideSettingsReceived(payload, serverCtx.player(), serverCtx.server());
-        });
-        *///?}
-        //? if < 1.20.5 {
-        LegacyPacketHandler.registerC2SHandler(LegacyPacketHandler.getServerWideSettingsChannel(), ctx -> {
+        PayloadRegistry.registerC2SHandler(ServerWideSettings.TYPE, ctx -> {
             if (!(ctx.payload() instanceof ServerWideSettings payload)) {
                 return;
             }
@@ -82,6 +71,17 @@ public final class CommsManager {
             handleServerWideSettingsReceived(payload, serverCtx.player(), serverCtx.server());
         });
         //?}
+        //? if < 1.20.5 {
+        /*LegacyPacketHandler.registerC2SHandler(LegacyPacketHandler.getServerWideSettingsChannel(), ctx -> {
+            if (!(ctx.payload() instanceof ServerWideSettings payload)) {
+                return;
+            }
+            if (!(ctx.context() instanceof ServerPayloadContext serverCtx)) {
+                return;
+            }
+            handleServerWideSettingsReceived(payload, serverCtx.player(), serverCtx.server());
+        });
+        *///?}
     }
 
     private static void handlePlayerConfigReceived(PlayerConfig config, ServerPayloadContext serverCtx) {

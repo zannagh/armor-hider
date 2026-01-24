@@ -1,5 +1,5 @@
 //? if >= 1.21.9 {
-/*package de.zannagh.armorhider.mixin.client.cape;
+package de.zannagh.armorhider.mixin.client.cape;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.rendering.ArmorRenderPipeline;
@@ -50,10 +50,10 @@ public class ElytraRenderMixin {
         ArmorRenderPipeline.clearContext();
     }
 }
-*///?}
+//?}
 
 //? if < 1.21.9 {
-package de.zannagh.armorhider.mixin.client.cape;
+/*package de.zannagh.armorhider.mixin.client.cape;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.rendering.ArmorRenderPipeline;
@@ -105,4 +105,4 @@ public class ElytraRenderMixin<T extends LivingEntity, M extends EntityModel<T>>
         ArmorRenderPipeline.clearContext();
     }
 }
-//?}
+*///?}

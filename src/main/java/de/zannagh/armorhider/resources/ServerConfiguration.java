@@ -8,11 +8,11 @@ import com.google.gson.reflect.TypeToken;
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.configuration.ConfigurationSource;
 //? if >= 1.20.5 {
-/*import de.zannagh.armorhider.netPackets.CompressedJsonCodec;
+import de.zannagh.armorhider.netPackets.CompressedJsonCodec;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-*///?}
+//?}
 
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.Contract;
@@ -25,8 +25,8 @@ import java.io.StringReader;
 import java.util.*;
 
 //? if >= 1.21.11 {
-/*import net.minecraft.resources.Identifier;
-*///?}
+import net.minecraft.resources.Identifier;
+//?}
 //? if >= 1.20.5 && < 1.21.11 {
 /*import net.minecraft.resources.ResourceLocation;
 *///?}
@@ -34,16 +34,16 @@ import java.util.*;
 public class ServerConfiguration implements ConfigurationSource<ServerConfiguration> {
 
     //? if >= 1.21.11 {
-    /*public static final Identifier PACKET_IDENTIFIER = Identifier.fromNamespaceAndPath("de.zannagh.armorhider", "settings_s2c_packet");
-    *///?}
+    public static final Identifier PACKET_IDENTIFIER = Identifier.fromNamespaceAndPath("de.zannagh.armorhider", "settings_s2c_packet");
+    //?}
     //? if >= 1.20.5 && < 1.21.11 {
     /*public static final ResourceLocation PACKET_IDENTIFIER = ResourceLocation.fromNamespaceAndPath("armorhider", "settings_s2c_packet");
     *///?}
 
     //? if >= 1.20.5 {
-    /*public static final Type<ServerConfiguration> TYPE = new Type<>(PACKET_IDENTIFIER);
+    public static final Type<ServerConfiguration> TYPE = new Type<>(PACKET_IDENTIFIER);
     public static final StreamCodec<ByteBuf, ServerConfiguration> STREAM_CODEC = CompressedJsonCodec.create(ServerConfiguration.class);
-    *///?}
+    //?}
 
     private static final java.lang.reflect.Type LEGACY_MAP_TYPE = new TypeToken<Map<UUID, PlayerConfig>>() {
     }.getType();
@@ -129,10 +129,10 @@ public class ServerConfiguration implements ConfigurationSource<ServerConfigurat
     }
 
     //? if >= 1.20.5 {
-    /*public StreamCodec<ByteBuf, ServerConfiguration> getCodec() {
+    public StreamCodec<ByteBuf, ServerConfiguration> getCodec() {
         return CompressedJsonCodec.create(ServerConfiguration.class);
     }
-    *///?}
+    //?}
 
     public PlayerConfig getPlayerConfigOrDefault(Player player) {
         PlayerConfig uuidConfig = getPlayerConfigOrDefault(player.getUUID());
@@ -187,9 +187,9 @@ public class ServerConfiguration implements ConfigurationSource<ServerConfigurat
     }
 
     //? if >= 1.20.5 {
-    /*@Override
+    @Override
     public @NonNull Type<? extends CustomPacketPayload> type() {
         return TYPE;
     }
-    *///?}
+    //?}
 }

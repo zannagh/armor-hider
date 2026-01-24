@@ -1,15 +1,11 @@
+//? if >= 1.21 {
 package de.zannagh.armorhider.rendering;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.OptionsList;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
-//? if >= 1.21 {
-/*import net.minecraft.client.gui.screens.options.SkinCustomizationScreen;
-*///?}
-//? if < 1.21 {
-import net.minecraft.client.gui.screens.SkinCustomizationScreen;
-//?}
+import net.minecraft.client.gui.screens.options.SkinCustomizationScreen;
 import net.minecraft.client.player.AbstractClientPlayer;
 
 import java.awt.*;
@@ -69,8 +65,7 @@ public class PlayerPreviewRenderer {
         graphics.fill(panelLeft, panelTop, panelLeft + 1, panelBottom, borderColor); // Left
         graphics.fill(panelRight - 1, panelTop, panelRight, panelBottom, borderColor); // Right
 
-        //? if >= 1.21 {
-        /*InventoryScreen.renderEntityInInventoryFollowsMouse(
+        InventoryScreen.renderEntityInInventoryFollowsMouse(
                 graphics,
                 panelLeft,
                 panelTop - margin,
@@ -82,21 +77,8 @@ public class PlayerPreviewRenderer {
                 (float) mouseY,
                 player
         );
-        *///?}
-        //? if < 1.21 {
-        int centerX = (panelLeft + panelRight) / 2;
-        int centerY = panelBottom - margin;
-        InventoryScreen.renderEntityInInventoryFollowsMouse(
-                graphics,
-                centerX,
-                centerY,
-                (int) Math.round(previewSize * 0.5),
-                (float) centerX - mouseX,
-                (float) centerY - mouseY - 50,
-                player
-        );
-        //?}
 
         graphics.disableScissor();
     }
 }
+//?}

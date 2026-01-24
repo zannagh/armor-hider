@@ -1,5 +1,5 @@
 //? if >= 1.20.5 {
-/*package de.zannagh.armorhider.mixin.client.networking;
+package de.zannagh.armorhider.mixin.client.networking;
 
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.net.PayloadRegistry;
@@ -52,4 +52,4 @@ public abstract class ClientPacketListenerMixin extends ClientCommonPacketListen
         ClientConnectionEvents.onClientJoin(listener, minecraft);
     }
 }
-*///?}
+//?}

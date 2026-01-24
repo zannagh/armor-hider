@@ -50,20 +50,20 @@ public class ArmorHiderClient implements ClientModInitializer {
             return new Pair<>(false, null);
         }
         //? if >= 1.21.9 {
-        /*PlayerInfo entry = networkHandler.getPlayerInfoIgnoreCase(playerName);
-        *///?}
-        //? if < 1.21.9 {
-        PlayerInfo entry = networkHandler.getPlayerInfo(playerName);
+        PlayerInfo entry = networkHandler.getPlayerInfoIgnoreCase(playerName);
         //?}
+        //? if < 1.21.9 {
+        /*PlayerInfo entry = networkHandler.getPlayerInfo(playerName);
+        *///?}
         if (entry == null) {
             return new Pair<>(false, null);
         }
         //? if >= 1.21.9 {
-        /*String profileName = entry.getProfile().name();
-        *///?}
-        //? if < 1.21.9 {
-        String profileName = entry.getProfile().getName();
+        String profileName = entry.getProfile().name();
         //?}
+        //? if < 1.21.9 {
+        /*String profileName = entry.getProfile().getName();
+        *///?}
         if (profileName == null) {
             return new Pair<>(false, null);
         }

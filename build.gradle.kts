@@ -96,11 +96,13 @@ tasks.processResources {
 tasks.named<ProcessResources>("processClientResources") {
     inputs.property("java_version", javaVersionForMixin)
     inputs.property("mixin_string", getClientMixinString())
+    inputs.property("options_screen_mixin_string", getOptionsScreenMixinString())
 
     filesMatching("armor-hider.client.mixins.json") {
         expand(
             "java_version" to javaVersionForMixin,
-            "mixin_string" to getClientMixinString()
+            "mixin_string" to getClientMixinString(),
+            "options_screen_mixin_string" to getOptionsScreenMixinString()
         )
     }
 }
@@ -108,21 +110,32 @@ tasks.named<ProcessResources>("processClientResources") {
 fun getClientMixinString(): String {
     var returnString = "";
     
-    if (sc.current.parsed >= "1.21"){
+    if (sc.current.parsed > "1.21.1"){
         returnString += "bodyKneesAndToes.EquipmentRenderMixin\",\n"
+        returnString += "    \"bodyKneesAndToes.ArmorFeatureRenderMixin\",\n"
     }
-    else{
+    else {
         returnString += "bodyKneesAndToes.HumanoidArmorLayerMixin\",\n"
     }
-    
+
     if (sc.current.parsed >= "1.20.5") {
-        returnString += "    \"bodyKneesAndToes.ArmorFeatureRenderMixin\",\n"
-        returnString += "    \"networking.ClientPacketListenerMixin\""
+        
+        returnString += "    \"networking.ClientPacketListenerMixin"
     }
     else {
         returnString += "    \"networking.ClientPlayNetworkHandlerMixin"
     }
     return returnString;
+}
+
+fun getOptionsScreenMixinString(): String {
+    // For 1.20.x: Use OptionsScreenMixin (injects into main options screen)
+    // For 1.21+: Use SkinOptionsMixin (injects into skin options screen)
+    return if (sc.current.parsed >= "1.21") {
+        "SkinOptionsMixin"
+    } else {
+        "OptionsScreenMixin"
+    }
 }
 
 fun getMainMixinString(): String {

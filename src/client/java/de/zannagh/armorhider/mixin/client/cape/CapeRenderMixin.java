@@ -1,5 +1,5 @@
 //? if >= 1.21.9 {
-/*package de.zannagh.armorhider.mixin.client.cape;
+package de.zannagh.armorhider.mixin.client.cape;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -55,10 +55,10 @@ public class CapeRenderMixin {
         currentPlayerRenderState.remove();
     }
 }
-*///?}
+//?}
 
 //? if < 1.21.9 {
-package de.zannagh.armorhider.mixin.client.cape;
+/*package de.zannagh.armorhider.mixin.client.cape;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -90,7 +90,7 @@ public class CapeRenderMixin {
     }
 
     //? if >= 1.21 {
-    /*
+    
     @WrapOperation(
             method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/player/AbstractClientPlayer;FFFFFF)V",
             at = @At(
@@ -106,10 +106,10 @@ public class CapeRenderMixin {
             original.call(instance, x, y, z);
         }
     }
-    *///?}
+    //?}
     
     //? if < 1.21 {
-    @WrapOperation(
+    /^@WrapOperation(
             method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/player/AbstractClientPlayer;FFFFFF)V",
             at = @At(
                     value = "INVOKE",
@@ -124,7 +124,7 @@ public class CapeRenderMixin {
             original.call(instance, f, g, h);
         }
     }
-    //?}
+    ^///?}
 
     @Inject(
             method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/player/AbstractClientPlayer;FFFFFF)V",
@@ -135,4 +135,4 @@ public class CapeRenderMixin {
         currentPlayer.remove();
     }
 }
-//?}
+*///?}

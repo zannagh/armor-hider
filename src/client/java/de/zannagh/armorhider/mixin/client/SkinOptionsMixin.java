@@ -4,6 +4,7 @@
 // | https://github.com/enjarai/show-me-your-skin        |
 // | --------------------------------------------------- |
 
+//? if >= 1.21 {
 package de.zannagh.armorhider.mixin.client;
 
 import de.zannagh.armorhider.ArmorHider;
@@ -19,15 +20,10 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.MultiLineTextWidget;
 import net.minecraft.client.gui.components.OptionsList;
 import net.minecraft.client.gui.screens.Screen;
-//? if >= 1.21 {
-/*import net.minecraft.client.gui.screens.options.OptionsSubScreen;
+import net.minecraft.client.gui.screens.options.OptionsSubScreen;
 import net.minecraft.client.gui.screens.options.SkinCustomizationScreen;
-*///?}
-//? if < 1.21 {
-import net.minecraft.client.gui.screens.OptionsSubScreen;
-import net.minecraft.client.gui.screens.SkinCustomizationScreen;
-//?}
 import net.minecraft.network.chat.Component;
+import org.jspecify.annotations.NonNull;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -38,80 +34,29 @@ public abstract class SkinOptionsMixin extends Screen {
 
     // TODO: This may have to be extended into not sending network stuff if the server doesn't support it.
 
-    //?if >= 1.21 {
-    /*
     @Shadow
     protected OptionsList list;
-    
-    @Final
-    @Shadow
-    protected Options options;
-    *///?}
-    
-    //? if < 1.21 {
-    @Unique
-    private OptionsList list;
-    
-    @Mutable
-    @Final
-    @Shadow
-    protected Screen lastScreen;
 
-    @Mutable
     @Final
     @Shadow
     protected Options options;
-    
-    //?}
-    
+
     @Unique
     private boolean settingsChanged;
     @Unique
     private boolean isSkinOptionsScreen;
 
-    //? if >= 1.21 {
-    /*
     protected SkinOptionsMixin(Component component) {
         super(component);
     }
-    *///?}
-    
-    //? if < 1.21 {
-    public SkinOptionsMixin(Screen screen, Options options, Component component) {
-        super(component);
-        this.lastScreen = screen;
-        this.options = options;
-    }
-    //?}
-    
-    //? if < 1.21 {
-    @Inject(
-            method = "basicListRender",
-            at = @At("HEAD")
-    )
-    private void interceptBasicListRender(GuiGraphics guiGraphics, OptionsList optionsList, int i, int j, float f, CallbackInfo ci) {
-        list = optionsList;
-    }
 
-    @Inject(
-            method = "basicListRender",
-            at = @At("RETURN")
-    )
-    private void onRenderReturn(GuiGraphics context, OptionsList optionsList, int mouseX, int mouseY, float deltaTicks, CallbackInfo ci) {
+    @Override
+    public void render(@NonNull GuiGraphics context, int mouseX, int mouseY, float deltaTicks) {
+        super.render(context, mouseX, mouseY, deltaTicks);
         if (list != null && isSkinOptionsScreen) {
             PlayerPreviewRenderer.renderPlayerPreview(context, list, mouseX, mouseY);
         }
     }
-    //?}
-
-    //? if >= 1.21 {
-    /*@Inject(method = "render(Lnet/minecraft/client/gui/GuiGraphics;IIF)V", at = @At("RETURN"))
-    private void onRender(GuiGraphics context, int mouseX, int mouseY, float deltaTicks, CallbackInfo ci) {
-        if (list != null && isSkinOptionsScreen) {
-            PlayerPreviewRenderer.renderPlayerPreview(context, list, mouseX, mouseY);
-        }
-    }
-    *///?}
 
     @Inject(method = "onClose()V", at = @At("HEAD"))
     private void onCloseHead(CallbackInfo ci) {
@@ -124,14 +69,7 @@ public abstract class SkinOptionsMixin extends Screen {
         }
     }
 
-    @Inject(
-            //?if >= 1.21 {
-            // method = "init",
-            //?}
-            //?if < 1.21 {
-            method = "<init>", 
-            //?}
-            at = @At("RETURN"))
+    @Inject(method = "init", at = @At("RETURN"))
     private void onAddOptions(CallbackInfo ci) {
         Screen self = (Screen)(Object)this;
         isSkinOptionsScreen = Minecraft.getInstance().screen instanceof SkinCustomizationScreen
@@ -142,11 +80,11 @@ public abstract class SkinOptionsMixin extends Screen {
         }
 
         // Cast to Screen to avoid mixin class reference in lambda/method reference bytecode
-        
+
         OptionElementFactory optionElementFactory = new OptionElementFactory(self, list, options);
         //? if < 1.21.9 {
-        optionElementFactory = optionElementFactory.withWidgetAdder(widget -> addRenderableWidget(widget));
-        //?}
+        /*optionElementFactory = optionElementFactory.withWidgetAdder(widget -> addRenderableWidget(widget));
+        *///?}
         if (Minecraft.getInstance().player != null) {
             optionElementFactory = optionElementFactory.withHalfWidthRendering();
         }
@@ -162,12 +100,12 @@ public abstract class SkinOptionsMixin extends Screen {
                 value -> setHelmetTransparency(value));
         if (Minecraft.getInstance().player != null) {
             //? if >= 1.21.9 {
-            /*list.addSmall(OptionElementFactory.simpleOptionToGameOptionWidget(helmetOption, options, list, false),
+            list.addSmall(OptionElementFactory.simpleOptionToGameOptionWidget(helmetOption, options, list, false),
                     new MultiLineTextWidget(Component.literal("Preview"), this.getFont()));
-            *///?}
-            //? if < 1.21.9 {
-            optionElementFactory.addSimpleOptionAsWidget(helmetOption);
             //?}
+            //? if < 1.21.9 {
+            /*optionElementFactory.addSimpleOptionAsWidget(helmetOption);
+            *///?}
         } else {
             optionElementFactory.addSimpleOptionAsWidget(helmetOption);
         }
@@ -228,20 +166,20 @@ public abstract class SkinOptionsMixin extends Screen {
         optionElementFactory.addSimpleOptionAsWidget(enableCombatDetection);
 
         //? if >= 1.21.9 {
-        /*optionElementFactory.addElementAsWidget(Button.builder(
+        optionElementFactory.addElementAsWidget(Button.builder(
                         Component.literal("Advanced..."),
                         (widget) -> Minecraft.getInstance().setScreen(new AdvancedArmorHiderSettingsScreen(Minecraft.getInstance().screen, options, title)))
                 .pos(list.getX(), list.getNextY()).size(list.getRowWidth(), Button.DEFAULT_HEIGHT).build());
-        *///?}
+        //?}
         //? if < 1.21.9 {
-        int rowWidth = de.zannagh.armorhider.rendering.RenderUtilities.getRowWidth(list);
+        /*int rowWidth = de.zannagh.armorhider.rendering.RenderUtilities.getRowWidth(list);
         int rowLeft = de.zannagh.armorhider.rendering.RenderUtilities.getRowLeft(list);
         int nextY = de.zannagh.armorhider.rendering.RenderUtilities.getNextY(list);
         optionElementFactory.addElementAsWidget(Button.builder(
                         Component.literal("Advanced..."),
                         (widget) -> Minecraft.getInstance().setScreen(new AdvancedArmorHiderSettingsScreen(Minecraft.getInstance().screen, options, title)))
                 .pos(rowLeft, nextY).size(rowWidth, Button.DEFAULT_HEIGHT).build());
-        //?}
+        *///?}
     }
 
 
@@ -288,3 +226,4 @@ public abstract class SkinOptionsMixin extends Screen {
     }
 
 }
+//?}

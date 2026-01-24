@@ -3,11 +3,11 @@ package de.zannagh.armorhider.networking;
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 //? if >= 1.20.5 {
-/*import de.zannagh.armorhider.net.PayloadRegistry;
-*///?}
-//? if < 1.20.5 {
-import de.zannagh.armorhider.net.LegacyPacketHandler;
+import de.zannagh.armorhider.net.PayloadRegistry;
 //?}
+//? if < 1.20.5 {
+/*import de.zannagh.armorhider.net.LegacyPacketHandler;
+*///?}
 import de.zannagh.armorhider.netPackets.PermissionPacket;
 import de.zannagh.armorhider.resources.ServerConfiguration;
 import net.minecraft.client.multiplayer.ServerData;
@@ -20,7 +20,7 @@ public final class ClientCommunicationManager {
 
     public static void initClient() {
         //? if >= 1.20.5 {
-        /*PayloadRegistry.registerS2CHandler(ServerConfiguration.TYPE, ctx -> {
+        PayloadRegistry.registerS2CHandler(ServerConfiguration.TYPE, ctx -> {
             if (!(ctx.payload() instanceof ServerConfiguration payload)) {
                 return;
             }
@@ -33,10 +33,10 @@ public final class ClientCommunicationManager {
             }
             handlePermissionPacketReceived(payload);
         });
-        *///?}
+        //?}
 
         //? if < 1.20.5 {
-        LegacyPacketHandler.registerS2CHandler(LegacyPacketHandler.getServerConfigChannel(), ctx -> {
+        /*LegacyPacketHandler.registerS2CHandler(LegacyPacketHandler.getServerConfigChannel(), ctx -> {
             if (!(ctx.payload() instanceof ServerConfiguration payload)) {
                 return;
             }
@@ -49,18 +49,18 @@ public final class ClientCommunicationManager {
             }
             handlePermissionPacketReceived(payload);
         });
-        //?}
+        *///?}
 
         ClientConnectionEvents.registerJoin((handler, client) -> {
             assert client.player != null;
             var playerName = client.player.getName().getString();
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.updateName(playerName);
             //? if >= 1.21.9 {
-            /*ArmorHiderClient.CLIENT_CONFIG_MANAGER.updateId(handler.getLocalGameProfile().id());
-            *///?}
-            //? if < 1.21.9 {
-            ArmorHiderClient.CLIENT_CONFIG_MANAGER.updateId(handler.getLocalGameProfile().getId());
+            ArmorHiderClient.CLIENT_CONFIG_MANAGER.updateId(handler.getLocalGameProfile().id());
             //?}
+            //? if < 1.21.9 {
+            /*ArmorHiderClient.CLIENT_CONFIG_MANAGER.updateId(handler.getLocalGameProfile().getId());
+            *///?}
             var currentConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue();
 
             ServerData serverData = client.getCurrentServer();

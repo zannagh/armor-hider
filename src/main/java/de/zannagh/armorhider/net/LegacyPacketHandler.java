@@ -1,5 +1,5 @@
 //? if < 1.20.5 {
-package de.zannagh.armorhider.net;
+/*package de.zannagh.armorhider.net;
 
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.netPackets.CompressedJsonCodec;
@@ -110,4 +110,4 @@ public final class LegacyPacketHandler {
         }
     }
 }
-//?}
+*///?}

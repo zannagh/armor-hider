@@ -76,6 +76,14 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
         setAndSendServerWideSettings(serverConfiguration.serverWideSettings);
     }
 
+    public void setAndSendServerCombatDetection(boolean combatDetection) {
+        if (!ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin) {
+            return;
+        }
+        serverConfiguration.serverWideSettings.enableCombatDetection.setValue(combatDetection);
+        setAndSendServerWideSettings(serverConfiguration.serverWideSettings);
+    }
+
     public void setAndSendServerWideSettings(ServerWideSettings serverWideSettings) {
         if (!ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin) {
             ArmorHider.LOGGER.info("Player is no admin, suppressing update...");
@@ -124,13 +132,13 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
         UUID playerId = DEFAULT_PLAYER_ID;
         if (isRemotePlayer.getA()) {
             //? if >= 1.21.9 {
-            /*playerId = isRemotePlayer.getB().getProfile().id();
+            playerId = isRemotePlayer.getB().getProfile().id();
             config = serverConfiguration.getPlayerConfigOrDefault(isRemotePlayer.getB().getProfile().id());
-            *///?}
-            //? if < 1.21.9 {
-            playerId = isRemotePlayer.getB().getProfile().getId();
-            config = serverConfiguration.getPlayerConfigOrDefault(isRemotePlayer.getB().getProfile().getId());
             //?}
+            //? if < 1.21.9 {
+            /*playerId = isRemotePlayer.getB().getProfile().getId();
+            config = serverConfiguration.getPlayerConfigOrDefault(isRemotePlayer.getB().getProfile().getId());
+            *///?}
             if (config != null) {
                 return config;
             }

@@ -1,5 +1,5 @@
 //? if >= 1.21.9 {
-/*package de.zannagh.armorhider.mixin.client.bodyKneesAndToes;
+package de.zannagh.armorhider.mixin.client.bodyKneesAndToes;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
@@ -24,36 +24,36 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 //?if >= 1.21.11 {
-/^import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.resources.Identifier;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.OrderedSubmitNodeCollector;
-^///? }
+//? }
 //? if >= 1.21 && < 1.21.11 {
-/^import net.minecraft.client.renderer.RenderType;
+/*import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
-^///?}
+*///?}
 
 @Mixin(EquipmentLayerRenderer.class)
 public class EquipmentRenderMixin {
 
     //? if >= 1.21.11 {
-    /^@ModifyVariable(
+    @ModifyVariable(
             method = "renderLayers(Lnet/minecraft/client/resources/model/EquipmentClientInfo$LayerType;Lnet/minecraft/resources/ResourceKey;Lnet/minecraft/client/model/Model;Ljava/lang/Object;Lnet/minecraft/world/item/ItemStack;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/resources/Identifier;II)V",
             at = @At("HEAD"),
             ordinal = 2,
             argsOnly = true
     )
-    ^///?}
+    //?}
     //? if >= 1.21 && < 1.21.11 {
-    /^@ModifyVariable(
+    /*@ModifyVariable(
             method = "renderLayers(Lnet/minecraft/client/resources/model/EquipmentClientInfo$LayerType;Lnet/minecraft/resources/ResourceKey;Lnet/minecraft/client/model/Model;Ljava/lang/Object;Lnet/minecraft/world/item/ItemStack;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/resources/ResourceLocation;II)V",
             at = @At("HEAD"),
             ordinal = 2,
             argsOnly = true
     )
-    ^///?}
+    *///?}
     private static int modifyRenderOrder(int value) {
         return ArmorRenderPipeline.modifyRenderPriority(value);
     }
@@ -97,23 +97,23 @@ public class EquipmentRenderMixin {
 
     //? if >= 1.21.11 {
 
-    /^@ModifyExpressionValue(
+    @ModifyExpressionValue(
             method = "renderLayers(Lnet/minecraft/client/resources/model/EquipmentClientInfo$LayerType;Lnet/minecraft/resources/ResourceKey;Lnet/minecraft/client/model/Model;Ljava/lang/Object;Lnet/minecraft/world/item/ItemStack;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/resources/Identifier;II)V",
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/world/item/ItemStack;hasFoil()Z"
             )
     )
-    ^///?}
+    //?}
     //? if >= 1.21 && < 1.21.11 {
-    /^@ModifyExpressionValue(
+    /*@ModifyExpressionValue(
             method = "renderLayers(Lnet/minecraft/client/resources/model/EquipmentClientInfo$LayerType;Lnet/minecraft/resources/ResourceKey;Lnet/minecraft/client/model/Model;Ljava/lang/Object;Lnet/minecraft/world/item/ItemStack;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/resources/ResourceLocation;II)V",
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/world/item/ItemStack;hasFoil()Z"
             )
     )
-    ^///?}
+    *///?}
     private boolean modifyGlint(boolean original) {
         ArmorModificationInfo modification = ArmorRenderPipeline.getCurrentModification();
         if (modification != null && modification.shouldModify() && ArmorRenderPipeline.shouldModifyEquipment()) {
@@ -127,7 +127,7 @@ public class EquipmentRenderMixin {
 
     //? if >= 1.21.11 {
 
-    /^@WrapOperation(
+    @WrapOperation(
             method = "renderLayers(Lnet/minecraft/client/resources/model/EquipmentClientInfo$LayerType;Lnet/minecraft/resources/ResourceKey;Lnet/minecraft/client/model/Model;Ljava/lang/Object;Lnet/minecraft/world/item/ItemStack;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/resources/Identifier;II)V",
             at = @At(
                     value = "INVOKE",
@@ -137,9 +137,9 @@ public class EquipmentRenderMixin {
     private RenderType modifyArmorRenderLayer(Identifier texture, Operation<RenderType> original) {
         return ArmorRenderPipeline.getTranslucentArmorRenderTypeIfApplicable(texture, original.call(texture));
     }
-    ^///?}
+    //?}
     //? if >= 1.21 && < 1.21.11 {
-    /^@WrapOperation(
+    /*@WrapOperation(
             method = "renderLayers(Lnet/minecraft/client/resources/model/EquipmentClientInfo$LayerType;Lnet/minecraft/resources/ResourceKey;Lnet/minecraft/client/model/Model;Ljava/lang/Object;Lnet/minecraft/world/item/ItemStack;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/resources/ResourceLocation;II)V",
             at = @At(
                     value = "INVOKE",
@@ -149,11 +149,11 @@ public class EquipmentRenderMixin {
     private RenderType modifyArmorRenderLayer(ResourceLocation texture, Operation<RenderType> original) {
         return ArmorRenderPipeline.getTranslucentArmorRenderTypeIfApplicable(texture, original.call(texture));
     }
-    ^///?}
+    *///?}
 
     //? if >= 1.21.11 {
 
-    /^@WrapOperation(
+    @WrapOperation(
             method = "renderLayers(Lnet/minecraft/client/resources/model/EquipmentClientInfo$LayerType;Lnet/minecraft/resources/ResourceKey;Lnet/minecraft/client/model/Model;Ljava/lang/Object;Lnet/minecraft/world/item/ItemStack;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/resources/Identifier;II)V",
             at = @At(
                     value = "INVOKE",
@@ -163,9 +163,9 @@ public class EquipmentRenderMixin {
     private RenderType modifyTrimRenderLayer(boolean decal, Operation<RenderType> original) {
         return ArmorRenderPipeline.getTranslucentArmorRenderTypeIfApplicable(Sheets.ARMOR_TRIMS_SHEET, original.call(decal));
     }
-    ^///?}
+    //?}
     //? if >= 1.21 && < 1.21.11 {
-    /^@WrapOperation(
+    /*@WrapOperation(
             method = "renderLayers(Lnet/minecraft/client/resources/model/EquipmentClientInfo$LayerType;Lnet/minecraft/resources/ResourceKey;Lnet/minecraft/client/model/Model;Ljava/lang/Object;Lnet/minecraft/world/item/ItemStack;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/resources/ResourceLocation;II)V",
             at = @At(
                     value = "INVOKE",
@@ -175,10 +175,10 @@ public class EquipmentRenderMixin {
     private RenderType modifyTrimRenderLayer(boolean decal, Operation<RenderType> original) {
         return ArmorRenderPipeline.getTranslucentArmorRenderTypeIfApplicable(Sheets.ARMOR_TRIMS_SHEET, original.call(decal));
     }
-    ^///?}
+    *///?}
 
     //? if >= 1.21.11 {
-    /^@WrapOperation(
+    @WrapOperation(
             method = "renderLayers(Lnet/minecraft/client/resources/model/EquipmentClientInfo$LayerType;Lnet/minecraft/resources/ResourceKey;Lnet/minecraft/client/model/Model;Ljava/lang/Object;Lnet/minecraft/world/item/ItemStack;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/resources/Identifier;II)V",
             at = @At(
                     value = "INVOKE",
@@ -189,10 +189,10 @@ public class EquipmentRenderMixin {
         var modifiedColor = ArmorRenderPipeline.applyArmorTransparency(color);
         original.call(collector, model, state, poseStack, renderType, light, overlay, modifiedColor, sprite, param9, crumblingOverlay);
     }
-    ^///?}
+    //?}
 
     //? if >= 1.21 && < 1.21.11 {
-    /^@WrapOperation(
+    /*@WrapOperation(
             method = "renderLayers(Lnet/minecraft/client/resources/model/EquipmentClientInfo$LayerType;Lnet/minecraft/resources/ResourceKey;Lnet/minecraft/client/model/Model;Ljava/lang/Object;Lnet/minecraft/world/item/ItemStack;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/resources/ResourceLocation;II)V",
             at = @At(
                     value = "INVOKE",
@@ -203,6 +203,6 @@ public class EquipmentRenderMixin {
         int originalColor = original.call(layer, i);
         return ArmorRenderPipeline.applyArmorTransparency(originalColor);
     }
-    ^///?}
+    *///?}
 }
-*///?}
+//?}

@@ -1,5 +1,5 @@
 //? if >= 1.20.5 {
-/*package de.zannagh.armorhider.net;
+package de.zannagh.armorhider.net;
 
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.netPackets.PermissionPacket;
@@ -15,28 +15,28 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 //? if >= 1.21.11 {
-/^import net.minecraft.resources.Identifier;
- ^///?}
+import net.minecraft.resources.Identifier;
+ //?}
 //? if >= 1.20.5 && < 1.21.11 {
-/^import net.minecraft.resources.ResourceLocation;
-^///?}
+/*import net.minecraft.resources.ResourceLocation;
+*///?}
 
 public final class PayloadRegistry {
 
     //? if >= 1.21.11 {
-    /^private static final Map<Identifier, PayloadEntry<?>> C2S_PAYLOADS = new HashMap<>();
+    private static final Map<Identifier, PayloadEntry<?>> C2S_PAYLOADS = new HashMap<>();
     private static final Map<Identifier, PayloadEntry<?>> S2C_PAYLOADS = new HashMap<>();
 
     private static final Map<Identifier, Consumer<PayloadHandlerContext<?>>> C2S_HANDLERS = new HashMap<>();
     private static final Map<Identifier, Consumer<PayloadHandlerContext<?>>> S2C_HANDLERS = new HashMap<>();
-    ^///?}
+    //?}
     //? if >= 1.20.5 && < 1.21.11 {
-    /^private static final Map<ResourceLocation, PayloadEntry<?>> C2S_PAYLOADS = new HashMap<>();
+    /*private static final Map<ResourceLocation, PayloadEntry<?>> C2S_PAYLOADS = new HashMap<>();
     private static final Map<ResourceLocation, PayloadEntry<?>> S2C_PAYLOADS = new HashMap<>();
 
     private static final Map<ResourceLocation, Consumer<PayloadHandlerContext<?>>> C2S_HANDLERS = new HashMap<>();
     private static final Map<ResourceLocation, Consumer<PayloadHandlerContext<?>>> S2C_HANDLERS = new HashMap<>();
-    ^///?}
+    *///?}
 
     // Register a C2S (client to server) payload type.
     public static <T extends CustomPacketPayload> void registerC2S(
@@ -71,7 +71,7 @@ public final class PayloadRegistry {
     }
 
     //? if >= 1.21.11 {
-    /^public static Consumer<PayloadHandlerContext<?>> getC2SHandler(Identifier id) {
+    public static Consumer<PayloadHandlerContext<?>> getC2SHandler(Identifier id) {
         return C2S_HANDLERS.get(id);
     }
 
@@ -86,10 +86,10 @@ public final class PayloadRegistry {
     public static Map<Identifier, PayloadEntry<?>> getAllS2C() {
         return S2C_PAYLOADS;
     }
-    ^///?}
+    //?}
 
     //? if >= 1.20.5 && < 1.21.11 {
-    /^public static Consumer<PayloadHandlerContext<?>> getC2SHandler(ResourceLocation id) {
+    /*public static Consumer<PayloadHandlerContext<?>> getC2SHandler(ResourceLocation id) {
         return C2S_HANDLERS.get(id);
     }
 
@@ -104,7 +104,7 @@ public final class PayloadRegistry {
     public static Map<ResourceLocation, PayloadEntry<?>> getAllS2C() {
         return S2C_PAYLOADS;
     }
-    ^///?}
+    *///?}
 
     public static void init() {
         registerC2S(PlayerConfig.TYPE, PlayerConfig.STREAM_CODEC);
@@ -125,10 +125,10 @@ public final class PayloadRegistry {
     ) {
     }
 }
-*///?}
+//?}
 
 //? if < 1.20.5 {
-package de.zannagh.armorhider.net;
+/*package de.zannagh.armorhider.net;
 
 // Minimal stub for 1.20.x - the actual payload handling is done by LegacyPacketHandler
 public final class PayloadRegistry {
@@ -144,4 +144,4 @@ public final class PayloadRegistry {
     ) {
     }
 }
-//?}
+*///?}
