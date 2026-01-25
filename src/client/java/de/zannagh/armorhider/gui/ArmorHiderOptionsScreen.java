@@ -13,6 +13,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.OptionInstance;
 import net.minecraft.client.Options;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.OptionsList;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.options.OptionsSubScreen;
@@ -40,7 +41,7 @@ public class ArmorHiderOptionsScreen extends OptionsSubScreen {
         int optionItemHeight = 25;
         int previewMargin = 20;
 
-        addCustomOptionsToOptionListWidget(list);
+        
         if (hasPlayer) {
             int listWidth = (this.width * 3) / 5;
             int previewWidth = (this.width * 2) / 5 - previewMargin;
@@ -54,31 +55,20 @@ public class ArmorHiderOptionsScreen extends OptionsSubScreen {
                     previewWidth,
                     previewHeight
             );
-            this.addRenderableWidget(previewWidget);
+            addCustomOptionsToOptionListWidget(list, previewWidget);
         } 
+        else {
+            addCustomOptionsToOptionListWidget(list, null);
+        }
     }
 
     @Override
     public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
-        
         this.renderBackground(context, mouseX, mouseY, delta);
         super.render(context, mouseX, mouseY, delta);
-
-        // Draw the title - centered in options column if player preview exists, otherwise full-screen center
-        boolean hasPlayer = Minecraft.getInstance().player != null;
-        int titleX;
-
-        if (hasPlayer) {
-            // Center within the left column (options list area which is 3/5 of screen width)
-            int listWidth = (this.width * 3) / 5;
-            titleX = listWidth / 2;
-        } else {
-            // Center across entire screen
-            titleX = this.width / 2;
-        }
     }
 
-    private void addCustomOptionsToOptionListWidget(OptionsList optionListWidget) {
+    private void addCustomOptionsToOptionListWidget(OptionsList optionListWidget, AbstractWidget playerWidget) {
         OptionElementFactory optionElementFactory = new OptionElementFactory(
             this,
             optionListWidget,
@@ -94,8 +84,8 @@ public class ArmorHiderOptionsScreen extends OptionsSubScreen {
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().helmetOpacity.getValue(),
             this::setHelmetTransparency
         );
-        optionElementFactory.addSimpleOptionAsWidget(helmetOption);
-
+        optionElementFactory.addOptionWithWidget(helmetOption, playerWidget);
+        
         var skullOrHatOption = optionElementFactory.buildBooleanOption(
             Component.translatable("armorhider.options.helmet_affection.title"),
             Component.translatable("armorhider.options.helmet_affection.tooltip"),

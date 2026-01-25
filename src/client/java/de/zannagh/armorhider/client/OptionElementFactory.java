@@ -17,6 +17,9 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+//? if >= 1.21 && < 1.21.9
+//import de.zannagh.armorhider.gui.ArmorHiderOptionsScreen;
+
 public class OptionElementFactory {
     private final Screen screen;
     private final OptionsList body;
@@ -42,17 +45,30 @@ public class OptionElementFactory {
         return this;
     }
 
+    //? if >= 1.21 && < 1.21.9 {
+    /*public <T> void addOptionWithWidget(OptionInstance<T> option, AbstractWidget widget) {
+        if (body != null) {
+            if (Minecraft.getInstance().player == null || widget == null) {
+                body.addBig(option);
+            }
+            else {
+                body.addSmall(option.createButton(gameOptions), widget);
+            }
+        }
+    }
+    *///?}
+
     public <T> void addSimpleOptionAsWidget(OptionInstance<T> option) {
         //? if >= 1.21.9
         addElementAsWidget(simpleOptionToGameOptionWidget(option, gameOptions, body, renderOptionsFullWidth));
         //? if >= 1.21 && < 1.21.9 {
         /*// In 1.21.x (< 1.21.9), add OptionInstance directly to the list
         if (body != null) {
-            if (Minecraft.getInstance().player == null) {
-                body.addBig(option);
+            if (Minecraft.getInstance().player != null && screen instanceof ArmorHiderOptionsScreen) {
+                body.addSmall(option);
             }
             else {
-                body.addSmall(option);
+                body.addBig(option);
             }
         }
         *///?}
@@ -111,7 +127,7 @@ public class OptionElementFactory {
                 //? if >= 1.21.11
                 new OptionInstance.IntRange(0, 20).xmap(v -> v / 20.0, v -> (int) Math.round(v * 20), true)
                 //? if >= 1.20.5 && < 1.21.11
-                /*new OptionInstance.IntRange(0, 20).xmap(v -> v / 20.0, v -> (int) Math.round(v * 20))*/
+                //new OptionInstance.IntRange(0, 20).xmap(v -> v / 20.0, v -> (int) Math.round(v * 20))
                 //? if < 1.20.5
                 //OptionInstance.UnitDouble.INSTANCE
                 ,

@@ -54,17 +54,17 @@ public class OldArmorHiderOptionsScreen extends OptionsSubScreen {
                 optionItemHeight
             );
             
+            
             addCustomOptionsToOptionListWidget(optionsList);
             this.addWidget(optionsList);
 
             int previewWidth = (this.width * 2) / 5 - previewMargin;
             int previewHeight = this.height - topMargin - bottomMargin - previewMargin * 2;
             int previewX = listWidth + previewMargin / 2;
-            int previewY = topMargin + previewMargin;
 
             PlayerPreviewWidget previewWidget = new PlayerPreviewWidget(
                 previewX,
-                previewY,
+                topMargin,
                 previewWidth,
                 previewHeight
             );
