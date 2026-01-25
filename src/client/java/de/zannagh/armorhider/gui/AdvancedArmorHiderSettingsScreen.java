@@ -6,12 +6,10 @@ import de.zannagh.armorhider.client.OptionElementFactory;
 import de.zannagh.armorhider.rendering.RenderUtilities;
 import net.minecraft.client.Options;
 import net.minecraft.client.gui.components.*;
-//? if >= 1.21 {
+//? if >= 1.21
 import net.minecraft.client.gui.screens.options.OptionsSubScreen;
-//?}
-//? if < 1.21 {
-/*import net.minecraft.client.gui.screens.OptionsSubScreen;
-*///?}
+//? if < 1.21
+/*import net.minecraft.client.gui.screens.OptionsSubScreen;*/
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 
@@ -33,9 +31,8 @@ public class AdvancedArmorHiderSettingsScreen extends OptionsSubScreen {
 
     private boolean setDisableLocal;
 
-    //? if < 1.21 {
-    /*protected OptionsList list;
-    *///?}
+    //? if < 1.21
+    /*protected OptionsList list;*/
 
     public AdvancedArmorHiderSettingsScreen(net.minecraft.client.gui.screens.Screen parent, Options gameOptions, Component title) {
         super(parent, gameOptions, title);
@@ -71,12 +68,10 @@ public class AdvancedArmorHiderSettingsScreen extends OptionsSubScreen {
     private void addOptionsContent() {
         OptionElementFactory optionElementFactory = new OptionElementFactory(this, list, options);
         
-        //? if >= 1.21.9 {
+        //? if >= 1.21.9
         var adminCategory = new MultiLineTextWidget(RenderUtilities.getRowWidth(list), 20, Component.translatable("armorhider.options.admin.title"), this.getFont());
-        //?}
-        //? if < 1.21.9 {
-        /*var adminCategory = new MultiLineTextWidget(RenderUtilities.getRowWidth(list), 20, Component.translatable("armorhider.options.admin.title"), net.minecraft.client.Minecraft.getInstance().font);
-        *///?}
+        //? if < 1.21.9
+        /*var adminCategory = new MultiLineTextWidget(RenderUtilities.getRowWidth(list), 20, Component.translatable("armorhider.options.admin.title"), net.minecraft.client.Minecraft.getInstance().font);*/
         optionElementFactory.addElementAsWidget(adminCategory);
         var serverConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getServerConfig();
         boolean serverCombatDetectionValue = serverConfig != null
@@ -195,12 +190,10 @@ public class AdvancedArmorHiderSettingsScreen extends OptionsSubScreen {
         optionElementFactory.addElementAsWidget(cyclingWidget);
         optionElementFactory.addElementAsWidget(armorHiderOffWidget);
 
-        //? if >= 1.21.9 {
+        //? if >= 1.21.9
         var regularCategory = new MultiLineTextWidget(RenderUtilities.getRowWidth(list), 20, Component.translatable("armorhider.options.regular.title"), this.getFont());
-        //?}
-        //? if < 1.21.9 {
-        /*var regularCategory = new MultiLineTextWidget(RenderUtilities.getRowWidth(list), 20, Component.translatable("armorhider.options.regular.title"), net.minecraft.client.Minecraft.getInstance().font);
-        *///?}
+        //? if < 1.21.9
+        /*var regularCategory = new MultiLineTextWidget(RenderUtilities.getRowWidth(list), 20, Component.translatable("armorhider.options.regular.title"), net.minecraft.client.Minecraft.getInstance().font);*/
         optionElementFactory.addElementAsWidget(regularCategory);
 
         var settingsToUse = optionElementFactory.buildBooleanOption(

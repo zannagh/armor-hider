@@ -47,9 +47,8 @@ public abstract class ServerLoginMixin implements ServerLoginPacketListener, Tic
     
     @Unique
     private void raiseLoginEvent(){
-        //? if < 1.21 {
-        /*var authenticatedProfile = gameProfile;
-        *///?}
+        //? if < 1.21
+        /*var authenticatedProfile = gameProfile;*/
         if (authenticatedProfile == null) {
             return;
         }

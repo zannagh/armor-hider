@@ -82,9 +82,8 @@ public abstract class SkinOptionsMixin extends Screen {
         // Cast to Screen to avoid mixin class reference in lambda/method reference bytecode
 
         OptionElementFactory optionElementFactory = new OptionElementFactory(self, list, options);
-        //? if < 1.21.9 {
-        /*optionElementFactory = optionElementFactory.withWidgetAdder(widget -> addRenderableWidget(widget));
-        *///?}
+        //? if < 1.21.9
+        /*optionElementFactory = optionElementFactory.withWidgetAdder(widget -> addRenderableWidget(widget));*/
         if (Minecraft.getInstance().player != null) {
             optionElementFactory = optionElementFactory.withHalfWidthRendering();
         }
@@ -103,9 +102,8 @@ public abstract class SkinOptionsMixin extends Screen {
             list.addSmall(OptionElementFactory.simpleOptionToGameOptionWidget(helmetOption, options, list, false),
                     new MultiLineTextWidget(Component.literal("Preview"), this.getFont()));
             //?}
-            //? if < 1.21.9 {
-            /*optionElementFactory.addSimpleOptionAsWidget(helmetOption);
-            *///?}
+            //? if < 1.21.9
+            /*optionElementFactory.addSimpleOptionAsWidget(helmetOption);*/
         } else {
             optionElementFactory.addSimpleOptionAsWidget(helmetOption);
         }

@@ -8,16 +8,17 @@ import de.zannagh.armorhider.util.ItemsUtil;
 //? if >= 1.21.9 {
 import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.entity.state.AvatarRenderState;
+import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
+import net.minecraft.util.ARGB;
 //?}
 //? if < 1.21.9 {
 /*import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.resources.ResourceLocation;
 *///?}
-//? if >= 1.21.9 {
-import net.minecraft.util.ARGB;
-//?}
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -32,10 +33,6 @@ import net.minecraft.resources.Identifier;
 //? if >= 1.21.9 && < 1.21.11 {
 /*import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.Sheets;
-import net.minecraft.resources.ResourceLocation;
-*///?}
-//? if < 1.21.9 {
-/*import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
 *///?}
 
@@ -55,12 +52,10 @@ public class ArmorRenderPipeline {
         }
 
         if (getCurrentSlot() != null) {
-            //? if >= 1.21.9 {
+            //? if >= 1.21.9
             String profileName = profile.name();
-            //?}
-            //? if < 1.21.9 {
-            /*String profileName = profile.getName();
-            *///?}
+            //? if < 1.21.9
+            /*String profileName = profile.getName();*/
             var configByEntityState = tryResolveConfigFromPlayerEntityState(
                     getCurrentSlot(),
                     profileName
@@ -73,7 +68,7 @@ public class ArmorRenderPipeline {
     public static void setupContext(EquipmentSlot slot, HumanoidRenderState entityRenderState) {
         setupContext(null, slot, entityRenderState);
     }
-
+    
     /// Captures context for the render pipeline, used within other methods of the class.
     /// ItemStack can be null, slot can be null.
     public static void setupContext(@Nullable ItemStack itemStack, @NotNull EquipmentSlot slot, HumanoidRenderState entityRenderState) {
@@ -221,15 +216,12 @@ public class ArmorRenderPipeline {
         return originalPriority; // Fallback, return original.
     }
 
-    //? if >= 1.21.11 {
+    //? if >= 1.21.11 
     public static RenderType getSkullRenderLayer(Identifier texture, RenderType originalLayer) {
-    //?}
-    //? if >= 1.21.9 && < 1.21.11 {
-    /*public static RenderType getSkullRenderLayer(ResourceLocation texture, RenderType originalLayer) {
-    *///?}
-    //? if < 1.21.9 {
-    /*public static RenderType getSkullRenderLayer(ResourceLocation texture, RenderType originalLayer) {
-    *///?}
+    //? if >= 1.21.9 && < 1.21.11 
+    //public static RenderType getSkullRenderLayer(ResourceLocation texture, RenderType originalLayer) {
+    //? if < 1.21.9 
+    //public static RenderType getSkullRenderLayer(ResourceLocation texture, RenderType originalLayer) {
         ArmorModificationInfo modification = getCurrentModification();
         if (modification == null || !modification.shouldModify() || !shouldModifyEquipment()) {
             return originalLayer;
@@ -241,28 +233,22 @@ public class ArmorRenderPipeline {
         // Only use translucent if actually applying transparency (not fully hidden or fully visible)
         double transparency = modification.getTransparency();
         if (transparency < 1.0 && transparency >= 0) {
-            //? if >= 1.21.11 {
+            //? if >= 1.21.11 
             return RenderTypes.entityTranslucent(texture);
-            //?}
-            //? if >= 1.21.9 && < 1.21.11 {
-            /*return RenderType.entityTranslucent(texture);
-            *///?}
-            //? if < 1.21.9 {
-            /*return RenderType.entityTranslucent(texture);
-            *///?}
+            //? if >= 1.21.9 && < 1.21.11 
+            //return RenderType.entityTranslucent(texture);
+            //? if < 1.21.9 
+            //return RenderType.entityTranslucent(texture);
         }
         return originalLayer;
     }
 
-    //? if >= 1.21.11 {
+    //? if >= 1.21.11 
     public static RenderType getTranslucentArmorRenderTypeIfApplicable(Identifier texture, RenderType originalLayer) {
-     //?}
-    //? if >= 1.21.9 && < 1.21.11 {
-    /*public static RenderType getTranslucentArmorRenderTypeIfApplicable(ResourceLocation texture, RenderType originalLayer) {
-        *///?}
-    //? if < 1.21.9 {
-    /*public static RenderType getTranslucentArmorRenderTypeIfApplicable(ResourceLocation texture, RenderType originalLayer) {
-    *///?}
+    //? if >= 1.21.9 && < 1.21.11 
+    //public static RenderType getTranslucentArmorRenderTypeIfApplicable(ResourceLocation texture, RenderType originalLayer) {
+    //? if < 1.21.9 
+    //public static RenderType getTranslucentArmorRenderTypeIfApplicable(ResourceLocation texture, RenderType originalLayer) {
         ArmorModificationInfo modification = getCurrentModification();
         if (modification == null || !modification.shouldModify() || !shouldModifyEquipment()) {
             return originalLayer;
@@ -272,15 +258,12 @@ public class ArmorRenderPipeline {
         if (transparency >= 1.0 || transparency <= 0) {
             return originalLayer;
         }
-        //? if >= 1.21.11 {
+        //? if >= 1.21.11 
         return RenderTypes.armorTranslucent(texture);
-         //?}
-        //? if >= 1.21.9 && < 1.21.11 {
-        /*return RenderType.armorTranslucent(texture);
-        *///?}
-        //? if < 1.21.9 {
-        /*return RenderType.entityTranslucent(texture);
-        *///?}
+        //? if >= 1.21.9 && < 1.21.11 
+        //return RenderType.armorTranslucent(texture);
+        //? if < 1.21.9 
+        //return RenderType.entityTranslucent(texture);
     }
 
     //? if >= 1.21.9 {
@@ -294,12 +277,10 @@ public class ArmorRenderPipeline {
         if (transparency >= 1.0 || transparency <= 0) {
             return originalLayer;
         }
-        //? if >= 1.21.11 {
+        //? if >= 1.21.11 
         return RenderTypes.armorTranslucent(Sheets.ARMOR_TRIMS_SHEET);
-         //?}
-        //? if >= 1.21.9 && < 1.21.11 {
-        /*return RenderType.armorTranslucent(Sheets.ARMOR_TRIMS_SHEET);
-        *///?}
+        //? if >= 1.21.9 && < 1.21.11 
+        //return RenderType.armorTranslucent(Sheets.ARMOR_TRIMS_SHEET);
     }
     //?}
 
@@ -307,9 +288,9 @@ public class ArmorRenderPipeline {
         if (getCurrentModification() != null && getCurrentModification().shouldModify() && shouldModifyEquipment()) {
             double transparency = getCurrentModification().getTransparency();
             int alpha = (int) (transparency * 255);
-            //? if >= 1.21.9 {
+            //? if >= 1.21.9 
             return ARGB.color(alpha, ARGB.red(originalColor), ARGB.green(originalColor), ARGB.blue(originalColor));
-            //?}
+            
             //? if < 1.21.9 {
             /*int red = (originalColor >> 16) & 0xFF;
             int green = (originalColor >> 8) & 0xFF;
@@ -327,12 +308,10 @@ public class ArmorRenderPipeline {
         }
         double transparency = ArmorRenderPipeline.getCurrentModification().getTransparency();
         int alpha = (int) (transparency * 255);
-        //? if >= 1.21.9 {
+        //? if >= 1.21.9 
         return ARGB.color(alpha, 255, 255, 255);
-        //?}
-        //? if < 1.21.9 {
-        /*return (alpha << 24) | (255 << 16) | (255 << 8) | 255;
-        *///?}
+        //? if < 1.21.9 
+        //return (alpha << 24) | (255 << 16) | (255 << 8) | 255;
     }
 
     /**

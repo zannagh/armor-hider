@@ -43,9 +43,8 @@ public class OptionElementFactory {
     }
 
     public <T> void addSimpleOptionAsWidget(OptionInstance<T> option) {
-        //? if >= 1.21.9 {
+        //? if >= 1.21.9
         addElementAsWidget(simpleOptionToGameOptionWidget(option, gameOptions, body, renderOptionsFullWidth));
-        //?}
         //? if >= 1.21 && < 1.21.9 {
         /*// In 1.21.x (< 1.21.9), add OptionInstance directly to the list
         if (body != null) {
@@ -89,9 +88,8 @@ public class OptionElementFactory {
     *///?}
 
     private AbstractWidget buildTextWidget(MutableComponent text) {
-        //? if >= 1.21.9 {
+        //? if >= 1.21.9
         return new MultiLineTextWidget(text, screen.getFont()).setCentered(true);
-        //?}
         //? if >= 1.21 && < 1.21.9 {
         /*return new MultiLineTextWidget(text, net.minecraft.client.Minecraft.getInstance().font).setCentered(true);
         *///?}
@@ -110,15 +108,12 @@ public class OptionElementFactory {
                 key,
                 new NarratedTooltipFactory<>(tooltip, narration),
                 (text, value) -> sliderTextProvider.apply(value),
-                //? if >= 1.21.11 {
+                //? if >= 1.21.11
                 new OptionInstance.IntRange(0, 20).xmap(v -> v / 20.0, v -> (int) Math.round(v * 20), true)
-                //?}
-                //? if >= 1.20.5 && < 1.21.11 {
-                /*new OptionInstance.IntRange(0, 20).xmap(v -> v / 20.0, v -> (int) Math.round(v * 20))
-                *///?}
-                //? if < 1.20.5 {
-                /*OptionInstance.UnitDouble.INSTANCE
-                *///?}
+                //? if >= 1.20.5 && < 1.21.11
+                /*new OptionInstance.IntRange(0, 20).xmap(v -> v / 20.0, v -> (int) Math.round(v * 20))*/
+                //? if < 1.20.5
+                /*OptionInstance.UnitDouble.INSTANCE*/
                 ,
                 defaultValue,
                 setter

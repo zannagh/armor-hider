@@ -11,12 +11,10 @@ public final class RenderUtilities {
 
     public static int getRowWidth(@Nullable OptionsList body) {
         if (body != null) {
-            //? if >= 1.21.9 {
+            //? if >= 1.21.9
             return body.getRowWidth();
-            //?}
-            //? if < 1.21.9 {
-            /*return 310; // Default row width in 1.20.x OptionsList
-            *///?}
+            //? if < 1.21.9
+            /*return 310; // Default row width in 1.20.x OptionsList*/
         }
         if (Minecraft.getInstance().screen == null) {
             return Minecraft.getInstance().getWindow().getScreenWidth();
