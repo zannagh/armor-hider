@@ -1,6 +1,7 @@
 package de.zannagh.armorhider.client;
 
 import de.zannagh.armorhider.rendering.RenderUtilities;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.OptionInstance;
 import net.minecraft.client.Options;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -12,6 +13,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -20,23 +22,12 @@ public class OptionElementFactory {
     private final OptionsList body;
     private final Options gameOptions;
     private boolean renderOptionsFullWidth = true;
-    //? if >= 1.21 && < 1.21.9 {
-    /*private Consumer<AbstractWidget> widgetAdder;
-    *///?}
 
     public OptionElementFactory(Screen screen, @Nullable OptionsList body, @Nullable Options gameOptions) {
         this.screen = screen;
         this.body = body;
         this.gameOptions = gameOptions;
     }
-
-    //? if >= 1.21 && < 1.21.9 {
-    /*// In 1.21.x (< 1.21.9), set a callback for adding arbitrary widgets since we can't access protected methods
-    public OptionElementFactory withWidgetAdder(Consumer<AbstractWidget> adder) {
-        this.widgetAdder = adder;
-        return this;
-    }
-    *///?}
 
     public static AbstractWidget simpleOptionToGameOptionWidget(OptionInstance<?> simpleOption, Options options, @Nullable OptionsList body, boolean fullWidth) {
         int rowWidth = RenderUtilities.getRowWidth(body);
@@ -58,7 +49,12 @@ public class OptionElementFactory {
         //? if >= 1.21 && < 1.21.9 {
         /*// In 1.21.x (< 1.21.9), add OptionInstance directly to the list
         if (body != null) {
-            body.addSmall(option);
+            if (Minecraft.getInstance().player == null) {
+                body.addBig(option);
+            }
+            else {
+                body.addSmall(option);
+            }
         }
         *///?}
         //? if < 1.21 {
@@ -83,11 +79,6 @@ public class OptionElementFactory {
         }
         body.addSmall(widget, null);
         //?}
-        //? if >= 1.21 && < 1.21.9 {
-        /*if (widgetAdder != null) {
-            widgetAdder.accept(widget);
-        }
-        *///?}
         // In 1.20.x, arbitrary widgets cannot be added to OptionsList - they need to be added directly to the screen
     }
 

@@ -1,23 +1,21 @@
-//? if <= 1.21.1 {
-/*package de.zannagh.armorhider.client;
+// The options screen for 1.21/1.21.1, not used in >= 1.21.9 or 1.20.x
+
+//? if >= 1.21 && < 1.21.9 {
+
+/*package de.zannagh.armorhider.gui;
 
 import de.zannagh.armorhider.ArmorHider;
-import de.zannagh.armorhider.gui.AdvancedArmorHiderSettingsScreen;
+import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.client.NarratedTooltipFactory;
+import de.zannagh.armorhider.client.OptionElementFactory;
 import de.zannagh.armorhider.rendering.PlayerPreviewWidget;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.OptionInstance;
 import net.minecraft.client.Options;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.OptionsList;
-//? if < 1.21 {
-/^import net.minecraft.client.gui.screens.OptionsSubScreen;
-^///?}
-//? if >= 1.21 {
-import net.minecraft.client.gui.screens.options.OptionsSubScreen;
-//?}
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.network.chat.CommonComponents;
+import net.minecraft.client.gui.screens.options.OptionsSubScreen;
 import net.minecraft.network.chat.Component;
 
 public class ArmorHiderOptionsScreen extends OptionsSubScreen {
@@ -28,15 +26,13 @@ public class ArmorHiderOptionsScreen extends OptionsSubScreen {
     private boolean serverSettingsChanged;
     private boolean newServerCombatDetection;
 
-    private OptionsList optionsList;
-
     public ArmorHiderOptionsScreen(Screen parent, Options gameOptions) {
-        super(parent, gameOptions, Component.translatable("armorhider.options.title"));
+        super(parent, gameOptions, Component.translatable("armorhider.options.regular.title"));
         this.parent = parent;
     }
 
     @Override
-    protected void init() {
+    protected void addOptions() {
         boolean hasPlayer = Minecraft.getInstance().player != null;
 
         int topMargin = 32;
@@ -44,99 +40,28 @@ public class ArmorHiderOptionsScreen extends OptionsSubScreen {
         int optionItemHeight = 25;
         int previewMargin = 20;
 
+        addCustomOptionsToOptionListWidget(list);
         if (hasPlayer) {
             int listWidth = (this.width * 3) / 5;
-
-            //? if < 1.21 {
-            
-            /^optionsList = new OptionsList(
-                this.minecraft,
-                listWidth,
-                this.height,
-                topMargin,
-                this.height - bottomMargin,
-                optionItemHeight
-            );
-             ^///?}
-            //? if >= 1.21 {
-            optionsList = new OptionsList(
-                    this.minecraft,
-                    0,
-                    (OptionsSubScreen)(Object)this
-                    );
-            //?}
-            
-            addCustomOptionsToOptionListWidget(optionsList);
-            this.addWidget(optionsList);
-
             int previewWidth = (this.width * 2) / 5 - previewMargin;
             int previewHeight = this.height - topMargin - bottomMargin - previewMargin * 2;
             int previewX = listWidth + previewMargin / 2;
             int previewY = topMargin + previewMargin;
 
             PlayerPreviewWidget previewWidget = new PlayerPreviewWidget(
-                previewX,
-                previewY,
-                previewWidth,
-                previewHeight
+                    previewX,
+                    previewY,
+                    previewWidth,
+                    previewHeight
             );
             this.addRenderableWidget(previewWidget);
-
-        } else {
-            // Single column layout: just the options list full-width
-            //? if < 1.21 {
-            
-            /^optionsList = new OptionsList(
-                this.minecraft,
-                this.width,
-                this.height,
-                topMargin,
-                this.height - bottomMargin,
-                optionItemHeight
-            );
-            ^///?}
-            //? if >= 1.21 {
-            optionsList = new OptionsList(
-                    this.minecraft,
-                    0,
-                    (OptionsSubScreen)(Object)this
-            );
-            //?}
-
-            addCustomOptionsToOptionListWidget(optionsList);
-            this.addWidget(optionsList);
-        }
-
-        // Add Advanced button above Done button
-        addAdvancedButton(this.height - 52);
-
-        // Add Done button at the bottom
-        this.addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, button ->
-            this.onClose()
-        ).bounds(this.width / 2 - 100, this.height - 27, 200, previewMargin).build());
+        } 
     }
-
-    //? if >= 1.21 {
-    
-    @Override
-    protected void addOptions() {
-        
-    }
-    //? }
 
     @Override
     public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
-        // Render full-screen background first
-        //? if < 1.21 
-        //this.renderBackground(context);
-        //? if >= 1.21
+        
         this.renderBackground(context, mouseX, mouseY, delta);
-        // Render options list
-        if (optionsList != null) {
-            optionsList.render(context, mouseX, mouseY, delta);
-        }
-
-        // Then render all the widgets (player preview, buttons, etc.)
         super.render(context, mouseX, mouseY, delta);
 
         // Draw the title - centered in options column if player preview exists, otherwise full-screen center
@@ -151,8 +76,6 @@ public class ArmorHiderOptionsScreen extends OptionsSubScreen {
             // Center across entire screen
             titleX = this.width / 2;
         }
-
-        context.drawCenteredString(this.font, this.title, titleX, 15, 0xFFFFFF);
     }
 
     private void addCustomOptionsToOptionListWidget(OptionsList optionListWidget) {
@@ -251,23 +174,28 @@ public class ArmorHiderOptionsScreen extends OptionsSubScreen {
             optionElementFactory.addSimpleOptionAsWidget(combatHidingOnServer);
         }
 
-        // Advanced settings button is added separately since OptionsList can't hold arbitrary widgets in 1.20.x
-    }
-
-    private void addAdvancedButton(int y) {
-        int buttonWidth = 200;
-        int buttonX = this.width / 2 - buttonWidth / 2;
-        // Adjust for player preview
-        if (Minecraft.getInstance().player != null) {
-            int listWidth = (this.width * 3) / 5;
-            buttonX = listWidth / 2 - buttonWidth / 2;
+        Component advancedKey = Component.translatable("armorhider.options.regular.title");
+        String advancedKeyString;
+        if (advancedKey.getContents() instanceof net.minecraft.network.chat.contents.TranslatableContents translatableContents) {
+            advancedKeyString = translatableContents.getKey();
+        } else {
+            advancedKeyString = advancedKey.getString();
         }
-        this.addRenderableWidget(Button.builder(
-            Component.literal("Advanced..."),
-            button -> Minecraft.getInstance().setScreen(
-                new AdvancedArmorHiderSettingsScreen(this, this.options, this.title)
-            )
-        ).bounds(buttonX, y, buttonWidth, 20).build());
+        optionListWidget.addBig(
+                OptionInstance.createBoolean(
+                        advancedKeyString,
+                        new NarratedTooltipFactory<>(
+                                Component.translatable("armorhider.options.regular.tooltip"), 
+                                Component.translatable("armorhider.options.regular.tooltip")),
+                        (text, value) -> Component.literal(""),
+                        false,
+                        value -> {
+                            Minecraft.getInstance().setScreen(
+                                    new AdvancedArmorHiderSettingsScreen(this, this.options, this.title));
+                        }
+                ));
+
+        // Advanced settings button is added separately since OptionsList can't hold arbitrary widgets in 1.20.x
     }
 
     private boolean getFallbackDefault() {
