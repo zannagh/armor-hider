@@ -4,7 +4,7 @@
 [![Publish](https://github.com/zannagh/armor-hider/actions/workflows/publish.yml/badge.svg)](https://github.com/zannagh/armor-hider/actions/workflows/publish.yml)
 [![Modrinth Downloads](https://img.shields.io/modrinth/dt/zannaghs-armor-hider?logo=modrinth&label=Modrinth%20Downloads)](https://modrinth.com/mod/zannaghs-armor-hider)
 [![Modrinth Version](https://img.shields.io/modrinth/v/zannaghs-armor-hider?logo=modrinth&label=Latest%20Version)](https://modrinth.com/mod/zannaghs-armor-hider/versions)
-[![Discord](https://img.shields.io/badge/Discord-Join-5865F2?logo=discord&logoColor=white)](https://discord.gg/8MMBjwXF)
+[![Discord](https://img.shields.io/badge/Discord-Join-5865F2?logo=discord&logoColor=white)](https://discord.gg/AMwbYqdmQb)
 
 A small server/client side mod to alter transparency of armor items (relayed to other players via server).
 
@@ -61,7 +61,7 @@ clients.
 
 ## Community
 
-Join the [Discord server](https://discord.gg/8MMBjwXF) for support, discussion, and feature requests.
+Join the [Discord server](https://discord.gg/AMwbYqdmQb) for support, discussion, and feature requests.
 
 ## Issues and Feature Requests
 
