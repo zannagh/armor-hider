@@ -1,10 +1,12 @@
 package de.zannagh.armorhider;
 
 import com.google.common.base.Stopwatch;
+import de.zannagh.armorhider.configuration.ConfigurationItemFactoryRegistry;
 import de.zannagh.armorhider.resources.ServerConfiguration;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import org.jspecify.annotations.NonNull;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -15,6 +17,11 @@ import java.util.concurrent.TimeUnit;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class ServerConfigurationTests {
+    @BeforeAll
+    static void initializeFactories() {
+        ConfigurationItemFactoryRegistry.initialize();
+    }
+
     @Test
     @DisplayName("Read from v1 configuration")
     void readV1() {
