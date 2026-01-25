@@ -11,10 +11,12 @@ import net.minecraft.client.model.Model;
 import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.layers.EquipmentLayerRenderer;
+import net.minecraft.client.renderer.entity.state.ArmorStandRenderState;
 import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 import net.minecraft.client.resources.model.EquipmentClientInfo;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.equipment.EquipmentAsset;
 import org.spongepowered.asm.mixin.Mixin;
@@ -72,7 +74,7 @@ public class EquipmentRenderMixin {
 
         // FIX START: Check if the render state is actually a HumanoidRenderState before casting.
         // This prevents ClassCastException when rendering non-humanoid entities with equipment (e.g., Wolves with Armor).
-        if (!(object instanceof HumanoidRenderState)) {
+        if (!(object instanceof HumanoidRenderState) || (object instanceof ArmorStandRenderState)) {
             return;
         }
         // FIX END

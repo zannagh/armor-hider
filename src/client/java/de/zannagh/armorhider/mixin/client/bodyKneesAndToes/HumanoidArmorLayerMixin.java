@@ -34,9 +34,13 @@ public class HumanoidArmorLayerMixin<T extends LivingEntity, M extends HumanoidM
     )
     private void onRenderArmorPiece(PoseStack poseStack, MultiBufferSource bufferSource, T entity, EquipmentSlot slot, int packedLight, A armorModel, CallbackInfo ci) {
         ItemStack itemStack = entity.getItemBySlot(slot);
+        if (ArmorRenderPipeline.entityIsNotPlayer(entity)) {
+            return;
+        }
+        
         ArmorRenderPipeline.setupContext(itemStack, slot, entity);
 
-        if (!ArmorRenderPipeline.shouldModifyEquipment() || ArmorRenderPipeline.entityIsNotPlayer(entity)) {
+        if (!ArmorRenderPipeline.shouldModifyEquipment()) {
             return;
         }
 
