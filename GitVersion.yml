@@ -1,36 +1,58 @@
-version-in-branch-pattern: (\A(?!x)x)
+# GitVersion Configuration for Armor Hider
+# All versions are built from main using stonecutter for multi-version support
+# Supports automatic prerelease versioning on main branch
+
+mode: ContinuousDeployment
 tag-prefix: '(preview-)?[vV]?(\d\.\d\d.\d\d)?-?'
-no-bump-message: '(\+semver:\s?(none|skip)|ci.*:.*|docs.*:.*)'
+version-in-branch-pattern: (\A(?!x)x)
+no-bump-message: '(\+semver:\s?(none|skip))'
+major-version-bump-message: '\+semver:\s?(breaking|major)'
+minor-version-bump-message: '\+semver:\s?(feature|minor)'
+patch-version-bump-message: '\+semver:\s?(fix|patch)'
+
+# Commits that don't trigger version changes (used by workflow, not GitVersion directly)
+# ci:, docs:, build: prefixes are handled in the workflow
+
+commit-message-incrementing: MergeMessageOnly
+
 strategies:
   - Fallback
   - ConfiguredNextVersion
   - MergeMessage
   - TaggedCommit
-  - TrackReleaseBranches
+
 branches:
   main:
+    mode: ContinuousDeployment
+    increment: Patch
+    label: pre
+    track-merge-target: true
+    track-merge-message: true
+    prevent-increment:
+      when-current-commit-tagged: true
+
+  feature:
     mode: ContinuousDelivery
     increment: Patch
-    label: ''
-    pre-release-weight: 0
-    prevent-increment:
-      when-current-commit-tagged: true
-  release:
-    mode: ContinuousDelivery
-    increment: Inherit
-    label: ''
-    regex: ^release/*
+    label: '{BranchName}'
+    regex: ^features?[/-]
     source-branches:
       - main
-    is-release-branch: true
-    is-main-branch: false
-    pre-release-weight: 0
-    prevent-increment:
-      when-current-commit-tagged: true
+
+  pull-request:
+    mode: ContinuousDelivery
+    increment: Inherit
+    label: pr
+    regex: ^(pull|pr|merge)[/-]
+    source-branches:
+      - main
+      - feature
+
   unknown:
     mode: ContinuousDelivery
-    increment: None
-    label: ''
-    pre-release-weight: 0
-    prevent-increment:
-      when-current-commit-tagged: true
+    increment: Inherit
+    label: '{BranchName}'
+    regex: (?<BranchName>.+)
+    source-branches:
+      - main
+      - feature
