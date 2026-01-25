@@ -58,7 +58,7 @@ public class OptionElementFactory {
         //? if >= 1.21 && < 1.21.9 {
         /*// In 1.21.x (< 1.21.9), add OptionInstance directly to the list
         if (body != null) {
-            body.addBig(option);
+            body.addSmall(option);
         }
         *///?}
         //? if < 1.21 {

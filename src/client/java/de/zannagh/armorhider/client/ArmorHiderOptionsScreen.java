@@ -1,10 +1,4 @@
-// | --------------------------------------------------- |
-// | This logic is inspired by Show Me Your Skin!        |
-// | The source for this mod is to be found on:          |
-// | https://github.com/enjarai/show-me-your-skin        |
-// | --------------------------------------------------- |
-
-//? if < 1.21 {
+//? if <= 1.21.1 {
 /*package de.zannagh.armorhider.client;
 
 import de.zannagh.armorhider.ArmorHider;
@@ -16,7 +10,12 @@ import net.minecraft.client.Options;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.OptionsList;
-import net.minecraft.client.gui.screens.OptionsSubScreen;
+//? if < 1.21 {
+/^import net.minecraft.client.gui.screens.OptionsSubScreen;
+^///?}
+//? if >= 1.21 {
+import net.minecraft.client.gui.screens.options.OptionsSubScreen;
+//?}
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
@@ -48,7 +47,9 @@ public class ArmorHiderOptionsScreen extends OptionsSubScreen {
         if (hasPlayer) {
             int listWidth = (this.width * 3) / 5;
 
-            optionsList = new OptionsList(
+            //? if < 1.21 {
+            
+            /^optionsList = new OptionsList(
                 this.minecraft,
                 listWidth,
                 this.height,
@@ -56,7 +57,15 @@ public class ArmorHiderOptionsScreen extends OptionsSubScreen {
                 this.height - bottomMargin,
                 optionItemHeight
             );
-
+             ^///?}
+            //? if >= 1.21 {
+            optionsList = new OptionsList(
+                    this.minecraft,
+                    0,
+                    (OptionsSubScreen)(Object)this
+                    );
+            //?}
+            
             addCustomOptionsToOptionListWidget(optionsList);
             this.addWidget(optionsList);
 
@@ -75,7 +84,9 @@ public class ArmorHiderOptionsScreen extends OptionsSubScreen {
 
         } else {
             // Single column layout: just the options list full-width
-            optionsList = new OptionsList(
+            //? if < 1.21 {
+            
+            /^optionsList = new OptionsList(
                 this.minecraft,
                 this.width,
                 this.height,
@@ -83,6 +94,14 @@ public class ArmorHiderOptionsScreen extends OptionsSubScreen {
                 this.height - bottomMargin,
                 optionItemHeight
             );
+            ^///?}
+            //? if >= 1.21 {
+            optionsList = new OptionsList(
+                    this.minecraft,
+                    0,
+                    (OptionsSubScreen)(Object)this
+            );
+            //?}
 
             addCustomOptionsToOptionListWidget(optionsList);
             this.addWidget(optionsList);
@@ -97,11 +116,21 @@ public class ArmorHiderOptionsScreen extends OptionsSubScreen {
         ).bounds(this.width / 2 - 100, this.height - 27, 200, previewMargin).build());
     }
 
+    //? if >= 1.21 {
+    
+    @Override
+    protected void addOptions() {
+        
+    }
+    //? }
+
     @Override
     public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
         // Render full-screen background first
-        this.renderBackground(context);
-
+        //? if < 1.21 
+        //this.renderBackground(context);
+        //? if >= 1.21
+        this.renderBackground(context, mouseX, mouseY, delta);
         // Render options list
         if (optionsList != null) {
             optionsList.render(context, mouseX, mouseY, delta);

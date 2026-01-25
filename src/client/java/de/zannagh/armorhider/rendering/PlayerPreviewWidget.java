@@ -1,4 +1,4 @@
-//? if < 1.21 {
+//? if <= 1.21.1 {
 /*package de.zannagh.armorhider.rendering;
 
 import com.mojang.blaze3d.platform.Lighting;
@@ -89,7 +89,10 @@ public class PlayerPreviewWidget extends AbstractWidget {
     public static void drawEntity(GuiGraphics context, int x, int y, int size, Quaternionf quaternionf, @Nullable Quaternionf quaternionf2, LivingEntity entity) {
         context.pose().pushPose();
         context.pose().translate(x, y, 50.0);
-        context.pose().mulPoseMatrix(new Matrix4f().scaling((float)size, (float)size, (float)(-size)));
+        //?if >= 1.21
+        context.pose().mulPose(new Matrix4f().scaling((float)size, (float)size, (float)(-size)));
+        //?if < 1.21
+        //context.pose().mulPoseMatrix(new Matrix4f().scaling((float)size, (float)size, (float)(-size)));
         context.pose().mulPose(quaternionf);
         Lighting.setupForEntityInInventory();
         EntityRenderDispatcher entityRenderDispatcher = Minecraft.getInstance().getEntityRenderDispatcher();
