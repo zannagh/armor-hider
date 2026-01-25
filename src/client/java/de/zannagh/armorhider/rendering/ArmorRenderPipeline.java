@@ -240,7 +240,7 @@ public class ArmorRenderPipeline {
         }
         // Only use translucent if actually applying transparency (not fully hidden or fully visible)
         double transparency = modification.getTransparency();
-        if (transparency < 1.0 && transparency > 0) {
+        if (transparency < 1.0 && transparency >= 0) {
             //? if >= 1.21.11 {
             return RenderTypes.entityTranslucent(texture);
             //?}
