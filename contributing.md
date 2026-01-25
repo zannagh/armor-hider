@@ -39,4 +39,4 @@ All versions are built from the `main` branch - there are no separate version br
 
 ## Community
 
-Join the [Discord server](https://discord.gg/8MMBjwXF) for discussion and support.
+Join the [Discord server](https://discord.gg/AMwbYqdmQb) for discussion and support.
