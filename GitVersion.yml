@@ -3,7 +3,7 @@
 # Supports automatic prerelease versioning on main branch
 
 mode: ContinuousDeployment
-tag-prefix: '[vV]?'
+tag-prefix: '(preview-)?[vV]?(\d\.\d\d.\d\d)?-?'
 version-in-branch-pattern: (\A(?!x)x)
 no-bump-message: '(\+semver:\s?(none|skip))'
 major-version-bump-message: '\+semver:\s?(breaking|major)'
@@ -13,8 +13,6 @@ patch-version-bump-message: '\+semver:\s?(fix|patch)'
 # Commits that don't trigger version changes (used by workflow, not GitVersion directly)
 # ci:, docs:, build: prefixes are handled in the workflow
 
-# Treat uncommitted changes as a minor (feature) increment
-increment: Minor
 commit-message-incrementing: MergeMessageOnly
 
 strategies:
@@ -35,7 +33,7 @@ branches:
 
   feature:
     mode: ContinuousDelivery
-    increment: Minor
+    increment: Patch
     label: '{BranchName}'
     regex: ^features?[/-]
     source-branches:
@@ -52,7 +50,7 @@ branches:
 
   unknown:
     mode: ContinuousDelivery
-    increment: Minor
+    increment: Inherit
     label: '{BranchName}'
     regex: (?<BranchName>.+)
     source-branches:

@@ -302,12 +302,12 @@ jobs:
             CONTENT="Release ${{ needs.build.outputs.mod_version }}"
           fi
 
+          contentOutput="$GITHUB_OUTPUT"
           {
             echo "content<<CHANGELOG_EOF"
             echo "$CONTENT"
             echo "CHANGELOG_EOF"
-          } >> $contentOutput
-          
+          } >> "$contentOutput"
           echo "content=$contentOutput" >> $GITHUB_OUTPUT
 
   # ============================================================================
