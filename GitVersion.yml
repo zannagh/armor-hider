@@ -1,36 +1,63 @@
+# GitVersion Configuration for Armor Hider
+# All versions are built from main using stonecutter for multi-version support
+# Supports automatic prerelease versioning on main branch
+
+mode: ContinuousDeployment
+tag-prefix: '[vV]?'
 version-in-branch-pattern: (\A(?!x)x)
-tag-prefix: '(preview-)?[vV]?(\d\.\d\d.\d\d)?-?'
-no-bump-message: '(\+semver:\s?(none|skip)|ci.*:.*|docs.*:.*)'
+no-bump-message: '(\+semver:\s?(none|skip))'
+major-version-bump-message: '\+semver:\s?(breaking|major)'
+minor-version-bump-message: '\+semver:\s?(feature|minor)'
+patch-version-bump-message: '\+semver:\s?(fix|patch)'
+
+# Commits that don't trigger version changes (used by workflow, not GitVersion directly)
+# ci:, docs:, build: prefixes are handled in the workflow
+
+# Treat uncommitted changes as a minor (feature) increment
+increment: Minor
+commit-message-incrementing: MergeMessageOnly
+
 strategies:
   - Fallback
   - ConfiguredNextVersion
   - MergeMessage
   - TaggedCommit
-  - TrackReleaseBranches
+
 branches:
   main:
-    mode: ContinuousDelivery
+    mode: ContinuousDeployment
     increment: Patch
-    label: ''
-    pre-release-weight: 0
+    label: pre
+    label-number-pattern: '[/-](?<number>\d+)'
+    track-merge-target: true
+    track-merge-message: true
     prevent-increment:
       when-current-commit-tagged: true
-  release:
+
+  feature:
     mode: ContinuousDelivery
-    increment: Inherit
-    label: ''
-    regex: ^release/*
+    increment: Minor
+    label: '{BranchName}'
+    label-number-pattern: '[/-](?<number>\d+)'
+    regex: ^features?[/-]
     source-branches:
       - main
-    is-release-branch: true
-    is-main-branch: false
-    pre-release-weight: 0
-    prevent-increment:
-      when-current-commit-tagged: true
+
+  pull-request:
+    mode: ContinuousDelivery
+    increment: Inherit
+    label: pr
+    label-number-pattern: '[/-](?<number>\d+)'
+    regex: ^(pull|pr|merge)[/-]
+    source-branches:
+      - main
+      - feature
+
   unknown:
     mode: ContinuousDelivery
-    increment: None
-    label: ''
-    pre-release-weight: 0
-    prevent-increment:
-      when-current-commit-tagged: true
+    increment: Minor
+    label: '{BranchName}'
+    regex: (?<BranchName>.+)
+    source-branches:
+      - main
+      - feature
