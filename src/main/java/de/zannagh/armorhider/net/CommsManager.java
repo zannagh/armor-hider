@@ -28,7 +28,7 @@ public final class CommsManager {
             //? if >= 1.21.9 && < 1.21.11
             /*permissionLevel = server.getProfilePermissions(player.nameAndId());*/
             //? if < 1.21.9
-            /*permissionLevel = server.getProfilePermissions(player.getGameProfile());*/
+            //permissionLevel = server.getProfilePermissions(player.getGameProfile());
             sendToClient(player, new PermissionPacket(permissionLevel));
         });
 

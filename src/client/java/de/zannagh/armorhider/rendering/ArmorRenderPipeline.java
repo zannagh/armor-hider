@@ -55,7 +55,7 @@ public class ArmorRenderPipeline {
             //? if >= 1.21.9
             String profileName = profile.name();
             //? if < 1.21.9
-            /*String profileName = profile.getName();*/
+            //String profileName = profile.getName();
             var configByEntityState = tryResolveConfigFromPlayerEntityState(
                     getCurrentSlot(),
                     profileName

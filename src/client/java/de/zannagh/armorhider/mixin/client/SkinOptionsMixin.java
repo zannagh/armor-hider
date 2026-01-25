@@ -83,7 +83,7 @@ public abstract class SkinOptionsMixin extends Screen {
 
         OptionElementFactory optionElementFactory = new OptionElementFactory(self, list, options);
         //? if < 1.21.9
-        /*optionElementFactory = optionElementFactory.withWidgetAdder(widget -> addRenderableWidget(widget));*/
+        //optionElementFactory = optionElementFactory.withWidgetAdder(widget -> addRenderableWidget(widget));
         if (Minecraft.getInstance().player != null) {
             optionElementFactory = optionElementFactory.withHalfWidthRendering();
         }
@@ -103,7 +103,7 @@ public abstract class SkinOptionsMixin extends Screen {
                     new MultiLineTextWidget(Component.literal("Preview"), this.getFont()));
             //?}
             //? if < 1.21.9
-            /*optionElementFactory.addSimpleOptionAsWidget(helmetOption);*/
+            //optionElementFactory.addSimpleOptionAsWidget(helmetOption);
         } else {
             optionElementFactory.addSimpleOptionAsWidget(helmetOption);
         }

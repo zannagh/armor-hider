@@ -43,13 +43,13 @@ public class ClientLanguageMixin {
                     //? if > 1.21.1
                     target = "Ljava/util/Map;copyOf(Ljava/util/Map;)Ljava/util/Map;"
                     //? if <= 1.21.1
-                    /*target = "Lcom/google/common/collect/ImmutableMap;copyOf(Ljava/util/Map;)Lcom/google/common/collect/ImmutableMap;"*/
+                    //target = "Lcom/google/common/collect/ImmutableMap;copyOf(Ljava/util/Map;)Lcom/google/common/collect/ImmutableMap;"
             )
     )
     //? if > 1.21.1
     private static <K, V> Map<K, V> injectTranslationsBeforeCopy(Map<K, V> map, Operation<Map<K, V>> original) {    
     //? if <= 1.21.1
-    /*private static <K, V> ImmutableMap<K, V> injectTranslationsBeforeCopy(Map<K, V> map, Operation<ImmutableMap<K, V>> original) {*/
+    //private static <K, V> ImmutableMap<K, V> injectTranslationsBeforeCopy(Map<K, V> map, Operation<ImmutableMap<K, V>> original) {
         // Load translation map.
         @SuppressWarnings("unchecked")
         Map<String, String> stringMap = (Map<String, String>) map;
@@ -84,9 +84,9 @@ public class ClientLanguageMixin {
                     //? if > 1.21.1
                     target = "java/util/HashMap"
                     //? if <= 1.21.1
-                    /*value = "INVOKE",*/
+                    //value = "INVOKE",
                     //? if <= 1.21.1
-                    /*target = "Lcom/google/common/collect/Maps;newHashMap()Ljava/util/HashMap;"*/
+                    //target = "Lcom/google/common/collect/Maps;newHashMap()Ljava/util/HashMap;"
             )
     )
     private static <K, V> java.util.HashMap<K, V> captureLanguages(

@@ -58,7 +58,7 @@ public final class ClientCommunicationManager {
             //? if >= 1.21.9
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.updateId(handler.getLocalGameProfile().id());
             //? if < 1.21.9
-            /*ArmorHiderClient.CLIENT_CONFIG_MANAGER.updateId(handler.getLocalGameProfile().getId());*/
+            //ArmorHiderClient.CLIENT_CONFIG_MANAGER.updateId(handler.getLocalGameProfile().getId());
             var currentConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue();
 
             ServerData serverData = client.getCurrentServer();

@@ -113,7 +113,7 @@ public class OptionElementFactory {
                 //? if >= 1.20.5 && < 1.21.11
                 /*new OptionInstance.IntRange(0, 20).xmap(v -> v / 20.0, v -> (int) Math.round(v * 20))*/
                 //? if < 1.20.5
-                /*OptionInstance.UnitDouble.INSTANCE*/
+                //OptionInstance.UnitDouble.INSTANCE
                 ,
                 defaultValue,
                 setter
