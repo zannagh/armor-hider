@@ -73,7 +73,7 @@ jobs:
           fi
 
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            if [[ "${{ inputs.dry_run }}" == "true" || "${{ inputs.force_release }}" == "true" ]]; then
+            if [[ "${{ inputs.dry_run }}" != "false" || "${{ inputs.force_release }}" == "true" ]]; then
               echo "should_release=true" >> $GITHUB_OUTPUT
               echo "is_manual_release=false" >> $GITHUB_OUTPUT
               echo "skip_reason=" >> $GITHUB_OUTPUT
@@ -342,7 +342,7 @@ jobs:
           echo "${{ needs.changelog.outputs.content }}"
           echo "---"
           echo ""
-          if [[ "${{ inputs.dry_run }}" == "true" ]]; then
+          if [[ "${{ inputs.dry_run }}" != "false" ]]; then
             echo "DRY RUN - Skipping actual GitHub release creation"
           else
             echo "Will create GitHub release"
@@ -350,7 +350,7 @@ jobs:
           echo "=========================================="
 
       - name: Create Release
-        if: inputs.dry_run != 'true'
+        if: ${{ !inputs.dry_run }}
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ needs.build.outputs.mod_version }}
@@ -459,7 +459,7 @@ jobs:
           echo "${{ needs.changelog.outputs.content }}"
           echo "---"
           echo ""
-          if [[ "${{ inputs.dry_run }}" == "true" ]]; then
+          if [[ "${{ inputs.dry_run }}" != "false" ]]; then
             echo "DRY RUN - Skipping actual Modrinth upload"
           elif [[ "${{ env.PUBLISH_TO_MODRINTH }}" == "true" ]]; then
             echo "PUBLISH_TO_MODRINTH=true - Will publish to Modrinth"
@@ -469,7 +469,7 @@ jobs:
           echo "=========================================="
 
       - name: Publish to Modrinth
-        if: steps.find-jar.outputs.found == 'true' && env.PUBLISH_TO_MODRINTH == 'true' && inputs.dry_run != 'true'
+        if: ${{ steps.find-jar.outputs.found == 'true' && env.PUBLISH_TO_MODRINTH == 'true' && !inputs.dry_run }}
         uses: Kir-Antipov/mc-publish@v3.3
         with:
           modrinth-id: ${{ env.MODRINTH_PROJECT_ID }}
