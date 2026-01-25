@@ -4,7 +4,7 @@ on:
   release:
     types: [published]
   push:
-    branches: [main, ci/properly-automated-releases]
+    branches: [main]
   workflow_dispatch:
     inputs:
       force_release:
@@ -302,13 +302,11 @@ jobs:
             CONTENT="Release ${{ needs.build.outputs.mod_version }}"
           fi
 
-          contentOutput="$GITHUB_OUTPUT"
           {
             echo "content<<CHANGELOG_EOF"
             echo "$CONTENT"
             echo "CHANGELOG_EOF"
-          } >> "$contentOutput"
-          echo "content=$contentOutput" >> $GITHUB_OUTPUT
+          } >> "$GITHUB_OUTPUT"
 
   # ============================================================================
   # CREATE GITHUB PRERELEASE (automatic)

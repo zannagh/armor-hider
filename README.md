@@ -1,5 +1,11 @@
 # Armor Hider
 
+[![Build](https://github.com/zannagh/armor-hider/actions/workflows/build.yml/badge.svg)](https://github.com/zannagh/armor-hider/actions/workflows/build.yml)
+[![Publish](https://github.com/zannagh/armor-hider/actions/workflows/publish.yml/badge.svg)](https://github.com/zannagh/armor-hider/actions/workflows/publish.yml)
+[![Modrinth Downloads](https://img.shields.io/modrinth/dt/zannaghs-armor-hider?logo=modrinth&label=Modrinth%20Downloads)](https://modrinth.com/mod/zannaghs-armor-hider)
+[![Modrinth Version](https://img.shields.io/modrinth/v/zannaghs-armor-hider?logo=modrinth&label=Latest%20Version)](https://modrinth.com/mod/zannaghs-armor-hider/versions)
+[![Discord](https://img.shields.io/badge/Discord-Join-5865F2?logo=discord&logoColor=white)](https://discord.gg/8MMBjwXF)
+
 A small server/client side mod to alter transparency of armor items (relayed to other players via server).
 
 <p align="center">
@@ -53,22 +59,29 @@ clients.
 ![NoCombatDetection](https://github.com/user-attachments/assets/fd7af6a4-8f5d-4a42-99bb-57804bc7ecca)
 </details>
 
+## Community
+
+Join the [Discord server](https://discord.gg/8MMBjwXF) for support, discussion, and feature requests.
+
 ## Issues and Feature Requests
 
-Feel free to create an issue on the GitHub repository to make me aware of problems or ideas that could make this mod
-better.
+Feel free to create an issue on the GitHub repository or reach out on Discord to make me aware of problems or ideas
+that could make this mod better.
 
-## Versioning
+## Versioning & Releases
 
-CI runs are using GitVersion to versionize (see GitVersion.yml), whereas local builds will only use git tag
-information (via `git describe --tags`) to versionize.
+All Minecraft versions are built from the `main` branch using [Stonecutter](https://stonecutter.kikugie.dev/) for
+multi-version support. [GitVersion](https://gitversion.net/) handles semantic versioning automatically.
 
-GitVersion configuration:
+**Release flow:**
 
-- no labels on branches
-- no version bump on tagged commits (when creating release in GitHub)
-- ignore changes to GitVersion.yml or documentational .md files
-- ignore changes to GitHub workflows
-- ignore version numbers in branches (to not get Minecraft targets versions into artifacts version)
-- no version bump on branch creation
-- tag prefix regex to match Minecraft target version plus mod version (i.e. v1.21.11-0.1.0 will be matched to 0.1.0)
+- **Prereleases** are created automatically on every push to `main` that includes code changes (commits prefixed
+  with `ci:`, `docs:`, `build:`, or `chore:` are skipped)
+- **Releases** are created manually via GitHub Releases with version validation
+- All versions are published to [Modrinth](https://modrinth.com/mod/zannaghs-armor-hider) with the format
+  `fabric-[MC_VERSION]-[MOD_VERSION]`
+
+**Version format:**
+
+- Releases: `0.7.2`
+- Prereleases: `0.7.3-pre.1`, `0.7.3-pre.2`, etc.
