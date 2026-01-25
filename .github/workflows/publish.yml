@@ -25,7 +25,7 @@ concurrency:
 env:
   MODRINTH_PROJECT_ID: 'zannaghs-armor-hider'
   # Set to 'true' to enable actual Modrinth publishing, 'false' for dry-run
-  PUBLISH_TO_MODRINTH: 'false'
+  PUBLISH_TO_MODRINTH: 'true'
 
 jobs:
   analyze:
