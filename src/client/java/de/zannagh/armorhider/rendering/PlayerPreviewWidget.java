@@ -2,6 +2,7 @@
 /*package de.zannagh.armorhider.rendering;
 
 import com.mojang.blaze3d.platform.Lighting;
+import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -88,7 +89,7 @@ public class PlayerPreviewWidget extends AbstractWidget {
     // Based on InventoryScreen.renderEntityInInventory at 1.20.x
     public static void drawEntity(GuiGraphics context, int x, int y, int size, Quaternionf quaternionf, @Nullable Quaternionf quaternionf2, LivingEntity entity) {
         context.pose().pushPose();
-        context.pose().translate(x, y, 50.0);
+        context.pose().translate(x, y, 150.0); // Higher z-value to prevent clipping through background
         //?if >= 1.21
         context.pose().mulPose(new Matrix4f().scaling((float)size, (float)size, (float)(-size)));
         //?if < 1.21
@@ -101,10 +102,13 @@ public class PlayerPreviewWidget extends AbstractWidget {
             entityRenderDispatcher.overrideCameraOrientation(quaternionf2);
         }
 
+        // Disable depth testing so the entity always renders on top of the background
+        RenderSystem.disableDepthTest();
         entityRenderDispatcher.setRenderShadow(false);
         entityRenderDispatcher.render(entity, 0.0, 0.0, 0.0, 0.0F, 1.0F, context.pose(), context.bufferSource(), 15728880);
         context.flush();
         entityRenderDispatcher.setRenderShadow(true);
+        RenderSystem.enableDepthTest();
         context.pose().popPose();
         Lighting.setupFor3DItems();
     }

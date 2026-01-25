@@ -39,8 +39,8 @@ public abstract class OptionsScreenMixin extends Screen {
     }
     
     //? if < 1.21 {
-    /^
-    @WrapOperation(
+    
+    /^@WrapOperation(
             method = "init",
             at = @At(
                     value = "INVOKE",

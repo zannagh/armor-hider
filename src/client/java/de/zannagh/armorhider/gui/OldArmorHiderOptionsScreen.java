@@ -45,47 +45,50 @@ public class OldArmorHiderOptionsScreen extends OptionsSubScreen {
 
         if (hasPlayer) {
             int listWidth = (this.width * 3) / 5;
+
             optionsList = new OptionsList(
-                this.minecraft,
-                listWidth,
-                this.height,
-                topMargin,
-                this.height - bottomMargin,
-                optionItemHeight
+                    this.minecraft,
+                    listWidth,
+                    this.height,
+                    topMargin,
+                    this.height - bottomMargin,
+                    optionItemHeight
             );
-            
             
             addCustomOptionsToOptionListWidget(optionsList);
             this.addWidget(optionsList);
 
             int previewWidth = (this.width * 2) / 5 - previewMargin;
-            int previewHeight = this.height - topMargin - bottomMargin - previewMargin * 2;
+            int previewHeight = this.height - topMargin - bottomMargin - previewMargin*2;
             int previewX = listWidth + previewMargin / 2;
+            int previewY = topMargin + previewMargin;
 
             PlayerPreviewWidget previewWidget = new PlayerPreviewWidget(
-                previewX,
-                topMargin,
-                previewWidth,
-                previewHeight
+                    previewX,
+                    previewY,
+                    previewWidth,
+                    previewHeight
             );
             this.addRenderableWidget(previewWidget);
 
         } else {
+            // Single column layout: just the options list full-width
             optionsList = new OptionsList(
-                this.minecraft,
-                this.width,
-                this.height,
-                topMargin,
-                this.height - bottomMargin,
-                optionItemHeight
+                    this.minecraft,
+                    this.width,
+                    this.height,
+                    topMargin,
+                    this.height - bottomMargin,
+                    optionItemHeight
             );
+            // Add all options to the list
             addCustomOptionsToOptionListWidget(optionsList);
             this.addWidget(optionsList);
         }
-
+        
         // Add Done button at the bottom
         this.addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, button ->
-            this.onClose()
+                this.onClose()
         ).bounds(this.width / 2 - 100, this.height - 27, 200, previewMargin).build());
     }
 
