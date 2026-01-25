@@ -12,6 +12,11 @@ on:
         required: false
         default: false
         type: boolean
+      dry_run:
+        description: 'Run full pipeline without actually publishing (overrides PUBLISH_TO_MODRINTH and skips GitHub release creation)'
+        required: false
+        default: false
+        type: boolean
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -67,11 +72,13 @@ jobs:
             exit 0
           fi
 
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.force_release }}" == "true" ]]; then
-            echo "should_release=true" >> $GITHUB_OUTPUT
-            echo "is_manual_release=false" >> $GITHUB_OUTPUT
-            echo "skip_reason=" >> $GITHUB_OUTPUT
-            exit 0
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            if [[ "${{ inputs.dry_run }}" == "true" || "${{ inputs.force_release }}" == "true" ]]; then
+              echo "should_release=true" >> $GITHUB_OUTPUT
+              echo "is_manual_release=false" >> $GITHUB_OUTPUT
+              echo "skip_reason=" >> $GITHUB_OUTPUT
+              exit 0
+            fi
           fi
 
           COMMIT_MSG=$(git log -1 --pretty=%B)
@@ -199,7 +206,7 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     needs: [analyze, check-modrinth]
-    if: always() && needs.analyze.result == 'success' 
+    if: "!cancelled() && needs.analyze.result == 'success'"
     outputs:
       mod_version: ${{ steps.props.outputs.mod_version }}
       is_prerelease: ${{ steps.props.outputs.is_prerelease }}
@@ -322,7 +329,30 @@ jobs:
         with:
           path: artifacts
 
+      - name: Preview GitHub Release
+        run: |
+          echo "=========================================="
+          echo "GITHUB PRERELEASE PREVIEW"
+          echo "=========================================="
+          echo ""
+          echo "  Tag:      v${{ needs.build.outputs.mod_version }}"
+          echo "  Name:     ${{ needs.build.outputs.mod_version }}"
+          echo "  Type:     prerelease"
+          echo ""
+          echo "Changelog:"
+          echo "---"
+          echo "${{ needs.changelog.outputs.content }}"
+          echo "---"
+          echo ""
+          if [[ "${{ inputs.dry_run }}" == "true" ]]; then
+            echo "DRY RUN - Skipping actual GitHub release creation"
+          else
+            echo "Will create GitHub release"
+          fi
+          echo "=========================================="
+
       - name: Create Release
+        if: inputs.dry_run != 'true'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ needs.build.outputs.mod_version }}
@@ -431,15 +461,17 @@ jobs:
           echo "${{ needs.changelog.outputs.content }}"
           echo "---"
           echo ""
-          if [[ "${{ env.PUBLISH_TO_MODRINTH }}" == "true" ]]; then
+          if [[ "${{ inputs.dry_run }}" == "true" ]]; then
+            echo "DRY RUN - Skipping actual Modrinth upload"
+          elif [[ "${{ env.PUBLISH_TO_MODRINTH }}" == "true" ]]; then
             echo "PUBLISH_TO_MODRINTH=true - Will publish to Modrinth"
           else
-            echo "PUBLISH_TO_MODRINTH=false - DRY RUN (skipping actual upload)"
+            echo "PUBLISH_TO_MODRINTH=false - Publishing disabled"
           fi
           echo "=========================================="
 
       - name: Publish to Modrinth
-        if: steps.find-jar.outputs.found == 'true' && env.PUBLISH_TO_MODRINTH == 'true'
+        if: steps.find-jar.outputs.found == 'true' && env.PUBLISH_TO_MODRINTH == 'true' && inputs.dry_run != 'true'
         uses: Kir-Antipov/mc-publish@v3.3
         with:
           modrinth-id: ${{ env.MODRINTH_PROJECT_ID }}
