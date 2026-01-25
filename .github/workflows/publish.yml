@@ -43,9 +43,9 @@ jobs:
       - name: Setup GitVersion
         uses: gittools/actions/gitversion/setup@v4.2.0
         with:
-          versionSpec: '6.x'
+          versionSpec: 6.5.0
 
-      - name: Calculate Version
+      - name: Set Version Properties
         id: version
         uses: gittools/actions/gitversion/execute@v4.2.0
 

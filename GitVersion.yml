@@ -28,7 +28,6 @@ branches:
     mode: ContinuousDeployment
     increment: Patch
     label: pre
-    label-number-pattern: '[/-](?<number>\d+)'
     track-merge-target: true
     track-merge-message: true
     prevent-increment:
@@ -38,7 +37,6 @@ branches:
     mode: ContinuousDelivery
     increment: Minor
     label: '{BranchName}'
-    label-number-pattern: '[/-](?<number>\d+)'
     regex: ^features?[/-]
     source-branches:
       - main
@@ -47,7 +45,6 @@ branches:
     mode: ContinuousDelivery
     increment: Inherit
     label: pr
-    label-number-pattern: '[/-](?<number>\d+)'
     regex: ^(pull|pr|merge)[/-]
     source-branches:
       - main
