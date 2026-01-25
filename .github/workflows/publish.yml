@@ -468,7 +468,6 @@ jobs:
         run: |
           echo "## Build Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-
           if [[ "${{ needs.analyze.outputs.should_release }}" != "true" ]]; then
             echo "### Release Skipped" >> $GITHUB_STEP_SUMMARY
             echo "Reason: ${{ needs.analyze.outputs.skip_reason }}" >> $GITHUB_STEP_SUMMARY
