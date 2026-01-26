@@ -1,0 +1,51 @@
+name: Check Modrinth Version
+description: Queries the Modrinth API and checks if a mod version already exists.
+
+inputs:
+  project-id:
+    description: The Modrinth project ID/slug
+    required: true
+  mod-version:
+    description: The mod version to check for
+    required: true
+
+outputs:
+  version_exists:
+    description: Whether the version already exists on Modrinth
+    value: ${{ steps.check.outputs.exists }}
+
+runs:
+  using: composite
+  steps:
+    - name: Query Modrinth API
+      id: check
+      shell: bash
+      run: |
+        VERSIONS=$(curl -s "https://api.modrinth.com/v2/project/${{ inputs.project-id }}/version" | jq -r '.[].version_number')
+        echo "Existing Modrinth versions:"
+        echo "$VERSIONS"
+
+        MOD_VERSION="${{ inputs.mod-version }}"
+        echo "Checking for mod version: $MOD_VERSION"
+
+        EXISTS=false
+        MOD_VERSION_PREVIEW=$(echo "$MOD_VERSION" | sed 's/-pre\./-preview./')
+
+        while IFS= read -r existing; do
+          [[ -z "$existing" ]] && continue
+          EXISTING_MOD_VER=$(echo "$existing" | sed -E 's/^fabric-[0-9.]+-snapshot-[0-9]+-//' | sed -E 's/^fabric-[0-9.]+-//')
+          EXISTING_NORMALIZED=$(echo "$EXISTING_MOD_VER" | sed 's/-preview\./-pre./')
+
+          if [[ "$EXISTING_NORMALIZED" == "$MOD_VERSION" ]] || \
+             [[ "$EXISTING_MOD_VER" == "$MOD_VERSION" ]] || \
+             [[ "$EXISTING_MOD_VER" == "$MOD_VERSION_PREVIEW" ]]; then
+            EXISTS=true
+            echo "Found matching version: $existing"
+            break
+          fi
+        done <<< "$VERSIONS"
+
+        echo "exists=$EXISTS" >> $GITHUB_OUTPUT
+        if [[ "$EXISTS" == "true" ]]; then
+          echo "::warning::Version $MOD_VERSION already exists on Modrinth"
+        fi

@@ -1,0 +1,72 @@
+name: Prepare Modrinth Upload
+description: Finds the correct JAR for a Minecraft version and prepares Modrinth version metadata.
+
+inputs:
+  minecraft-version:
+    description: The Minecraft version to find the JAR for
+    required: true
+  mod-version:
+    description: The mod version string
+    required: true
+  is-prerelease:
+    description: Whether this is a prerelease build
+    required: true
+  artifact-path:
+    description: Path to the downloaded artifacts directory
+    required: true
+
+outputs:
+  found:
+    description: Whether a JAR was found for this Minecraft version
+    value: ${{ steps.find-jar.outputs.found }}
+  jar_path:
+    description: Path to the found JAR file
+    value: ${{ steps.find-jar.outputs.path }}
+  version_number:
+    description: The Modrinth version number (e.g. fabric-1.21-1.0.0)
+    value: ${{ steps.info.outputs.version_number }}
+  version_name:
+    description: The Modrinth display name (e.g. 1.21 - 1.0.0)
+    value: ${{ steps.info.outputs.version_name }}
+  version_type:
+    description: The Modrinth version type (release or beta)
+    value: ${{ steps.info.outputs.version_type }}
+
+runs:
+  using: composite
+  steps:
+    - name: Find JAR
+      id: find-jar
+      shell: bash
+      run: |
+        JAR=$(find ${{ inputs.artifact-path }} -name "*.jar" -path "*/${{ inputs.minecraft-version }}/*" ! -name "*-sources.jar" | head -n1)
+        if [[ -z "$JAR" ]]; then
+          echo "No JAR found for Minecraft ${{ inputs.minecraft-version }}"
+          echo "found=false" >> $GITHUB_OUTPUT
+        else
+          echo "Found JAR: $JAR"
+          echo "found=true" >> $GITHUB_OUTPUT
+          echo "path=$JAR" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Prepare version info
+      if: steps.find-jar.outputs.found == 'true'
+      id: info
+      shell: bash
+      run: |
+        MC_VERSION="${{ inputs.minecraft-version }}"
+        MOD_VERSION="${{ inputs.mod-version }}"
+        IS_PRERELEASE="${{ inputs.is-prerelease }}"
+
+        VERSION_NUMBER="fabric-${MC_VERSION}-${MOD_VERSION}"
+        VERSION_NAME="${MC_VERSION} - ${MOD_VERSION}"
+
+        if [[ "$IS_PRERELEASE" == "true" ]]; then
+          VERSION_TYPE="beta"
+        else
+          VERSION_TYPE="release"
+        fi
+
+        echo "version_number=$VERSION_NUMBER" >> $GITHUB_OUTPUT
+        echo "version_name=$VERSION_NAME" >> $GITHUB_OUTPUT
+        echo "version_type=$VERSION_TYPE" >> $GITHUB_OUTPUT
