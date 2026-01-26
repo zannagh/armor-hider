@@ -353,27 +353,67 @@ jobs:
   summary:
     name: Workflow Summary
     runs-on: ubuntu-latest
-    needs: [analyze, check-modrinth, build, publish-modrinth]
+    needs: [analyze, validate-version, check-modrinth, build, changelog, create-prerelease, upload-to-release, publish-modrinth]
     if: always()
     steps:
       - name: Generate Summary
         run: |
-          echo "## Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "## Build & Publish Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          if [[ "${{ needs.analyze.outputs.should_release }}" != "true" ]]; then
-            echo "### Release Skipped" >> $GITHUB_STEP_SUMMARY
-            echo "Reason: ${{ needs.analyze.outputs.skip_reason }}" >> $GITHUB_STEP_SUMMARY
-          elif [[ "${{ needs.check-modrinth.outputs.version_exists }}" == "true" ]]; then
-            echo "### Modrinth Upload Skipped" >> $GITHUB_STEP_SUMMARY
-            echo "Version already exists on Modrinth." >> $GITHUB_STEP_SUMMARY
-          else
-            echo "### Release Published" >> $GITHUB_STEP_SUMMARY
+
+          # --- Job Status Overview ---
+          echo "### Job Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Analyze Changes | \`${{ needs.analyze.result }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Validate Version | \`${{ needs.validate-version.result }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Check Modrinth | \`${{ needs.check-modrinth.result }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Build | \`${{ needs.build.result }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Changelog | \`${{ needs.changelog.result }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Create Prerelease | \`${{ needs.create-prerelease.result }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Upload to Release | \`${{ needs.upload-to-release.result }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Publish to Modrinth | \`${{ needs.publish-modrinth.result }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # --- Version Info ---
+          echo "### Version Info" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| SemVer | \`${{ needs.analyze.outputs.semver }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Full SemVer | \`${{ needs.analyze.outputs.full_semver }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Prerelease Number | \`${{ needs.analyze.outputs.prerelease_number }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Commits Since Tag | \`${{ needs.analyze.outputs.commits_since }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Mod Version | \`${{ needs.build.outputs.mod_version }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Is Prerelease | \`${{ needs.build.outputs.is_prerelease }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # --- Release Decision ---
+          echo "### Release Decision" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Should Release**: \`${{ needs.analyze.outputs.should_release }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Is Manual Release**: \`${{ needs.analyze.outputs.is_manual_release }}\`" >> $GITHUB_STEP_SUMMARY
+          if [[ -n "${{ needs.analyze.outputs.skip_reason }}" ]]; then
+            echo "- **Skip Reason**: ${{ needs.analyze.outputs.skip_reason }}" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # --- Modrinth ---
+          echo "### Modrinth" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version Already Exists**: \`${{ needs.check-modrinth.outputs.version_exists }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Publish Enabled**: \`${{ env.PUBLISH_TO_MODRINTH }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # --- Changelog ---
+          if [[ -n "${{ needs.changelog.outputs.content }}" ]]; then
+            echo "### Changelog" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "- **Version**: ${{ needs.build.outputs.mod_version }}" >> $GITHUB_STEP_SUMMARY
-            echo "- **Type**: ${{ needs.build.outputs.is_prerelease == 'true' && 'Prerelease' || 'Release' }}" >> $GITHUB_STEP_SUMMARY
-            if [[ "${{ env.PUBLISH_TO_MODRINTH }}" == "true" ]]; then
-              echo "- **Modrinth**: Published" >> $GITHUB_STEP_SUMMARY
-            else
-              echo "- **Modrinth**: Dry run (PUBLISH_TO_MODRINTH=false)" >> $GITHUB_STEP_SUMMARY
-            fi
+            echo "<details>" >> $GITHUB_STEP_SUMMARY
+            echo "<summary>Click to expand</summary>" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "${{ needs.changelog.outputs.content }}" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "</details>" >> $GITHUB_STEP_SUMMARY
           fi
