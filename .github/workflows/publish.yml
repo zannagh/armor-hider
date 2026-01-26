@@ -32,9 +32,9 @@ jobs:
     name: Analyze Changes
     runs-on: ubuntu-latest
     outputs:
-      should_release: ${{ steps.check.outputs.should_release }}
-      is_manual_release: ${{ steps.check.outputs.is_manual_release }}
-      skip_reason: ${{ steps.check.outputs.skip_reason }}
+      should_release: ${{ steps.release-check.outputs.should_release }}
+      is_manual_release: ${{ steps.release-check.outputs.is_manual_release }}
+      skip_reason: ${{ steps.release-check.outputs.skip_reason }}
       semver: ${{ steps.version.outputs.majorMinorPatch }}
       prerelease_number: ${{ steps.version.outputs.preReleaseNumber }}
       full_semver: ${{ steps.version.outputs.fullSemVer }}
@@ -62,63 +62,13 @@ jobs:
           echo "CommitsSinceVersionSource: ${{ steps.version.outputs.commitsSinceVersionSource }}"
           echo "PreReleaseLabel: ${{ steps.version.outputs.preReleaseLabel }}"
 
-      - name: Check if should release
-        id: check
-        run: |
-          if [[ "${{ github.event_name }}" == "release" ]]; then
-            echo "should_release=true" >> $GITHUB_OUTPUT
-            echo "is_manual_release=true" >> $GITHUB_OUTPUT
-            echo "skip_reason=" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            if [[ "${{ inputs.dry_run }}" != "false" || "${{ inputs.force_release }}" == "true" ]]; then
-              echo "should_release=true" >> $GITHUB_OUTPUT
-              echo "is_manual_release=false" >> $GITHUB_OUTPUT
-              echo "skip_reason=" >> $GITHUB_OUTPUT
-              exit 0
-            fi
-          fi
-
-          COMMIT_MSG=$(git log -1 --pretty=%B)
-          echo "Commit message: $COMMIT_MSG"
-
-          if echo "$COMMIT_MSG" | grep -qiE '^(ci|docs|build|chore)(\(.+\))?:'; then
-            echo "should_release=false" >> $GITHUB_OUTPUT
-            echo "is_manual_release=false" >> $GITHUB_OUTPUT
-            echo "skip_reason=Commit message indicates non-code change (ci/docs/build/chore)" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-
-          CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD 2>/dev/null || git diff --name-only HEAD)
-          echo "Changed files:"
-          echo "$CHANGED_FILES"
-
-          CODE_CHANGED=false
-          while IFS= read -r file; do
-            [[ -z "$file" ]] && continue
-            if [[ ! "$file" =~ \.(md|MD|yaml|yml|txt|json|xml|properties|toml)$ ]] && \
-               [[ ! "$file" =~ ^\.github/ ]] && \
-               [[ ! "$file" =~ ^docs/ ]] && \
-               [[ ! "$file" =~ ^README ]] && \
-               [[ ! "$file" =~ ^LICENSE ]] && \
-               [[ ! "$file" =~ ^CHANGELOG ]]; then
-              CODE_CHANGED=true
-              echo "Code file changed: $file"
-              break
-            fi
-          done <<< "$CHANGED_FILES"
-
-          if [[ "$CODE_CHANGED" == "false" ]]; then
-            echo "should_release=false" >> $GITHUB_OUTPUT
-            echo "is_manual_release=false" >> $GITHUB_OUTPUT
-            echo "skip_reason=Only non-code files changed (.md, .yaml, etc.)" >> $GITHUB_OUTPUT
-          else
-            echo "should_release=true" >> $GITHUB_OUTPUT
-            echo "is_manual_release=false" >> $GITHUB_OUTPUT
-            echo "skip_reason=" >> $GITHUB_OUTPUT
-          fi
+      - name: Check Release
+        id: release-check
+        uses: ./.github/actions/check-release
+        with:
+          event-name: ${{ github.event_name }}
+          is-dry-run: ${{ inputs.dry_run }}
+          force-release: ${{ inputs.force_release }}
 
   validate-version:
     name: Validate Release Version
@@ -156,51 +106,28 @@ jobs:
     needs: analyze
     if: needs.analyze.outputs.should_release == 'true'
     outputs:
-      version_exists: ${{ steps.check.outputs.exists }}
+      version_exists: ${{ steps.modrinth-check.outputs.version_exists }}
     steps:
-      - name: Query Modrinth API
-        id: check
-        run: |
-          VERSIONS=$(curl -s "https://api.modrinth.com/v2/project/${{ env.MODRINTH_PROJECT_ID }}/version" | jq -r '.[].version_number')
-          echo "Existing Modrinth versions:"
-          echo "$VERSIONS"
+      - name: Checkout
+        uses: actions/checkout@v6
 
-          if [[ "${{ needs.analyze.outputs.is_manual_release }}" == "true" ]]; then
-            MOD_VERSION="${{ github.event.release.tag_name }}"
-            MOD_VERSION="${MOD_VERSION#v}"
-          else
-            SEMVER="${{ needs.analyze.outputs.semver }}"
-            PRE_NUM="${{ needs.analyze.outputs.prerelease_number }}"
-            if [[ -n "$PRE_NUM" && "$PRE_NUM" != "0" ]]; then
-              MOD_VERSION="${SEMVER}-pre.${PRE_NUM}"
-            else
-              COMMITS="${{ needs.analyze.outputs.commits_since }}"
-              MOD_VERSION="${SEMVER}-pre.${COMMITS:-1}"
-            fi
-          fi
+      - name: Determine version to check
+        id: mod-ver
+        uses: ./.github/actions/determine-mod-version
+        with:
+          is-manual-release: ${{ needs.analyze.outputs.is_manual_release }}
+          release-tag-name: ${{ github.event.release.tag_name }}
+          release-prerelease: ${{ github.event.release.prerelease }}
+          semver: ${{ needs.analyze.outputs.semver }}
+          prerelease-number: ${{ needs.analyze.outputs.prerelease_number }}
+          commits-since: ${{ needs.analyze.outputs.commits_since }}
 
-          echo "Checking for mod version: $MOD_VERSION"
-          EXISTS=false
-          MOD_VERSION_PREVIEW=$(echo "$MOD_VERSION" | sed 's/-pre\./-preview./')
-
-          while IFS= read -r existing; do
-            [[ -z "$existing" ]] && continue
-            EXISTING_MOD_VER=$(echo "$existing" | sed -E 's/^fabric-[0-9.]+-snapshot-[0-9]+-//' | sed -E 's/^fabric-[0-9.]+-//')
-            EXISTING_NORMALIZED=$(echo "$EXISTING_MOD_VER" | sed 's/-preview\./-pre./')
-
-            if [[ "$EXISTING_NORMALIZED" == "$MOD_VERSION" ]] || \
-               [[ "$EXISTING_MOD_VER" == "$MOD_VERSION" ]] || \
-               [[ "$EXISTING_MOD_VER" == "$MOD_VERSION_PREVIEW" ]]; then
-              EXISTS=true
-              echo "Found matching version: $existing"
-              break
-            fi
-          done <<< "$VERSIONS"
-
-          echo "exists=$EXISTS" >> $GITHUB_OUTPUT
-          if [[ "$EXISTS" == "true" ]]; then
-            echo "::warning::Version $MOD_VERSION already exists on Modrinth"
-          fi
+      - name: Check Modrinth Version
+        id: modrinth-check
+        uses: ./.github/actions/check-modrinth-version
+        with:
+          project-id: ${{ env.MODRINTH_PROJECT_ID }}
+          mod-version: ${{ steps.mod-ver.outputs.mod_version }}
 
   build:
     name: Build
@@ -208,105 +135,62 @@ jobs:
     needs: [analyze, check-modrinth]
     if: "!cancelled() && needs.analyze.result == 'success'"
     outputs:
-      mod_version: ${{ steps.props.outputs.mod_version }}
-      is_prerelease: ${{ steps.props.outputs.is_prerelease }}
+      mod_version: ${{ steps.mod-ver.outputs.mod_version }}
+      is_prerelease: ${{ steps.mod-ver.outputs.is_prerelease }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
-      - name: Validate Gradle Wrapper
-        uses: gradle/actions/wrapper-validation@v5
+      - name: Setup Gradle Environment
+        uses: ./.github/actions/setup-gradle-env
 
-      - name: Setup JDK
-        uses: actions/setup-java@v5
+      - name: Determine Mod Version
+        id: mod-ver
+        uses: ./.github/actions/determine-mod-version
         with:
-          java-version: '25'
-          distribution: 'temurin'
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v5
-
-      - name: Determine build properties
-        id: props
-        run: |
-          if [[ "${{ needs.analyze.outputs.is_manual_release }}" == "true" ]]; then
-            TAG="${{ github.event.release.tag_name }}"
-            VERSION="${TAG#v}"
-            echo "mod_version=$VERSION" >> $GITHUB_OUTPUT
-            echo "is_prerelease=${{ github.event.release.prerelease }}" >> $GITHUB_OUTPUT
-            echo "Building release version: $VERSION"
-          else
-            SEMVER="${{ needs.analyze.outputs.semver }}"
-            PRE_NUM="${{ needs.analyze.outputs.prerelease_number }}"
-            COMMITS="${{ needs.analyze.outputs.commits_since }}"
-
-            if [[ -n "$PRE_NUM" && "$PRE_NUM" != "0" ]]; then
-              VERSION="${SEMVER}-pre.${PRE_NUM}"
-            else
-              VERSION="${SEMVER}-pre.${COMMITS:-1}"
-            fi
-
-            echo "mod_version=$VERSION" >> $GITHUB_OUTPUT
-            echo "is_prerelease=true" >> $GITHUB_OUTPUT
-            echo "Building prerelease version: $VERSION"
-          fi
+          is-manual-release: ${{ needs.analyze.outputs.is_manual_release }}
+          release-tag-name: ${{ github.event.release.tag_name }}
+          release-prerelease: ${{ github.event.release.prerelease }}
+          semver: ${{ needs.analyze.outputs.semver }}
+          prerelease-number: ${{ needs.analyze.outputs.prerelease_number }}
+          commits-since: ${{ needs.analyze.outputs.commits_since }}
 
       - name: Build
         run: |
-          chmod +x ./gradlew
           ./gradlew build \
-            -PsemVer="${{ steps.props.outputs.mod_version }}" \
-            -Pprerelease="${{ steps.props.outputs.is_prerelease }}"
+            -PsemVer="${{ steps.mod-ver.outputs.mod_version }}" \
+            -Pprerelease="${{ steps.mod-ver.outputs.is_prerelease }}"
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v6
         with:
-          name: armor-hider-${{ steps.props.outputs.mod_version }}
+          name: armor-hider-${{ steps.mod-ver.outputs.mod_version }}
           path: versions/**/build/libs/*.jar
           if-no-files-found: error
+
   changelog:
     name: Generate Changelog
     runs-on: ubuntu-latest
     needs: [analyze, build]
     if: needs.analyze.outputs.should_release == 'true'
     outputs:
-      content: ${{ steps.generate.outputs.content }}
+      content: ${{ steps.changelog.outputs.content }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
-      - name: Generate changelog
-        id: generate
-        run: |
-          if [[ "${{ needs.analyze.outputs.is_manual_release }}" == "true" ]]; then
-            CONTENT="${{ github.event.release.body }}"
-          else
-            LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-            if [[ -n "$LAST_TAG" ]]; then
-              COMMITS=$(git log --pretty=format:"- %s (%h)" "$LAST_TAG"..HEAD --no-merges)
-            else
-              COMMITS=$(git log --pretty=format:"- %s (%h)" -10 --no-merges)
-            fi
-            CONTENT="## What's Changed
-
-          $COMMITS
-
-          **Full Changelog**: https://github.com/${{ github.repository }}/compare/${LAST_TAG:-initial}...HEAD"
-          fi
-
-          if [[ -z "$CONTENT" ]]; then
-            CONTENT="Release ${{ needs.build.outputs.mod_version }}"
-          fi
-
-          {
-            echo "content<<CHANGELOG_EOF"
-            echo "$CONTENT"
-            echo "CHANGELOG_EOF"
-          } >> "$GITHUB_OUTPUT"
+      - name: Generate Changelog
+        id: changelog
+        uses: ./.github/actions/generate-changelog
+        with:
+          is-manual-release: ${{ needs.analyze.outputs.is_manual_release }}
+          release-body: ${{ github.event.release.body }}
+          mod-version: ${{ needs.build.outputs.mod_version }}
+          repository: ${{ github.repository }}
 
   # ============================================================================
   # CREATE GITHUB PRERELEASE (automatic)
@@ -397,60 +281,38 @@ jobs:
       matrix:
         minecraft: ['1.20', '1.20.1', '1.21', '1.21.1', '1.21.9', '1.21.10', '1.21.11', '26.1-snapshot-4']
     steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
       - name: Download Artifacts
         uses: actions/download-artifact@v7
         with:
           name: armor-hider-${{ needs.build.outputs.mod_version }}
           path: artifacts
 
-      - name: Find JAR for ${{ matrix.minecraft }}
-        id: find-jar
-        run: |
-          JAR=$(find artifacts -name "*.jar" -path "*/${{ matrix.minecraft }}/*" ! -name "*-sources.jar" | head -n1)
-          if [[ -z "$JAR" ]]; then
-            echo "No JAR found for Minecraft ${{ matrix.minecraft }}"
-            echo "found=false" >> $GITHUB_OUTPUT
-          else
-            echo "Found JAR: $JAR"
-            echo "found=true" >> $GITHUB_OUTPUT
-            echo "path=$JAR" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Prepare version info
-        if: steps.find-jar.outputs.found == 'true'
-        id: info
-        run: |
-          MC_VERSION="${{ matrix.minecraft }}"
-          MOD_VERSION="${{ needs.build.outputs.mod_version }}"
-          IS_PRERELEASE="${{ needs.build.outputs.is_prerelease }}"
-
-          VERSION_NUMBER="fabric-${MC_VERSION}-${MOD_VERSION}"
-          VERSION_NAME="${MC_VERSION} - ${MOD_VERSION}"
-
-          if [[ "$IS_PRERELEASE" == "true" ]]; then
-            VERSION_TYPE="beta"
-          else
-            VERSION_TYPE="release"
-          fi
-
-          echo "version_number=$VERSION_NUMBER" >> $GITHUB_OUTPUT
-          echo "version_name=$VERSION_NAME" >> $GITHUB_OUTPUT
-          echo "version_type=$VERSION_TYPE" >> $GITHUB_OUTPUT
+      - name: Prepare Modrinth Upload
+        id: modrinth
+        uses: ./.github/actions/prepare-modrinth-upload
+        with:
+          minecraft-version: ${{ matrix.minecraft }}
+          mod-version: ${{ needs.build.outputs.mod_version }}
+          is-prerelease: ${{ needs.build.outputs.is_prerelease }}
+          artifact-path: artifacts
 
       - name: Preview Modrinth Upload
-        if: steps.find-jar.outputs.found == 'true'
+        if: steps.modrinth.outputs.found == 'true'
         run: |
           echo "=========================================="
           echo "MODRINTH UPLOAD PREVIEW"
           echo "=========================================="
           echo ""
-          echo "File: ${{ steps.find-jar.outputs.path }}"
+          echo "File: ${{ steps.modrinth.outputs.jar_path }}"
           echo ""
           echo "Version Details:"
           echo "  Project ID:    ${{ env.MODRINTH_PROJECT_ID }}"
-          echo "  Version:       ${{ steps.info.outputs.version_number }}"
-          echo "  Display Name:  ${{ steps.info.outputs.version_name }}"
-          echo "  Version Type:  ${{ steps.info.outputs.version_type }}"
+          echo "  Version:       ${{ steps.modrinth.outputs.version_number }}"
+          echo "  Display Name:  ${{ steps.modrinth.outputs.version_name }}"
+          echo "  Version Type:  ${{ steps.modrinth.outputs.version_type }}"
           echo "  Game Version:  ${{ matrix.minecraft }}"
           echo "  Loader:        fabric"
           echo ""
@@ -469,15 +331,15 @@ jobs:
           echo "=========================================="
 
       - name: Publish to Modrinth
-        if: ${{ steps.find-jar.outputs.found == 'true' && env.PUBLISH_TO_MODRINTH == 'true' && !inputs.dry_run }}
+        if: ${{ steps.modrinth.outputs.found == 'true' && env.PUBLISH_TO_MODRINTH == 'true' && !inputs.dry_run }}
         uses: Kir-Antipov/mc-publish@v3.3
         with:
           modrinth-id: ${{ env.MODRINTH_PROJECT_ID }}
           modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
-          files: ${{ steps.find-jar.outputs.path }}
-          name: ${{ steps.info.outputs.version_name }}
-          version: ${{ steps.info.outputs.version_number }}
-          version-type: ${{ steps.info.outputs.version_type }}
+          files: ${{ steps.modrinth.outputs.jar_path }}
+          name: ${{ steps.modrinth.outputs.version_name }}
+          version: ${{ steps.modrinth.outputs.version_number }}
+          version-type: ${{ steps.modrinth.outputs.version_type }}
           loaders: fabric
           game-versions: ${{ matrix.minecraft }}
           changelog: ${{ needs.changelog.outputs.content }}

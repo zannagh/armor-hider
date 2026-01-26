@@ -1,0 +1,88 @@
+name: Check Release
+description: Determines whether a release should be created based on event type, commit message conventions, and changed files.
+
+inputs:
+  event-name:
+    description: The GitHub event name (github.event_name)
+    required: true
+  is-dry-run:
+    description: Whether this is a dry-run invocation
+    required: false
+    default: 'false'
+  force-release:
+    description: Whether to force a release regardless of changed files
+    required: false
+    default: 'false'
+
+outputs:
+  should_release:
+    description: Whether a release should be created
+    value: ${{ steps.check.outputs.should_release }}
+  is_manual_release:
+    description: Whether this is a manual (GitHub Release) triggered release
+    value: ${{ steps.check.outputs.is_manual_release }}
+  skip_reason:
+    description: Reason the release was skipped (empty if not skipped)
+    value: ${{ steps.check.outputs.skip_reason }}
+
+runs:
+  using: composite
+  steps:
+    - name: Check if should release
+      id: check
+      shell: bash
+      run: |
+        if [[ "${{ inputs.event-name }}" == "release" ]]; then
+          echo "should_release=true" >> $GITHUB_OUTPUT
+          echo "is_manual_release=true" >> $GITHUB_OUTPUT
+          echo "skip_reason=" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+
+        if [[ "${{ inputs.event-name }}" == "workflow_dispatch" ]]; then
+          if [[ "${{ inputs.is-dry-run }}" != "false" || "${{ inputs.force-release }}" == "true" ]]; then
+            echo "should_release=true" >> $GITHUB_OUTPUT
+            echo "is_manual_release=false" >> $GITHUB_OUTPUT
+            echo "skip_reason=" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+        fi
+
+        COMMIT_MSG=$(git log -1 --pretty=%B)
+        echo "Commit message: $COMMIT_MSG"
+
+        if echo "$COMMIT_MSG" | grep -qiE '^(ci|docs|build|chore)(\(.+\))?:'; then
+          echo "should_release=false" >> $GITHUB_OUTPUT
+          echo "is_manual_release=false" >> $GITHUB_OUTPUT
+          echo "skip_reason=Commit message indicates non-code change (ci/docs/build/chore)" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+
+        CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD 2>/dev/null || git diff --name-only HEAD)
+        echo "Changed files:"
+        echo "$CHANGED_FILES"
+
+        CODE_CHANGED=false
+        while IFS= read -r file; do
+          [[ -z "$file" ]] && continue
+          if [[ ! "$file" =~ \.(md|MD|yaml|yml|txt|json|xml|properties|toml)$ ]] && \
+             [[ ! "$file" =~ ^\.github/ ]] && \
+             [[ ! "$file" =~ ^docs/ ]] && \
+             [[ ! "$file" =~ ^README ]] && \
+             [[ ! "$file" =~ ^LICENSE ]] && \
+             [[ ! "$file" =~ ^CHANGELOG ]]; then
+            CODE_CHANGED=true
+            echo "Code file changed: $file"
+            break
+          fi
+        done <<< "$CHANGED_FILES"
+
+        if [[ "$CODE_CHANGED" == "false" ]]; then
+          echo "should_release=false" >> $GITHUB_OUTPUT
+          echo "is_manual_release=false" >> $GITHUB_OUTPUT
+          echo "skip_reason=Only non-code files changed (.md, .yaml, etc.)" >> $GITHUB_OUTPUT
+        else
+          echo "should_release=true" >> $GITHUB_OUTPUT
+          echo "is_manual_release=false" >> $GITHUB_OUTPUT
+          echo "skip_reason=" >> $GITHUB_OUTPUT
+        fi

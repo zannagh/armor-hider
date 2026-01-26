@@ -1,0 +1,64 @@
+name: Determine Mod Version
+description: Computes the mod version string and prerelease flag from GitVersion outputs and release context.
+
+inputs:
+  is-manual-release:
+    description: Whether this is a manual (GitHub Release) triggered release
+    required: true
+  release-tag-name:
+    description: The release tag name (for manual releases)
+    required: false
+    default: ''
+  release-prerelease:
+    description: Whether the GitHub release is marked as prerelease
+    required: false
+    default: 'false'
+  semver:
+    description: The majorMinorPatch from GitVersion
+    required: false
+    default: ''
+  prerelease-number:
+    description: The preReleaseNumber from GitVersion
+    required: false
+    default: ''
+  commits-since:
+    description: The commitsSinceVersionSource from GitVersion
+    required: false
+    default: ''
+
+outputs:
+  mod_version:
+    description: The computed mod version string
+    value: ${{ steps.props.outputs.mod_version }}
+  is_prerelease:
+    description: Whether this is a prerelease build
+    value: ${{ steps.props.outputs.is_prerelease }}
+
+runs:
+  using: composite
+  steps:
+    - name: Determine build properties
+      id: props
+      shell: bash
+      run: |
+        if [[ "${{ inputs.is-manual-release }}" == "true" ]]; then
+          TAG="${{ inputs.release-tag-name }}"
+          VERSION="${TAG#v}"
+          echo "mod_version=$VERSION" >> $GITHUB_OUTPUT
+          echo "is_prerelease=${{ inputs.release-prerelease }}" >> $GITHUB_OUTPUT
+          echo "Building release version: $VERSION"
+        else
+          SEMVER="${{ inputs.semver }}"
+          PRE_NUM="${{ inputs.prerelease-number }}"
+          COMMITS="${{ inputs.commits-since }}"
+
+          if [[ -n "$PRE_NUM" && "$PRE_NUM" != "0" ]]; then
+            VERSION="${SEMVER}-pre.${PRE_NUM}"
+          else
+            VERSION="${SEMVER}-pre.${COMMITS:-1}"
+          fi
+
+          echo "mod_version=$VERSION" >> $GITHUB_OUTPUT
+          echo "is_prerelease=true" >> $GITHUB_OUTPUT
+          echo "Building prerelease version: $VERSION"
+        fi

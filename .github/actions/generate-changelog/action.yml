@@ -1,0 +1,55 @@
+name: Generate Changelog
+description: Generates changelog content from git history (automatic) or the release body (manual).
+
+inputs:
+  is-manual-release:
+    description: Whether this is a manual (GitHub Release) triggered release
+    required: true
+  release-body:
+    description: The body of the GitHub release (for manual releases)
+    required: false
+    default: ''
+  mod-version:
+    description: The mod version (used as fallback changelog text)
+    required: true
+  repository:
+    description: The GitHub repository (owner/repo) for changelog links
+    required: true
+
+outputs:
+  content:
+    description: The generated changelog content
+    value: ${{ steps.generate.outputs.content }}
+
+runs:
+  using: composite
+  steps:
+    - name: Generate changelog
+      id: generate
+      shell: bash
+      run: |
+        if [[ "${{ inputs.is-manual-release }}" == "true" ]]; then
+          CONTENT="${{ inputs.release-body }}"
+        else
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [[ -n "$LAST_TAG" ]]; then
+            COMMITS=$(git log --pretty=format:"- %s (%h)" "$LAST_TAG"..HEAD --no-merges)
+          else
+            COMMITS=$(git log --pretty=format:"- %s (%h)" -10 --no-merges)
+          fi
+          CONTENT="## What's Changed
+
+        $COMMITS
+
+        **Full Changelog**: https://github.com/${{ inputs.repository }}/compare/${LAST_TAG:-initial}...HEAD"
+        fi
+
+        if [[ -z "$CONTENT" ]]; then
+          CONTENT="Release ${{ inputs.mod-version }}"
+        fi
+
+        {
+          echo "content<<CHANGELOG_EOF"
+          echo "$CONTENT"
+          echo "CHANGELOG_EOF"
+        } >> "$GITHUB_OUTPUT"

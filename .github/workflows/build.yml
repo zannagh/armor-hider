@@ -24,17 +24,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Validate Gradle Wrapper
-        uses: gradle/actions/wrapper-validation@v5
-
-      - name: Setup JDK
-        uses: actions/setup-java@v5
-        with:
-          java-version: '25'
-          distribution: 'temurin'
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v5
+      - name: Setup Gradle Environment
+        uses: ./.github/actions/setup-gradle-env
 
       - name: Setup GitVersion
         uses: gittools/actions/gitversion/setup@v4.2.0
@@ -46,11 +37,7 @@ jobs:
         uses: gittools/actions/gitversion/execute@v4.2.0
 
       - name: Build
-        run: |
-          chmod +x ./gradlew
-          ./gradlew build \
-            -PsemVer="${{ steps.version.outputs.fullSemVer }}" \
-            -Pprerelease="true"
+        run: ./gradlew build -PsemVer="${{ steps.version.outputs.fullSemVer }}" -Pprerelease="true"
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v6
