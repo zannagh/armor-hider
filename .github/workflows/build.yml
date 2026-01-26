@@ -25,16 +25,11 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Gradle Environment
-        uses: ./.github/actions/setup-gradle-env
-
-      - name: Setup GitVersion
-        uses: gittools/actions/gitversion/setup@v4.2.0
-        with:
-          versionSpec: '6.x'
+        uses: zannagh/versionizer/setup-gradle-env@v1
 
       - name: Calculate Version
         id: version
-        uses: gittools/actions/gitversion/execute@v4.2.0
+        uses: zannagh/versionizer/calculate-version@v1
 
       - name: Build
         run: ./gradlew build -PsemVer="${{ steps.version.outputs.fullSemVer }}" -Pprerelease="true"

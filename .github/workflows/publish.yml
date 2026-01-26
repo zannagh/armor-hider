@@ -45,14 +45,9 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup GitVersion
-        uses: gittools/actions/gitversion/setup@v4.2.0
-        with:
-          versionSpec: 6.5.0
-
-      - name: Set Version Properties
+      - name: Calculate Version
         id: version
-        uses: gittools/actions/gitversion/execute@v4.2.0
+        uses: zannagh/versionizer/calculate-version@v1
 
       - name: Debug Version Info
         run: |
@@ -61,10 +56,11 @@ jobs:
           echo "FullSemVer: ${{ steps.version.outputs.fullSemVer }}"
           echo "CommitsSinceVersionSource: ${{ steps.version.outputs.commitsSinceVersionSource }}"
           echo "PreReleaseLabel: ${{ steps.version.outputs.preReleaseLabel }}"
+          echo "Config Source: ${{ steps.version.outputs.configSource }}"
 
       - name: Check Release
         id: release-check
-        uses: ./.github/actions/check-release
+        uses: zannagh/versionizer/check-release@v1
         with:
           event-name: ${{ github.event_name }}
           is-dry-run: ${{ inputs.dry_run }}
@@ -113,7 +109,7 @@ jobs:
 
       - name: Determine version to check
         id: mod-ver
-        uses: ./.github/actions/determine-mod-version
+        uses: zannagh/versionizer/determine-version@v1
         with:
           is-manual-release: ${{ needs.analyze.outputs.is_manual_release }}
           release-tag-name: ${{ github.event.release.tag_name }}
@@ -127,7 +123,7 @@ jobs:
         uses: ./.github/actions/check-modrinth-version
         with:
           project-id: ${{ env.MODRINTH_PROJECT_ID }}
-          mod-version: ${{ steps.mod-ver.outputs.mod_version }}
+          mod-version: ${{ steps.mod-ver.outputs.version }}
 
   build:
     name: Build
@@ -135,7 +131,7 @@ jobs:
     needs: [analyze, check-modrinth]
     if: "!cancelled() && needs.analyze.result == 'success'"
     outputs:
-      mod_version: ${{ steps.mod-ver.outputs.mod_version }}
+      mod_version: ${{ steps.mod-ver.outputs.version }}
       is_prerelease: ${{ steps.mod-ver.outputs.is_prerelease }}
     steps:
       - name: Checkout
@@ -144,11 +140,11 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Gradle Environment
-        uses: ./.github/actions/setup-gradle-env
+        uses: zannagh/versionizer/setup-gradle-env@v1
 
       - name: Determine Mod Version
         id: mod-ver
-        uses: ./.github/actions/determine-mod-version
+        uses: zannagh/versionizer/determine-version@v1
         with:
           is-manual-release: ${{ needs.analyze.outputs.is_manual_release }}
           release-tag-name: ${{ github.event.release.tag_name }}
@@ -160,13 +156,13 @@ jobs:
       - name: Build
         run: |
           ./gradlew build \
-            -PsemVer="${{ steps.mod-ver.outputs.mod_version }}" \
+            -PsemVer="${{ steps.mod-ver.outputs.version }}" \
             -Pprerelease="${{ steps.mod-ver.outputs.is_prerelease }}"
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v6
         with:
-          name: armor-hider-${{ steps.mod-ver.outputs.mod_version }}
+          name: armor-hider-${{ steps.mod-ver.outputs.version }}
           path: versions/**/build/libs/*.jar
           if-no-files-found: error
 
@@ -185,7 +181,7 @@ jobs:
 
       - name: Generate Changelog
         id: changelog
-        uses: ./.github/actions/generate-changelog
+        uses: zannagh/versionizer/generate-changelog@v1
         with:
           is-manual-release: ${{ needs.analyze.outputs.is_manual_release }}
           release-body: ${{ github.event.release.body }}
@@ -206,43 +202,14 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Download Artifacts
-        uses: actions/download-artifact@v7
+      - name: Create Prerelease
+        uses: zannagh/versionizer/create-prerelease@v1
         with:
-          path: artifacts
-
-      - name: Preview GitHub Release
-        run: |
-          echo "=========================================="
-          echo "GITHUB PRERELEASE PREVIEW"
-          echo "=========================================="
-          echo ""
-          echo "  Tag:      v${{ needs.build.outputs.mod_version }}"
-          echo "  Name:     ${{ needs.build.outputs.mod_version }}"
-          echo "  Type:     prerelease"
-          echo ""
-          echo "Changelog:"
-          echo "---"
-          echo "${{ needs.changelog.outputs.content }}"
-          echo "---"
-          echo ""
-          if [[ "${{ inputs.dry_run }}" != "false" ]]; then
-            echo "DRY RUN - Skipping actual GitHub release creation"
-          else
-            echo "Will create GitHub release"
-          fi
-          echo "=========================================="
-
-      - name: Create Release
-        if: ${{ !inputs.dry_run }}
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ needs.build.outputs.mod_version }}
-          name: ${{ needs.build.outputs.mod_version }}
-          body: ${{ needs.changelog.outputs.content }}
-          prerelease: true
-          files: artifacts/**/*.jar
-          generate_release_notes: false
+          version: ${{ needs.build.outputs.mod_version }}
+          changelog: ${{ needs.changelog.outputs.content }}
+          artifact-name: armor-hider-${{ needs.build.outputs.mod_version }}
+          artifact-pattern: artifacts/**/*.jar
+          dry-run: ${{ inputs.dry_run }}
 
   # ============================================================================
   # UPLOAD TO GITHUB RELEASE (manual releases)
@@ -357,63 +324,29 @@ jobs:
     if: always()
     steps:
       - name: Generate Summary
-        run: |
-          echo "## Build & Publish Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
+        uses: zannagh/versionizer/workflow-summary@v1
+        with:
+          version: ${{ needs.build.outputs.mod_version }}
+          is-prerelease: ${{ needs.build.outputs.is_prerelease }}
+          semver: ${{ needs.analyze.outputs.semver }}
+          full-semver: ${{ needs.analyze.outputs.full_semver }}
+          prerelease-number: ${{ needs.analyze.outputs.prerelease_number }}
+          commits-since: ${{ needs.analyze.outputs.commits_since }}
+          should-release: ${{ needs.analyze.outputs.should_release }}
+          is-manual-release: ${{ needs.analyze.outputs.is_manual_release }}
+          skip-reason: ${{ needs.analyze.outputs.skip_reason }}
+          changelog: ${{ needs.changelog.outputs.content }}
+          job-results: |
+            Analyze Changes=${{ needs.analyze.result }}
+            Validate Version=${{ needs.validate-version.result }}
+            Check Modrinth=${{ needs.check-modrinth.result }}
+            Build=${{ needs.build.result }}
+            Changelog=${{ needs.changelog.result }}
+            Create Prerelease=${{ needs.create-prerelease.result }}
+            Upload to Release=${{ needs.upload-to-release.result }}
+            Publish to Modrinth=${{ needs.publish-modrinth.result }}
+          additional-sections: |
+            ### Modrinth
 
-          # --- Job Status Overview ---
-          echo "### Job Results" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
-          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Analyze Changes | \`${{ needs.analyze.result }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| Validate Version | \`${{ needs.validate-version.result }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| Check Modrinth | \`${{ needs.check-modrinth.result }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| Build | \`${{ needs.build.result }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| Changelog | \`${{ needs.changelog.result }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| Create Prerelease | \`${{ needs.create-prerelease.result }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| Upload to Release | \`${{ needs.upload-to-release.result }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| Publish to Modrinth | \`${{ needs.publish-modrinth.result }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-          # --- Version Info ---
-          echo "### Version Info" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
-          echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
-          echo "| SemVer | \`${{ needs.analyze.outputs.semver }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| Full SemVer | \`${{ needs.analyze.outputs.full_semver }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| Prerelease Number | \`${{ needs.analyze.outputs.prerelease_number }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| Commits Since Tag | \`${{ needs.analyze.outputs.commits_since }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| Mod Version | \`${{ needs.build.outputs.mod_version }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| Is Prerelease | \`${{ needs.build.outputs.is_prerelease }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-          # --- Release Decision ---
-          echo "### Release Decision" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- **Should Release**: \`${{ needs.analyze.outputs.should_release }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **Is Manual Release**: \`${{ needs.analyze.outputs.is_manual_release }}\`" >> $GITHUB_STEP_SUMMARY
-          if [[ -n "${{ needs.analyze.outputs.skip_reason }}" ]]; then
-            echo "- **Skip Reason**: ${{ needs.analyze.outputs.skip_reason }}" >> $GITHUB_STEP_SUMMARY
-          fi
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-          # --- Modrinth ---
-          echo "### Modrinth" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- **Version Already Exists**: \`${{ needs.check-modrinth.outputs.version_exists }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **Publish Enabled**: \`${{ env.PUBLISH_TO_MODRINTH }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-          # --- Changelog ---
-          if [[ -n "${{ needs.changelog.outputs.content }}" ]]; then
-            echo "### Changelog" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "<details>" >> $GITHUB_STEP_SUMMARY
-            echo "<summary>Click to expand</summary>" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "${{ needs.changelog.outputs.content }}" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "</details>" >> $GITHUB_STEP_SUMMARY
-          fi
+            - **Version Already Exists**: `${{ needs.check-modrinth.outputs.version_exists }}`
+            - **Publish Enabled**: `${{ env.PUBLISH_TO_MODRINTH }}`
