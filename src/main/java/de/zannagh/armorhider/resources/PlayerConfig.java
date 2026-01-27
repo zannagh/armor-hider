@@ -3,7 +3,7 @@ package de.zannagh.armorhider.resources;
 import com.google.gson.annotations.SerializedName;
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.configuration.ConfigurationSource;
-import de.zannagh.armorhider.configuration.items.implementations.*;
+import de.zannagh.armorhider.common.configuration.items.implementations.*;
 //? if >= 1.20.5 {
 import de.zannagh.armorhider.netPackets.CompressedJsonCodec;
 import io.netty.buffer.ByteBuf;
@@ -40,47 +40,47 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
     //?}
 
     @SerializedName(value = "helmetOpacity", alternate = {"helmetTransparency"})
-    public ArmorOpacity helmetOpacity;
+    public de.zannagh.armorhider.common.configuration.items.implementations.ArmorOpacity helmetOpacity;
     @SerializedName(value = "chestOpacity", alternate = {"chestTransparency"})
-    public ArmorOpacity chestOpacity;
+    public de.zannagh.armorhider.common.configuration.items.implementations.ArmorOpacity chestOpacity;
     @SerializedName(value = "legsOpacity", alternate = {"legsTransparency"})
-    public ArmorOpacity legsOpacity;
+    public de.zannagh.armorhider.common.configuration.items.implementations.ArmorOpacity legsOpacity;
     @SerializedName(value = "bootsOpacity", alternate = {"bootsTransparency"})
-    public ArmorOpacity bootsOpacity;
+    public de.zannagh.armorhider.common.configuration.items.implementations.ArmorOpacity bootsOpacity;
     @SerializedName(value = "enableCombatDetection")
-    public CombatDetection enableCombatDetection;
+    public de.zannagh.armorhider.common.configuration.items.implementations.CombatDetection enableCombatDetection;
     @SerializedName(value = "opacityAffectingElytra")
-    public OpacityAffectingElytraItem opacityAffectingElytra;
+    public de.zannagh.armorhider.common.configuration.items.implementations.OpacityAffectingElytraItem opacityAffectingElytra;
     @SerializedName(value = "opacityAffectingHatOrSkull")
-    public OpacityAffectingHatOrSkullItem opacityAffectingHatOrSkull;
+    public de.zannagh.armorhider.common.configuration.items.implementations.OpacityAffectingHatOrSkullItem opacityAffectingHatOrSkull;
     @SerializedName(value = "disableArmorHider", alternate = "globalArmorHiderToggle")
-    public DisableArmorHiderGlobally disableArmorHider;
+    public de.zannagh.armorhider.common.configuration.items.implementations.DisableArmorHiderGlobally disableArmorHider;
     @SerializedName(value = "disableArmorHiderForOthers", alternate = "toggleArmorHiderForOthers")
-    public DisableArmorHiderForOthers disableArmorHiderForOthers;
+    public de.zannagh.armorhider.common.configuration.items.implementations.DisableArmorHiderForOthers disableArmorHiderForOthers;
     @SerializedName(value = "usePlayerSettingsWhenUndeterminable")
-    public UsePlayerSettingsWhenUndeterminable usePlayerSettingsWhenUndeterminable;
-    public PlayerUuid playerId;
-    public PlayerName playerName;
+    public de.zannagh.armorhider.common.configuration.items.implementations.UsePlayerSettingsWhenUndeterminable usePlayerSettingsWhenUndeterminable;
+    public de.zannagh.armorhider.common.configuration.items.implementations.PlayerUuid playerId;
+    public de.zannagh.armorhider.common.configuration.items.implementations.PlayerName playerName;
     private transient boolean hasChangedFromSerializedContent;
     public PlayerConfig(UUID uuid, String name) {
         this();
-        this.playerId = new PlayerUuid(uuid);
-        this.playerName = new PlayerName(name);
+        this.playerId = new de.zannagh.armorhider.common.configuration.items.implementations.PlayerUuid(uuid);
+        this.playerName = new de.zannagh.armorhider.common.configuration.items.implementations.PlayerName(name);
     }
 
     public PlayerConfig() {
-        helmetOpacity = new ArmorOpacity();
-        chestOpacity = new ArmorOpacity();
-        legsOpacity = new ArmorOpacity();
-        bootsOpacity = new ArmorOpacity();
-        enableCombatDetection = new CombatDetection();
-        playerId = new PlayerUuid();
-        playerName = new PlayerName();
-        opacityAffectingHatOrSkull = new OpacityAffectingHatOrSkullItem();
-        opacityAffectingElytra = new OpacityAffectingElytraItem();
-        disableArmorHider = new DisableArmorHiderGlobally();
-        disableArmorHiderForOthers = new DisableArmorHiderForOthers();
-        usePlayerSettingsWhenUndeterminable = new UsePlayerSettingsWhenUndeterminable();
+        helmetOpacity = new de.zannagh.armorhider.common.configuration.items.implementations.ArmorOpacity();
+        chestOpacity = new de.zannagh.armorhider.common.configuration.items.implementations.ArmorOpacity();
+        legsOpacity = new de.zannagh.armorhider.common.configuration.items.implementations.ArmorOpacity();
+        bootsOpacity = new de.zannagh.armorhider.common.configuration.items.implementations.ArmorOpacity();
+        enableCombatDetection = new de.zannagh.armorhider.common.configuration.items.implementations.CombatDetection();
+        playerId = new de.zannagh.armorhider.common.configuration.items.implementations.PlayerUuid();
+        playerName = new de.zannagh.armorhider.common.configuration.items.implementations.PlayerName();
+        opacityAffectingHatOrSkull = new de.zannagh.armorhider.common.configuration.items.implementations.OpacityAffectingHatOrSkullItem();
+        opacityAffectingElytra = new de.zannagh.armorhider.common.configuration.items.implementations.OpacityAffectingElytraItem();
+        disableArmorHider = new de.zannagh.armorhider.common.configuration.items.implementations.DisableArmorHiderGlobally();
+        disableArmorHiderForOthers = new de.zannagh.armorhider.common.configuration.items.implementations.DisableArmorHiderForOthers();
+        usePlayerSettingsWhenUndeterminable = new de.zannagh.armorhider.common.configuration.items.implementations.UsePlayerSettingsWhenUndeterminable();
     }
 
     public static PlayerConfig deserialize(Reader reader) {

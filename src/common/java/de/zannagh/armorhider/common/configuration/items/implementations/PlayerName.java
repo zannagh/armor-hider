@@ -1,6 +1,6 @@
-package de.zannagh.armorhider.configuration.items.implementations;
+package de.zannagh.armorhider.common.configuration.items.implementations;
 
-import de.zannagh.armorhider.configuration.items.StringConfigItem;
+import de.zannagh.armorhider.common.configuration.items.StringConfigItem;
 
 public class PlayerName extends StringConfigItem {
 

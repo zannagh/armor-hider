@@ -1,6 +1,6 @@
-package de.zannagh.armorhider.configuration.items.implementations;
+package de.zannagh.armorhider.common.configuration.items.implementations;
 
-import de.zannagh.armorhider.configuration.items.BooleanConfigItem;
+import de.zannagh.armorhider.common.configuration.items.BooleanConfigItem;
 
 public class OpacityAffectingHatOrSkullItem extends BooleanConfigItem {
     public OpacityAffectingHatOrSkullItem(boolean currentValue) {

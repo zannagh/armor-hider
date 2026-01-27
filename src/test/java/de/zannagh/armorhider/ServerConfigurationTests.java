@@ -1,7 +1,7 @@
 package de.zannagh.armorhider;
 
 import com.google.common.base.Stopwatch;
-import de.zannagh.armorhider.configuration.ConfigurationItemFactoryRegistry;
+import de.zannagh.armorhider.common.configuration.ConfigurationItemFactoryRegistry;
 import de.zannagh.armorhider.resources.ServerConfiguration;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;

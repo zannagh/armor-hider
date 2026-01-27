@@ -1,6 +1,6 @@
-package de.zannagh.armorhider.configuration.items.implementations;
+package de.zannagh.armorhider.common.configuration.items.implementations;
 
-import de.zannagh.armorhider.configuration.items.UUIDConfigItem;
+import de.zannagh.armorhider.common.configuration.items.UUIDConfigItem;
 
 import java.util.UUID;
 

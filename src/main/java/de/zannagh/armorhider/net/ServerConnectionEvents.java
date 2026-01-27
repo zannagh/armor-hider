@@ -2,7 +2,7 @@ package de.zannagh.armorhider.net;
 
 import com.mojang.authlib.GameProfile;
 import de.zannagh.armorhider.ArmorHider;
-import de.zannagh.armorhider.util.ExponentialBackoffHelper;
+import de.zannagh.armorhider.common.util.ExponentialBackoffHelper;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 

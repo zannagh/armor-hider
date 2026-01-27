@@ -1,4 +1,4 @@
-package de.zannagh.armorhider.configuration;
+package de.zannagh.armorhider.common.configuration;
 
 public abstract class ConfigurationItemBase<T> {
 

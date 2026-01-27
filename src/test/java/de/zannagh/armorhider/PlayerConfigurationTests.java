@@ -1,8 +1,8 @@
 package de.zannagh.armorhider;
 
 import de.zannagh.armorhider.config.ClientConfigManager;
-import de.zannagh.armorhider.configuration.ConfigurationItemFactoryRegistry;
-import de.zannagh.armorhider.configuration.items.implementations.ArmorOpacity;
+import de.zannagh.armorhider.common.configuration.ConfigurationItemFactoryRegistry;
+import de.zannagh.armorhider.common.configuration.items.implementations.ArmorOpacity;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

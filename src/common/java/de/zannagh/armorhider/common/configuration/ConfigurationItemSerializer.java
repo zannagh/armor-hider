@@ -1,4 +1,4 @@
-package de.zannagh.armorhider.configuration;
+package de.zannagh.armorhider.common.configuration;
 
 import com.google.gson.Gson;
 import com.google.gson.TypeAdapter;
@@ -37,7 +37,7 @@ public class ConfigurationItemSerializer implements TypeAdapterFactory {
             return null;
         }
 
-        if (!ConfigurationItemBase.class.isAssignableFrom(rawType)) {
+        if (!de.zannagh.armorhider.common.configuration.ConfigurationItemBase.class.isAssignableFrom(rawType)) {
             return null;
         }
 
@@ -57,7 +57,7 @@ public class ConfigurationItemSerializer implements TypeAdapterFactory {
         Type genericSuperclass = implementation.getGenericSuperclass();
         if (genericSuperclass instanceof ParameterizedType parameterized) {
             Type rawType = parameterized.getRawType();
-            if (rawType instanceof Class<?> superClass && ConfigurationItemBase.class.isAssignableFrom(superClass)) {
+            if (rawType instanceof Class<?> superClass && de.zannagh.armorhider.common.configuration.ConfigurationItemBase.class.isAssignableFrom(superClass)) {
                 return parameterized.getActualTypeArguments()[0];
             }
         }
@@ -69,28 +69,28 @@ public class ConfigurationItemSerializer implements TypeAdapterFactory {
         return null;
     }
 
-    private static class ConfigurationItemTypeAdapter<T> extends TypeAdapter<ConfigurationItemBase<T>> {
-        private final Class<? extends ConfigurationItemBase<?>> configClass;
+    private static class ConfigurationItemTypeAdapter<T> extends TypeAdapter<de.zannagh.armorhider.common.configuration.ConfigurationItemBase<T>> {
+        private final Class<? extends de.zannagh.armorhider.common.configuration.ConfigurationItemBase<?>> configClass;
         private final TypeAdapter<T> valueAdapter;
-        private final Function<Object, ConfigurationItemBase<T>> cachedFactory;
+        private final Function<Object, de.zannagh.armorhider.common.configuration.ConfigurationItemBase<T>> cachedFactory;
 
         @SuppressWarnings("unchecked")
         public ConfigurationItemTypeAdapter(
-                Class<? extends ConfigurationItemBase<?>> configClass,
+                Class<? extends de.zannagh.armorhider.common.configuration.ConfigurationItemBase<?>> configClass,
                 TypeAdapter<T> valueAdapter) {
             this.configClass = configClass;
             this.valueAdapter = valueAdapter;
 
             // Get factory from centralized registry and cache it
-            Function<Object, ConfigurationItemBase<?>> factory = ConfigurationItemFactoryRegistry.getValueFactory(configClass);
+            Function<Object, de.zannagh.armorhider.common.configuration.ConfigurationItemBase<?>> factory = ConfigurationItemFactoryRegistry.getValueFactory(configClass);
             if (factory == null) {
                 throw new IllegalStateException("No factory registered for " + configClass.getName());
             }
-            this.cachedFactory = (Function<Object, ConfigurationItemBase<T>>) (Function<?, ?>) factory;
+            this.cachedFactory = (Function<Object, de.zannagh.armorhider.common.configuration.ConfigurationItemBase<T>>) (Function<?, ?>) factory;
         }
 
         @Override
-        public void write(JsonWriter out, ConfigurationItemBase<T> value) throws IOException {
+        public void write(JsonWriter out, de.zannagh.armorhider.common.configuration.ConfigurationItemBase<T> value) throws IOException {
             if (value == null) {
                 out.nullValue();
                 return;
@@ -99,7 +99,7 @@ public class ConfigurationItemSerializer implements TypeAdapterFactory {
         }
 
         @Override
-        public ConfigurationItemBase<T> read(JsonReader in) throws IOException {
+        public de.zannagh.armorhider.common.configuration.ConfigurationItemBase<T> read(JsonReader in) throws IOException {
             if (in.peek() == JsonToken.NULL) {
                 in.nextNull();
                 return null;

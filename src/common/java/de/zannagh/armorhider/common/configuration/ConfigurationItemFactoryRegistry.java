@@ -1,6 +1,6 @@
-package de.zannagh.armorhider.configuration;
+package de.zannagh.armorhider.common.configuration;
 
-import de.zannagh.armorhider.configuration.items.implementations.*;
+import de.zannagh.armorhider.common.configuration.items.implementations.*;
 
 import java.lang.reflect.Constructor;
 import java.util.concurrent.ConcurrentHashMap;
@@ -13,8 +13,8 @@ import java.util.function.Supplier;
  */
 public class ConfigurationItemFactoryRegistry {
 
-    private static final ConcurrentHashMap<Class<?>, Function<Object, ConfigurationItemBase<?>>> VALUE_FACTORIES = new ConcurrentHashMap<>();
-    private static final ConcurrentHashMap<Class<?>, Supplier<ConfigurationItemBase<?>>> DEFAULT_FACTORIES = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Class<?>, Function<Object, de.zannagh.armorhider.common.configuration.ConfigurationItemBase<?>>> VALUE_FACTORIES = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Class<?>, Supplier<de.zannagh.armorhider.common.configuration.ConfigurationItemBase<?>>> DEFAULT_FACTORIES = new ConcurrentHashMap<>();
     private static boolean initialized = false;
 
     public static synchronized void initialize() {
@@ -37,21 +37,21 @@ public class ConfigurationItemFactoryRegistry {
         initialized = true;
     }
 
-    public static Function<Object, ConfigurationItemBase<?>> getValueFactory(Class<?> clazz) {
+    public static Function<Object, de.zannagh.armorhider.common.configuration.ConfigurationItemBase<?>> getValueFactory(Class<?> clazz) {
         if (!initialized) {
             initialize();
         }
         return VALUE_FACTORIES.get(clazz);
     }
 
-    public static Supplier<ConfigurationItemBase<?>> getDefaultFactory(Class<?> clazz) {
+    public static Supplier<de.zannagh.armorhider.common.configuration.ConfigurationItemBase<?>> getDefaultFactory(Class<?> clazz) {
         if (!initialized) {
             initialize();
         }
         return DEFAULT_FACTORIES.get(clazz);
     }
 
-    private static void registerFactoriesForClass(Class<? extends ConfigurationItemBase<?>> clazz) {
+    private static void registerFactoriesForClass(Class<? extends de.zannagh.armorhider.common.configuration.ConfigurationItemBase<?>> clazz) {
         try {
             Constructor<?>[] constructors = clazz.getDeclaredConstructors();
             Constructor<?> singleParamConstructor = null;
@@ -73,22 +73,22 @@ public class ConfigurationItemFactoryRegistry {
 
             Constructor<?> finalSingleParamConstructor = singleParamConstructor;
             finalSingleParamConstructor.setAccessible(true);
-            Function<Object, ConfigurationItemBase<?>> valueFactory = value -> {
+            Function<Object, de.zannagh.armorhider.common.configuration.ConfigurationItemBase<?>> valueFactory = value -> {
                 try {
-                    return (ConfigurationItemBase<?>) finalSingleParamConstructor.newInstance(value);
+                    return (de.zannagh.armorhider.common.configuration.ConfigurationItemBase<?>) finalSingleParamConstructor.newInstance(value);
                 } catch (Exception e) {
                     throw new RuntimeException("Failed to create instance of " + clazz.getName(), e);
                 }
             };
             VALUE_FACTORIES.put(clazz, valueFactory);
 
-            Supplier<ConfigurationItemBase<?>> defaultFactory;
+            Supplier<de.zannagh.armorhider.common.configuration.ConfigurationItemBase<?>> defaultFactory;
             if (noArgConstructor != null) {
                 defaultFactory = getConfigurationItemBaseSupplier(clazz, noArgConstructor);
             } else {
                 defaultFactory = () -> {
                     try {
-                        return (ConfigurationItemBase<?>) finalSingleParamConstructor.newInstance(new Object[]{null});
+                        return (de.zannagh.armorhider.common.configuration.ConfigurationItemBase<?>) finalSingleParamConstructor.newInstance(new Object[]{null});
                     } catch (Exception e) {
                         throw new RuntimeException("Failed to create instance of " + clazz.getName(), e);
                     }
@@ -101,11 +101,11 @@ public class ConfigurationItemFactoryRegistry {
         }
     }
 
-    private static Supplier<ConfigurationItemBase<?>> getConfigurationItemBaseSupplier(Class<? extends ConfigurationItemBase<?>> clazz, Constructor<?> noArgConstructor) {
+    private static Supplier<de.zannagh.armorhider.common.configuration.ConfigurationItemBase<?>> getConfigurationItemBaseSupplier(Class<? extends de.zannagh.armorhider.common.configuration.ConfigurationItemBase<?>> clazz, Constructor<?> noArgConstructor) {
         noArgConstructor.setAccessible(true);
         return () -> {
             try {
-                return (ConfigurationItemBase<?>) noArgConstructor.newInstance();
+                return (de.zannagh.armorhider.common.configuration.ConfigurationItemBase<?>) noArgConstructor.newInstance();
             } catch (Exception e) {
                 throw new RuntimeException("Failed to create instance of " + clazz.getName(), e);
             }

@@ -1,7 +1,7 @@
 package de.zannagh.armorhider.combat;
 
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.common.CombatManager;
+import de.zannagh.armorhider.common.services.CombatManager;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.player.RemotePlayer;

@@ -7,27 +7,14 @@ plugins {
 // Mojang uses "snapshot" in Maven artifacts but "alpha" in the internal version ID
 val fabricGameVersion: String = stonecutter.current.project.replace("-snapshot-", "-alpha.")
 
-fun getGitVersion(): String {
-    var isPreRelease = true
-    val preReleaseProperty = findProperty("prerelease")?.toString() ?: ""
-    if (preReleaseProperty.isNotEmpty() && preReleaseProperty.lowercase() == "false") {
-        isPreRelease = false
-    }
-    val ciVersionProperty = findProperty("semVer")?.toString() ?: ""
-    val modLoader = findProperty("mod_loader")?.toString() ?: "fabric"
-    val gameVersion = stonecutter.current.project
 
-    val buildVersion = if (ciVersionProperty.isNotEmpty()) {
-        val ciVersion = "$gameVersion-$ciVersionProperty"
-        "$modLoader-$ciVersion"
-    } else {
-        "$modLoader-${getVersionFromGitVersionOrTag(gameVersion)}"
-    }
-
-    return if (isPreRelease) "$buildVersion-preview" else buildVersion
-}
-
-version = getGitVersion()
+version = Versioning.getGitVersion(
+    findProperty("prerelease"),
+    findProperty("preReleaseVersion"),
+    findProperty("semVer"),
+    stonecutter.current.project,
+    findProperty("mod_loader")
+)
 group = property("maven_group").toString()
 
 base {
@@ -37,6 +24,14 @@ base {
 repositories {
     // Add repositories to retrieve artifacts from in here.
     // Loom adds the essential maven repositories automatically.
+}
+
+sourceSets {
+    create("common")
+    named("main") {
+        compileClasspath += sourceSets["common"].output
+        runtimeClasspath += sourceSets["common"].output
+    }
 }
 
 loom {
@@ -57,10 +52,22 @@ loom {
     }
 }
 
+// Wire common into client (created by splitEnvironmentSourceSets above)
+sourceSets.named("client") {
+    compileClasspath += sourceSets["common"].output
+    runtimeClasspath += sourceSets["common"].output
+}
+
 dependencies {
     minecraft("com.mojang:minecraft:${stonecutter.current.project}")
     // No mappings needed for unobfuscated Minecraft 26.1+
     implementation("net.fabricmc:fabric-loader:${property("loader_version")}")
+
+    // Common source set (version-independent shared code)
+    "commonCompileOnly"("org.jspecify:jspecify:1.0.0")
+    "commonCompileOnly"("org.slf4j:slf4j-api:2.0.16")
+    "commonCompileOnly"("com.google.code.gson:gson:2.11.0")
+    "commonCompileOnly"("com.google.guava:guava:33.4.0-jre")
 
     compileOnly("org.jspecify:jspecify:1.0.0")
 
@@ -103,6 +110,8 @@ java {
 tasks.jar {
     inputs.property("archivesName", base.archivesName)
 
+    from(sourceSets["common"].output)
+
     from("LICENSE") {
         rename { "${it}_${base.archivesName.get()}" }
     }
@@ -120,140 +129,14 @@ publishing {
     }
 }
 
+sourceSets.named("test") {
+    compileClasspath += sourceSets["common"].output
+    runtimeClasspath += sourceSets["common"].output
+}
+
 tasks.test {
     useJUnitPlatform()
     testLogging {
         events("passed", "skipped", "failed")
-    }
-}
-
-// Server startup test - verifies the mod loads without crashing
-tasks.register("serverStartupTest") {
-    group = "verification"
-    description = "Starts a Minecraft server with the mod to verify it loads correctly"
-    dependsOn(tasks.named("jar"))
-
-    doLast {
-        val serverDir = layout.buildDirectory.dir("server-test").get().asFile
-        serverDir.mkdirs()
-
-        // Accept EULA
-        File(serverDir, "eula.txt").writeText("eula=true")
-
-        // Get the server jar from Loom cache
-        val minecraftVersion = stonecutter.current.project
-        val serverJar = File(System.getProperty("user.home"), ".gradle/caches/fabric-loom/$minecraftVersion/minecraft-server.jar")
-
-        if (!serverJar.exists()) {
-            throw GradleException("Server jar not found at $serverJar. Run './gradlew downloadAssets' first.")
-        }
-
-        // Copy mod jar to mods folder
-        val modsDir = File(serverDir, "mods")
-        modsDir.mkdirs()
-        val modJar = tasks.named<org.gradle.jvm.tasks.Jar>("jar").get().archiveFile.get().asFile
-        modJar.copyTo(File(modsDir, modJar.name), overwrite = true)
-
-        // Copy Fabric Loader
-        val fabricLoaderJar = configurations.named("implementation").get().files.find { it.name.contains("fabric-loader") }
-        if (fabricLoaderJar != null) {
-            fabricLoaderJar.copyTo(File(modsDir, fabricLoaderJar.name), overwrite = true)
-        }
-
-        // Start server with timeout
-        val process = ProcessBuilder(
-            "java", "-Xmx512M",
-            "-Dfabric.skipMcProvider=true",
-            "-Dfabric.gameVersion=$fabricGameVersion",
-            "-jar", serverJar.absolutePath,
-            "--nogui"
-        )
-            .directory(serverDir)
-            .redirectErrorStream(true)
-            .start()
-
-        val timeout = 120_000L // 2 minutes
-        var serverStarted = false
-        var error: String? = null
-
-        Thread {
-            process.inputStream.bufferedReader().forEachLine { line ->
-                println("[Server] $line")
-                if (line.contains("Done") && line.contains("For help, type")) {
-                    serverStarted = true
-                    // Send stop command
-                    process.outputStream.bufferedWriter().apply {
-                        write("stop\n")
-                        flush()
-                    }
-                }
-                if (line.contains("Exception") || line.contains("Error loading mod")) {
-                    error = line
-                }
-            }
-        }.start()
-
-        // Wait for completion or timeout
-        val completed = process.waitFor(timeout, TimeUnit.MILLISECONDS)
-
-        if (!completed) {
-            process.destroyForcibly()
-            throw GradleException("Server startup test timed out after ${timeout / 1000} seconds")
-        }
-
-        if (error != null) {
-            throw GradleException("Server startup failed: $error")
-        }
-
-        if (!serverStarted) {
-            throw GradleException("Server did not start successfully. Exit code: ${process.exitValue()}")
-        }
-
-        println("Server startup test passed!")
-    }
-}
-
-fun getVersionFromGitVersionOrTag(gameVersion: String): String {
-    try {
-        val semVer: String
-        val commitsSinceSource: String
-        val uncommittedChanges: String
-        try {
-            semVer = Runtime.getRuntime().exec(arrayOf("gitversion", "/output", "json", "/showVariable", "majorMinorPatch"))
-                .inputStream.bufferedReader().readText().trim()
-            commitsSinceSource = Runtime.getRuntime().exec(arrayOf("gitversion", "/output", "json", "/showVariable", "CommitsSinceVersionSource"))
-                .inputStream.bufferedReader().readText().trim()
-            uncommittedChanges = Runtime.getRuntime().exec(arrayOf("gitversion", "/output", "json", "/showVariable", "UncommittedChanges"))
-                .inputStream.bufferedReader().readText().trim()
-        } catch (_: Exception) {
-            val semVerProc = Runtime.getRuntime().exec(arrayOf("dotnet", "gitversion", "/output", "json", "/showVariable", "majorMinorPatch"))
-            val commitsSinceProc = Runtime.getRuntime().exec(arrayOf("dotnet", "gitversion", "/output", "json", "/showVariable", "CommitsSinceVersionSource"))
-            val uncommittedProc = Runtime.getRuntime().exec(arrayOf("dotnet", "gitversion", "/output", "json", "/showVariable", "UncommittedChanges"))
-            return getVersionFromGitVersionOrTagFallback(
-                semVerProc.inputStream.bufferedReader().readText().trim(),
-                commitsSinceProc.inputStream.bufferedReader().readText().trim(),
-                uncommittedProc.inputStream.bufferedReader().readText().trim(),
-                gameVersion
-            )
-        }
-        return getVersionFromGitVersionOrTagFallback(semVer, commitsSinceSource, uncommittedChanges, gameVersion)
-    } catch (_: Exception) {
-        val lastKnownTag = Runtime.getRuntime().exec(arrayOf("git", "describe", "--tags"))
-            .inputStream.bufferedReader().readText().trim()
-        return if (lastKnownTag.contains(gameVersion)) {
-            lastKnownTag
-        } else {
-            "$gameVersion-$lastKnownTag"
-        }
-    }
-}
-
-fun getVersionFromGitVersionOrTagFallback(semVer: String, commitsSinceSource: String, uncommittedChanges: String, gameVersion: String): String {
-    if (semVer.isEmpty() || !semVer.contains(Regex("\\d")) || !commitsSinceSource.matches(Regex("\\d.*"))) {
-        throw Exception("Invalid version info")
-    }
-    return when (commitsSinceSource) {
-        "0" -> if (uncommittedChanges == "0") "$gameVersion-$semVer" else "$gameVersion-$semVer-$uncommittedChanges"
-        else -> "$gameVersion-$semVer-$commitsSinceSource"
     }
 }

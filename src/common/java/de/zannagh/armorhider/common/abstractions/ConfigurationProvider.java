@@ -1,4 +1,4 @@
-package de.zannagh.armorhider.common;
+package de.zannagh.armorhider.common.abstractions;
 
 public interface ConfigurationProvider<T> {
     T load();

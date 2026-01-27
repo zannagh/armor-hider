@@ -1,6 +1,6 @@
 package de.zannagh.armorhider.resources;
 
-import de.zannagh.armorhider.common.ConfigurationProvider;
+import de.zannagh.armorhider.common.abstractions.ConfigurationProvider;
 
 import java.io.File;
 import java.nio.file.Path;

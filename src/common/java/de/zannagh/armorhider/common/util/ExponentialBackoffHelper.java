@@ -1,4 +1,4 @@
-package de.zannagh.armorhider.util;
+package de.zannagh.armorhider.common.util;
 
 /**
  * An exponential backoff helper following IEE802 standards.

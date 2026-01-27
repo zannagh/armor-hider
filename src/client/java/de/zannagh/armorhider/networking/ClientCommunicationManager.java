@@ -20,19 +20,8 @@ public final class ClientCommunicationManager {
 
     public static void initClient() {
         //? if >= 1.20.5 {
-        PayloadRegistry.registerS2CHandler(ServerConfiguration.TYPE, ctx -> {
-            if (!(ctx.payload() instanceof ServerConfiguration payload)) {
-                return;
-            }
-            handleServerConfigReceived(payload);
-        });
-
-        PayloadRegistry.registerS2CHandler(PermissionPacket.TYPE, ctx -> {
-            if (!(ctx.payload() instanceof PermissionPacket payload)) {
-                return;
-            }
-            handlePermissionPacketReceived(payload);
-        });
+        PayloadRegistry.registerS2CHandler(ServerConfiguration.TYPE, ctx -> ClientCommunicationManager.handleServerConfigReceived(ctx.payload()));
+        PayloadRegistry.registerS2CHandler(PermissionPacket.TYPE, ctx -> ClientCommunicationManager.handlePermissionPacketReceived(ctx.payload()));
         //?}
 
         //? if < 1.20.5 {
@@ -80,14 +69,14 @@ public final class ClientCommunicationManager {
         });
     }
 
-    private static void handleServerConfigReceived(ServerConfiguration payload) {
+    private static void handleServerConfigReceived(ServerConfiguration ctx) {
         ArmorHider.LOGGER.info("Armor Hider received configuration from server.");
-        ArmorHiderClient.CLIENT_CONFIG_MANAGER.setServerConfig(payload);
+        ArmorHiderClient.CLIENT_CONFIG_MANAGER.setServerConfig(ctx);
         ArmorHider.LOGGER.info("Armor Hider successfully set configuration from server.");
     }
 
-    private static void handlePermissionPacketReceived(PermissionPacket payload) {
-        if (payload.permissionLevel >= 3) {
+    private static void handlePermissionPacketReceived(PermissionPacket ctx) {
+        if (ctx.permissionLevel >= 3) {
             ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin = true;
         }
     }

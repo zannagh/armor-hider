@@ -1,4 +1,4 @@
-package de.zannagh.armorhider.common;
+package de.zannagh.armorhider.common.util;
 
 import org.slf4j.Logger;
 import org.slf4j.Marker;

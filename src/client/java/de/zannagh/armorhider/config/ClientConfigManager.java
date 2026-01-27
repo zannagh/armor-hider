@@ -2,7 +2,7 @@ package de.zannagh.armorhider.config;
 
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.common.ConfigurationProvider;
+import de.zannagh.armorhider.common.abstractions.ConfigurationProvider;
 import de.zannagh.armorhider.networking.ClientPacketSender;
 import de.zannagh.armorhider.resources.PlayerConfig;
 import de.zannagh.armorhider.resources.ServerConfiguration;

@@ -2,8 +2,8 @@ package de.zannagh.armorhider.resources;
 
 import com.google.gson.annotations.SerializedName;
 import de.zannagh.armorhider.configuration.ConfigurationSource;
-import de.zannagh.armorhider.configuration.items.implementations.CombatDetection;
-import de.zannagh.armorhider.configuration.items.implementations.ForceArmorHiderOffOnPlayers;
+import de.zannagh.armorhider.common.configuration.items.implementations.CombatDetection;
+import de.zannagh.armorhider.common.configuration.items.implementations.ForceArmorHiderOffOnPlayers;
 //? if >= 1.20.5 {
 import de.zannagh.armorhider.netPackets.CompressedJsonCodec;
 import io.netty.buffer.ByteBuf;

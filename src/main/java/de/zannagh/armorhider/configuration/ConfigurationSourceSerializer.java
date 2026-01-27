@@ -25,7 +25,7 @@ public class ConfigurationSourceSerializer implements TypeAdapterFactory {
 
     public ConfigurationSourceSerializer() {
         // Initialize the factory registry on first instantiation
-        ConfigurationItemFactoryRegistry.initialize();
+        de.zannagh.armorhider.common.configuration.ConfigurationItemFactoryRegistry.initialize();
     }
 
     @Override
@@ -72,7 +72,7 @@ public class ConfigurationSourceSerializer implements TypeAdapterFactory {
 
     private boolean checkJsonForMissingFields(@NonNull Object config, @NonNull JsonObject jsonObject) {
         for (Field field : config.getClass().getDeclaredFields()) {
-            if (ConfigurationItemBase.class.isAssignableFrom(field.getType())) {
+            if (de.zannagh.armorhider.common.configuration.ConfigurationItemBase.class.isAssignableFrom(field.getType())) {
                 Set<String> fieldNames = getSerializedFieldNames(field);
 
                 boolean foundInJson = false;
@@ -108,12 +108,12 @@ public class ConfigurationSourceSerializer implements TypeAdapterFactory {
     private boolean initializeNullConfigFields(@NonNull Object config) {
         boolean hasChangedComparedToSerializedContent = false;
         for (Field field : config.getClass().getDeclaredFields()) {
-            if (ConfigurationItemBase.class.isAssignableFrom(field.getType())) {
+            if (de.zannagh.armorhider.common.configuration.ConfigurationItemBase.class.isAssignableFrom(field.getType())) {
                 try {
                     field.setAccessible(true);
                     if (field.get(config) == null) {
                         Object instance;
-                        Supplier<ConfigurationItemBase<?>> factory = ConfigurationItemFactoryRegistry.getDefaultFactory(field.getType());
+                        Supplier<de.zannagh.armorhider.common.configuration.ConfigurationItemBase<?>> factory = de.zannagh.armorhider.common.configuration.ConfigurationItemFactoryRegistry.getDefaultFactory(field.getType());
                         if (factory != null) {
                             instance = factory.get();
                         } else {
