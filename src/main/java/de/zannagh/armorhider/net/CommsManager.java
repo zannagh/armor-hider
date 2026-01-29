@@ -35,13 +35,10 @@ public final class CommsManager {
         // Register PlayerConfig handler (C2S)
         //? if >= 1.20.5 {
         PayloadRegistry.registerC2SHandler(PlayerConfig.TYPE, ctx -> {
-            if (!(ctx.payload() instanceof PlayerConfig config)) {
-                return;
-            }
             if (!(ctx.context() instanceof ServerPayloadContext serverCtx)) {
                 return;
             }
-            handlePlayerConfigReceived(config, serverCtx);
+            handlePlayerConfigReceived(ctx.payload(), serverCtx);
         });
         //?}
         //? if < 1.20.5 {
@@ -59,13 +56,10 @@ public final class CommsManager {
         // Register ServerWideSettings handler (C2S)
         //? if >= 1.20.5 {
         PayloadRegistry.registerC2SHandler(ServerWideSettings.TYPE, ctx -> {
-            if (!(ctx.payload() instanceof ServerWideSettings payload)) {
-                return;
-            }
             if (!(ctx.context() instanceof ServerPayloadContext serverCtx)) {
                 return;
             }
-            handleServerWideSettingsReceived(payload, serverCtx.player(), serverCtx.server());
+            handleServerWideSettingsReceived(ctx.payload(), serverCtx.player(), serverCtx.server());
         });
         //?}
         //? if < 1.20.5 {

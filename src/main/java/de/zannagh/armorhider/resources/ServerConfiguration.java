@@ -42,7 +42,17 @@ public class ServerConfiguration implements ConfigurationSource<ServerConfigurat
 
     //? if >= 1.20.5 {
     public static final Type<ServerConfiguration> TYPE = new Type<>(PACKET_IDENTIFIER);
+    
     public static final StreamCodec<ByteBuf, ServerConfiguration> STREAM_CODEC = CompressedJsonCodec.create(ServerConfiguration.class);
+    
+    public StreamCodec<ByteBuf, ServerConfiguration> getCodec() {
+        return CompressedJsonCodec.create(ServerConfiguration.class);
+    }
+
+    @Override
+    public @NonNull Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
     //?}
 
     private static final java.lang.reflect.Type LEGACY_MAP_TYPE = new TypeToken<Map<UUID, PlayerConfig>>() {
@@ -128,11 +138,6 @@ public class ServerConfiguration implements ConfigurationSource<ServerConfigurat
         return new ServerConfiguration(playerConfigs, new ServerWideSettings(true, false));
     }
 
-    //? if >= 1.20.5 {
-    public StreamCodec<ByteBuf, ServerConfiguration> getCodec() {
-        return CompressedJsonCodec.create(ServerConfiguration.class);
-    }
-    //?}
 
     public PlayerConfig getPlayerConfigOrDefault(Player player) {
         PlayerConfig uuidConfig = getPlayerConfigOrDefault(player.getUUID());
@@ -185,11 +190,4 @@ public class ServerConfiguration implements ConfigurationSource<ServerConfigurat
     public void setHasChangedFromSerializedContent() {
         hasChangedComparedToSerializedContent = true;
     }
-
-    //? if >= 1.20.5 {
-    @Override
-    public @NonNull Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
-    //?}
 }

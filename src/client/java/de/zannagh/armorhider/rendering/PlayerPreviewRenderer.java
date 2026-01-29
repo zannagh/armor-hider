@@ -14,7 +14,7 @@ public class PlayerPreviewRenderer {
     private static final int armorHiderSegmentRow = 5;
 
     public static void renderPlayerPreview(GuiGraphics graphics, OptionsList body, int mouseX, int mouseY) {
-        AbstractClientPlayer player = (AbstractClientPlayer) Minecraft.getInstance().player;
+        AbstractClientPlayer player = Minecraft.getInstance().player;
         if (player == null) {
             return;
         }

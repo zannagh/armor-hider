@@ -32,6 +32,16 @@ public class ServerWideSettings implements ConfigurationSource<ServerWideSetting
     public static final Type<ServerWideSettings> TYPE = new Type<>(PACKET_IDENTIFIER);
 
     public static final StreamCodec<ByteBuf, ServerWideSettings> STREAM_CODEC = CompressedJsonCodec.create(ServerWideSettings.class);
+
+    @Override
+    public StreamCodec<ByteBuf, ServerWideSettings> getCodec() {
+        return CompressedJsonCodec.create(ServerWideSettings.class);
+    }
+
+    @Override
+    public @NonNull Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
     //?}
 
     @SerializedName(value = "enableCombatDetection")
@@ -49,14 +59,7 @@ public class ServerWideSettings implements ConfigurationSource<ServerWideSetting
         this.enableCombatDetection = new CombatDetection(enableCombatDetection);
         this.forceArmorHiderOff = new ForceArmorHiderOffOnPlayers(forceArmorHiderOff);
     }
-
-    //? if >= 1.20.5 {
-    @Override
-    public StreamCodec<ByteBuf, ServerWideSettings> getCodec() {
-        return CompressedJsonCodec.create(ServerWideSettings.class);
-    }
-    //?}
-
+    
     @Override
     public boolean hasChangedFromSerializedContent() {
         return hasChangedFromSerializedContent;
@@ -66,11 +69,4 @@ public class ServerWideSettings implements ConfigurationSource<ServerWideSetting
     public void setHasChangedFromSerializedContent() {
         hasChangedFromSerializedContent = true;
     }
-
-    //? if >= 1.20.5 {
-    @Override
-    public @NonNull Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
-    //?}
 }

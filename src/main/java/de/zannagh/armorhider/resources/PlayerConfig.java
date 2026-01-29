@@ -37,30 +37,39 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
     public static final StreamCodec<ByteBuf, PlayerConfig> STREAM_CODEC = CompressedJsonCodec.create(PlayerConfig.class);
 
     public static final Type<PlayerConfig> TYPE = new Type<>(PACKET_IDENTIFIER);
+
+    public StreamCodec<ByteBuf, PlayerConfig> getCodec() {
+        return CompressedJsonCodec.create(PlayerConfig.class);
+    }
+
+    @Override
+    public @NonNull Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
     //?}
 
     @SerializedName(value = "helmetOpacity", alternate = {"helmetTransparency"})
-    public de.zannagh.armorhider.common.configuration.items.implementations.ArmorOpacity helmetOpacity;
+    public ArmorOpacity helmetOpacity;
     @SerializedName(value = "chestOpacity", alternate = {"chestTransparency"})
-    public de.zannagh.armorhider.common.configuration.items.implementations.ArmorOpacity chestOpacity;
+    public ArmorOpacity chestOpacity;
     @SerializedName(value = "legsOpacity", alternate = {"legsTransparency"})
-    public de.zannagh.armorhider.common.configuration.items.implementations.ArmorOpacity legsOpacity;
+    public ArmorOpacity legsOpacity;
     @SerializedName(value = "bootsOpacity", alternate = {"bootsTransparency"})
-    public de.zannagh.armorhider.common.configuration.items.implementations.ArmorOpacity bootsOpacity;
+    public ArmorOpacity bootsOpacity;
     @SerializedName(value = "enableCombatDetection")
-    public de.zannagh.armorhider.common.configuration.items.implementations.CombatDetection enableCombatDetection;
+    public CombatDetection enableCombatDetection;
     @SerializedName(value = "opacityAffectingElytra")
-    public de.zannagh.armorhider.common.configuration.items.implementations.OpacityAffectingElytraItem opacityAffectingElytra;
+    public OpacityAffectingElytraItem opacityAffectingElytra;
     @SerializedName(value = "opacityAffectingHatOrSkull")
-    public de.zannagh.armorhider.common.configuration.items.implementations.OpacityAffectingHatOrSkullItem opacityAffectingHatOrSkull;
+    public OpacityAffectingHatOrSkullItem opacityAffectingHatOrSkull;
     @SerializedName(value = "disableArmorHider", alternate = "globalArmorHiderToggle")
-    public de.zannagh.armorhider.common.configuration.items.implementations.DisableArmorHiderGlobally disableArmorHider;
+    public DisableArmorHiderGlobally disableArmorHider;
     @SerializedName(value = "disableArmorHiderForOthers", alternate = "toggleArmorHiderForOthers")
-    public de.zannagh.armorhider.common.configuration.items.implementations.DisableArmorHiderForOthers disableArmorHiderForOthers;
+    public DisableArmorHiderForOthers disableArmorHiderForOthers;
     @SerializedName(value = "usePlayerSettingsWhenUndeterminable")
-    public de.zannagh.armorhider.common.configuration.items.implementations.UsePlayerSettingsWhenUndeterminable usePlayerSettingsWhenUndeterminable;
-    public de.zannagh.armorhider.common.configuration.items.implementations.PlayerUuid playerId;
-    public de.zannagh.armorhider.common.configuration.items.implementations.PlayerName playerName;
+    public UsePlayerSettingsWhenUndeterminable usePlayerSettingsWhenUndeterminable;
+    public PlayerUuid playerId;
+    public PlayerName playerName;
     private transient boolean hasChangedFromSerializedContent;
     public PlayerConfig(UUID uuid, String name) {
         this();
@@ -101,12 +110,6 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         return new PlayerConfig(playerId, playerName);
     }
 
-    //? if >= 1.20.5 {
-    public StreamCodec<ByteBuf, PlayerConfig> getCodec() {
-        return CompressedJsonCodec.create(PlayerConfig.class);
-    }
-    //?}
-
     @Override
     public boolean hasChangedFromSerializedContent() {
         return hasChangedFromSerializedContent;
@@ -131,11 +134,4 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         newConfig.usePlayerSettingsWhenUndeterminable.setValue(this.usePlayerSettingsWhenUndeterminable.getValue());
         return newConfig;
     }
-
-    //? if >= 1.20.5 {
-    @Override
-    public @NonNull Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
-    //?}
 }

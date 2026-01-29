@@ -38,6 +38,13 @@ public final class PayloadRegistry {
     private static final Map<ResourceLocation, Consumer<PayloadHandlerContext<?>>> S2C_HANDLERS = new HashMap<>();
     *///?}
 
+    public static void init() {
+        registerC2S(PlayerConfig.TYPE, PlayerConfig.STREAM_CODEC);
+        registerC2S(ServerWideSettings.TYPE, ServerWideSettings.STREAM_CODEC);
+        registerS2C(ServerConfiguration.TYPE, ServerConfiguration.STREAM_CODEC);
+        registerS2C(PermissionPacket.TYPE, PermissionPacket.STREAM_CODEC);
+    }
+
     // Register a C2S (client to server) payload type.
     public static <T extends CustomPacketPayload> void registerC2S(
             CustomPacketPayload.Type<T> type,
@@ -105,13 +112,7 @@ public final class PayloadRegistry {
         return S2C_PAYLOADS;
     }
     *///?}
-
-    public static void init() {
-        registerC2S(PlayerConfig.TYPE, PlayerConfig.STREAM_CODEC);
-        registerC2S(ServerWideSettings.TYPE, ServerWideSettings.STREAM_CODEC);
-        registerS2C(ServerConfiguration.TYPE, ServerConfiguration.STREAM_CODEC);
-        registerS2C(PermissionPacket.TYPE, PermissionPacket.STREAM_CODEC);
-    }
+    
 
     public record PayloadEntry<T extends CustomPacketPayload>(
             CustomPacketPayload.Type<T> type,

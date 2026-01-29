@@ -30,20 +30,8 @@ public final class ItemsUtil {
         if (type == null) {
             return ItemStack.EMPTY;
         }
-        //? if >= 1.21 {
-        return switch (type) {
-            case SkullBlock.Types.SKELETON -> new ItemStack(Items.SKELETON_SKULL);
-            case SkullBlock.Types.DRAGON -> new ItemStack(Items.DRAGON_HEAD);
-            case SkullBlock.Types.WITHER_SKELETON -> new ItemStack(Items.WITHER_SKELETON_SKULL);
-            case SkullBlock.Types.PLAYER -> new ItemStack(Items.PLAYER_HEAD);
-            case SkullBlock.Types.ZOMBIE -> new ItemStack(Items.ZOMBIE_HEAD);
-            case SkullBlock.Types.CREEPER -> new ItemStack(Items.CREEPER_HEAD);
-            case SkullBlock.Types.PIGLIN -> new ItemStack(Items.PIGLIN_HEAD);
-            default -> ItemStack.EMPTY;
-        };
-        //?}
-        //? if < 1.21 {
-        /*if (type == SkullBlock.Types.SKELETON) {
+        // Keeping this as a if/else chain, since <= 1.21 we can't use switch statements.
+        if (type == SkullBlock.Types.SKELETON) {
             return new ItemStack(Items.SKELETON_SKULL);
         } else if (type == SkullBlock.Types.DRAGON) {
             return new ItemStack(Items.DRAGON_HEAD);
@@ -60,7 +48,6 @@ public final class ItemsUtil {
         } else {
             return ItemStack.EMPTY;
         }
-        *///?}
     }
 
     public static boolean isSkullBlockItem(Item item) {
