@@ -4,18 +4,28 @@ import de.zannagh.armorhider.resources.PlayerConfig;
 import de.zannagh.armorhider.resources.ServerConfigStore;
 import net.minecraft.server.MinecraftServer;
 
+import java.nio.file.Path;
 import java.util.UUID;
 
 public final class ServerRuntime {
-    public static ServerConfigStore store;
-    public static MinecraftServer server;
+    private final ServerConfigStore store;
+    private final MinecraftServer server;
 
-    public static void init(MinecraftServer s) {
-        server = s;
-        store = new ServerConfigStore();
+    public ServerRuntime(MinecraftServer server, Path configPath) {
+        this.server = server;
+        this.store = new ServerConfigStore(configPath);
     }
 
-    public static void put(UUID id, PlayerConfig c) {
+    public ServerConfigStore getStore() {
+        return store;
+    }
+
+    public MinecraftServer getServer() {
+        return server;
+    }
+
+    public void put(UUID id, PlayerConfig c) {
         store.put(id, c);
+        store.saveCurrent();
     }
 }

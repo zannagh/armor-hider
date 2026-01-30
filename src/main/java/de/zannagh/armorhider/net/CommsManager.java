@@ -17,10 +17,15 @@ public final class CommsManager {
         // Register player join handler
         ServerConnectionEvents.registerJoin((player, server) -> {
             ArmorHider.LOGGER.info("Player joined with ID {}. Sending current server config to client...", player.getStringUUID());
-            var currentConfig = ServerRuntime.store.getConfig();
+            ServerRuntime runtime = ArmorHider.getRuntime();
+            if (runtime == null) {
+                ArmorHider.LOGGER.warn("Runtime not initialized, cannot send config to player");
+                return;
+            }
+            var currentConfig = runtime.getStore().getConfig();
             sendToClient(player, currentConfig);
         });
-        
+
         ServerConnectionEvents.registerJoin((player, server) -> {
             int permissionLevel;
             //? if >= 1.21.11
@@ -78,11 +83,15 @@ public final class CommsManager {
     private static void handlePlayerConfigReceived(PlayerConfig config, ServerPayloadContext serverCtx) {
         ArmorHider.LOGGER.info("Server received settings packet from {}", serverCtx.player().getStringUUID());
 
-        try {
-            ServerRuntime.put(config.playerId.getValue(), config);
-            ServerRuntime.store.saveCurrent();
+        ServerRuntime runtime = ArmorHider.getRuntime();
+        if (runtime == null) {
+            ArmorHider.LOGGER.warn("Runtime not initialized, cannot handle player config");
+            return;
+        }
 
-            var currentConfig = ServerRuntime.store.getConfig();
+        try {
+            runtime.put(config.playerId.getValue(), config);
+            var currentConfig = runtime.getStore().getConfig();
             sendToAllClientsButSender(config.playerId.getValue(), currentConfig);
         } catch (Exception e) {
             ArmorHider.LOGGER.error("Failed to store player data!", e);
@@ -98,15 +107,21 @@ public final class CommsManager {
             return;
         }
 
-        if (ServerRuntime.store.getConfig().serverWideSettings.enableCombatDetection.getValue() == payload.enableCombatDetection.getValue()
-                && ServerRuntime.store.getConfig().serverWideSettings.forceArmorHiderOff.getValue() == payload.forceArmorHiderOff.getValue()) {
+        ServerRuntime runtime = ArmorHider.getRuntime();
+        if (runtime == null) {
+            ArmorHider.LOGGER.warn("Runtime not initialized, cannot handle server settings");
+            return;
+        }
+
+        if (runtime.getStore().getConfig().serverWideSettings.enableCombatDetection.getValue() == payload.enableCombatDetection.getValue()
+                && runtime.getStore().getConfig().serverWideSettings.forceArmorHiderOff.getValue() == payload.forceArmorHiderOff.getValue()) {
             return;
         }
 
         ArmorHider.LOGGER.info("Admin player {} is updating server-wide combat detection to: {}", player.getStringUUID(), payload.enableCombatDetection.getValue());
-        ServerRuntime.store.setServerCombatDetection(payload.enableCombatDetection.getValue());
-        ServerRuntime.store.setGlobalOverride(payload.forceArmorHiderOff.getValue());
-        sendToAllClientsButSender(player.getUUID(), ServerRuntime.store.getConfig());
+        runtime.getStore().setServerCombatDetection(payload.enableCombatDetection.getValue());
+        runtime.getStore().setGlobalOverride(payload.forceArmorHiderOff.getValue());
+        sendToAllClientsButSender(player.getUUID(), runtime.getStore().getConfig());
     }
 
     private static void sendToClient(ServerPlayer player, PermissionPacket permissions) {
@@ -118,7 +133,12 @@ public final class CommsManager {
     }
 
     private static void sendToAllClientsButSender(UUID playerId, ServerConfiguration config) {
-        var players = ServerRuntime.server.getPlayerList().getPlayers();
+        ServerRuntime runtime = ArmorHider.getRuntime();
+        if (runtime == null) {
+            ArmorHider.LOGGER.warn("Runtime not initialized, cannot broadcast config");
+            return;
+        }
+        var players = runtime.getServer().getPlayerList().getPlayers();
         players.forEach(player -> {
             ArmorHider.LOGGER.info("Sending config to players...");
             if (!player.getUUID().equals(playerId)) {
