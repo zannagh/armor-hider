@@ -59,10 +59,10 @@ runs:
               continue
             fi
 
-            # Add contributor attribution if not zannagh
+            # Add contributor attribution if not zannagh (git author name, not GitHub username)
             ATTRIBUTION=""
             if [[ "${AUTHOR,,}" != "zannagh" ]]; then
-              ATTRIBUTION=" - thanks to @${AUTHOR}"
+              ATTRIBUTION=" - thanks to ${AUTHOR}"
             fi
 
             # Features: feat: or feature:
@@ -93,9 +93,9 @@ runs:
             CONTENT="${CONTENT}## Fixes"$'\n\n'"${FIXES}"
           fi
 
-          # Add full changelog link
+          # Add full changelog link (use version tag instead of HEAD for permanent link)
           if [[ -n "$CONTENT" ]]; then
-            CONTENT="${CONTENT}"$'\n'"**Full Changelog**: https://github.com/${{ inputs.repository }}/compare/${LAST_TAG:-initial}...HEAD"
+            CONTENT="${CONTENT}"$'\n'"**Full Changelog**: https://github.com/${{ inputs.repository }}/compare/${LAST_TAG:-initial}...v${{ inputs.mod-version }}"
           fi
         fi
 
