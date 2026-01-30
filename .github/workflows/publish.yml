@@ -172,16 +172,26 @@ jobs:
     needs: [analyze, build]
     if: needs.analyze.outputs.should_release == 'true'
     outputs:
-      content: ${{ steps.changelog.outputs.content }}
+      full: ${{ steps.full-changelog.outputs.content }}
+      user-facing: ${{ steps.user-changelog.outputs.content }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
-      - name: Generate Changelog
-        id: changelog
+      - name: Generate Full Changelog
+        id: full-changelog
         uses: zannagh/versionizer/generate-changelog@v1
+        with:
+          is-manual-release: ${{ needs.analyze.outputs.is_manual_release }}
+          release-body: ${{ github.event.release.body }}
+          mod-version: ${{ needs.build.outputs.mod_version }}
+          repository: ${{ github.repository }}
+
+      - name: Generate User-Facing Changelog
+        id: user-changelog
+        uses: ./.github/actions/generate-user-changelog
         with:
           is-manual-release: ${{ needs.analyze.outputs.is_manual_release }}
           release-body: ${{ github.event.release.body }}
@@ -206,7 +216,7 @@ jobs:
         uses: zannagh/versionizer/create-prerelease@v1
         with:
           version: ${{ needs.build.outputs.mod_version }}
-          changelog: ${{ needs.changelog.outputs.content }}
+          changelog: ${{ needs.changelog.outputs.full }}
           artifact-name: armor-hider-${{ needs.build.outputs.mod_version }}
           artifact-pattern: artifacts/**/*.jar
           dry-run: ${{ inputs.dry_run }}
@@ -285,7 +295,7 @@ jobs:
           echo ""
           echo "Changelog:"
           echo "---"
-          echo "${{ needs.changelog.outputs.content }}"
+          echo "${{ needs.changelog.outputs.user-facing }}"
           echo "---"
           echo ""
           if [[ "${{ inputs.dry_run }}" != "false" ]]; then
@@ -309,7 +319,8 @@ jobs:
           version-type: ${{ steps.modrinth.outputs.version_type }}
           loaders: fabric
           game-versions: ${{ matrix.minecraft }}
-          changelog: ${{ needs.changelog.outputs.content }}
+          game-version-filter: any
+          changelog: ${{ needs.changelog.outputs.user-facing }}
           modrinth-featured: false
           retry-attempts: 2
           retry-delay: 10000
@@ -335,7 +346,7 @@ jobs:
           should-release: ${{ needs.analyze.outputs.should_release }}
           is-manual-release: ${{ needs.analyze.outputs.is_manual_release }}
           skip-reason: ${{ needs.analyze.outputs.skip_reason }}
-          changelog: ${{ needs.changelog.outputs.content }}
+          changelog: ${{ needs.changelog.outputs.full }}
           job-results: |
             Analyze Changes=${{ needs.analyze.result }}
             Validate Version=${{ needs.validate-version.result }}

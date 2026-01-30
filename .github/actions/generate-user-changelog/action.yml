@@ -1,0 +1,111 @@
+name: Generate User Changelog
+description: >
+  Generates a user-facing changelog from git history with Features and Fixes sections.
+  Excludes docs, chores, and ci commits. Transforms conventional commit prefixes.
+
+inputs:
+  is-manual-release:
+    description: Whether this is a manual (GitHub Release) triggered release
+    required: true
+  release-body:
+    description: The body of the GitHub release (for manual releases)
+    required: false
+    default: ''
+  mod-version:
+    description: The version string (used as fallback changelog text)
+    required: true
+  repository:
+    description: The GitHub repository (owner/repo) for changelog links
+    required: true
+
+outputs:
+  content:
+    description: The generated changelog content
+    value: ${{ steps.generate.outputs.content }}
+
+runs:
+  using: composite
+  steps:
+    - name: Generate changelog
+      id: generate
+      shell: bash
+      run: |
+        if [[ "${{ inputs.is-manual-release }}" == "true" ]]; then
+          CONTENT="${{ inputs.release-body }}"
+        else
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+
+          # Format: subject|hash|author
+          if [[ -n "$LAST_TAG" ]]; then
+            COMMITS=$(git log --pretty=format:"%s|%h|%an" "$LAST_TAG"..HEAD --no-merges)
+          else
+            COMMITS=$(git log --pretty=format:"%s|%h|%an" -20 --no-merges)
+          fi
+
+          FEATURES=""
+          FIXES=""
+
+          while IFS= read -r line; do
+            [[ -z "$line" ]] && continue
+
+            # Parse: subject|hash|author
+            AUTHOR="${line##*|}"
+            REST="${line%|*}"
+            HASH="${REST##*|}"
+            MESSAGE="${REST%|*}"
+
+            # Skip docs, chore, ci, and other non-user-facing commits
+            if [[ "$MESSAGE" =~ ^(docs|chore|ci|style|refactor|test|build): ]]; then
+              continue
+            fi
+
+            # Add contributor attribution if not zannagh
+            ATTRIBUTION=""
+            if [[ "${AUTHOR,,}" != "zannagh" ]]; then
+              ATTRIBUTION=" - thanks to @${AUTHOR}"
+            fi
+
+            # Features: feat: or feature:
+            if [[ "$MESSAGE" =~ ^feat(\(.+\))?:\ (.+) ]]; then
+              FEATURE_TEXT="${BASH_REMATCH[2]}"
+              # Capitalize first letter
+              FEATURE_TEXT="$(echo "${FEATURE_TEXT:0:1}" | tr '[:lower:]' '[:upper:]')${FEATURE_TEXT:1}"
+              FEATURES="${FEATURES}- ${FEATURE_TEXT} (${HASH})${ATTRIBUTION}"$'\n'
+            # Fixes: fix:
+            elif [[ "$MESSAGE" =~ ^fix(\(.+\))?:\ (.+) ]]; then
+              FIX_TEXT="${BASH_REMATCH[2]}"
+              # Capitalize first letter
+              FIX_TEXT="$(echo "${FIX_TEXT:0:1}" | tr '[:lower:]' '[:upper:]')${FIX_TEXT:1}"
+              FIXES="${FIXES}- ${FIX_TEXT} (${HASH})${ATTRIBUTION}"$'\n'
+            fi
+          done <<< "$COMMITS"
+
+          CONTENT=""
+
+          if [[ -n "$FEATURES" ]]; then
+            CONTENT="## Features"$'\n\n'"${FEATURES}"
+          fi
+
+          if [[ -n "$FIXES" ]]; then
+            if [[ -n "$CONTENT" ]]; then
+              CONTENT="${CONTENT}"$'\n'
+            fi
+            CONTENT="${CONTENT}## Fixes"$'\n\n'"${FIXES}"
+          fi
+
+          # Add full changelog link
+          if [[ -n "$CONTENT" ]]; then
+            CONTENT="${CONTENT}"$'\n'"**Full Changelog**: https://github.com/${{ inputs.repository }}/compare/${LAST_TAG:-initial}...HEAD"
+          fi
+        fi
+
+        # Fallback if no relevant commits
+        if [[ -z "$CONTENT" ]]; then
+          CONTENT="Release ${{ inputs.mod-version }}"
+        fi
+
+        {
+          echo "content<<CHANGELOG_EOF"
+          echo "$CONTENT"
+          echo "CHANGELOG_EOF"
+        } >> "$GITHUB_OUTPUT"
