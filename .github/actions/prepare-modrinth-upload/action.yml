@@ -58,7 +58,10 @@ runs:
         MOD_VERSION="${{ inputs.mod-version }}"
         IS_PRERELEASE="${{ inputs.is-prerelease }}"
 
-        VERSION_NUMBER="fabric-${MC_VERSION}-${MOD_VERSION}"
+        # Transform snapshot-X to pre.X for version number (e.g., 26.1-snapshot-4 -> 26.1-pre.4)
+        MC_VERSION_SHORT="${MC_VERSION//-snapshot-/-pre.}"
+
+        VERSION_NUMBER="fabric-${MC_VERSION_SHORT}-${MOD_VERSION}"
         VERSION_NAME="${MC_VERSION} - ${MOD_VERSION}"
 
         if [[ "$IS_PRERELEASE" == "true" ]]; then
