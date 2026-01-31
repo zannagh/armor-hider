@@ -68,6 +68,7 @@ public class OptionElementFactory {
                 body.addSmall(option);
             }
             else {
+                
                 body.addBig(option);
             }
         }

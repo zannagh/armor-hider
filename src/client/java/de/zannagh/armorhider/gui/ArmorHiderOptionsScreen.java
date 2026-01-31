@@ -146,24 +146,6 @@ public class ArmorHiderOptionsScreen extends OptionsSubScreen {
         );
         optionElementFactory.addSimpleOptionAsWidget(enableCombatDetection);
 
-        // Server-wide combat detection (only for admins)
-        if (ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin) {
-            var serverConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getServerConfig();
-            boolean serverCombatDetectionValue = serverConfig != null
-                    && serverConfig.serverWideSettings != null
-                    && serverConfig.serverWideSettings.enableCombatDetection != null
-                    ? serverConfig.serverWideSettings.enableCombatDetection.getValue()
-                    : getFallbackDefault();
-            OptionInstance<Boolean> combatHidingOnServer = optionElementFactory.buildBooleanOption(
-                Component.translatable("armorhider.options.combat_detection_server.title"),
-                Component.translatable("armorhider.options.combat_detection_server.tooltip"),
-                Component.translatable("armorhider.options.combat_detection_server.tooltip_narration"),
-                serverCombatDetectionValue,
-                this::setServerCombatDetection
-            );
-            optionElementFactory.addSimpleOptionAsWidget(combatHidingOnServer);
-        }
-
         Component advancedKey = Component.translatable("armorhider.options.regular.title");
         String advancedKeyString;
         if (advancedKey.getContents() instanceof net.minecraft.network.chat.contents.TranslatableContents translatableContents) {

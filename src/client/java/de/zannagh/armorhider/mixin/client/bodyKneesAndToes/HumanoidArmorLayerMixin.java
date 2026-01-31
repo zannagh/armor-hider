@@ -9,10 +9,8 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import de.zannagh.armorhider.rendering.ArmorRenderPipeline;
 import de.zannagh.armorhider.resources.ArmorModificationInfo;
 import net.minecraft.client.model.HumanoidModel;
-import net.minecraft.client.model.Model;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -30,8 +28,7 @@ public class HumanoidArmorLayerMixin<T extends LivingEntity, M extends HumanoidM
 
     @Inject(
             method = "renderArmorPiece",
-            at = @At("HEAD"),
-            cancellable = true
+            at = @At("HEAD")
     )
     private void onRenderArmorPiece(PoseStack poseStack, MultiBufferSource bufferSource, T entity, EquipmentSlot slot, int packedLight, A armorModel, CallbackInfo ci) {
         ItemStack itemStack = entity.getItemBySlot(slot);
@@ -44,14 +41,6 @@ public class HumanoidArmorLayerMixin<T extends LivingEntity, M extends HumanoidM
         }
         
         ArmorRenderPipeline.setupContext(itemStack, slot, entity);
-
-        if (!ArmorRenderPipeline.shouldModifyEquipment()) {
-            return;
-        }
-
-        if (ArmorRenderPipeline.shouldHideEquipment()) {
-            ci.cancel();
-        }
     }
 
     @Inject(
@@ -137,7 +126,6 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import de.zannagh.armorhider.rendering.ArmorRenderPipeline;
 import de.zannagh.armorhider.resources.ArmorModificationInfo;
 import net.minecraft.client.model.HumanoidModel;
-import net.minecraft.client.model.Model;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
@@ -145,6 +133,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -156,20 +145,18 @@ public class HumanoidArmorLayerMixin<T extends LivingEntity, M extends HumanoidM
 
     @Inject(
             method = "renderArmorPiece",
-            at = @At("HEAD"),
-            cancellable = true
+            at = @At("HEAD")
     )
     private void onRenderArmorPiece(PoseStack poseStack, MultiBufferSource bufferSource, T entity, EquipmentSlot slot, int packedLight, A armorModel, CallbackInfo ci) {
-        ItemStack itemStack = entity.getItemBySlot(slot);
-        ArmorRenderPipeline.setupContext(itemStack, slot, entity);
-
-        if (!ArmorRenderPipeline.shouldModifyEquipment() || ArmorRenderPipeline.entityIsNotPlayer(entity)) {
+        if (ArmorRenderPipeline.entityIsNotPlayer(entity)) {
+            return;
+        }
+        if (entity.getItemBySlot(slot).is(Items.AIR)) {
             return;
         }
 
-        if (ArmorRenderPipeline.shouldHideEquipment()) {
-            ci.cancel();
-        }
+        ItemStack itemStack = entity.getItemBySlot(slot);
+        ArmorRenderPipeline.setupContext(itemStack, slot, entity);
     }
 
     @Inject(

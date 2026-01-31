@@ -167,7 +167,7 @@ public class AdvancedArmorHiderSettingsScreen extends OptionsSubScreen {
                 serverForcingArmorHiderOffValue,
                 this::setForceArmorHiderOff
         );
-
+        
         optionElementFactory.addSimpleOptionAsWidget(combatDetectionOption);
         optionElementFactory.addSimpleOptionAsWidget(forceOffOption);
         *///?}
