@@ -44,6 +44,12 @@ public class ArmorRenderPipeline {
 
     /// See ElytraRenderPriority. Skull should usually render ahead of Elytra, in case the Elytra is visually infront of the skull.
     public static final int SkullRenderPriority = 99;
+    
+    //? if >= 1.21.9
+    public static final ThreadLocal<LivingEntityRenderState> CURRENT_ENTITY_RENDER_STATE = new ThreadLocal<>();
+    //? if < 1.21.9
+    //public static final ThreadLocal<LivingEntity> CURRENT_ENTITY_RENDER_STATE = new ThreadLocal<>();
+
 
     public static void setupContext(EquipmentSlot slot, GameProfile profile) {
 
@@ -67,12 +73,14 @@ public class ArmorRenderPipeline {
     //? if >= 1.21.9 {
     public static void setupContext(EquipmentSlot slot, HumanoidRenderState entityRenderState) {
         setupContext(null, slot, entityRenderState);
+        CURRENT_ENTITY_RENDER_STATE.set(entityRenderState);
     }
     
     /// Captures context for the render pipeline, used within other methods of the class.
     /// ItemStack can be null, slot can be null.
     public static void setupContext(@Nullable ItemStack itemStack, @NotNull EquipmentSlot slot, HumanoidRenderState entityRenderState) {
         setCurrentSlot(slot);
+        CURRENT_ENTITY_RENDER_STATE.set(entityRenderState);
         if (itemStack != null) {
             ArmorModificationContext.setCurrentItemStack(itemStack);
         }
@@ -101,6 +109,7 @@ public class ArmorRenderPipeline {
     /// ItemStack can be null, slot can be null.
     public static void setupContext(@Nullable ItemStack itemStack, @NotNull EquipmentSlot slot, LivingEntity entity) {
         setCurrentSlot(slot);
+        CURRENT_ENTITY_RENDER_STATE.set(entity);
         if (itemStack != null) {
             ArmorModificationContext.setCurrentItemStack(itemStack);
         }
@@ -130,6 +139,7 @@ public class ArmorRenderPipeline {
 
     public static void clearContext() {
         ArmorModificationContext.clearAll();
+        CURRENT_ENTITY_RENDER_STATE.remove();
     }
 
     private static ArmorModificationInfo tryResolveConfigFromPlayerEntityState(@NotNull EquipmentSlot slot, String name) {
@@ -216,6 +226,9 @@ public class ArmorRenderPipeline {
         return originalPriority; // Fallback, return original.
     }
 
+    /**
+     * This gets the skull render layer. Requires a context to be set up prior, otherwise it will return the original layer.
+    */
     //? if >= 1.21.11 
     public static RenderType getSkullRenderLayer(Identifier texture, RenderType originalLayer) {
     //? if >= 1.21.9 && < 1.21.11 

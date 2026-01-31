@@ -18,27 +18,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class ElytraRenderMixin {
     @Inject(
             method = "submit(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/client/renderer/entity/state/HumanoidRenderState;FF)V",
-            at = @At(value = "HEAD"),
-            cancellable = true
+            at = @At(value = "HEAD")
     )
     private <S extends HumanoidRenderState, M extends EntityModel<S>> void interceptElytraRender(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int i, S humanoidRenderState, float f, float g, CallbackInfo ci) {
         ArmorRenderPipeline.setupContext(ItemsUtil.ELYTRA_ITEM_STACK, EquipmentSlot.CHEST, humanoidRenderState);
 
         if (ArmorRenderPipeline.noContext() || !ArmorRenderPipeline.shouldModifyEquipment()) {
             ArmorRenderPipeline.clearContext();
-            return;
-        }
-
-        if (!ArmorRenderPipeline.getCurrentModification().playerConfig().opacityAffectingElytra.getValue()) {
-            ArmorRenderPipeline.clearContext();
-            return;
-        }
-
-        if (ArmorRenderPipeline.shouldHideEquipment()) {
-            ArmorRenderPipeline.clearContext();
-            if (ci != null) {
-                ci.cancel();
-            }
         }
     }
 
@@ -90,52 +76,12 @@ public class ElytraRenderMixin<T extends LivingEntity, M extends EntityModel<T>>
             return;
         }
 
-        if (!ArmorRenderPipeline.getCurrentModification().playerConfig().opacityAffectingElytra.getValue()) {
-            ArmorRenderPipeline.clearContext();
-            return;
-        }
-
         if (ArmorRenderPipeline.shouldHideEquipment()) {
             ArmorRenderPipeline.clearContext();
             if (ci != null) {
                 ci.cancel();
             }
         }
-    }
-
-    @WrapOperation(
-            method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/world/entity/LivingEntity;FFFFFF)V",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/client/renderer/RenderType;armorCutoutNoCull(Lnet/minecraft/resources/ResourceLocation;)Lnet/minecraft/client/renderer/RenderType;"
-            )
-    )
-    private RenderType useTranslucentRenderType(ResourceLocation texture, Operation<RenderType> original) {
-        if (ArmorRenderPipeline.hasActiveContext() && ArmorRenderPipeline.shouldModifyEquipment()) {
-            float alpha = ArmorRenderPipeline.getTransparencyAlpha();
-            if (alpha < 1.0f && alpha > 0.0f) {
-                // Use translucent render type for partial transparency
-                return RenderType.entityTranslucent(texture);
-            }
-        }
-        return original.call(texture);
-    }
-
-    @WrapOperation(
-            method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/world/entity/LivingEntity;FFFFFF)V",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/client/model/ElytraModel;renderToBuffer(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;IIFFFF)V"
-            )
-    )
-    private void applyElytraTransparency(ElytraModel<T> instance, PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, float red, float green, float blue, float alpha, Operation<Void> original) {
-        float modifiedAlpha = alpha;
-
-        if (ArmorRenderPipeline.hasActiveContext() && ArmorRenderPipeline.shouldModifyEquipment()) {
-            modifiedAlpha = ArmorRenderPipeline.getTransparencyAlpha();
-        }
-
-        original.call(instance, poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, modifiedAlpha);
     }
 
     @Inject(

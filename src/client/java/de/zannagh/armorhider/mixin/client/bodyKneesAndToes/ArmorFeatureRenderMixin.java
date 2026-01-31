@@ -13,6 +13,7 @@ import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
 import net.minecraft.client.renderer.entity.state.ArmorStandRenderState;
 import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
+import net.minecraft.world.item.Items;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -24,6 +25,9 @@ public class ArmorFeatureRenderMixin {
     private <S extends HumanoidRenderState> void captureContext(
             PoseStack poseStack, SubmitNodeCollector submitNodeCollector, net.minecraft.world.item.ItemStack itemStack, net.minecraft.world.entity.EquipmentSlot equipmentSlot, int i, S humanoidRenderState, CallbackInfo ci) {
         if ((humanoidRenderState instanceof ArmorStandRenderState)) {
+            return;
+        }
+        if (itemStack.is(Items.AIR)) {
             return;
         }
         ArmorRenderPipeline.setupContext(itemStack, equipmentSlot, humanoidRenderState);

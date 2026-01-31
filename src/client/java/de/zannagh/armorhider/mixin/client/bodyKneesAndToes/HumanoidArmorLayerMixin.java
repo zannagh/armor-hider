@@ -18,6 +18,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -35,6 +36,10 @@ public class HumanoidArmorLayerMixin<T extends LivingEntity, M extends HumanoidM
     private void onRenderArmorPiece(PoseStack poseStack, MultiBufferSource bufferSource, T entity, EquipmentSlot slot, int packedLight, A armorModel, CallbackInfo ci) {
         ItemStack itemStack = entity.getItemBySlot(slot);
         if (ArmorRenderPipeline.entityIsNotPlayer(entity)) {
+            return;
+        }
+        
+        if (itemStack.is(Items.AIR)) {
             return;
         }
         

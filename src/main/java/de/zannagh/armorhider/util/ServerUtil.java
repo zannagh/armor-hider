@@ -8,7 +8,7 @@ public final class ServerUtil {
         //? if >= 1.21.11
         return server.getProfilePermissions(profile.nameAndId()).level().id();
         //? if >= 1.21.9 && < 1.21.11
-        /*return server.getProfilePermissions(profile.nameAndId());*/
+        //return server.getProfilePermissions(profile.nameAndId());
         //? if < 1.21.9
         //return server.getProfilePermissions(profile.getGameProfile());
     }

@@ -20,42 +20,32 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.resources.Identifier;
 //? }
-//? if >= 1.21.9 && < 1.21.11 {
+//? if < 1.21.11 {
 /*import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.model.SkullModel;
 *///?}
 
 @Mixin(SkullBlockRenderer.class)
 public abstract class SkullBlockRenderMixin {
 
-    //? if >= 1.21.11 {
-    
     @WrapOperation(
             method = "submitSkull",
             at = @At(
                     value = "INVOKE",
+                    //? if >= 1.21.11
                     target = "Lnet/minecraft/client/renderer/SubmitNodeCollector;submitModel(Lnet/minecraft/client/model/Model;Ljava/lang/Object;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/rendertype/RenderType;IIILnet/minecraft/client/renderer/feature/ModelFeatureRenderer$CrumblingOverlay;)V"
+                    //? if < 1.21.11
+                    //target = "Lnet/minecraft/client/renderer/SubmitNodeCollector;submitModel(Lnet/minecraft/client/model/Model;Ljava/lang/Object;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/RenderType;IIILnet/minecraft/client/renderer/feature/ModelFeatureRenderer$CrumblingOverlay;)V"
             )
     )
+    //? if >= 1.21.11
     private static <S> void modifyTransparency(SubmitNodeCollector instance, Model<? super S> model, S o, PoseStack poseStack, RenderType renderType, int i, int j, int k, ModelFeatureRenderer.CrumblingOverlay crumblingOverlay, Operation<Void> original) {
-    //?}
-    //? if >= 1.21.9 && < 1.21.11 {
-    /*@WrapOperation(
-            method = "submitSkull",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/client/renderer/SubmitNodeCollector;submitModel(Lnet/minecraft/client/model/Model;Ljava/lang/Object;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/RenderType;IIILnet/minecraft/client/renderer/feature/ModelFeatureRenderer$CrumblingOverlay;)V"
-            )
-    )
-    private static <S> void modifyTransparency(SubmitNodeCollector instance, Model<? super S> model, S o, PoseStack poseStack, RenderType renderType, int i, int j, int k, ModelFeatureRenderer.CrumblingOverlay crumblingOverlay, Operation<Void> original) {
-    *///?}
+    //? if < 1.21.11
+    //private static <S> void modifyTransparency(SubmitNodeCollector instance, Model<? super S> model, S o, PoseStack poseStack, RenderType renderType, int i, int j, int k, ModelFeatureRenderer.CrumblingOverlay crumblingOverlay, Operation<Void> original) {
         try {
             if (ArmorRenderPipeline.noContext() || !ArmorRenderPipeline.shouldModifyEquipment()) {
-                original.call(instance, model, o, poseStack, renderType, i, j, k, crumblingOverlay);
-                return;
-            }
-
-            if (!ArmorRenderPipeline.getCurrentModification().playerConfig().opacityAffectingHatOrSkull.getValue()) {
                 original.call(instance, model, o, poseStack, renderType, i, j, k, crumblingOverlay);
                 return;
             }
@@ -66,62 +56,39 @@ public abstract class SkullBlockRenderMixin {
         }
     }
 
-    //? if >= 1.21.11 {
-    
     @WrapOperation(
             method = "resolveSkullRenderType",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/client/renderer/blockentity/SkullBlockRenderer;getSkullRenderType(Lnet/minecraft/world/level/block/SkullBlock$Type;Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/rendertype/RenderType;"
+                    //? if >= 1.21.11
+                     target = "Lnet/minecraft/client/renderer/blockentity/SkullBlockRenderer;getSkullRenderType(Lnet/minecraft/world/level/block/SkullBlock$Type;Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/rendertype/RenderType;"
+                    //? if < 1.21.11
+                    //target = "Lnet/minecraft/client/renderer/blockentity/SkullBlockRenderer;getSkullRenderType(Lnet/minecraft/world/level/block/SkullBlock$Type;Lnet/minecraft/resources/ResourceLocation;)Lnet/minecraft/client/renderer/RenderType;"
+                    
             )
     )
-    private static RenderType getSkullRenderType(SkullBlock.Type type, Identifier identifier, Operation<RenderType> original) {
-    //?}
-    //? if >= 1.21.9 && < 1.21.11 {
-    /*@WrapOperation(
-            method = "resolveSkullRenderType",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/client/renderer/blockentity/SkullBlockRenderer;getSkullRenderType(Lnet/minecraft/world/level/block/SkullBlock$Type;Lnet/minecraft/resources/ResourceLocation;)Lnet/minecraft/client/renderer/RenderType;"
-            )
-    )
-    private static RenderType getSkullRenderType(SkullBlock.Type type, ResourceLocation identifier, Operation<RenderType> original) {
-    *///?}
+    //? if >= 1.21.11
+     private static RenderType getSkullRenderType(SkullBlock.Type type, Identifier identifier, Operation<RenderType> original) {
+    //? if < 1.21.11
+    //private static RenderType getSkullRenderType(SkullBlock.Type type, ResourceLocation identifier, Operation<RenderType> original) {
         return ArmorRenderPipeline.getSkullRenderLayer(identifier, original.call(type, identifier));
     }
 
-    //? if >= 1.21.11 {
-    
     @WrapOperation(
             method = "getSkullRenderType",
             at = @At(
                     value = "INVOKE",
+                    //? if >= 1.21.11
                     target = "Lnet/minecraft/client/renderer/rendertype/RenderTypes;entityCutoutNoCullZOffset(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/rendertype/RenderType;"
+                    //? if >= 1.21.9 && < 1.21.11
+                    //target = "Lnet/minecraft/client/renderer/RenderType;entityCutoutNoCullZOffset(Lnet/minecraft/resources/ResourceLocation;)Lnet/minecraft/client/renderer/RenderType;"
             )
     )
+    //? if >= 1.21.11
     private static RenderType getCutoutRenderLayer(Identifier texture, Operation<RenderType> original) {
-    //?}
-    //? if >= 1.21.9 && < 1.21.11 {
-    /*@WrapOperation(
-            method = "getSkullRenderType",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/client/renderer/RenderType;entityCutoutNoCullZOffset(Lnet/minecraft/resources/ResourceLocation;)Lnet/minecraft/client/renderer/RenderType;"
-            )
-    )
-    private static RenderType getCutoutRenderLayer(ResourceLocation texture, Operation<RenderType> original) {
-    *///?}
+    //? if < 1.21.11
+    //private static RenderType getCutoutRenderLayer(ResourceLocation texture, Operation<RenderType> original) {
         return ArmorRenderPipeline.getSkullRenderLayer(texture, original.call(texture));
-    }
-
-    @Inject(
-            method = "resolveSkullRenderType",
-            at = @At("HEAD")
-    )
-    private void grabSkullRenderContext(SkullBlock.Type type, SkullBlockEntity skullBlockEntity, CallbackInfoReturnable<RenderType> cir) {
-        if (skullBlockEntity.getOwnerProfile() != null) {
-            ArmorRenderPipeline.setupContext(net.minecraft.world.entity.EquipmentSlot.HEAD, skullBlockEntity.getOwnerProfile().partialProfile());
-        }
     }
 }
 //?}
@@ -134,13 +101,20 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import de.zannagh.armorhider.rendering.ArmorRenderPipeline;
+import de.zannagh.armorhider.util.ItemsUtil;
 import net.minecraft.client.model.SkullModelBase;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.SkullBlockRenderer;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.block.SkullBlock;
+import net.minecraft.world.level.block.entity.SkullBlockEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(SkullBlockRenderer.class)
 public abstract class SkullBlockRenderMixin {
@@ -153,11 +127,6 @@ public abstract class SkullBlockRenderMixin {
     )
     private static void modifyTransparency(SkullModelBase instance, PoseStack poseStack, VertexConsumer vertexConsumer, int light, int overlay, Operation<Void> original) {
         if (ArmorRenderPipeline.hasActiveContext() && ArmorRenderPipeline.shouldModifyEquipment()) {
-            if (!ArmorRenderPipeline.getCurrentModification().playerConfig().opacityAffectingHatOrSkull.getValue()) {
-                original.call(instance, poseStack, vertexConsumer, light, overlay);
-                return;
-            }
-
             int modifiedColor = ArmorRenderPipeline.applyTransparencyFromWhite(-1);
             instance.renderToBuffer(poseStack, vertexConsumer, light, overlay, modifiedColor);
         } else {

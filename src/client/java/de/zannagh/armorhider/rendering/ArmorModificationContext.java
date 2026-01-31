@@ -2,6 +2,7 @@ package de.zannagh.armorhider.rendering;
 
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.resources.ArmorModificationInfo;
+import de.zannagh.armorhider.util.ItemsUtil;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -49,6 +50,12 @@ class ArmorModificationContext {
         if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableArmorHiderForOthers.getValue()
                 && modification != null
                 && modification.isConfigForRemotePlayer(ArmorHiderClient.getCurrentPlayerName())) {
+            return false;
+        }
+        if (modification != null && modification.equipmentSlot() == EquipmentSlot.HEAD && !modification.playerConfig().opacityAffectingHatOrSkull.getValue()) {
+            return false;
+        }
+        if (modification != null && modification.equipmentSlot() == EquipmentSlot.CHEST && ItemsUtil.itemStackContainsElytra(getCurrentItemStack()) && !modification.playerConfig().opacityAffectingElytra.getValue()) {
             return false;
         }
         return modification != null && modification.shouldModify();
