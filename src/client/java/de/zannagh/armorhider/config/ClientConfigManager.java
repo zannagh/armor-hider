@@ -10,6 +10,7 @@ import de.zannagh.armorhider.resources.ServerWideSettings;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
@@ -23,7 +24,8 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
 
     private PlayerConfig CURRENT = PlayerConfig.defaults(DEFAULT_PLAYER_ID, DEFAULT_PLAYER_NAME);
 
-    private ServerConfiguration serverConfiguration = new ServerConfiguration();
+    // The server configuration is null until it has been received from a server running the mod.
+    private @Nullable ServerConfiguration serverConfiguration;
 
     public ClientConfigManager() {
         this.playerConfigProvider = new PlayerConfigFileProvider();
@@ -71,6 +73,9 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
         if (!ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin) {
             return;
         }
+        if (serverConfiguration == null) {
+            return;
+        }
         serverConfiguration.serverWideSettings.enableCombatDetection.setValue(combatDetection);
         serverConfiguration.serverWideSettings.forceArmorHiderOff.setValue(forceArmorHiderOff);
         setAndSendServerWideSettings(serverConfiguration.serverWideSettings);
@@ -80,6 +85,9 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
         if (!ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin) {
             return;
         }
+        if (serverConfiguration == null) {
+            return;
+        }
         serverConfiguration.serverWideSettings.enableCombatDetection.setValue(combatDetection);
         setAndSendServerWideSettings(serverConfiguration.serverWideSettings);
     }
@@ -87,6 +95,9 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
     public void setAndSendServerWideSettings(ServerWideSettings serverWideSettings) {
         if (!ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin) {
             ArmorHider.LOGGER.info("Player is no admin, suppressing update...");
+            return;
+        }
+        if (serverConfiguration == null) {
             return;
         }
         serverConfiguration.serverWideSettings = serverWideSettings;
@@ -103,7 +114,7 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
         saveCurrent();
     }
 
-    public ServerConfiguration getServerConfig() {
+    public @Nullable ServerConfiguration getServerConfig() {
         return serverConfiguration;
     }
 
@@ -122,10 +133,19 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
             return CURRENT;
         }
 
+        if (serverConfiguration == null) {
+            if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().usePlayerSettingsWhenUndeterminable.getValue()) {
+                return ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().deepCopy(playerName, DEFAULT_PLAYER_ID);
+            }
+
+            return PlayerConfig.defaults(DEFAULT_PLAYER_ID, playerName);
+        }
+
         var config = serverConfiguration.getPlayerConfigOrDefault(playerName);
         if (config != null) {
             return config;
         }
+        
 
         var isRemotePlayer = ArmorHiderClient.isPlayerRemotePlayer(playerName);
 

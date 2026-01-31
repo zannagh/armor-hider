@@ -194,10 +194,13 @@ public class ArmorRenderPipeline {
         if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableArmorHider.getValue()) {
             return false;
         }
-        ServerWideSettings serverWideSettings = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getServerConfig().serverWideSettings;
-        if (serverWideSettings != null && serverWideSettings.forceArmorHiderOff.getValue()) {
-            return false;
+        if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.getServerConfig() != null) {
+            ServerWideSettings serverWideSettings = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getServerConfig().serverWideSettings;
+            if (serverWideSettings != null && serverWideSettings.forceArmorHiderOff.getValue()) {
+                return false;
+            }
         }
+        
         return ArmorModificationContext.shouldModifyEquipment();
     }
 
