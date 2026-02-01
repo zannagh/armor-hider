@@ -4,10 +4,13 @@ import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.OptionElementFactory;
 import de.zannagh.armorhider.rendering.RenderUtilities;
+import net.minecraft.client.OptionInstance;
 import net.minecraft.client.Options;
 import net.minecraft.client.gui.components.*;
-//? if >= 1.21
+//? if >= 1.21 {
 import net.minecraft.client.gui.screens.options.OptionsSubScreen;
+import de.zannagh.armorhider.common.constants.UiConstants;
+//? }
 //? if < 1.21
 //import net.minecraft.client.gui.screens.OptionsSubScreen;
 import net.minecraft.network.chat.CommonComponents;
@@ -30,6 +33,14 @@ public class AdvancedArmorHiderSettingsScreen extends OptionsSubScreen {
     private boolean setUseLocalSettingsForOthersWhenUnknown;
 
     private boolean setDisableLocal;
+    
+    private boolean forceServerOffDefaultSetting;
+    
+    private boolean combatDetectionDefaultSetting;
+    
+    private OptionInstance<Boolean> forceOffOption;
+    
+    private OptionInstance<Boolean> combatDetectionServerOption;
 
     //? if < 1.21
     //protected OptionsList list;
@@ -74,13 +85,13 @@ public class AdvancedArmorHiderSettingsScreen extends OptionsSubScreen {
         //var adminCategory = new MultiLineTextWidget(RenderUtilities.getRowWidth(list), 20, Component.translatable("armorhider.options.admin.title"), net.minecraft.client.Minecraft.getInstance().font);
         optionElementFactory.addElementAsWidget(adminCategory);
         var serverConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getServerConfig();
-        boolean serverCombatDetectionValue = serverConfig != null
+        combatDetectionDefaultSetting = serverConfig != null
                 && serverConfig.serverWideSettings != null
                 && serverConfig.serverWideSettings.enableCombatDetection != null
                 ? serverConfig.serverWideSettings.enableCombatDetection.getValue()
                 : getFallbackDefault(true);
 
-        boolean serverForcingArmorHiderOffValue = serverConfig != null
+        forceServerOffDefaultSetting = serverConfig != null
                 && serverConfig.serverWideSettings != null
                 && serverConfig.serverWideSettings.forceArmorHiderOff != null
                 ? serverConfig.serverWideSettings.forceArmorHiderOff.getValue()
@@ -94,13 +105,13 @@ public class AdvancedArmorHiderSettingsScreen extends OptionsSubScreen {
         var offText = Component.translatable("armorhider.options.toggle.off");
 
         //? if >= 1.21.11
-        var cyclingWidgetBuilder = CycleButton.booleanBuilder(onText, offText, serverCombatDetectionValue);
+        var cyclingWidgetBuilder = CycleButton.booleanBuilder(onText, offText, combatDetectionDefaultSetting);
         //? if >= 1.21.9 && < 1.21.11
-        //var cyclingWidgetBuilder = CycleButton.booleanBuilder(onText, offText).withInitialValue(serverCombatDetectionValue);
+        //var cyclingWidgetBuilder = CycleButton.booleanBuilder(onText, offText).withInitialValue(combatDetectionDefaultSetting);
         //? if >= 1.21.11
-        var forceOnOffBuilder = CycleButton.booleanBuilder(onText, offText, serverForcingArmorHiderOffValue);
+        var forceOnOffBuilder = CycleButton.booleanBuilder(onText, offText, forceServerOffDefaultSetting);
         //? if >= 1.21.9 && < 1.21.11
-        //var forceOnOffBuilder = CycleButton.booleanBuilder(onText, offText).withInitialValue(serverForcingArmorHiderOffValue);
+        //var forceOnOffBuilder = CycleButton.booleanBuilder(onText, offText).withInitialValue(forceServerOffDefaultSetting);
 
         var cyclingWidget = cyclingWidgetBuilder.withTooltip(newValue -> {
             if (!ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin) {
@@ -111,7 +122,7 @@ public class AdvancedArmorHiderSettingsScreen extends OptionsSubScreen {
                 combatDetectionServerText,
                 (widget, newValue) -> {
                     if (!ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin) {
-                        widget.setValue(serverCombatDetectionValue);
+                        widget.setValue(combatDetectionDefaultSetting);
                         return;
                     }
                     setServerCombatDetection(newValue);
@@ -127,18 +138,16 @@ public class AdvancedArmorHiderSettingsScreen extends OptionsSubScreen {
                 forceArmorHiderOffText,
                 (widget, newValue) -> {
                     if (!ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin) {
-                        widget.setValue(serverForcingArmorHiderOffValue);
+                        widget.setValue(forceServerOffDefaultSetting);
                         return;
                     }
                     setForceArmorHiderOff(newValue);
                 }
         );
 
-        if (!ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin) {
-            armorHiderOffWidget.active = false;
-            cyclingWidget.active = false;
-        }
-
+        armorHiderOffWidget.active = ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin;
+        cyclingWidget.active = ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin;
+    
         cyclingWidget.setSize(RenderUtilities.getRowWidth(list), 20);
         armorHiderOffWidget.setSize(RenderUtilities.getRowWidth(list), 20);
 
@@ -148,28 +157,43 @@ public class AdvancedArmorHiderSettingsScreen extends OptionsSubScreen {
 
         //? if < 1.21.9 {
         /*// For < 1.21.9, use OptionInstance approach since addElementAsWidget doesn't work for arbitrary widgets
-        var combatDetectionOption = optionElementFactory.buildBooleanOption(
+        combatDetectionServerOption = optionElementFactory.buildBooleanOption(
                 combatDetectionServerText,
                 ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin
                         ? Component.translatable("armorhider.options.combat_detection_server.tooltip")
                         : Component.translatable("armorhider.options.combat_detection_server.tooltip.disabled"),
                 null,
-                serverCombatDetectionValue,
+                combatDetectionDefaultSetting,
                 this::setServerCombatDetection
         );
 
-        var forceOffOption = optionElementFactory.buildBooleanOption(
+        forceOffOption = optionElementFactory.buildBooleanOption(
                 forceArmorHiderOffText,
                 ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin
                         ? Component.translatable("armorhider.options.force_armor_hider_off.tooltip")
                         : Component.translatable("armorhider.options.force_armor_hider_off.tooltip.disabled"),
                 null,
-                serverForcingArmorHiderOffValue,
+                forceServerOffDefaultSetting,
                 this::setForceArmorHiderOff
         );
+
+        if (list != null) {
+            // This is required to disable the buttons when not in game.
+            //?if >= 1.21 {
+            
+            var btn = combatDetectionServerOption.createButton(options, 0, 0, UiConstants.BIG_BUTTON_WIDTH);
+            btn.active = ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin;
+            var btn2 = forceOffOption.createButton(options, 0, 0, UiConstants.BIG_BUTTON_WIDTH);
+            btn2.active = ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin;
+            list.addSmall(btn, null);
+            list.addSmall(btn2, null);
+             //? }
+            //? if < 1.21 {
+            /^list.addBig(combatDetectionServerOption);
+            list.addBig(forceOffOption);
+            ^///?}
+        }
         
-        optionElementFactory.addSimpleOptionAsWidget(combatDetectionOption);
-        optionElementFactory.addSimpleOptionAsWidget(forceOffOption);
         *///?}
 
         //? if >= 1.21.9
@@ -230,7 +254,9 @@ public class AdvancedArmorHiderSettingsScreen extends OptionsSubScreen {
 
     private void setServerCombatDetection(boolean enabled) {
         if (!ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin) {
-            return;
+            if (combatDetectionServerOption != null) {
+                combatDetectionServerOption.set(combatDetectionDefaultSetting);
+            }
         }
         newServerCombatDetection = enabled;
         serverSettingsChanged = true;
@@ -238,7 +264,9 @@ public class AdvancedArmorHiderSettingsScreen extends OptionsSubScreen {
 
     private void setForceArmorHiderOff(boolean enabled) {
         if (!ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin) {
-            return;
+            if (forceOffOption != null) {
+                forceOffOption.set(forceServerOffDefaultSetting);
+            }
         }
         setForceArmorHiderOff = enabled;
         serverSettingsChanged = true;
