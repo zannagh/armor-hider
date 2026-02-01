@@ -6,7 +6,6 @@ import net.minecraft.world.entity.EquipmentSlot;
 import org.jetbrains.annotations.NotNull;
 
 public record ArmorModificationInfo(EquipmentSlot equipmentSlot, @NotNull PlayerConfig playerConfig) {
-
     public double getTransparency() {
         var setting = switch (equipmentSlot) {
             case HEAD -> playerConfig.helmetOpacity.getValue();

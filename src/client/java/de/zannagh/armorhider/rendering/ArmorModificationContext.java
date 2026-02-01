@@ -52,10 +52,16 @@ class ArmorModificationContext {
                 && modification.isConfigForRemotePlayer(ArmorHiderClient.getCurrentPlayerName())) {
             return false;
         }
-        if (modification != null && modification.equipmentSlot() == EquipmentSlot.HEAD && !modification.playerConfig().opacityAffectingHatOrSkull.getValue()) {
+        if (modification != null 
+                && modification.equipmentSlot() == EquipmentSlot.HEAD 
+                && ItemsUtil.isSkullBlockItem(getCurrentItemStack().getItem()) // assumes that any context setup with skull blocks is applying the current item as well
+                && !modification.playerConfig().opacityAffectingHatOrSkull.getValue()) {
             return false;
         }
-        if (modification != null && modification.equipmentSlot() == EquipmentSlot.CHEST && ItemsUtil.itemStackContainsElytra(getCurrentItemStack()) && !modification.playerConfig().opacityAffectingElytra.getValue()) {
+        if (modification != null 
+                && modification.equipmentSlot() == EquipmentSlot.CHEST 
+                && ItemsUtil.itemStackContainsElytra(getCurrentItemStack()) 
+                && !modification.playerConfig().opacityAffectingElytra.getValue()) {
             return false;
         }
         return modification != null && modification.shouldModify();
