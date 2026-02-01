@@ -252,6 +252,7 @@ jobs:
     needs: [analyze, check-modrinth, build, changelog]
     if: |
       needs.analyze.outputs.should_release == 'true' &&
+      needs.analyze.outputs.is_manual_release == 'true' &&
       needs.check-modrinth.outputs.version_exists != 'true'
     strategy:
       fail-fast: false
