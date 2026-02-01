@@ -2,6 +2,7 @@
 package de.zannagh.armorhider.mixin.networking;
 
 import de.zannagh.armorhider.ArmorHider;
+import de.zannagh.armorhider.net.PayloadInjectionGuard;
 import de.zannagh.armorhider.net.PayloadRegistry;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -25,25 +26,35 @@ public interface CustomPayloadCodecMixin {
     private static <B extends FriendlyByteBuf> List<CustomPacketPayload.TypeAndCodec<? super B, ?>> modifyPayloadTypes(
             List<CustomPacketPayload.TypeAndCodec<? super B, ?>> types) {
 
-        // Create a mutable copy and add custom payload types
-        List<CustomPacketPayload.TypeAndCodec<? super B, ?>> modifiedTypes = new ArrayList<>(types);
+        // Prevent infinite recursion when other mods' mixins call back into this method
+        if (PayloadInjectionGuard.isInjecting()) {
+            return types;
+        }
 
-        ArmorHider.LOGGER.info("Injecting custom payloads into codec. Current types: {}, adding C2S: {}, S2C: {}",
-                types.size(), PayloadRegistry.getAllC2S().size(), PayloadRegistry.getAllS2C().size());
+        PayloadInjectionGuard.setInjecting(true);
+        try {
+            // Create a mutable copy and add custom payload types
+            List<CustomPacketPayload.TypeAndCodec<? super B, ?>> modifiedTypes = new ArrayList<>(types);
 
-        PayloadRegistry.getAllC2S().forEach((id, entry) -> {
-            var typeAndCodec = new CustomPacketPayload.TypeAndCodec(entry.type(), entry.codec());
-            modifiedTypes.add(typeAndCodec);
-            ArmorHider.LOGGER.info("Injected C2S payload: {}", id);
-        });
+            ArmorHider.LOGGER.info("Injecting custom payloads into codec. Current types: {}, adding C2S: {}, S2C: {}",
+                    types.size(), PayloadRegistry.getAllC2S().size(), PayloadRegistry.getAllS2C().size());
 
-        PayloadRegistry.getAllS2C().forEach((id, entry) -> {
-            var typeAndCodec = new CustomPacketPayload.TypeAndCodec(entry.type(), entry.codec());
-            modifiedTypes.add(typeAndCodec);
-            ArmorHider.LOGGER.info("Injected S2C payload: {}", id);
-        });
+            PayloadRegistry.getAllC2S().forEach((id, entry) -> {
+                var typeAndCodec = new CustomPacketPayload.TypeAndCodec(entry.type(), entry.codec());
+                modifiedTypes.add(typeAndCodec);
+                ArmorHider.LOGGER.info("Injected C2S payload: {}", id);
+            });
 
-        return modifiedTypes;
+            PayloadRegistry.getAllS2C().forEach((id, entry) -> {
+                var typeAndCodec = new CustomPacketPayload.TypeAndCodec(entry.type(), entry.codec());
+                modifiedTypes.add(typeAndCodec);
+                ArmorHider.LOGGER.info("Injected S2C payload: {}", id);
+            });
+
+            return modifiedTypes;
+        } finally {
+            PayloadInjectionGuard.setInjecting(false);
+        }
     }
 }
 //?}
