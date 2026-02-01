@@ -29,9 +29,11 @@ runs:
     - name: Generate changelog
       id: generate
       shell: bash
+      env:
+        RELEASE_BODY: ${{ inputs.release-body }}
       run: |
         if [[ "${{ inputs.is-manual-release }}" == "true" ]]; then
-          CONTENT="${{ inputs.release-body }}"
+          CONTENT="$RELEASE_BODY"
         else
           LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
 
