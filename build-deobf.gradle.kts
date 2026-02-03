@@ -7,14 +7,9 @@ plugins {
 // Mojang uses "snapshot" in Maven artifacts but "alpha" in the internal version ID
 val fabricGameVersion: String = stonecutter.current.project.replace("-snapshot-", "-alpha.")
 
+val javaVersionConverter: JavaVersionConverter = JavaVersionConverter(sc.current.parsed)
 
-version = Versioning.getGitVersion(
-    findProperty("prerelease"),
-    findProperty("preReleaseVersion"),
-    findProperty("semVer"),
-    stonecutter.current.project,
-    findProperty("mod_loader")
-)
+version = Versioning.getGitVersion(::findProperty, stonecutter.current.project)
 group = property("maven_group").toString()
 
 base {
@@ -79,13 +74,34 @@ dependencies {
 tasks.processResources {
     inputs.property("version", project.version)
     inputs.property("minecraft_version", fabricGameVersion)
-    inputs.property("java_version", 25)
+    inputs.property("java_version", javaVersionConverter.getJavaVersionInt())
 
     filesMatching("fabric.mod.json") {
         expand(
             "version" to project.version,
             "minecraft_version" to fabricGameVersion,
-            "java_version" to 25
+            "java_version" to javaVersionConverter.getJavaVersionInt()
+        )
+    }
+    filesMatching("armor-hider.mixins.json") {
+        expand(
+            "java_version" to javaVersionConverter.getJavaVersionString(),
+            "mixin_string" to MainMixins(sc.current.parsed).toString()
+        )
+    }
+}
+
+tasks.named<ProcessResources>("processClientResources") {
+    val clientMixin = ClientMixins(sc.current.parsed)
+    inputs.property("java_version", javaVersionConverter.getJavaVersionString())
+    inputs.property("mixin_string", clientMixin.toString())
+    inputs.property("options_screen_mixin_string", clientMixin.getScreenMixinString())
+
+    filesMatching("armor-hider.client.mixins.json") {
+        expand(
+            "java_version" to javaVersionConverter.getJavaVersionString(),
+            "mixin_string" to clientMixin.toString(),
+            "options_screen_mixin_string" to clientMixin.getScreenMixinString()
         )
     }
 }
