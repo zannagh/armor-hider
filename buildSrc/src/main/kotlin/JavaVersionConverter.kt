@@ -9,7 +9,7 @@ class JavaVersionConverter {
     
     fun getJavaVersion(): JavaVersion {
         return when {
-            parsedVersion >= "26.1" -> JavaVersion.VERSION_25
+            parsedVersion > "1.21.11" -> JavaVersion.VERSION_25
             parsedVersion >= "1.20.6" -> JavaVersion.VERSION_21
             parsedVersion >= "1.18" -> JavaVersion.VERSION_17
             parsedVersion >= "1.17" -> JavaVersion.VERSION_16
@@ -19,7 +19,7 @@ class JavaVersionConverter {
     
     fun getJavaVersionString(): String {
         return when {
-            parsedVersion >= "26.1" -> "JAVA_25"
+            parsedVersion > "1.21.11" -> "JAVA_25"
             parsedVersion >= "1.20.6" -> "JAVA_21"
             parsedVersion >= "1.18" -> "JAVA_17"
             parsedVersion >= "1.17" -> "JAVA_16"
@@ -29,7 +29,7 @@ class JavaVersionConverter {
     
     fun getJavaVersionInt(): Int {
         return when {
-            parsedVersion >= "26.1" -> 25
+            parsedVersion > "1.21.11" -> 25
             parsedVersion >= "1.20.6" -> 21
             parsedVersion >= "1.18" -> 17
             parsedVersion >= "1.17" -> 16
