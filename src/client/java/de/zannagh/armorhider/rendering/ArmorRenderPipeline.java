@@ -29,6 +29,7 @@ import org.jetbrains.annotations.Nullable;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.resources.Identifier;
+import org.jspecify.annotations.NonNull;
 //? }
 //? if >= 1.21.9 && < 1.21.11 {
 /*import net.minecraft.client.renderer.RenderType;
@@ -50,13 +51,8 @@ public class ArmorRenderPipeline {
     //? if < 1.21.9
     //public static final ThreadLocal<LivingEntity> CURRENT_ENTITY_RENDER_STATE = new ThreadLocal<>();
 
-
-    public static void setupContext(EquipmentSlot slot, GameProfile profile) {
-
-        if (slot != null) {
-            setCurrentSlot(slot);
-        }
-
+    public static void setupContext(@Nullable ItemStack itemStack, @NotNull EquipmentSlot slot, @NotNull GameProfile profile) {
+        setCurrentSlot(slot);
         if (getCurrentSlot() != null) {
             //? if >= 1.21.9
             String profileName = profile.name();
@@ -67,6 +63,9 @@ public class ArmorRenderPipeline {
                     profileName
             );
             setCurrentModification(configByEntityState);
+        }
+        if (itemStack != null) {
+            ArmorModificationContext.setCurrentItemStack(itemStack);
         }
     }
     
@@ -297,6 +296,28 @@ public class ArmorRenderPipeline {
         return RenderTypes.armorTranslucent(Sheets.ARMOR_TRIMS_SHEET);
         //? if >= 1.21.9 && < 1.21.11 
         //return RenderType.armorTranslucent(Sheets.ARMOR_TRIMS_SHEET);
+    }
+    //?}
+
+    //? if >= 1.21.11 {
+    /**
+     * Returns a translucent render type for item rendering if the current context requires transparency.
+     * Swaps cutout block render types to their translucent equivalents for proper alpha blending.
+     * Regular items already use translucent sheet types and don't need swapping.
+     */
+    public static RenderType getTranslucentItemRenderTypeIfApplicable(RenderType originalLayer) {
+        ArmorModificationInfo modification = getCurrentModification();
+        if (modification == null || !modification.shouldModify() || !shouldModifyEquipment()) {
+            return originalLayer;
+        }
+        double transparency = modification.getTransparency();
+        if (transparency >= 1.0 || transparency <= 0) {
+            return originalLayer;
+        }
+        if (originalLayer == Sheets.cutoutBlockSheet()) {
+            return Sheets.translucentBlockItemSheet();
+        }
+        return originalLayer;
     }
     //?}
 

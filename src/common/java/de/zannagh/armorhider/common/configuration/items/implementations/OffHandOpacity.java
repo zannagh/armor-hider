@@ -5,7 +5,7 @@ import de.zannagh.armorhider.common.configuration.items.DoubleConfigurationItem;
 public class OffHandOpacity extends DoubleConfigurationItem {
     public static final double TRANSPARENCY_STEP = 0.05;
 
-    public static final double DEFAULT_OPACITY = 1.0;
+    public static final double DEFAULT_OPACITY = 1;
 
     public OffHandOpacity() {
         super();

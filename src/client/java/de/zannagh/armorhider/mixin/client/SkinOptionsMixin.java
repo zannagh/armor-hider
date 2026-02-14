@@ -78,7 +78,7 @@ public abstract class SkinOptionsMixin extends Screen {
         if (!isSkinOptionsScreen) {
             return;
         }
-
+        
         // Cast to Screen to avoid mixin class reference in lambda/method reference bytecode
 
         OptionElementFactory optionElementFactory = new OptionElementFactory(self, list, options);
@@ -90,6 +90,7 @@ public abstract class SkinOptionsMixin extends Screen {
 
         optionElementFactory.addTextAsWidget(Component.translatable("armorhider.options.mod_title"));
 
+        //noinspection Convert2MethodRef, required for mixin to work
         var helmetOption = optionElementFactory.buildDoubleOption(
                 "armorhider.helmet.transparency",
                 Component.translatable("armorhider.options.helmet.tooltip"),
@@ -108,7 +109,7 @@ public abstract class SkinOptionsMixin extends Screen {
             optionElementFactory.addSimpleOptionAsWidget(helmetOption);
         }
 
-
+        //noinspection Convert2MethodRef, required for mixin to work
         var skullOrHatOption = optionElementFactory.buildBooleanOption(
                 Component.translatable("armorhider.options.helmet_affection.title"),
                 Component.translatable("armorhider.options.helmet_affection.tooltip"),
@@ -118,6 +119,7 @@ public abstract class SkinOptionsMixin extends Screen {
         );
         optionElementFactory.addSimpleOptionAsWidget(skullOrHatOption);
 
+        //noinspection Convert2MethodRef, required for mixin to work
         var chestOption = optionElementFactory.buildDoubleOption(
                 "armorhider.chestplate.transparency",
                 Component.translatable("armorhider.options.chestplate.tooltip"),
@@ -127,6 +129,7 @@ public abstract class SkinOptionsMixin extends Screen {
                 value -> setChestTransparency(value));
         optionElementFactory.addSimpleOptionAsWidget(chestOption);
 
+        //noinspection Convert2MethodRef, required for mixin to work
         var elytraOption = optionElementFactory.buildBooleanOption(
                 Component.translatable("armorhider.options.elytra_affection.title"),
                 Component.translatable("armorhider.options.elytra_affection.tooltip"),
@@ -136,6 +139,7 @@ public abstract class SkinOptionsMixin extends Screen {
         );
         optionElementFactory.addSimpleOptionAsWidget(elytraOption);
 
+        //noinspection Convert2MethodRef, required for mixin to work
         var legsOption = optionElementFactory.buildDoubleOption(
                 "armorhider.legs.transparency",
                 Component.translatable("armorhider.options.leggings.tooltip"),
@@ -145,6 +149,7 @@ public abstract class SkinOptionsMixin extends Screen {
                 value -> setLegsTransparency(value));
         optionElementFactory.addSimpleOptionAsWidget(legsOption);
 
+        //noinspection Convert2MethodRef, required for mixin to work
         var bootsOption = optionElementFactory.buildDoubleOption(
                 "armorhider.boots.transparency",
                 Component.translatable("armorhider.options.boots.tooltip"),
@@ -154,6 +159,17 @@ public abstract class SkinOptionsMixin extends Screen {
                 value -> setBootsTransparency(value));
         optionElementFactory.addSimpleOptionAsWidget(bootsOption);
 
+        //noinspection Convert2MethodRef, required for mixin to work
+        var offHandOption = optionElementFactory.buildDoubleOption(
+                "armorhider.offHand.transparency",
+                Component.translatable("armorhider.options.offhand.tooltip"),
+                Component.translatable("armorhider.options.offhand.tooltip_narration"),
+                currentValue -> Component.translatable("armorhider.options.offhand.button_text", String.format("%.0f%%", currentValue * 100)),
+                ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().offHandOpacity.getValue(),
+                value -> setOffHandTransparency(value));
+        optionElementFactory.addSimpleOptionAsWidget(offHandOption);
+
+        //noinspection Convert2MethodRef, required for mixin to work
         OptionInstance<Boolean> enableCombatDetection = optionElementFactory.buildBooleanOption(
                 Component.translatable("armorhider.options.combat_detection.title"),
                 Component.translatable("armorhider.options.combat_detection.tooltip"),
@@ -214,6 +230,12 @@ public abstract class SkinOptionsMixin extends Screen {
     @Unique
     private void setBootsTransparency(double value) {
         ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().bootsOpacity.setValue(value);
+        settingsChanged = true;
+    }
+
+    @Unique
+    private void setOffHandTransparency(double value) {
+        ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().offHandOpacity.setValue(value);
         settingsChanged = true;
     }
 

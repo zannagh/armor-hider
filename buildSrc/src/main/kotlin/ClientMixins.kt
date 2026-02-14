@@ -20,12 +20,20 @@ class ClientMixins {
     
     override fun toString(): String {
         var returnString = ""
-
+        
         if (parsedVersion > "1.21.1") {
             returnString += "bodyKneesAndToes.EquipmentRenderMixin\",\n"
             returnString += "    \"bodyKneesAndToes.ArmorFeatureRenderMixin\",\n"
         } else {
             returnString += "bodyKneesAndToes.HumanoidArmorLayerMixin\",\n"
+        }
+        
+        if (parsedVersion >= "1.21.11") {
+            returnString += "    \"hand.ItemInHandLayerMixin\",\n"
+            returnString += "    \"hand.OffHandRenderMixin\",\n"
+            returnString += "    \"hand.ItemRenderMixin\",\n"
+            returnString += "    \"hand.ItemRenderStateMixin\",\n"
+            returnString += "    \"hand.ModelPartSubmitMixin\",\n"
         }
 
         if (parsedVersion >= "1.20.5") {

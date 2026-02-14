@@ -12,6 +12,7 @@ public record ArmorModificationInfo(EquipmentSlot equipmentSlot, @NotNull Player
             case CHEST -> playerConfig.chestOpacity.getValue();
             case LEGS -> playerConfig.legsOpacity.getValue();
             case FEET -> playerConfig.bootsOpacity.getValue();
+            case OFFHAND -> playerConfig.offHandOpacity.getValue();
             default -> 1.0;
         };
         return CombatManager.transformTransparencyBasedOnCombat(playerConfig.playerName.getValue(), setting);

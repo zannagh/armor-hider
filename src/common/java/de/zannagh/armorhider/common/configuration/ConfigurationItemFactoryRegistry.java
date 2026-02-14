@@ -33,6 +33,7 @@ public class ConfigurationItemFactoryRegistry {
         registerFactoriesForClass(PlayerName.class);
         registerFactoriesForClass(PlayerUuid.class);
         registerFactoriesForClass(UsePlayerSettingsWhenUndeterminable.class);
+        registerFactoriesForClass(OffHandOpacity.class);
 
         initialized = true;
     }

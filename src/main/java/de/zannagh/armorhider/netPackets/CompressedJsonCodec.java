@@ -1,6 +1,6 @@
 package de.zannagh.armorhider.netPackets;
 
-import com.google.gson.Gson;
+import de.zannagh.armorhider.ArmorHider;
 import io.netty.buffer.ByteBuf;
 //? if >= 1.20.5 {
 import net.minecraft.network.codec.StreamCodec;
@@ -15,13 +15,7 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 public class CompressedJsonCodec {
-
-    private static volatile Gson GSON = new Gson();
-
-    public static void setGson(Gson gson) {
-        GSON = gson;
-    }
-
+    
     //? if >= 1.20.5 {
     // Creates a PacketCodec that serializes objects to compressed JSON.
     public static <T> StreamCodec<ByteBuf, T> create(Class<T> clazz) {
@@ -37,7 +31,7 @@ public class CompressedJsonCodec {
             ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
             try (GZIPOutputStream gzipStream = new GZIPOutputStream(byteStream);
                  OutputStreamWriter writer = new OutputStreamWriter(gzipStream, StandardCharsets.UTF_8)) {
-                GSON.toJson(value, writer);
+                ArmorHider.GSON.toJson(value, writer);
             }
 
             byte[] compressed = byteStream.toByteArray();
@@ -57,7 +51,7 @@ public class CompressedJsonCodec {
             ByteArrayInputStream byteStream = new ByteArrayInputStream(compressed);
             try (GZIPInputStream gzipStream = new GZIPInputStream(byteStream);
                  InputStreamReader reader = new InputStreamReader(gzipStream, StandardCharsets.UTF_8)) {
-                return GSON.fromJson(reader, clazz);
+                return ArmorHider.GSON.fromJson(reader, clazz);
             }
         } catch (Exception e) {
             throw new RuntimeException("Failed to decode compressed JSON", e);
