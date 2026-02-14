@@ -300,7 +300,6 @@ public class ArmorRenderPipeline {
     }
     //?}
 
-    //? if >= 1.21 {
     /*
      * Returns a translucent render type for item rendering if the current context requires transparency.
      * Swaps cutout block render types to their translucent equivalents for proper alpha blending.
@@ -316,14 +315,13 @@ public class ArmorRenderPipeline {
             return originalLayer;
         }
         if (originalLayer == Sheets.cutoutBlockSheet()) {
-            //? if >= 1.21.11 
+            //? if >= 1.21.11
             return Sheets.translucentBlockItemSheet();
-            //? if 1.21.9 || 1.21.10
+            //? if < 1.21.11
             //return Sheets.translucentItemSheet();
         }
         return originalLayer;
     }
-    //?}
 
     public static int applyArmorTransparency(int originalColor) {
         if (getCurrentModification() != null && getCurrentModification().shouldModify() && shouldModifyEquipment()) {

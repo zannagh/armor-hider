@@ -73,7 +73,7 @@ public class OffHandRenderMixin {
         //? if >= 1.21.9
         original.call(instance, poseStack, submitNodeCollector, light, overlay, color);
         //? if < 1.21.9
-        //original.call(instance, livingEntity, itemStack, itemDisplayContext, b, poseStack, multiBufferSource, level, i, i, i);
+        //original.call(instance, livingEntity, itemStack, itemDisplayContext, b, poseStack, multiBufferSource, level, i, j, k);
     }
 
     @Inject(

@@ -77,7 +77,7 @@ public class ItemInHandLayerMixin {
         //? if >= 1.21.9
         if (arm != renderState.mainArm) {
         //? if < 1.21.9
-        //if (arm == livingEntity.getMainArm()) {
+        //if (arm != livingEntity.getMainArm()) {
             ArmorRenderPipeline.clearContext();
         }
     }
