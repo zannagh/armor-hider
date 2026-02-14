@@ -20,6 +20,7 @@ import java.util.List;
 /// Intercepts item layer rendering to apply transparency to off-hand items.
 /// Modifies tint layer alpha values and assigns a synthetic tint index to non-tinted
 /// quads so that all quads receive the desired alpha during deferred rendering.
+@SuppressWarnings({"unused", "UnusedMixin"})
 @Mixin(ItemStackRenderState.LayerRenderState.class)
 public class ItemRenderStateMixin {
 

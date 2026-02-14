@@ -20,6 +20,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 /// Sets up and tears down the ArmorRenderPipeline context for off-hand items
 /// rendered in third person. Downstream mixins (ItemRenderStateMixin for regular
 /// items, ModelPartSubmitMixin for shields/banners) apply the actual transparency.
+@SuppressWarnings({"unused", "UnusedMixin"})
 @Mixin(ItemInHandLayer.class)
 public class ItemInHandLayerMixin {
 
