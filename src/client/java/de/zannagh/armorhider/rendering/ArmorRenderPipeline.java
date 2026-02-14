@@ -14,7 +14,8 @@ import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.util.ARGB;
 //?}
 //? if < 1.21.9 {
-/*import net.minecraft.world.entity.LivingEntity;
+/*import net.minecraft.client.renderer.Sheets;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
@@ -299,8 +300,8 @@ public class ArmorRenderPipeline {
     }
     //?}
 
-    //? if >= 1.21.11 {
-    /**
+    //? if >= 1.21 {
+    /*
      * Returns a translucent render type for item rendering if the current context requires transparency.
      * Swaps cutout block render types to their translucent equivalents for proper alpha blending.
      * Regular items already use translucent sheet types and don't need swapping.
@@ -315,7 +316,10 @@ public class ArmorRenderPipeline {
             return originalLayer;
         }
         if (originalLayer == Sheets.cutoutBlockSheet()) {
+            //? if >= 1.21.11 
             return Sheets.translucentBlockItemSheet();
+            //? if 1.21.9 || 1.21.10
+            //return Sheets.translucentItemSheet();
         }
         return originalLayer;
     }

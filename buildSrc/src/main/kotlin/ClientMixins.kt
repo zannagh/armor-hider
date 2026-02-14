@@ -30,15 +30,21 @@ class ClientMixins {
         if (parsedVersion > "1.21.1") {
             mixinStringBuilder.addMixin("bodyKneesAndToes.ArmorFeatureRenderMixin")
         }
-        
-        if (parsedVersion >= "1.21.11") {
-            mixinStringBuilder.addMixin("hand.ItemInHandLayerMixin")
-            mixinStringBuilder.addMixin("hand.OffHandRenderMixin")
-            mixinStringBuilder.addMixin("hand.ItemRenderMixin")
-            mixinStringBuilder.addMixin("hand.ItemRenderStateMixin")
-            mixinStringBuilder.addMixin("hand.ModelPartSubmitMixin")
-        }
 
+        mixinStringBuilder.addMixin("hand.ItemEntityRendererMixin")
+        mixinStringBuilder.addMixin("hand.ItemInHandLayerMixin")
+        mixinStringBuilder.addMixin("hand.OffHandRenderMixin")
+        
+        if (parsedVersion >= "1.21.9") {
+            mixinStringBuilder.addMixin("hand.ItemRenderStateMixin")
+            mixinStringBuilder.addMixin("hand.SubmitNodeCollectorMixin")
+        }
+        else {
+            mixinStringBuilder.addMixin("hand.ModelPartMixin")
+            mixinStringBuilder.addMixin("hand.ItemRendererMixin")
+        }
+        
+        
         return if (parsedVersion >= "1.20.5") {
             mixinStringBuilder.getMixinString("networking.ClientPacketListenerMixin")
         } else {
