@@ -1,4 +1,4 @@
-//? if >= 1.21.9 {
+//? if >= 1.21.4 {
 package de.zannagh.armorhider.mixin.client.head;
 
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -77,7 +77,7 @@ public abstract class CustomHeadLayerMixin {
 }
 //?}
 
-//? if < 1.21.9 {
+//? if < 1.21.4 {
 /*package de.zannagh.armorhider.mixin.client.head;
 
 import com.mojang.blaze3d.vertex.PoseStack;

@@ -1,4 +1,4 @@
-//? if < 1.21.9 {
+//? if <= 1.21.6 {
 /*package de.zannagh.armorhider.mixin.client.hand;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
