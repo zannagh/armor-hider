@@ -88,9 +88,11 @@ jobs:
           VERSION="${TAG#v}"
           echo "Tag version: $VERSION"
 
-          LATEST=$(git tag -l 'v*' --sort=-v:refname | head -n1 | sed 's/^v//' || echo "0.0.0")
+          # Exclude pre-release tags (containing '-') so that e.g. 0.7.8 is not
+          # considered a downgrade from 0.7.8-pre.2 (sort -V is not SemVer-aware).
+          LATEST=$(git tag -l 'v*' --sort=-v:refname | grep -v -- '-' | head -n1 | sed 's/^v//' || echo "0.0.0")
           if [[ "$LATEST" == "$VERSION" ]]; then
-            LATEST=$(git tag -l 'v*' --sort=-v:refname | sed -n '2p' | sed 's/^v//' || echo "0.0.0")
+            LATEST=$(git tag -l 'v*' --sort=-v:refname | grep -v -- '-' | sed -n '2p' | sed 's/^v//' || echo "0.0.0")
           fi
           echo "Latest existing version: $LATEST"
 
