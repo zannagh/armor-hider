@@ -67,6 +67,7 @@ dependencies {
 }
 
 tasks.processResources {
+    val mainMixin = MainMixins(sc.current.parsed)
     inputs.property("version", project.version)
     inputs.property("minecraft_version", stonecutter.current.project)
     inputs.property("java_version", javaVersionConverter.getJavaVersionInt())
@@ -81,7 +82,7 @@ tasks.processResources {
     filesMatching("armor-hider.mixins.json") {
         expand(
             "java_version" to javaVersionConverter.getJavaVersionString(),
-            "mixin_string" to MainMixins(sc.current.parsed).toString()
+            "mixin_string" to mainMixin.toString()
         )
     }
 }

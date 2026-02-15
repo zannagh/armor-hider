@@ -187,6 +187,18 @@ public class OldArmorHiderOptionsScreen extends OptionsSubScreen {
         );
         optionElementFactory.addSimpleOptionAsWidget(bootsOption);
 
+        var offhandOption = optionElementFactory.buildDoubleOption(
+                "armorhider.offhand.transparency",
+                Component.translatable("armorhider.options.offhand.tooltip"),
+                Component.translatable("armorhider.options.offhand.tooltip_narration"),
+                currentValue -> Component.translatable("armorhider.options.offhand.button_text",
+                        String.format("%.0f%%", currentValue * 100)),
+                ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().offHandOpacity.getValue(),
+                this::setOffhandTransparency
+        );
+        optionElementFactory.addSimpleOptionAsWidget(offhandOption);
+
+
         OptionInstance<Boolean> enableCombatDetection = optionElementFactory.buildBooleanOption(
             Component.translatable("armorhider.options.combat_detection.title"),
             Component.translatable("armorhider.options.combat_detection.tooltip"),
@@ -269,6 +281,11 @@ public class OldArmorHiderOptionsScreen extends OptionsSubScreen {
 
     private void setBootsTransparency(double value) {
         ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().bootsOpacity.setValue(value);
+        settingsChanged = true;
+    }
+
+    private void setOffhandTransparency(double value) {
+        ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().offHandOpacity.setValue(value);
         settingsChanged = true;
     }
 

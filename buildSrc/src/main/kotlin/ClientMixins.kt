@@ -19,20 +19,36 @@ class ClientMixins {
     }
     
     override fun toString(): String {
-        var returnString = ""
-
+        val mixinStringBuilder = MixinStringBuilder(
+            if (parsedVersion > "1.21.1") {
+                "bodyKneesAndToes.EquipmentRenderMixin" 
+            }
+            else {
+                "bodyKneesAndToes.HumanoidArmorLayerMixin"
+            })
+            
         if (parsedVersion > "1.21.1") {
-            returnString += "bodyKneesAndToes.EquipmentRenderMixin\",\n"
-            returnString += "    \"bodyKneesAndToes.ArmorFeatureRenderMixin\",\n"
-        } else {
-            returnString += "bodyKneesAndToes.HumanoidArmorLayerMixin\",\n"
+            mixinStringBuilder.addMixin("bodyKneesAndToes.ArmorFeatureRenderMixin")
         }
 
-        if (parsedVersion >= "1.20.5") {
-            returnString += "    \"networking.ClientPacketListenerMixin"
-        } else {
-            returnString += "    \"networking.ClientPlayNetworkHandlerMixin"
+        mixinStringBuilder.addMixin("hand.ItemEntityRendererMixin")
+        mixinStringBuilder.addMixin("hand.ItemInHandLayerMixin")
+        mixinStringBuilder.addMixin("hand.OffHandRenderMixin")
+        
+        if (parsedVersion >= "1.21.9") {
+            mixinStringBuilder.addMixin("hand.ItemRenderStateMixin")
+            mixinStringBuilder.addMixin("hand.SubmitNodeCollectorMixin")
         }
-        return returnString;
+        else {
+            mixinStringBuilder.addMixin("hand.ModelPartMixin")
+            mixinStringBuilder.addMixin("hand.ItemRendererMixin")
+        }
+        
+        
+        return if (parsedVersion >= "1.20.5") {
+            mixinStringBuilder.getMixinString("networking.ClientPacketListenerMixin")
+        } else {
+            mixinStringBuilder.getMixinString("networking.ClientPlayNetworkHandlerMixin")
+        }
     }
 }

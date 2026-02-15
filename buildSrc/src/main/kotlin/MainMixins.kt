@@ -9,18 +9,13 @@ class MainMixins
     }
 
     override fun toString(): String {
-            var returnString =
-                "networking.MinecraftServerMixin\",\n" +
-                        "    \"networking.ServerLoginMixin\",\n"
-            if (parsedVersion >= "1.20.5") {
-                returnString +=
-                    "    \"networking.CustomPayloadCodecMixin\",\n" +
-                            "    \"networking.ServerGamePacketListenerMixin"
-            } else {
-                returnString +=
-                    "    \"networking.ServerPlayNetworkHandlerMixin"
-            }
-            return returnString;
-        
+        val mixinStringBuilder = MixinStringBuilder("networking.MinecraftServerMixin")
+        mixinStringBuilder.addMixin("networking.ServerLoginMixin")
+        if (parsedVersion >= "1.20.5") {
+            mixinStringBuilder.addMixin("networking.CustomPayloadCodecMixin")
+            return mixinStringBuilder.getMixinString("networking.ServerGamePacketListenerMixin")
+        } else {
+            return mixinStringBuilder.getMixinString("networking.ServerPlayNetworkHandlerMixin")
+        }
     }
 }
