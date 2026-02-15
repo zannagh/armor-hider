@@ -78,8 +78,10 @@ public abstract class SkullBlockRenderMixin {
             method = "getSkullRenderType",
             at = @At(
                     value = "INVOKE",
-                    //? if >= 1.21.11
-                    target = "Lnet/minecraft/client/renderer/rendertype/RenderTypes;entityCutoutNoCullZOffset(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/rendertype/RenderType;"
+                    //? if >= 26.1-snapshot-6
+                    target = "Lnet/minecraft/client/renderer/rendertype/RenderTypes;entityCutoutZOffset(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/rendertype/RenderType;"
+                    //? if >= 1.21.11 && < 26.1-snapshot-6
+                    //target = "Lnet/minecraft/client/renderer/rendertype/RenderTypes;entityCutoutNoCullZOffset(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/rendertype/RenderType;"
                     //? if >= 1.21.9 && < 1.21.11
                     //target = "Lnet/minecraft/client/renderer/RenderType;entityCutoutNoCullZOffset(Lnet/minecraft/resources/ResourceLocation;)Lnet/minecraft/client/renderer/RenderType;"
             )
