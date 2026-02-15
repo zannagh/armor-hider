@@ -140,22 +140,11 @@ public abstract class SkullBlockRenderMixin {
             method = "getRenderType",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/client/renderer/RenderType;entityTranslucent(Lnet/minecraft/resources/ResourceLocation;)Lnet/minecraft/client/renderer/RenderType;"
+                    target = "Lnet/minecraft/client/renderer/blockentity/SkullBlockRenderer;getSkullRenderType(Lnet/minecraft/world/level/block/SkullBlock$Type;Lnet/minecraft/resources/ResourceLocation;)Lnet/minecraft/client/renderer/RenderType;"
             )
     )
-    private static RenderType modifySkullTransparency(ResourceLocation texture, Operation<RenderType> original) {
-        return ArmorRenderPipeline.getSkullRenderLayer(texture, original.call(texture));
-    }
-
-    @WrapOperation(
-            method = "getRenderType",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/client/renderer/RenderType;entityCutoutNoCullZOffset(Lnet/minecraft/resources/ResourceLocation;)Lnet/minecraft/client/renderer/RenderType;"
-            )
-    )
-    private static RenderType getCutoutRenderLayer(ResourceLocation texture, Operation<RenderType> original) {
-        return ArmorRenderPipeline.getSkullRenderLayer(texture, original.call(texture));
+    private static RenderType modifySkullTransparency(SkullBlock.Type type, ResourceLocation resourceLocation, Operation<RenderType> original) {
+        return ArmorRenderPipeline.getSkullRenderLayer(resourceLocation, original.call(type, resourceLocation));
     }
 }
 *///?}
