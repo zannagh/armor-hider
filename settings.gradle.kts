@@ -22,7 +22,8 @@ stonecutter {
             "1.21.10", 
             "1.21.11", 
             "26.1-snapshot-4",
-            "26.1-snapshot-5")
+            "26.1-snapshot-5",
+            "26.1-snapshot-6")
         vcsVersion = "1.21.11" // Latest stable
         
         // Use different build files for obfuscated (1.x) vs unobfuscated (26.x) versions
