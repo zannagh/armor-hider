@@ -48,7 +48,7 @@ jobs:
 
       - name: Read Supported Versions
         id: versions
-        run: echo "matrix=$(cat supportedVersions.json)" >> $GITHUB_OUTPUT
+        run: echo "matrix=$(jq -c '.' supportedVersions.json)" >> $GITHUB_OUTPUT
 
       - name: Calculate Version
         id: version
