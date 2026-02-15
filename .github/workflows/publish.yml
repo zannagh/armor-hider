@@ -39,11 +39,16 @@ jobs:
       prerelease_number: ${{ steps.version.outputs.preReleaseNumber }}
       full_semver: ${{ steps.version.outputs.fullSemVer }}
       commits_since: ${{ steps.version.outputs.commitsSinceVersionSource }}
+      supported_versions: ${{ steps.versions.outputs.matrix }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
+
+      - name: Read Supported Versions
+        id: versions
+        run: echo "matrix=$(cat supportedVersions.json)" >> $GITHUB_OUTPUT
 
       - name: Calculate Version
         id: version
@@ -257,7 +262,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        minecraft: ['1.20', '1.20.1', '1.21', '1.21.1', '1.21.9', '1.21.10', '1.21.11', '26.1-snapshot-4', '26.1-snapshot-5']
+        minecraft: ${{ fromJSON(needs.analyze.outputs.supported_versions) }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
