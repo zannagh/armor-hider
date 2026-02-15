@@ -30,7 +30,6 @@ import org.jetbrains.annotations.Nullable;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.resources.Identifier;
-import org.jspecify.annotations.NonNull;
 //? }
 //? if >= 1.21.9 && < 1.21.11 {
 /*import net.minecraft.client.renderer.RenderType;

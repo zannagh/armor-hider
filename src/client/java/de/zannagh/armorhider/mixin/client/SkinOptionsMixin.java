@@ -161,7 +161,7 @@ public abstract class SkinOptionsMixin extends Screen {
 
         //noinspection Convert2MethodRef, required for mixin to work
         var offHandOption = optionElementFactory.buildDoubleOption(
-                "armorhider.offHand.transparency",
+                "armorhider.offhand.transparency",
                 Component.translatable("armorhider.options.offhand.tooltip"),
                 Component.translatable("armorhider.options.offhand.tooltip_narration"),
                 currentValue -> Component.translatable("armorhider.options.offhand.button_text", String.format("%.0f%%", currentValue * 100)),

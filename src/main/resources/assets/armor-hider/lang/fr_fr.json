@@ -18,7 +18,7 @@
   "armorhider.options.boots.button_text": "Bottes: %s",
   "armorhider.options.boots.tooltip": "Ajuste l'opacité des bottes pour votre modèle entre 0 (transparent) et 100% (visible).",
   "armorhider.options.boots.tooltip_narration": "Ajuste l'opacité des bottes pour votre modèle entre 0 (transparent) et 100% (visible).",
-  "armorhider.options.offhand.button_text": "Main secondaire : %s",
+  "armorhider.options.offhand.button_text": "Main secondaire: %s",
   "armorhider.options.offhand.tooltip": "Ajuste l'opacité de l'objet en main secondaire pour votre modèle entre 0 (transparent) et 100% (visible).",
   "armorhider.options.offhand.tooltip_narration": "Ajuste l'opacité de l'objet en main secondaire pour votre modèle entre 0 (transparent) et 100% (visible).",
   "armorhider.options.combat_detection.title": "Détection de combat",
