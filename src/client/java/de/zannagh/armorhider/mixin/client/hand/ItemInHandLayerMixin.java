@@ -35,9 +35,9 @@ import net.minecraft.world.entity.player.Player;
 public class ItemInHandLayerMixin {
 
     //? if >= 1.21.9
-    @Inject(method = "submitArmWithItem", at = @At("HEAD"))
+    @Inject(method = "submitArmWithItem", at = @At("HEAD"), cancellable = true)
     //? if < 1.21.9
-    //@Inject(method = "renderArmWithItem", at = @At("HEAD"))
+    //@Inject(method = "renderArmWithItem", at = @At("HEAD"), cancellable = true)
     //? if >= 1.21.11
     private void setupOffhandContext(ArmedEntityRenderState renderState, ItemStackRenderState itemState, ItemStack itemStack, HumanoidArm arm, PoseStack poseStack, SubmitNodeCollector collector, int light, CallbackInfo ci) {
     //? if 1.21.9 || 1.21.10
@@ -66,6 +66,13 @@ public class ItemInHandLayerMixin {
         //ArmorRenderPipeline.setupContext(null, EquipmentSlot.OFFHAND, humanoidState);
         //? if < 1.21.4
         //ArmorRenderPipeline.setupContext(itemState, EquipmentSlot.OFFHAND, humanoidState);
+
+        if (ArmorRenderPipeline.hasActiveContext()
+                && ArmorRenderPipeline.shouldModifyEquipment()
+                && ArmorRenderPipeline.shouldHideEquipment()) {
+            ArmorRenderPipeline.clearContext();
+            ci.cancel();
+        }
     }
 
     //? if >= 1.21.9
