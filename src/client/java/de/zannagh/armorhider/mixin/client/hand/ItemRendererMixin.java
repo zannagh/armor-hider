@@ -79,3 +79,56 @@ public class ItemRendererMixin {
     //? }
 }
 *///? }
+
+//? if >= 1.21.4 && < 1.21.9 {
+/*package de.zannagh.armorhider.mixin.client.hand;
+
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import de.zannagh.armorhider.rendering.ArmorRenderPipeline;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.client.renderer.entity.ItemRenderer;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
+
+@SuppressWarnings({"unused", "UnusedMixin"})
+@Mixin(ItemRenderer.class)
+public class ItemRendererMixin {
+
+    @ModifyVariable(
+            //? if >= 1.21.6
+            //method = "renderItem(Lnet/minecraft/world/item/ItemDisplayContext;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;II[ILjava/util/List;Lnet/minecraft/client/renderer/RenderType;Lnet/minecraft/client/renderer/item/ItemStackRenderState$FoilType;)V",
+            //? if < 1.21.6
+            method = "renderItem(Lnet/minecraft/world/item/ItemDisplayContext;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;II[ILnet/minecraft/client/resources/model/BakedModel;Lnet/minecraft/client/renderer/RenderType;Lnet/minecraft/client/renderer/item/ItemStackRenderState$FoilType;)V",
+            at = @At("HEAD"),
+            ordinal = 0,
+            argsOnly = true
+    )
+    private static RenderType modifyRenderType(RenderType renderType) {
+        if (ArmorRenderPipeline.hasActiveContext() && ArmorRenderPipeline.shouldModifyEquipment()) {
+            return ArmorRenderPipeline.getTranslucentItemRenderTypeIfApplicable(renderType);
+        }
+        return renderType;
+    }
+
+    @WrapOperation(
+            method = "renderQuadList(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;Ljava/util/List;[III)V",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lcom/mojang/blaze3d/vertex/VertexConsumer;putBulkData(Lcom/mojang/blaze3d/vertex/PoseStack$Pose;Lnet/minecraft/client/renderer/block/model/BakedQuad;FFFFII)V"
+            )
+    )
+    private static void wrapPutBulkData(VertexConsumer instance, PoseStack.Pose pose, BakedQuad quad, float r, float g, float b, float alpha, int light, int overlay, Operation<Void> original) {
+        if (ArmorRenderPipeline.hasActiveContext() && ArmorRenderPipeline.shouldModifyEquipment()) {
+            float modifiedAlpha = alpha * ArmorRenderPipeline.getTransparencyAlpha();
+            original.call(instance, pose, quad, r, g, b, modifiedAlpha, light, overlay);
+        } else {
+            original.call(instance, pose, quad, r, g, b, alpha, light, overlay);
+        }
+    }
+}
+*///? }

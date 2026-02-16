@@ -65,7 +65,7 @@ public class ArmorHiderOptionsScreen extends OptionsSubScreen {
     @Override
     public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
         //? if < 1.21.4
-        this.renderBackground(context, mouseX, mouseY, delta);
+        //this.renderBackground(context, mouseX, mouseY, delta);
         super.render(context, mouseX, mouseY, delta);
     }
 

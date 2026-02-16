@@ -41,9 +41,7 @@ class ClientMixins {
         }
         else {
             mixinStringBuilder.addMixin("hand.ModelPartMixin")
-            if (parsedVersion < "1.21.4") {
-                mixinStringBuilder.addMixin("hand.ItemRendererMixin")
-            }
+            mixinStringBuilder.addMixin("hand.ItemRendererMixin")
         }
         
         

@@ -83,12 +83,16 @@ public abstract class CustomHeadLayerMixin {
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.common.constants.MixinConstants;
 import de.zannagh.armorhider.rendering.ArmorRenderPipeline;
+import de.zannagh.armorhider.util.ItemsUtil;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.layers.CustomHeadLayer;
 import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -102,14 +106,7 @@ public abstract class CustomHeadLayerMixin {
             order = MixinConstants.HIGH_PRIO
     )
     private <S extends LivingEntityRenderState> void interceptHeadLayerRender(PoseStack poseStack, MultiBufferSource multiBufferSource, int i, S livingEntityRenderState, float f, float g, CallbackInfo ci) {
-        if (!(livingEntityRenderState instanceof HumanoidRenderState humanoidState)) {
-            return;
-        }
-        // In 1.21.4-1.21.8, use headEquipment field to set up context
-        if (humanoidState.headEquipment.isEmpty()) {
-            return;
-        }
-        ArmorRenderPipeline.setupContext(humanoidState.headEquipment, EquipmentSlot.HEAD, humanoidState);
+        setupContextBasedOnWornHeadType(livingEntityRenderState);
     }
 
     @Inject(
@@ -119,6 +116,21 @@ public abstract class CustomHeadLayerMixin {
     )
     private <S extends LivingEntityRenderState> void releaseContext(PoseStack poseStack, MultiBufferSource multiBufferSource, int i, S livingEntityRenderState, float f, float g, CallbackInfo ci) {
         ArmorRenderPipeline.clearContext();
+    }
+
+    @Unique
+    private static void setupContextBasedOnWornHeadType(LivingEntityRenderState livingEntityRenderState) {
+        if (!(livingEntityRenderState instanceof HumanoidRenderState humanoidState)) {
+            return;
+        }
+        if (humanoidState.wornHeadProfile == null && humanoidState.wornHeadType == null) {
+            return;
+        }
+        if (humanoidState.wornHeadProfile != null) {
+            ArmorRenderPipeline.setupContext(new ItemStack(Items.PLAYER_HEAD), EquipmentSlot.HEAD, humanoidState);
+            return;
+        }
+        ArmorRenderPipeline.setupContext(ItemsUtil.getItemStackFromSkullBlockType(humanoidState.wornHeadType), EquipmentSlot.HEAD, humanoidState);
     }
 }
 *///?}
