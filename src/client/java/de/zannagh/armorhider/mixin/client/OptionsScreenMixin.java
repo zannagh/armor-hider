@@ -1,4 +1,4 @@
-//? if <= 1.21.1 {
+//? if <= 1.21.6 {
 /*package de.zannagh.armorhider.mixin.client;
 
 

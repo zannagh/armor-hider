@@ -55,13 +55,17 @@ public class OffHandRenderMixin {
                     value = "INVOKE",
                     //? if >= 1.21.9
                     target = "Lnet/minecraft/client/renderer/item/ItemStackRenderState;submit(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;III)V"
-                    //? if < 1.21.9
+                    //? if >= 1.21.6 && < 1.21.9
+                    //target = "Lnet/minecraft/client/renderer/entity/ItemRenderer;renderStatic(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemDisplayContext;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/world/level/Level;III)V"
+                    //? if < 1.21.6
                     //target = "Lnet/minecraft/client/renderer/entity/ItemRenderer;renderStatic(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemDisplayContext;ZLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/world/level/Level;III)V"
             )
     )
     //? if >= 1.21.9
     private void modifyItemSubmit(ItemStackRenderState instance, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int light, int overlay, int color, Operation<Void> original) {
-    //? if < 1.21.9
+    //? if >= 1.21.6 && < 1.21.9
+    //private void modifyItemSubmit(ItemRenderer instance, LivingEntity livingEntity, ItemStack itemStack, ItemDisplayContext itemDisplayContext, PoseStack poseStack, MultiBufferSource multiBufferSource, Level level, int i, int j, int k, Operation<Void> original) {
+    //? if < 1.21.6
     //private void modifyItemSubmit(ItemRenderer instance, LivingEntity livingEntity, ItemStack itemStack, ItemDisplayContext itemDisplayContext, boolean b, PoseStack poseStack, MultiBufferSource multiBufferSource, Level level, int i, int j, int k, Operation<Void> original) {
         if (ArmorRenderPipeline.hasActiveContext()
                 && ArmorRenderPipeline.shouldModifyEquipment()
@@ -72,7 +76,9 @@ public class OffHandRenderMixin {
         // which modifies tint layers and render types at the submitItem level.
         //? if >= 1.21.9
         original.call(instance, poseStack, submitNodeCollector, light, overlay, color);
-        //? if < 1.21.9
+        //? if >= 1.21.6 && < 1.21.9
+        //original.call(instance, livingEntity, itemStack, itemDisplayContext, poseStack, multiBufferSource, level, i, j, k);
+        //? if < 1.21.6
         //original.call(instance, livingEntity, itemStack, itemDisplayContext, b, poseStack, multiBufferSource, level, i, j, k);
     }
 

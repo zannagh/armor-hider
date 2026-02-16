@@ -1,4 +1,4 @@
-//? if >= 1.21 && < 1.21.9 {
+//? if >= 1.21 && < 1.21.4 {
 /*package de.zannagh.armorhider.mixin.client.bodyKneesAndToes;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;

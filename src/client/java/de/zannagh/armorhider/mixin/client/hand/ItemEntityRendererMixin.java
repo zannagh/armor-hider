@@ -10,10 +10,10 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-//? if >= 1.21.9
+//? if >= 1.21.4
 import net.minecraft.client.renderer.entity.state.ItemEntityRenderState;
 
-//? if < 1.21.9 {
+//? if < 1.21.4 {
 /*import net.minecraft.client.renderer.MultiBufferSource;
 import com.mojang.blaze3d.vertex.PoseStack;
 *///?}
@@ -21,11 +21,11 @@ import com.mojang.blaze3d.vertex.PoseStack;
 @SuppressWarnings({"unused", "UnusedMixin"})
 @Mixin(ItemEntityRenderer.class)
 public class ItemEntityRendererMixin {
-    //? if >= 1.21.9 {
+    //? if >= 1.21.4 {
     @Inject(method = "extractRenderState(Lnet/minecraft/world/entity/item/ItemEntity;Lnet/minecraft/client/renderer/entity/state/ItemEntityRenderState;F)V", at = @At("HEAD"))
     private static void triggerRender(ItemEntity itemEntity, ItemEntityRenderState itemEntityRenderState, float f, CallbackInfo ci) {
     //? }
-    //? if < 1.21.9 {
+    //? if < 1.21.4 {
     /*@Inject(method = "render(Lnet/minecraft/world/entity/item/ItemEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V", at = @At("HEAD"))
     private static void triggerRender(ItemEntity itemEntity, float f, float g, PoseStack poseStack, MultiBufferSource multiBufferSource, int i, CallbackInfo ci) {
     *///?}

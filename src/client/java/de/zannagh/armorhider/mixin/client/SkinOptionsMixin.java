@@ -4,7 +4,7 @@
 // | https://github.com/enjarai/show-me-your-skin        |
 // | --------------------------------------------------- |
 
-//? if > 1.21.1 {
+//? if >= 1.21.9 {
 package de.zannagh.armorhider.mixin.client;
 
 import de.zannagh.armorhider.ArmorHider;

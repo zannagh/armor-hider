@@ -1,4 +1,69 @@
-//? if <= 1.21.1 {
+//? if >= 1.21.4 && <= 1.21.6 {
+/*package de.zannagh.armorhider.rendering;
+
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.gui.screens.inventory.InventoryScreen;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.network.chat.Component;
+
+import java.awt.*;
+
+public class PlayerPreviewWidget extends AbstractWidget {
+
+    public PlayerPreviewWidget(int x, int y, int width, int height) {
+        super(x, y, width, height, Component.empty());
+    }
+
+    @Override
+    public void renderWidget(GuiGraphics context, int mouseX, int mouseY, float delta) {
+        LocalPlayer player = Minecraft.getInstance().player;
+        if (player == null) {
+            return;
+        }
+
+        int margin = 10;
+        int previewSize = this.width - margin * 2;
+        int previewX = this.getX() + this.width / 2;
+        int previewY = this.getY() + margin + previewSize;
+
+        int panelLeft = previewX - previewSize / 2 - 10;
+        int panelTop = previewY - previewSize;
+        int panelRight = previewX + previewSize / 2 + 10;
+        int panelBottom = previewY + 20;
+
+        // Background
+        context.fill(panelLeft, panelTop, panelRight, panelBottom, Color.darkGray.darker().getRGB());
+
+        // Border
+        int borderColor = 0xFFC0C0C0;
+        context.fill(panelLeft, panelTop, panelRight, panelTop + 1, borderColor);
+        context.fill(panelLeft, panelBottom - 1, panelRight, panelBottom, borderColor);
+        context.fill(panelLeft, panelTop, panelLeft + 1, panelBottom, borderColor);
+        context.fill(panelRight - 1, panelTop, panelRight, panelBottom, borderColor);
+
+        int entitySize = (int) Math.round(previewSize * 0.35);
+        InventoryScreen.renderEntityInInventoryFollowsMouse(
+                context,
+                panelLeft, panelTop,
+                panelRight, panelBottom,
+                entitySize,
+                0.0625F,
+                (float) mouseX, (float) mouseY,
+                player
+        );
+    }
+
+    @Override
+    protected void updateWidgetNarration(NarrationElementOutput builder) {
+        // No narration needed
+    }
+}
+*///?}
+
+//? if < 1.21.4 {
 /*package de.zannagh.armorhider.rendering;
 
 import com.mojang.blaze3d.platform.Lighting;
@@ -32,7 +97,7 @@ public class PlayerPreviewWidget extends AbstractWidget {
 
         int margin = 10;
         int previewSize = this.width - margin * 2;
-        int previewX = this.getX() + this.width / 2; // Center X
+        int previewX = this.getX() + this.width / 2;
         int previewY = this.getY() + margin + previewSize;
 
         int panelLeft = previewX - previewSize / 2 - 10;
@@ -44,11 +109,11 @@ public class PlayerPreviewWidget extends AbstractWidget {
         context.fill(panelLeft, panelTop, panelRight, panelBottom, Color.darkGray.darker().getRGB());
 
         // Border
-        int borderColor = 0xFFC0C0C0; // Light gray color (1.20.x compatibility)
-        context.fill(panelLeft, panelTop, panelRight, panelTop + 1, borderColor); // Top
-        context.fill(panelLeft, panelBottom - 1, panelRight, panelBottom, borderColor); // Bottom
-        context.fill(panelLeft, panelTop, panelLeft + 1, panelBottom, borderColor); // Left
-        context.fill(panelRight - 1, panelTop, panelRight, panelBottom, borderColor); // Right
+        int borderColor = 0xFFC0C0C0;
+        context.fill(panelLeft, panelTop, panelRight, panelTop + 1, borderColor);
+        context.fill(panelLeft, panelBottom - 1, panelRight, panelBottom, borderColor);
+        context.fill(panelLeft, panelTop, panelLeft + 1, panelBottom, borderColor);
+        context.fill(panelRight - 1, panelTop, panelRight, panelBottom, borderColor);
 
         drawEntity(
                 context,
@@ -61,7 +126,6 @@ public class PlayerPreviewWidget extends AbstractWidget {
         );
     }
 
-    // Based on InventoryScreen.renderEntityInInventory at 1.20.x
     public static void drawEntity(GuiGraphics context, int x, int y, int size, float mouseX, float mouseY, LivingEntity entity) {
         float f = (float)Math.atan(mouseX / 40.0F);
         float g = (float)Math.atan(mouseY / 40.0F);
@@ -86,10 +150,9 @@ public class PlayerPreviewWidget extends AbstractWidget {
         entity.yHeadRot = l;
     }
 
-    // Based on InventoryScreen.renderEntityInInventory at 1.20.x
     public static void drawEntity(GuiGraphics context, int x, int y, int size, Quaternionf quaternionf, @Nullable Quaternionf quaternionf2, LivingEntity entity) {
         context.pose().pushPose();
-        context.pose().translate(x, y, 150.0); // Higher z-value to prevent clipping through background
+        context.pose().translate(x, y, 150.0);
         //?if >= 1.21
         context.pose().mulPose(new Matrix4f().scaling((float)size, (float)size, (float)(-size)));
         //?if < 1.21
@@ -102,12 +165,9 @@ public class PlayerPreviewWidget extends AbstractWidget {
             entityRenderDispatcher.overrideCameraOrientation(quaternionf2);
         }
 
-        // Disable depth testing so the entity always renders on top of the background
         RenderSystem.disableDepthTest();
-        entityRenderDispatcher.setRenderShadow(false);
         entityRenderDispatcher.render(entity, 0.0, 0.0, 0.0, 0.0F, 1.0F, context.pose(), context.bufferSource(), 15728880);
         context.flush();
-        entityRenderDispatcher.setRenderShadow(true);
         RenderSystem.enableDepthTest();
         context.pose().popPose();
         Lighting.setupFor3DItems();

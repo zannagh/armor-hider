@@ -1,4 +1,4 @@
-// The options screen for 1.21/1.21.1, not used in >= 1.21.9 or 1.20.x
+// The options screen for 1.21 - 1.21.8, not used in >= 1.21.9 or 1.20.x
 
 //? if >= 1.21 && < 1.21.9 {
 
@@ -64,7 +64,8 @@ public class ArmorHiderOptionsScreen extends OptionsSubScreen {
 
     @Override
     public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
-        this.renderBackground(context, mouseX, mouseY, delta);
+        //? if < 1.21.4
+        //this.renderBackground(context, mouseX, mouseY, delta);
         super.render(context, mouseX, mouseY, delta);
     }
 
