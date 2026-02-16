@@ -18,16 +18,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(CapeLayer.class)
 public class CapeRenderMixin {
 
-    @Unique
-    private static final ThreadLocal<AvatarRenderState> currentPlayerRenderState = new ThreadLocal<>();
-
     @Inject(
             method = "submit(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/client/renderer/entity/state/AvatarRenderState;FF)V",
             at = @At("HEAD")
     )
     private void setupCapeRenderContext(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int light, AvatarRenderState avatarRenderState, float f, float g, CallbackInfo ci) {
         ArmorRenderPipeline.setupContext(null, EquipmentSlot.CHEST, avatarRenderState);
-        currentPlayerRenderState.set(avatarRenderState);
     }
 
     @WrapOperation(
@@ -52,7 +48,6 @@ public class CapeRenderMixin {
     )
     private void releaseCapeContext(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int light, AvatarRenderState avatarRenderState, float f, float g, CallbackInfo ci) {
         ArmorRenderPipeline.clearContext();
-        currentPlayerRenderState.remove();
     }
 }
 //?}
@@ -77,16 +72,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(CapeLayer.class)
 public class CapeRenderMixin {
 
-    @Unique
-    private static final ThreadLocal<PlayerRenderState> currentPlayerRenderState = new ThreadLocal<>();
-
     @Inject(
             method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/renderer/entity/state/PlayerRenderState;FF)V",
             at = @At("HEAD")
     )
     private void setupCapeRenderContext(PoseStack poseStack, MultiBufferSource multiBufferSource, int light, PlayerRenderState playerRenderState, float f, float g, CallbackInfo ci) {
         ArmorRenderPipeline.setupContext(null, EquipmentSlot.CHEST, playerRenderState);
-        currentPlayerRenderState.set(playerRenderState);
     }
 
     @WrapOperation(
@@ -110,7 +101,6 @@ public class CapeRenderMixin {
     )
     private void releaseCapeContext(PoseStack poseStack, MultiBufferSource multiBufferSource, int light, PlayerRenderState playerRenderState, float f, float g, CallbackInfo ci) {
         ArmorRenderPipeline.clearContext();
-        currentPlayerRenderState.remove();
     }
 }
 *///?}
@@ -135,16 +125,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(CapeLayer.class)
 public class CapeRenderMixin {
 
-    @Unique
-    private static final ThreadLocal<AbstractClientPlayer> currentPlayer = new ThreadLocal<>();
-
     @Inject(
             method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/player/AbstractClientPlayer;FFFFFF)V",
             at = @At("HEAD")
     )
     private void setupCapeRenderContext(PoseStack poseStack, MultiBufferSource bufferSource, int light, AbstractClientPlayer player, float limbSwing, float limbSwingAmount, float partialTick, float ageInTicks, float netHeadYaw, float headPitch, CallbackInfo ci) {
         ArmorRenderPipeline.setupContext(null, EquipmentSlot.CHEST, player);
-        currentPlayer.set(player);
     }
 
     //? if >= 1.21 {
@@ -188,7 +174,6 @@ public class CapeRenderMixin {
     )
     private void releaseCapeContext(PoseStack poseStack, MultiBufferSource bufferSource, int light, AbstractClientPlayer player, float limbSwing, float limbSwingAmount, float partialTick, float ageInTicks, float netHeadYaw, float headPitch, CallbackInfo ci) {
         ArmorRenderPipeline.clearContext();
-        currentPlayer.remove();
     }
 }
 *///?}

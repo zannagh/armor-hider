@@ -1,4 +1,4 @@
-// The options screen for 1.21 - 1.21.9, not used in >= 1.21.9 or 1.20.x
+// The options screen for 1.21 - 1.21.8, not used in >= 1.21.9 or 1.20.x
 
 //? if >= 1.21 && < 1.21.9 {
 
