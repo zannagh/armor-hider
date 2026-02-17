@@ -177,9 +177,9 @@ public abstract class SkullBlockRenderMixin {
 
     @WrapOperation(
             //? if >= 1.21.6
-            //method = "getPlayerSkinRenderType",
+            method = "getPlayerSkinRenderType",
             //? if < 1.21.6
-            method = "getRenderType(Lnet/minecraft/world/level/block/SkullBlock$Type;Lnet/minecraft/world/item/component/ResolvableProfile;Lnet/minecraft/resources/ResourceLocation;)Lnet/minecraft/client/renderer/RenderType;",
+            //method = "getRenderType(Lnet/minecraft/world/level/block/SkullBlock$Type;Lnet/minecraft/world/item/component/ResolvableProfile;Lnet/minecraft/resources/ResourceLocation;)Lnet/minecraft/client/renderer/RenderType;",
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/client/renderer/RenderType;entityTranslucent(Lnet/minecraft/resources/ResourceLocation;)Lnet/minecraft/client/renderer/RenderType;"
@@ -191,9 +191,9 @@ public abstract class SkullBlockRenderMixin {
 
     @WrapOperation(
             //? if >= 1.21.6
-            //method = "getSkullRenderType",
+            method = "getSkullRenderType",
             //? if < 1.21.6
-            method = "getRenderType(Lnet/minecraft/world/level/block/SkullBlock$Type;Lnet/minecraft/world/item/component/ResolvableProfile;Lnet/minecraft/resources/ResourceLocation;)Lnet/minecraft/client/renderer/RenderType;",
+            //method = "getRenderType(Lnet/minecraft/world/level/block/SkullBlock$Type;Lnet/minecraft/world/item/component/ResolvableProfile;Lnet/minecraft/resources/ResourceLocation;)Lnet/minecraft/client/renderer/RenderType;",
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/client/renderer/RenderType;entityCutoutNoCullZOffset(Lnet/minecraft/resources/ResourceLocation;)Lnet/minecraft/client/renderer/RenderType;"
