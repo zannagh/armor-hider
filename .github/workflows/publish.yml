@@ -245,7 +245,7 @@ jobs:
           path: artifacts
 
       - name: Upload to Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v2.4.2
         with:
           tag_name: ${{ github.event.release.tag_name }}
           files: artifacts/**/*.jar
