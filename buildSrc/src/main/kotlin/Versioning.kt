@@ -2,46 +2,44 @@ import java.util.function.Function
 
 object Versioning {
 
-    fun getGitVersion(propertyProvider: Function<String, Any?>, gameVersion: String): String {
-        return getGitVersion(
-            propertyProvider.apply("prerelease"),
-            propertyProvider.apply("preReleaseVersion"),
-            propertyProvider.apply("semVer"),
-    gameVersion,
-            propertyProvider.apply("mod_loader")
-        )
-    }
-    
-    fun getGitVersion(preRelease: Any?, preReleaseVersion: Any?, semVer: Any?, gameVersion: String, modLoader: Any? = "fabric"): String {
+    /**
+     * Returns just the mod version (no loader prefix, no game version).
+     * E.g., "0.7.10", "0.7.10-3", "0.7.10-3-preview"
+     *
+     * The build script assembles the full artifact version as:
+     * `<modVersion>+<gameVersionRange>`
+     */
+    fun getModVersion(propertyProvider: Function<String, Any?>): String {
+        val preRelease = propertyProvider.apply("prerelease")
+        val preReleaseVersion = propertyProvider.apply("preReleaseVersion")
+        val semVer = propertyProvider.apply("semVer")
+
         var isPreRelease = true
         val preReleaseProperty = preRelease?.toString() ?: ""
         if (preReleaseProperty.isNotEmpty() && preReleaseProperty.lowercase() == "false") {
             isPreRelease = false
         }
         val ciVersionProperty = semVer?.toString() ?: ""
-        val modLoader = modLoader?.toString() ?: "fabric"
 
-        val buildVersion = if (ciVersionProperty.isNotEmpty()) {
-            val ciVersion = "$gameVersion-$ciVersionProperty"
-            "$modLoader-$ciVersion"
+        val baseVersion = if (ciVersionProperty.isNotEmpty()) {
+            ciVersionProperty
         } else {
-            "$modLoader-${Versioning.getVersionFromGitVersionOrTag(gameVersion)}"
+            getModVersionFromGit()
         }
 
         return if (isPreRelease) {
-            val preReleaseVersion = preReleaseVersion?.toString() ?: ""
-            if (preReleaseVersion.isNotEmpty()) {
-                "$buildVersion-preview.$preReleaseVersion"
+            val preReleaseVersionStr = preReleaseVersion?.toString() ?: ""
+            if (preReleaseVersionStr.isNotEmpty()) {
+                "$baseVersion-preview.$preReleaseVersionStr"
             } else {
-                "$buildVersion-preview"
+                "$baseVersion-preview"
             }
-        }
-        else {
-            buildVersion
+        } else {
+            baseVersion
         }
     }
-    
-    fun getVersionFromGitVersionOrTag(gameVersion: String): String {
+
+    private fun getModVersionFromGit(): String {
         try {
             val semVer: String
             val commitsSinceSource: String
@@ -57,37 +55,30 @@ object Versioning {
                 val semVerProc = Runtime.getRuntime().exec(arrayOf("dotnet", "gitversion", "/output", "json", "/showVariable", "majorMinorPatch"))
                 val commitsSinceProc = Runtime.getRuntime().exec(arrayOf("dotnet", "gitversion", "/output", "json", "/showVariable", "CommitsSinceVersionSource"))
                 val uncommittedProc = Runtime.getRuntime().exec(arrayOf("dotnet", "gitversion", "/output", "json", "/showVariable", "UncommittedChanges"))
-                return getVersionFromGitVersionOrTagFallback(
+                return modVersionFromGitVersionFallback(
                     semVerProc.inputStream.bufferedReader().readText().trim(),
                     commitsSinceProc.inputStream.bufferedReader().readText().trim(),
-                    uncommittedProc.inputStream.bufferedReader().readText().trim(),
-                    gameVersion
+                    uncommittedProc.inputStream.bufferedReader().readText().trim()
                 )
             }
-            return getVersionFromGitVersionOrTagFallback(semVer, commitsSinceSource, uncommittedChanges, gameVersion)
+            return modVersionFromGitVersionFallback(semVer, commitsSinceSource, uncommittedChanges)
         } catch (_: Exception) {
-            val lastKnownTag = Runtime.getRuntime().exec(arrayOf("git", "describe", "--tags"))
+            return Runtime.getRuntime().exec(arrayOf("git", "describe", "--tags"))
                 .inputStream.bufferedReader().readText().trim()
-            return if (lastKnownTag.contains(gameVersion)) {
-                lastKnownTag
-            } else {
-                "$gameVersion-$lastKnownTag"
-            }
         }
     }
 
-    private fun getVersionFromGitVersionOrTagFallback(
+    private fun modVersionFromGitVersionFallback(
         semVer: String,
         commitsSinceSource: String,
-        uncommittedChanges: String,
-        gameVersion: String
+        uncommittedChanges: String
     ): String {
         if (semVer.isEmpty() || !semVer.contains(Regex("\\d")) || !commitsSinceSource.matches(Regex("\\d.*"))) {
             throw Exception("Invalid version info")
         }
         return when (commitsSinceSource) {
-            "0" -> if (uncommittedChanges == "0") "$gameVersion-$semVer" else "$gameVersion-$semVer-$uncommittedChanges"
-            else -> "$gameVersion-$semVer-$commitsSinceSource"
+            "0" -> if (uncommittedChanges == "0") semVer else "$semVer-$uncommittedChanges"
+            else -> "$semVer-$commitsSinceSource"
         }
     }
 }

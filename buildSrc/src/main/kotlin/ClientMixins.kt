@@ -11,7 +11,7 @@ class ClientMixins {
     fun getScreenMixinString(): String {
         // For 1.20.x: Use OptionsScreenMixin (injects into main options screen)
         // For 1.21+: Use SkinOptionsMixin (injects into skin options screen)
-        return if (parsedVersion > "1.21.6") {
+        return if (parsedVersion >= "1.21.9") {
             "SkinOptionsMixin"
         } else {
             "OptionsScreenMixin"

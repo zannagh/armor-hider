@@ -8,12 +8,13 @@ plugins {
 val fabricGameVersion: String = stonecutter.current.project.replace("-snapshot-", "-alpha.")
 
 val javaVersionConverter: JavaVersionConverter = JavaVersionConverter(sc.current.parsed)
+val supportedVersions = SupportedVersions(rootProject.file("supportedVersions.json"))
 
-version = Versioning.getGitVersion(::findProperty, stonecutter.current.project)
+version = Versioning.getModVersion(::findProperty) + "+" + supportedVersions.getDisplayVersion(stonecutter.current.project)
 group = property("maven_group").toString()
 
 base {
-    archivesName.set(property("archives_base_name").toString())
+    archivesName.set("${property("archives_base_name")}-${property("mod_loader")}")
 }
 
 repositories {
@@ -72,14 +73,17 @@ dependencies {
 }
 
 tasks.processResources {
+    val minecraftConstraint = supportedVersions.getFabricVersionConstraint(stonecutter.current.project) {
+        it.replace("-snapshot-", "-alpha.")
+    }
     inputs.property("version", project.version)
-    inputs.property("minecraft_version", fabricGameVersion)
+    inputs.property("minecraft_version", minecraftConstraint)
     inputs.property("java_version", javaVersionConverter.getJavaVersionInt())
 
     filesMatching("fabric.mod.json") {
         expand(
             "version" to project.version,
-            "minecraft_version" to fabricGameVersion,
+            "minecraft_version" to minecraftConstraint,
             "java_version" to javaVersionConverter.getJavaVersionInt()
         )
     }

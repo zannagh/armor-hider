@@ -1,4 +1,4 @@
-//? if >= 1.21.4 && <= 1.21.6 {
+//? if >= 1.21.4 && < 1.21.9 {
 /*package de.zannagh.armorhider.rendering;
 
 import net.minecraft.client.Minecraft;
