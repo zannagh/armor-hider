@@ -33,10 +33,15 @@ public abstract class CustomHeadLayerMixin {
     @Inject(
             method = "submit(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;FF)V",
             at = @At("HEAD"),
-            order = MixinConstants.HIGH_PRIO
+            order = MixinConstants.HIGH_PRIO,
+            cancellable = true
     )
     private <S extends LivingEntityRenderState> void interceptHeadLayerRender(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int i, S livingEntityRenderState, float f, float g, CallbackInfo ci) {
         setupContextBasedOnWornHeadType(livingEntityRenderState);
+        if (ArmorRenderPipeline.shouldHideEquipment()) {
+            ci.cancel();
+            ArmorRenderPipeline.clearContext();
+        }
     }
 
     @Inject(
@@ -103,10 +108,15 @@ public abstract class CustomHeadLayerMixin {
     @Inject(
             method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;FF)V",
             at = @At("HEAD"),
-            order = MixinConstants.HIGH_PRIO
+            order = MixinConstants.HIGH_PRIO,
+            cancellable = true
     )
     private <S extends LivingEntityRenderState> void interceptHeadLayerRender(PoseStack poseStack, MultiBufferSource multiBufferSource, int i, S livingEntityRenderState, float f, float g, CallbackInfo ci) {
         setupContextBasedOnWornHeadType(livingEntityRenderState);
+        if (ArmorRenderPipeline.shouldHideEquipment()) {
+            ci.cancel();
+            ArmorRenderPipeline.clearContext();
+        }
     }
 
     @Inject(
@@ -156,7 +166,8 @@ public abstract class CustomHeadLayerMixin<T extends LivingEntity> {
     @Inject(
             method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/world/entity/LivingEntity;FFFFFF)V",
             at = @At("HEAD"),
-            order = MixinConstants.HIGH_PRIO
+            order = MixinConstants.HIGH_PRIO,
+            cancellable = true
     )
     private void interceptHeadLayerRender(PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, T entity, float limbSwing, float limbSwingAmount, float partialTick, float ageInTicks, float netHeadYaw, float headPitch, CallbackInfo ci) {
         if (ArmorRenderPipeline.entityIsNotPlayer(entity)) {
@@ -164,6 +175,10 @@ public abstract class CustomHeadLayerMixin<T extends LivingEntity> {
         }
         
         ArmorRenderPipeline.setupContext(entity.getItemBySlot(EquipmentSlot.HEAD), EquipmentSlot.HEAD, entity);
+        if (ArmorRenderPipeline.shouldHideEquipment()) {
+            ci.cancel();
+            ArmorRenderPipeline.clearContext();
+        }
     }
 
     @Inject(

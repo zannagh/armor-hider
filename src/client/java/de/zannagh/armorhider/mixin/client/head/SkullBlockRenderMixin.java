@@ -49,6 +49,9 @@ public abstract class SkullBlockRenderMixin {
                 original.call(instance, model, o, poseStack, renderType, i, j, k, crumblingOverlay);
                 return;
             }
+            if (ArmorRenderPipeline.shouldHideEquipment()) {
+                return;
+            }
             var modifiedColor = ArmorRenderPipeline.applyTransparencyFromWhite(255);
             instance.order(ArmorRenderPipeline.SkullRenderPriority).submitModel(model, o, poseStack, renderType, i, j, modifiedColor, null, k, crumblingOverlay);
         } finally {
@@ -107,7 +110,6 @@ import net.minecraft.client.model.SkullModelBase;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.SkullBlockRenderer;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.block.SkullBlock;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
@@ -122,6 +124,9 @@ public abstract class SkullBlockRenderMixin {
     )
     private static void modifyTransparency(SkullModelBase instance, PoseStack poseStack, VertexConsumer vertexConsumer, int light, int overlay, Operation<Void> original) {
         if (ArmorRenderPipeline.hasActiveContext() && ArmorRenderPipeline.shouldModifyEquipment()) {
+            if (ArmorRenderPipeline.shouldHideEquipment()) {
+                return;
+            }
             int modifiedColor = ArmorRenderPipeline.applyTransparencyFromWhite(-1);
             instance.renderToBuffer(poseStack, vertexConsumer, light, overlay, modifiedColor);
         } else {
@@ -133,11 +138,11 @@ public abstract class SkullBlockRenderMixin {
             method = "getRenderType",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/client/renderer/blockentity/SkullBlockRenderer;getSkullRenderType(Lnet/minecraft/world/level/block/SkullBlock$Type;Lnet/minecraft/resources/ResourceLocation;)Lnet/minecraft/client/renderer/RenderType;"
+                    target = "Lnet/minecraft/client/renderer/RenderType;entityCutoutNoCullZOffset(Lnet/minecraft/resources/ResourceLocation;)Lnet/minecraft/client/renderer/RenderType;"
             )
     )
-    private static RenderType modifySkullTransparency(SkullBlock.Type type, ResourceLocation resourceLocation, Operation<RenderType> original) {
-        return ArmorRenderPipeline.getSkullRenderLayer(resourceLocation, original.call(type, resourceLocation));
+    private static RenderType modifySkullTransparency(ResourceLocation resourceLocation, Operation<RenderType> original) {
+        return ArmorRenderPipeline.getSkullRenderLayer(resourceLocation, original.call(resourceLocation));
     }
 }
 *///?}
@@ -168,6 +173,9 @@ public abstract class SkullBlockRenderMixin {
     )
     private static void modifyTransparency(SkullModelBase instance, PoseStack poseStack, VertexConsumer vertexConsumer, int light, int overlay, Operation<Void> original) {
         if (ArmorRenderPipeline.hasActiveContext() && ArmorRenderPipeline.shouldModifyEquipment()) {
+            if (ArmorRenderPipeline.shouldHideEquipment()) {
+                return;
+            }
             int modifiedColor = ArmorRenderPipeline.applyTransparencyFromWhite(-1);
             instance.renderToBuffer(poseStack, vertexConsumer, light, overlay, modifiedColor);
         } else {
@@ -234,6 +242,9 @@ public abstract class SkullBlockRenderMixin {
         if (ArmorRenderPipeline.hasActiveContext() && ArmorRenderPipeline.shouldModifyEquipment()) {
             if (!ArmorRenderPipeline.getCurrentModification().playerConfig().opacityAffectingHatOrSkull.getValue()) {
                 original.call(instance, poseStack, vertexConsumer, light, overlay, red, green, blue, alpha);
+                return;
+            }
+            if (ArmorRenderPipeline.shouldHideEquipment()) {
                 return;
             }
 
