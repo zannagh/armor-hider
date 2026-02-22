@@ -166,11 +166,27 @@ jobs:
             -PsemVer="${{ steps.mod-ver.outputs.version }}" \
             -Pprerelease="${{ steps.mod-ver.outputs.is_prerelease }}"
 
+      - name: Stage Unique Artifacts
+        run: |
+          # Multiple artifact dirs may contain files with the same name due to consolidated build versions.
+          # Keeping only one copy of each filename in a flat staging directory.
+          mkdir -p staging
+          find versions/**/build/libs -name '*.jar' | while read -r file; do
+            basename="$(basename "$file")"
+            if [ ! -f "staging/$basename" ]; then
+              cp "$file" "staging/$basename"
+            else
+              echo "Skipping duplicate: $file"
+            fi
+          done
+          echo "Staged artifacts:"
+          ls -la staging/
+
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v6
         with:
           name: armor-hider-${{ steps.mod-ver.outputs.version }}
-          path: versions/**/build/libs/*.jar
+          path: staging/*.jar
           if-no-files-found: error
 
   changelog:
