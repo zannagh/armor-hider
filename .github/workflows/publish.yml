@@ -170,7 +170,9 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: armor-hider-${{ steps.mod-ver.outputs.version }}
-          path: versions/**/build/libs/*.jar
+          path: |
+            fabric/versions/**/build/libs/*.jar
+            neoforge/versions/**/build/libs/*.jar
           if-no-files-found: error
 
   changelog:
@@ -265,6 +267,7 @@ jobs:
       fail-fast: false
       matrix:
         minecraft: ${{ fromJSON(needs.analyze.outputs.supported_versions) }}
+        loader: [fabric, neoforge]
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -297,6 +300,7 @@ jobs:
           mod-version: ${{ needs.build.outputs.mod_version }}
           is-prerelease: ${{ needs.build.outputs.is_prerelease }}
           artifact-path: artifacts
+          loader: ${{ matrix.loader }}
 
       - name: Preview Modrinth Upload
         if: steps.modrinth.outputs.found == 'true'
@@ -313,7 +317,7 @@ jobs:
           echo "  Display Name:  ${{ steps.modrinth.outputs.version_name }}"
           echo "  Version Type:  ${{ steps.modrinth.outputs.version_type }}"
           echo "  Game Versions: ${{ matrix.minecraft }}"
-          echo "  Loader:        fabric"
+          echo "  Loader:        ${{ matrix.loader }}"
           echo ""
           echo "Changelog:"
           echo "---"
@@ -339,7 +343,7 @@ jobs:
           name: ${{ steps.modrinth.outputs.version_name }}
           version: ${{ steps.modrinth.outputs.version_number }}
           version-type: ${{ steps.modrinth.outputs.version_type }}
-          loaders: fabric
+          loaders: ${{ matrix.loader }}
           game-versions: |
             ${{ steps.game-versions.outputs.list }}
           game-version-filter: any

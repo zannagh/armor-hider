@@ -1,0 +1,31 @@
+modLoader="javafml"
+loaderVersion="[1,)"
+license="MIT"
+
+[[mods]]
+modId="armor-hider"
+version="${version}"
+displayName="Armor Hider"
+description="Small mod to hide armor pieces based on player preferences."
+authors="zannagh"
+logoFile="assets/armor-hider/icon.png"
+
+[[mixins]]
+config="armor-hider.mixins.json"
+
+[[mixins]]
+config="armor-hider.client.mixins.json"
+
+[[dependencies."armor-hider"]]
+modId="neoforge"
+type="required"
+versionRange="[${neoforge_version},)"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies."armor-hider"]]
+modId="minecraft"
+type="required"
+versionRange="[${minecraft_version}]"
+ordering="NONE"
+side="BOTH"
