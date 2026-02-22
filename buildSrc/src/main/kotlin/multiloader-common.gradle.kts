@@ -72,4 +72,6 @@ tasks.test {
     testLogging {
         events("passed", "skipped", "failed")
     }
+    // Tests use shared, version-independent code — only run for the active version
+    enabled = sc.current.isActive
 }
