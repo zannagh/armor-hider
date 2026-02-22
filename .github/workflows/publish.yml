@@ -48,7 +48,13 @@ jobs:
 
       - name: Read Supported Versions
         id: versions
-        run: echo "matrix=$(jq -c 'keys' supportedVersions.json)" >> $GITHUB_OUTPUT
+        run: |
+          # Generate explicit (loader, version-group) matrix from per-loader JSON
+          MATRIX=$(jq -c '[
+            (.fabric | keys[] | {minecraft: ., loader: "fabric"}),
+            (.neoforge | keys[] | {minecraft: ., loader: "neoforge"})
+          ]' supportedVersions.json)
+          echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
 
       - name: Calculate Version
         id: version
@@ -168,15 +174,11 @@ jobs:
 
       - name: Stage Unique Artifacts
         run: |
-          # Multiple artifact dirs may contain files with the same name due to consolidated build versions.
-          # Keeping only one copy of each filename in a flat staging directory.
           mkdir -p staging
-          find versions/**/build/libs -name '*.jar' | while read -r file; do
-            basename="$(basename "$file")"
-            if [ ! -f "staging/$basename" ]; then
-              cp "$file" "staging/$basename"
-            else
-              echo "Skipping duplicate: $file"
+          find fabric/versions neoforge/versions -path '*/build/libs/*.jar' -print0 | while IFS= read -r -d '' jar; do
+            filename=$(basename "$jar")
+            if [[ ! -f "staging/$filename" ]]; then
+              cp "$jar" "staging/$filename"
             fi
           done
           echo "Staged artifacts:"
@@ -280,7 +282,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        minecraft: ${{ fromJSON(needs.analyze.outputs.supported_versions) }}
+        include: ${{ fromJSON(needs.analyze.outputs.supported_versions) }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -288,14 +290,14 @@ jobs:
       - name: Get game versions
         id: game-versions
         run: |
-          # Get all compatible game versions for this group
-          VERSIONS=$(jq -r '.["${{ matrix.minecraft }}"] // ["${{ matrix.minecraft }}"] | .[]' supportedVersions.json)
+          # Get all compatible game versions for this loader/group from the per-loader JSON
+          VERSIONS=$(jq -r '."${{ matrix.loader }}"."${{ matrix.minecraft }}" // ["${{ matrix.minecraft }}"] | .[]' supportedVersions.json)
           echo "list<<EOF" >> $GITHUB_OUTPUT
           echo "$VERSIONS" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
           # Primary version (first in group) for finding the JAR directory
-          PRIMARY=$(jq -r '.["${{ matrix.minecraft }}"] // ["${{ matrix.minecraft }}"] | .[0]' supportedVersions.json)
+          PRIMARY=$(jq -r '."${{ matrix.loader }}"."${{ matrix.minecraft }}" // ["${{ matrix.minecraft }}"] | .[0]' supportedVersions.json)
           echo "primary=$PRIMARY" >> $GITHUB_OUTPUT
 
       - name: Download Artifacts
@@ -313,6 +315,7 @@ jobs:
           mod-version: ${{ needs.build.outputs.mod_version }}
           is-prerelease: ${{ needs.build.outputs.is_prerelease }}
           artifact-path: artifacts
+          loader: ${{ matrix.loader }}
 
       - name: Preview Modrinth Upload
         if: steps.modrinth.outputs.found == 'true'
@@ -329,7 +332,7 @@ jobs:
           echo "  Display Name:  ${{ steps.modrinth.outputs.version_name }}"
           echo "  Version Type:  ${{ steps.modrinth.outputs.version_type }}"
           echo "  Game Versions: ${{ matrix.minecraft }}"
-          echo "  Loader:        fabric"
+          echo "  Loader:        ${{ matrix.loader }}"
           echo ""
           echo "Changelog:"
           echo "---"
@@ -355,7 +358,7 @@ jobs:
           name: ${{ steps.modrinth.outputs.version_name }}
           version: ${{ steps.modrinth.outputs.version_number }}
           version-type: ${{ steps.modrinth.outputs.version_type }}
-          loaders: fabric
+          loaders: ${{ matrix.loader }}
           game-versions: |
             ${{ steps.game-versions.outputs.list }}
           game-version-filter: any
@@ -373,6 +376,10 @@ jobs:
     needs: [analyze, validate-version, check-modrinth, build, changelog, create-prerelease, upload-to-release, publish-modrinth]
     if: always()
     steps:
+      - name: Checkout
+        if: inputs.dry_run == true
+        uses: actions/checkout@v6
+
       - name: Generate Summary
         uses: zannagh/versionizer/workflow-summary@v1
         with:
@@ -400,3 +407,33 @@ jobs:
 
             - **Version Already Exists**: `${{ needs.check-modrinth.outputs.version_exists }}`
             - **Publish Enabled**: `${{ env.PUBLISH_TO_MODRINTH }}`
+
+      - name: Modrinth Upload Preview
+        if: inputs.dry_run == true && needs.build.result == 'success'
+        run: |
+          MOD_VERSION="${{ needs.build.outputs.mod_version }}"
+          IS_PRERELEASE="${{ needs.build.outputs.is_prerelease }}"
+          VERSION_TYPE="release"
+          if [[ "$IS_PRERELEASE" == "true" ]]; then VERSION_TYPE="beta"; fi
+
+          TOTAL=0
+          {
+            echo "## Modrinth Upload Preview (Dry Run)"
+            echo ""
+            echo "The following versions **would** be published to Modrinth:"
+            echo ""
+            echo "| Loader | Version Group | Game Versions | Modrinth Version Name | Type |"
+            echo "| ------ | ------------- | ------------- | --------------------- | ---- |"
+
+            for LOADER in fabric neoforge; do
+              for GROUP in $(jq -r ".${LOADER} | keys[]" supportedVersions.json); do
+                GAME_VERSIONS=$(jq -r ".${LOADER}.\"${GROUP}\" // [\"${GROUP}\"] | join(\", \")" supportedVersions.json)
+                DISPLAY_LOADER="${LOADER^}"
+                echo "| ${DISPLAY_LOADER} | ${GROUP} | ${GAME_VERSIONS} | [${DISPLAY_LOADER}] ${GROUP} - ${MOD_VERSION} | ${VERSION_TYPE} |"
+                TOTAL=$((TOTAL + 1))
+              done
+            done
+
+            echo ""
+            echo "**Total uploads: $TOTAL**"
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -8,6 +8,10 @@ class MixinStringBuilder(firstMixin: String) {
 
     fun getMixinString(lastMixin: String): String {
         mixins.add(lastMixin)
+        return getMixinString()
+    }
+
+    fun getMixinString(): String {
         val separator = "\",\n    \""
         return mixins.joinToString(separator)
     }

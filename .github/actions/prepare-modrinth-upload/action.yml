@@ -1,5 +1,5 @@
 name: Prepare Modrinth Upload
-description: Finds the correct JAR for a Minecraft version and prepares Modrinth version metadata.
+description: Finds the correct JAR for a Minecraft version/loader and prepares Modrinth version metadata.
 
 inputs:
   minecraft-version:
@@ -17,10 +17,13 @@ inputs:
   artifact-path:
     description: Path to the downloaded artifacts directory
     required: true
+  loader:
+    description: The mod loader (fabric, neoforge)
+    required: true
 
 outputs:
   found:
-    description: Whether a JAR was found for this Minecraft version
+    description: Whether a JAR was found for this Minecraft version/loader
     value: ${{ steps.find-jar.outputs.found }}
   jar_path:
     description: Path to the found JAR file
@@ -29,7 +32,7 @@ outputs:
     description: The Modrinth version number (e.g. fabric-1.20-1.20.1-1.0.0)
     value: ${{ steps.info.outputs.version_number }}
   version_name:
-    description: The Modrinth display name (e.g. 1.20-1.20.1 - 1.0.0)
+    description: The Modrinth display name (e.g. [Fabric] 1.20-1.20.1 - 1.0.0)
     value: ${{ steps.info.outputs.version_name }}
   version_type:
     description: The Modrinth version type (release or beta)
@@ -42,9 +45,9 @@ runs:
       id: find-jar
       shell: bash
       run: |
-        JAR=$(find ${{ inputs.artifact-path }} -name "*.jar" -path "*/${{ inputs.minecraft-version }}/*" ! -name "*-sources.jar" | head -n1)
+        JAR=$(find ${{ inputs.artifact-path }}/${{ inputs.loader }} -name "*.jar" -path "*/${{ inputs.minecraft-version }}/*" ! -name "*-sources.jar" 2>/dev/null | head -n1)
         if [[ -z "$JAR" ]]; then
-          echo "No JAR found for Minecraft ${{ inputs.minecraft-version }}"
+          echo "No JAR found for ${{ inputs.loader }} Minecraft ${{ inputs.minecraft-version }}"
           echo "found=false" >> $GITHUB_OUTPUT
         else
           echo "Found JAR: $JAR"
@@ -60,12 +63,13 @@ runs:
         DISPLAY_VERSION="${{ inputs.display-version }}"
         MOD_VERSION="${{ inputs.mod-version }}"
         IS_PRERELEASE="${{ inputs.is-prerelease }}"
+        LOADER="${{ inputs.loader }}"
 
         # Transform snapshot-X to pre.X for version number (e.g., 26.1-snapshot-4 -> 26.1-pre.4)
         DISPLAY_VERSION_SHORT="${DISPLAY_VERSION//-snapshot-/-pre.}"
 
-        VERSION_NUMBER="fabric-${DISPLAY_VERSION_SHORT}-${MOD_VERSION}"
-        VERSION_NAME="${DISPLAY_VERSION} - ${MOD_VERSION}"
+        VERSION_NUMBER="${LOADER}-${DISPLAY_VERSION_SHORT}-${MOD_VERSION}"
+        VERSION_NAME="[${LOADER^}] ${DISPLAY_VERSION} - ${MOD_VERSION}"
 
         if [[ "$IS_PRERELEASE" == "true" ]]; then
           VERSION_TYPE="beta"

@@ -36,15 +36,11 @@ jobs:
 
       - name: Stage Unique Artifacts
         run: |
-          # Multiple artifact dirs may contain files with the same name due to consolidated build versions.
-          # Keeping only one copy of each filename in a flat staging directory.
           mkdir -p staging
-          find versions/**/build/libs -name '*.jar' | while read -r file; do
-            basename="$(basename "$file")"
-            if [ ! -f "staging/$basename" ]; then
-              cp "$file" "staging/$basename"
-            else
-              echo "Skipping duplicate: $file"
+          find fabric/versions neoforge/versions -path '*/build/libs/*.jar' -print0 | while IFS= read -r -d '' jar; do
+            filename=$(basename "$jar")
+            if [[ ! -f "staging/$filename" ]]; then
+              cp "$jar" "staging/$filename"
             fi
           done
           echo "Staged artifacts:"
