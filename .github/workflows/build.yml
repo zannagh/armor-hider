@@ -34,11 +34,21 @@ jobs:
       - name: Build
         run: ./gradlew build -PsemVer="${{ steps.version.outputs.fullSemVer }}" -Pprerelease="true"
 
+      - name: Stage Unique Artifacts
+        run: |
+          mkdir -p staging
+          find fabric/versions neoforge/versions -path '*/build/libs/*.jar' -print0 | while IFS= read -r -d '' jar; do
+            filename=$(basename "$jar")
+            if [[ ! -f "staging/$filename" ]]; then
+              cp "$jar" "staging/$filename"
+            fi
+          done
+          echo "Staged artifacts:"
+          ls -la staging/
+
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v6
         with:
           name: armor-hider-${{ steps.version.outputs.fullSemVer }}
-          path: |
-            fabric/versions/**/build/libs/*.jar
-            neoforge/versions/**/build/libs/*.jar
+          path: staging/*.jar
           if-no-files-found: warn
