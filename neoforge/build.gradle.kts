@@ -34,7 +34,7 @@ neoForge {
     }
 
     mods {
-        register("armor-hider") {
+        register("armor_hider") {
             sourceSet(sourceSets.main.get())
         }
     }
@@ -43,7 +43,7 @@ neoForge {
 tasks.processResources {
     val supportedVersions = SupportedVersions(rootProject.file("supportedVersions.json"))
     val javaVersionConverter = JavaVersionConverter(sc.current.parsed)
-    val minecraftConstraint = supportedVersions.getFabricVersionConstraint(sc.current.project)
+    val minecraftConstraint = supportedVersions.getNeoForgeVersionConstraint(sc.current.project)
 
     inputs.property("version", project.version)
     inputs.property("minecraft_version", minecraftConstraint)

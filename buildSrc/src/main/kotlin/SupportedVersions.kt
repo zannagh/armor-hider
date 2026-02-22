@@ -74,6 +74,24 @@ class SupportedVersions(jsonFile: File) {
         }
     }
 
+    /**
+     * NeoForge version constraint for neoforge.mods.toml's `dependencies.minecraft.versionRange`.
+     *
+     * Uses Maven version range format (template wraps result in `[...]`):
+     * - Single version: "1.21.4" → template produces "[1.21.4]"
+     * - Range: "1.21.5,1.21.8" → template produces "[1.21.5,1.21.8]"
+     *
+     * Excludes 26.x versions since NeoForge has no 26.x releases.
+     */
+    fun getNeoForgeVersionConstraint(version: String): String {
+        val versions = getGameVersions(version).filter { !it.startsWith("26.") }
+        return if (versions.size <= 1) {
+            versions.firstOrNull() ?: version
+        } else {
+            "${versions.first()},${versions.last()}"
+        }
+    }
+
     /** Primary build version for a group (first version in the list). */
     fun getPrimaryVersion(groupKey: String): String =
         groupMap[groupKey]?.first() ?: groupKey

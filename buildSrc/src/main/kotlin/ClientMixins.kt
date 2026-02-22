@@ -1,12 +1,9 @@
 import dev.kikugie.stonecutter.data.ParsedVersion
 
-class ClientMixins {
-
-    val parsedVersion: ParsedVersion
-    
-    constructor(parsedVersion: ParsedVersion) {
-        this.parsedVersion = parsedVersion
-    }
+class ClientMixins(
+    val parsedVersion: ParsedVersion,
+    val loader: String = "fabric"
+) {
     
     fun getScreenMixinString(): String {
         // For 1.20.x: Use OptionsScreenMixin (injects into main options screen)
@@ -29,6 +26,11 @@ class ClientMixins {
             
         if (parsedVersion > "1.21.1") {
             mixinStringBuilder.addMixin("bodyKneesAndToes.ArmorFeatureRenderMixin")
+            // NeoForge patches renderLayers differently — getColorForLayer is never invoked.
+            // The color mixin only works on Fabric.
+            if (loader != "neoforge") {
+                mixinStringBuilder.addMixin("bodyKneesAndToes.EquipmentRenderColorMixin")
+            }
         }
 
         mixinStringBuilder.addMixin("hand.ItemEntityRendererMixin")
@@ -38,17 +40,29 @@ class ClientMixins {
         if (parsedVersion >= "1.21.9") {
             mixinStringBuilder.addMixin("hand.ItemRenderStateMixin")
             mixinStringBuilder.addMixin("hand.SubmitNodeCollectorMixin")
+            // NeoForge: armor color transparency via SubmitNodeCollection (same level as offhand)
+            // since getColorForLayer is patched out of renderLayers on NeoForge
+            if (loader == "neoforge") {
+                mixinStringBuilder.addMixin("bodyKneesAndToes.NeoForgeArmorColorMixin")
+            }
         }
         else {
             mixinStringBuilder.addMixin("hand.ModelPartMixin")
-            mixinStringBuilder.addMixin("hand.ItemRendererMixin")
+            // NeoForge patches ItemRenderer.renderQuadList — putBulkData is never invoked.
+            if (loader != "neoforge") {
+                mixinStringBuilder.addMixin("hand.ItemRendererMixin")
+            }
         }
         
         
-        return if (parsedVersion >= "1.20.5") {
-            mixinStringBuilder.getMixinString("networking.ClientPacketListenerMixin")
+        if (parsedVersion >= "1.20.5") {
+            // NeoForge: payload dispatch + client join handled natively via events
+            if (loader != "neoforge") {
+                mixinStringBuilder.addMixin("networking.ClientPacketListenerMixin")
+            }
+            return mixinStringBuilder.getMixinString()
         } else {
-            mixinStringBuilder.getMixinString("networking.ClientPlayNetworkHandlerMixin")
+            return mixinStringBuilder.getMixinString("networking.ClientPlayNetworkHandlerMixin")
         }
     }
 }

@@ -3,7 +3,7 @@ loaderVersion="[1,)"
 license="MIT"
 
 [[mods]]
-modId="armor-hider"
+modId="armor_hider"
 version="${version}"
 displayName="Armor Hider"
 description="Small mod to hide armor pieces based on player preferences."
@@ -16,14 +16,14 @@ config="armor-hider.mixins.json"
 [[mixins]]
 config="armor-hider.client.mixins.json"
 
-[[dependencies."armor-hider"]]
+[[dependencies."armor_hider"]]
 modId="neoforge"
 type="required"
 versionRange="[${neoforge_version},)"
 ordering="NONE"
 side="BOTH"
 
-[[dependencies."armor-hider"]]
+[[dependencies."armor_hider"]]
 modId="minecraft"
 type="required"
 versionRange="[${minecraft_version}]"

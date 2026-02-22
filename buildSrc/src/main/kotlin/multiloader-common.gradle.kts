@@ -36,8 +36,9 @@ java {
 
 // Mixin JSON expansion — applied to all processResources tasks
 tasks.withType<ProcessResources>().configureEach {
-    val mainMixin = MainMixins(sc.current.parsed)
-    val clientMixin = ClientMixins(sc.current.parsed)
+    val loader = project.property("mod_loader").toString()
+    val mainMixin = MainMixins(sc.current.parsed, loader)
+    val clientMixin = ClientMixins(sc.current.parsed, loader)
 
     inputs.property("java_version_string", javaVersionConverter.getJavaVersionString())
     inputs.property("java_version_int", javaVersionConverter.getJavaVersionInt())

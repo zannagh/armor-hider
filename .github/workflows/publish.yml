@@ -361,6 +361,10 @@ jobs:
     needs: [analyze, validate-version, check-modrinth, build, changelog, create-prerelease, upload-to-release, publish-modrinth]
     if: always()
     steps:
+      - name: Checkout
+        if: inputs.dry_run == true
+        uses: actions/checkout@v6
+
       - name: Generate Summary
         uses: zannagh/versionizer/workflow-summary@v1
         with:
@@ -388,3 +392,39 @@ jobs:
 
             - **Version Already Exists**: `${{ needs.check-modrinth.outputs.version_exists }}`
             - **Publish Enabled**: `${{ env.PUBLISH_TO_MODRINTH }}`
+
+      - name: Modrinth Upload Preview
+        if: inputs.dry_run == true && needs.build.result == 'success'
+        run: |
+          MOD_VERSION="${{ needs.build.outputs.mod_version }}"
+          IS_PRERELEASE="${{ needs.build.outputs.is_prerelease }}"
+          VERSION_TYPE="release"
+          if [[ "$IS_PRERELEASE" == "true" ]]; then VERSION_TYPE="beta"; fi
+
+          TOTAL=0
+          {
+            echo "## Modrinth Upload Preview (Dry Run)"
+            echo ""
+            echo "The following versions **would** be published to Modrinth:"
+            echo ""
+            echo "| Loader | Version Group | Game Versions | Modrinth Version Name | Type |"
+            echo "| ------ | ------------- | ------------- | --------------------- | ---- |"
+
+            for GROUP in $(jq -r 'keys[]' supportedVersions.json); do
+              GAME_VERSIONS=$(jq -r ".[\"$GROUP\"] // [\"$GROUP\"] | join(\", \")" supportedVersions.json)
+              PRIMARY=$(jq -r ".[\"$GROUP\"] // [\"$GROUP\"] | .[0]" supportedVersions.json)
+
+              # Fabric — all version groups
+              echo "| Fabric | $GROUP | $GAME_VERSIONS | [Fabric] $GROUP - $MOD_VERSION | $VERSION_TYPE |"
+              TOTAL=$((TOTAL + 1))
+
+              # NeoForge — 1.21.4+, not 1.20.x, not 1.21/1.21.1, not 26.x
+              if [[ ! "$PRIMARY" =~ ^1\.20 ]] && [[ "$PRIMARY" != "1.21" ]] && [[ "$PRIMARY" != "1.21.1" ]] && [[ ! "$PRIMARY" =~ ^26\. ]]; then
+                echo "| NeoForge | $GROUP | $GAME_VERSIONS | [Neoforge] $GROUP - $MOD_VERSION | $VERSION_TYPE |"
+                TOTAL=$((TOTAL + 1))
+              fi
+            done
+
+            echo ""
+            echo "**Total uploads: $TOTAL**"
+          } >> "$GITHUB_STEP_SUMMARY"
