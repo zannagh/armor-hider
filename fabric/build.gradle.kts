@@ -4,7 +4,7 @@ plugins {
 }
 
 val sc = project.stonecutterBuild
-val supportedVersions = SupportedVersions(rootProject.file("supportedVersions.json"))
+val supportedVersions = SupportedVersions(rootProject.file("supportedVersions.json"), "fabric")
 val isDeobf = sc.current.project.startsWith("26.")
 // Fabric Loader needs "26.1-alpha.X" not "26.1-snapshot-X"
 val versionTransform: (String) -> String = if (isDeobf) {

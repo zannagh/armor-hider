@@ -41,7 +41,7 @@ neoForge {
 }
 
 tasks.processResources {
-    val supportedVersions = SupportedVersions(rootProject.file("supportedVersions.json"))
+    val supportedVersions = SupportedVersions(rootProject.file("supportedVersions.json"), "neoforge")
     val javaVersionConverter = JavaVersionConverter(sc.current.parsed)
     val minecraftConstraint = supportedVersions.getNeoForgeVersionConstraint(sc.current.project)
 

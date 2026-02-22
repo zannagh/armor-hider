@@ -5,18 +5,24 @@ import java.io.File
 /**
  * Parses `supportedVersions.json` and provides version group information.
  *
- * JSON format:
+ * JSON format (per-loader sections):
  * ```json
  * {
- *   "1.20-1.20.1": ["1.20", "1.20.1"],
- *   "1.21.4": null
+ *   "fabric": {
+ *     "1.20+": ["1.20", "1.20.1"],
+ *     "1.21.4": null
+ *   },
+ *   "neoforge": {
+ *     "1.21.4": null,
+ *     "1.21.11": null
+ *   }
  * }
  * ```
- * Keys = group labels (descriptive range or single version).
- * Null = single version (key IS the version).
- * Array = grouped compatible versions (all become Stonecutter targets).
+ *
+ * @param loader If specified, only that loader's section is used.
+ *               If null, all sections are merged (fabric-first, for common branch).
  */
-class SupportedVersions(jsonFile: File) {
+class SupportedVersions(jsonFile: File, loader: String? = null) {
 
     /** Group key → list of individual versions. */
     private val groupMap: Map<String, List<String>>
@@ -25,10 +31,23 @@ class SupportedVersions(jsonFile: File) {
     private val versionToGroup: Map<String, String>
 
     init {
-        val type = object : TypeToken<Map<String, List<String>?>>() {}.type
-        val raw: Map<String, List<String>?> = Gson().fromJson(jsonFile.reader(), type)
+        val type = object : TypeToken<Map<String, Map<String, List<String>?>>>() {}.type
+        val full: Map<String, Map<String, List<String>?>> = Gson().fromJson(jsonFile.reader(), type)
 
-        groupMap = raw.mapValues { (key, value) -> value ?: listOf(key) }
+        val section: Map<String, List<String>?> = if (loader != null && full.containsKey(loader)) {
+            full[loader]!!
+        } else {
+            // Merge all sections (first-wins for overlapping group keys)
+            val merged = linkedMapOf<String, List<String>?>()
+            for (loaderSection in full.values) {
+                for ((key, value) in loaderSection) {
+                    merged.putIfAbsent(key, value)
+                }
+            }
+            merged
+        }
+
+        groupMap = section.mapValues { (key, value) -> value ?: listOf(key) }
         versionToGroup = groupMap.flatMap { (key, versions) ->
             versions.map { it to key }
         }.toMap()
@@ -48,7 +67,7 @@ class SupportedVersions(jsonFile: File) {
 
     /**
      * Display version (= group key).
-     * For "1.20" or "1.20.1" → "1.20-1.20.1"
+     * For "1.20" or "1.20.1" → "1.20+"
      * For "1.21.4" → "1.21.4"
      */
     fun getDisplayVersion(version: String): String =
@@ -80,11 +99,9 @@ class SupportedVersions(jsonFile: File) {
      * Uses Maven version range format (template wraps result in `[...]`):
      * - Single version: "1.21.4" → template produces "[1.21.4]"
      * - Range: "1.21.5,1.21.8" → template produces "[1.21.5,1.21.8]"
-     *
-     * Excludes 26.x versions since NeoForge has no 26.x releases.
      */
     fun getNeoForgeVersionConstraint(version: String): String {
-        val versions = getGameVersions(version).filter { !it.startsWith("26.") }
+        val versions = getGameVersions(version)
         return if (versions.size <= 1) {
             versions.firstOrNull() ?: version
         } else {

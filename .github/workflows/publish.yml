@@ -48,7 +48,13 @@ jobs:
 
       - name: Read Supported Versions
         id: versions
-        run: echo "matrix=$(jq -c 'keys' supportedVersions.json)" >> $GITHUB_OUTPUT
+        run: |
+          # Generate explicit (loader, version-group) matrix from per-loader JSON
+          MATRIX=$(jq -c '[
+            (.fabric | keys[] | {minecraft: ., loader: "fabric"}),
+            (.neoforge | keys[] | {minecraft: ., loader: "neoforge"})
+          ]' supportedVersions.json)
+          echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
 
       - name: Calculate Version
         id: version
@@ -266,8 +272,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        minecraft: ${{ fromJSON(needs.analyze.outputs.supported_versions) }}
-        loader: [fabric, neoforge]
+        include: ${{ fromJSON(needs.analyze.outputs.supported_versions) }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -275,14 +280,14 @@ jobs:
       - name: Get game versions
         id: game-versions
         run: |
-          # Get all compatible game versions for this group
-          VERSIONS=$(jq -r '.["${{ matrix.minecraft }}"] // ["${{ matrix.minecraft }}"] | .[]' supportedVersions.json)
+          # Get all compatible game versions for this loader/group from the per-loader JSON
+          VERSIONS=$(jq -r '."${{ matrix.loader }}"."${{ matrix.minecraft }}" // ["${{ matrix.minecraft }}"] | .[]' supportedVersions.json)
           echo "list<<EOF" >> $GITHUB_OUTPUT
           echo "$VERSIONS" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
           # Primary version (first in group) for finding the JAR directory
-          PRIMARY=$(jq -r '.["${{ matrix.minecraft }}"] // ["${{ matrix.minecraft }}"] | .[0]' supportedVersions.json)
+          PRIMARY=$(jq -r '."${{ matrix.loader }}"."${{ matrix.minecraft }}" // ["${{ matrix.minecraft }}"] | .[0]' supportedVersions.json)
           echo "primary=$PRIMARY" >> $GITHUB_OUTPUT
 
       - name: Download Artifacts
@@ -410,19 +415,13 @@ jobs:
             echo "| Loader | Version Group | Game Versions | Modrinth Version Name | Type |"
             echo "| ------ | ------------- | ------------- | --------------------- | ---- |"
 
-            for GROUP in $(jq -r 'keys[]' supportedVersions.json); do
-              GAME_VERSIONS=$(jq -r ".[\"$GROUP\"] // [\"$GROUP\"] | join(\", \")" supportedVersions.json)
-              PRIMARY=$(jq -r ".[\"$GROUP\"] // [\"$GROUP\"] | .[0]" supportedVersions.json)
-
-              # Fabric — all version groups
-              echo "| Fabric | $GROUP | $GAME_VERSIONS | [Fabric] $GROUP - $MOD_VERSION | $VERSION_TYPE |"
-              TOTAL=$((TOTAL + 1))
-
-              # NeoForge — 1.21.4+, not 1.20.x, not 1.21/1.21.1, not 26.x
-              if [[ ! "$PRIMARY" =~ ^1\.20 ]] && [[ "$PRIMARY" != "1.21" ]] && [[ "$PRIMARY" != "1.21.1" ]] && [[ ! "$PRIMARY" =~ ^26\. ]]; then
-                echo "| NeoForge | $GROUP | $GAME_VERSIONS | [Neoforge] $GROUP - $MOD_VERSION | $VERSION_TYPE |"
+            for LOADER in fabric neoforge; do
+              for GROUP in $(jq -r ".${LOADER} | keys[]" supportedVersions.json); do
+                GAME_VERSIONS=$(jq -r ".${LOADER}.\"${GROUP}\" // [\"${GROUP}\"] | join(\", \")" supportedVersions.json)
+                DISPLAY_LOADER="${LOADER^}"
+                echo "| ${DISPLAY_LOADER} | ${GROUP} | ${GAME_VERSIONS} | [${DISPLAY_LOADER}] ${GROUP} - ${MOD_VERSION} | ${VERSION_TYPE} |"
                 TOTAL=$((TOTAL + 1))
-              fi
+              done
             done
 
             echo ""
