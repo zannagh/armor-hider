@@ -74,26 +74,6 @@ class SupportedVersions(jsonFile: File, loader: String? = null) {
         versionToGroup[version] ?: version
 
     /**
-     * Fabric version constraint for fabric.mod.json's `depends.minecraft`.
-     *
-     * Single version: exact string (e.g., "1.21.4")
-     * Grouped versions: ">=[first] <=[last]" (e.g., ">=1.20 <=1.20.1")
-     *
-     * @param transform optional version name transform (e.g., snapshot → alpha for deobf builds)
-     */
-    fun getFabricVersionConstraint(
-        version: String,
-        transform: (String) -> String = { it }
-    ): String {
-        val versions = getGameVersions(version).map(transform)
-        return if (versions.size == 1) {
-            versions.first()
-        } else {
-            ">=${versions.first()} <=${versions.last()}"
-        }
-    }
-
-    /**
      * NeoForge version constraint for neoforge.mods.toml's `dependencies.minecraft.versionRange`.
      *
      * Uses Maven version range format (template wraps result in `[...]`):

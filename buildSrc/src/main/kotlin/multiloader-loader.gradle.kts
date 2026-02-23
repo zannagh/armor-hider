@@ -4,8 +4,10 @@ plugins {
 }
 
 val sc = project.stonecutterBuild
+sc.constants["fabric"] = findProperty("mod_loader")!!.toString() == "fabric"
+sc.constants["neoforge"] = findProperty("mod_loader")!!.toString() == "neoforge"
 val commonNode = sc.node.sibling("common")
-    ?: error("Could not find common branch for version ${sc.current.project}")
+    ?: error("Could not find common branch for version ${sc.current.version}")
 val commonPath = commonNode.hierarchy.toString()
 
 // Ensure common project is fully evaluated (including splitEnvironmentSourceSets)
@@ -39,6 +41,11 @@ tasks {
     compileJava { dependsOn(commonStonecutterTasks) }
     processResources { dependsOn(commonStonecutterTasks) }
     named("sourcesJar") { dependsOn(commonStonecutterTasks) }
+
+    // When a client source set exists, its tasks also need common's Stonecutter output
+    matching { it.name in listOf("compileClientJava", "processClientResources") }.configureEach {
+        dependsOn(commonStonecutterTasks)
+    }
 
     jar {
         inputs.property("archivesName", base.archivesName)

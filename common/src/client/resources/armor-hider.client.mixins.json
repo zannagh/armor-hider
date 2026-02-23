@@ -1,18 +1,6 @@
 {
   "required": true,
   "package": "de.zannagh.armorhider.mixin.client",
-  "compatibilityLevel": "${java_version}",
-  "client": [
-    "LivingEntityMixin",
-    "${options_screen_mixin_string}",
-    "cape.CapeRenderMixin",
-    "cape.ElytraRenderMixin",
-    "head.CustomHeadLayerMixin",
-    "head.SkullBlockRenderMixin",
-    "lang.ClientLanguageMixin",
-    "${mixin_string}"
-  ],
-  "injectors": {
-    "defaultRequire": 1
-  }
+  "plugin": "de.zannagh.armorhider.mixin.MixinPlugin",
+  "compatibilityLevel": "JAVA_17"
 }

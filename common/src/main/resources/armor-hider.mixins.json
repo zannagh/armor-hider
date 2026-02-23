@@ -1,14 +1,6 @@
 {
   "required": true,
   "package": "de.zannagh.armorhider.mixin",
-  "compatibilityLevel": "${java_version}",
-  "mixins": [
-    "${mixin_string}"
-  ],
-  "injectors": {
-    "defaultRequire": 1
-  },
-  "overwrites": {
-    "requireAnnotations": true
-  }
+  "plugin": "de.zannagh.armorhider.MixinPlugin",
+  "compatibilityLevel": "JAVA_17"
 }

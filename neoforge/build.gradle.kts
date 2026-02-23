@@ -18,8 +18,17 @@ val neoforgeVersionMap = mapOf(
     "1.21.11" to "21.11.38-beta"
 )
 
-val neoforgeVersion = neoforgeVersionMap[sc.current.project]
-    ?: error("No NeoForge version mapping for Minecraft ${sc.current.project}")
+val neoforgeVersion = neoforgeVersionMap[project.mcVersion]
+    ?: error("No NeoForge version mapping for Minecraft ${project.mcVersion}")
+
+val clientSourceSet = sourceSets.create("client") {
+    compileClasspath += sourceSets.main.get().output + sourceSets.main.get().compileClasspath
+    runtimeClasspath += sourceSets.main.get().output + sourceSets.main.get().runtimeClasspath
+}
+
+stonecutter {
+    constants["neoforge"] = true
+}
 
 neoForge {
     version = neoforgeVersion
@@ -36,14 +45,17 @@ neoForge {
     mods {
         register("armor_hider") {
             sourceSet(sourceSets.main.get())
+            sourceSet(clientSourceSet)
         }
     }
 }
 
+tasks.jar {
+    from(clientSourceSet.output)
+}
+
 tasks.processResources {
-    val supportedVersions = SupportedVersions(rootProject.file("supportedVersions.json"), "neoforge")
-    val javaVersionConverter = JavaVersionConverter(sc.current.parsed)
-    val minecraftConstraint = supportedVersions.getNeoForgeVersionConstraint(sc.current.project)
+    val minecraftConstraint = findProperty("neoforge.minecraft_version")!!.toString()
 
     inputs.property("version", project.version)
     inputs.property("minecraft_version", minecraftConstraint)

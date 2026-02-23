@@ -27,24 +27,23 @@ fun extractVersions(data: Map<String, Any?>): List<String> = data.flatMap { (key
 
 val fabricVersions = extractVersions(versionData["fabric"]!!)
 val neoforgeVersions = extractVersions(versionData["neoforge"]!!)
-val allVersions = (fabricVersions + neoforgeVersions).distinct()
 
 stonecutter {
     kotlinController = true
     centralScript = "build.gradle.kts"
 
     create(rootProject) {
-        versions(*allVersions.toTypedArray())
-        vcsVersion = "1.21.11" // Latest stable
+        vcsVersion = "fabric-1.21.11" // Latest stable
 
         branch("common") {
-            versions(*allVersions.toTypedArray())
+            fabricVersions.forEach { version("fabric-$it", it) }
+            neoforgeVersions.forEach { version("neoforge-$it", it) }
         }
         branch("fabric") {
-            versions(*fabricVersions.toTypedArray())
+            fabricVersions.forEach { version("fabric-$it", it) }
         }
         branch("neoforge") {
-            versions(*neoforgeVersions.toTypedArray())
+            neoforgeVersions.forEach { version("neoforge-$it", it) }
         }
     }
 }

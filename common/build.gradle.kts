@@ -4,7 +4,12 @@ plugins {
 }
 
 val sc = project.stonecutterBuild
-val isDeobf = sc.current.project.startsWith("26.")
+val isDeobf = project.mcVersion.startsWith("26.")
+
+stonecutter{
+    constants["neoforge"] = sc.current.project.contains("neoforge")
+    constants["fabric"] = sc.current.project.contains("fabric")
+}
 
 loom {
     splitEnvironmentSourceSets()
@@ -17,10 +22,11 @@ loom {
     runConfigs.configureEach {
         runDir = "run"
     }
+    
 }
 
 dependencies {
-    minecraft("com.mojang:minecraft:${sc.current.project}")
+    minecraft("com.mojang:minecraft:${project.mcVersion}")
     if (!isDeobf) {
         // String-based calls: these Loom configurations don't exist when obfuscation is disabled
         add("mappings", loom.officialMojangMappings())
