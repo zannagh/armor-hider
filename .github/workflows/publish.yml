@@ -296,10 +296,6 @@ jobs:
           echo "$VERSIONS" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-          # Primary version (first in group) for finding the JAR directory
-          PRIMARY=$(jq -r '."${{ matrix.loader }}"."${{ matrix.minecraft }}" // ["${{ matrix.minecraft }}"] | .[0]' supportedVersions.json)
-          echo "primary=$PRIMARY" >> $GITHUB_OUTPUT
-
       - name: Download Artifacts
         uses: actions/download-artifact@v7
         with:
@@ -310,7 +306,6 @@ jobs:
         id: modrinth
         uses: ./.github/actions/prepare-modrinth-upload
         with:
-          minecraft-version: ${{ steps.game-versions.outputs.primary }}
           display-version: ${{ matrix.minecraft }}
           mod-version: ${{ needs.build.outputs.mod_version }}
           is-prerelease: ${{ needs.build.outputs.is_prerelease }}

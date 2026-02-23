@@ -2,9 +2,6 @@ name: Prepare Modrinth Upload
 description: Finds the correct JAR for a Minecraft version/loader and prepares Modrinth version metadata.
 
 inputs:
-  minecraft-version:
-    description: The Minecraft build version (Stonecutter target) to find the JAR for
-    required: true
   display-version:
     description: Display version string for naming (e.g., "1.20-1.20.1" or "1.21.4")
     required: true
@@ -45,9 +42,9 @@ runs:
       id: find-jar
       shell: bash
       run: |
-        JAR=$(find ${{ inputs.artifact-path }}/${{ inputs.loader }} -name "*.jar" -path "*/${{ inputs.minecraft-version }}/*" ! -name "*-sources.jar" 2>/dev/null | head -n1)
+        JAR=$(find ${{ inputs.artifact-path }} -maxdepth 1 -name "armor-hider-${{ inputs.loader }}-*+${{ inputs.display-version }}.jar" ! -name "*-sources.jar" 2>/dev/null | head -n1)
         if [[ -z "$JAR" ]]; then
-          echo "No JAR found for ${{ inputs.loader }} Minecraft ${{ inputs.minecraft-version }}"
+          echo "No JAR found for ${{ inputs.loader }} ${{ inputs.display-version }}"
           echo "found=false" >> $GITHUB_OUTPUT
         else
           echo "Found JAR: $JAR"
