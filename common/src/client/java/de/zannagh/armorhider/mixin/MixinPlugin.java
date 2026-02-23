@@ -12,44 +12,40 @@ import java.util.Set;
 
 public class MixinPlugin implements IMixinConfigPlugin {
 
-    private static final String PACKAGE = "de.zannagh.armorhider.mixin.networking";
-    private static final String[] GENERIC_MIXINS = new String[]{
+    private static final String PACKAGE = "de.zannagh.armorhider.mixin.client";
+
+    // Mixins listed unconditionally — Stonecutter source guards strip classes for
+    // incompatible versions, so getMixinClassesWherePresent filters them automatically.
+    private static final String[] MIXINS = new String[]{
+            // Always present
+            "LivingEntityMixin",
+            "lang.ClientLanguageMixin",
             "hand.ItemEntityRendererMixin",
             "hand.ItemInHandLayerMixin",
-            "hand.OffHandRenderMixin"
-    };
-
-    private static final String[] ABOVE_1_21_1_MIXINS = new String[]{
-            "bodyKneesAndToes.ArmorFeatureRenderMixin"
-    };
-
-    private static final String[] ABOVE_1_21_1_MIXINS_NEOFORGE = new String[]{
-            "bodyKneesAndToes.EquipmentRenderColorMixin"
-    };
-
-    private static final String[] ABOVE_1_21_9_MIXINS = new String[]{
+            "hand.OffHandRenderMixin",
+            // Guarded by //? if >= 1.21.9 in source
+            "OptionsScreenMixin",
+            "SkinOptionsMixin",
+            "bodyKneesAndToes.ArmorFeatureRenderMixin",
+            "bodyKneesAndToes.EquipmentRenderMixin",
             "hand.ItemRenderStateMixin",
-            "hand.SubmitNodeCollectorMixin"
+            "hand.SubmitNodeCollectorMixin",
+            "cape.CapeRenderMixin",
+            "cape.ElytraRenderMixin",
+            "head.CustomHeadLayerMixin",
+            "head.SkullBlockRenderMixin",
+            // Guarded by //? if >= 1.21 && < 1.21.4 in source
+            "bodyKneesAndToes.HumanoidArmorLayerMixin",
+            // Guarded by //? if < 1.21.9 in source
+            "hand.ModelPartMixin",
     };
 
-    private static final String[] ABOVE_1_21_9_MIXINS_NEOFORGE = new String[]{
-            "bodyKneesAndToes.NeoForgeArmorColorMixin"
-    };
-
-    private static final String[] BELOW_1_21_9_MIXINS = new String[]{
-            "hand.ModelPartMixin"
-    };
-
-    private static final String[] BELOW_1_21_9_MIXINS_FABRIC = new String[]{
-            "hand.ItemRendererMixin"
-    };
-
-    private static final String[] AT_OR_ABOVE_1_20_5_MIXINS_FABRIC = new String[]{
-            "networking.ClientPacketListenerMixin"
-    };
-
-    private static final String[] BELOW_1_20_5_MIXINS = new String[]{
-            "networking.ClientPlayNetworkHandlerMixin"
+    // Fabric-only mixins (source files have no loader guard, so we filter here)
+    private static final String[] FABRIC_ONLY_MIXINS = new String[]{
+            "bodyKneesAndToes.EquipmentRenderColorMixin",
+            "hand.ItemRendererMixin",
+            "networking.ClientPacketListenerMixin",
+            "networking.ClientPlayNetworkHandlerMixin",
     };
 
 
@@ -64,31 +60,10 @@ public class MixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public List<String> getMixins() {
+        var mixinsToAdd = new ArrayList<>(List.of(MIXINS));
 
-        var list = new ArrayList<String>();
-
-        var mixinsToAdd = new ArrayList<String>();
-        mixinsToAdd.addAll(List.of(GENERIC_MIXINS));
-        
-        //? if >= 1.21.1 
-        mixinsToAdd.addAll(List.of(ABOVE_1_21_1_MIXINS));
-        //? if >= 1.21.1 && neoforge 
-        //mixinsToAdd.addAll(List.of(ABOVE_1_21_1_MIXINS_NEOFORGE));
-        
-        //? if >= 1.21.9 
-        mixinsToAdd.addAll(List.of(ABOVE_1_21_9_MIXINS));
-        //? if >= 1.21.9 && neoforge 
-        //mixinsToAdd.addAll(List.of(ABOVE_1_21_9_MIXINS_NEOFORGE));
-        
-        //? if < 1.21.9 
-        //mixinsToAdd.addAll(List.of(BELOW_1_21_9_MIXINS));
-        //? if < 1.21.9 && fabric
-        //mixinsToAdd.addAll(List.of(BELOW_1_21_9_MIXINS_FABRIC));
-        
-        //? if >= 1.20.5 && fabric 
-        mixinsToAdd.addAll(List.of(AT_OR_ABOVE_1_20_5_MIXINS_FABRIC));
-        //? if < 1.20.5 
-        //mixinsToAdd.addAll(List.of(BELOW_1_20_5_MIXINS));
+        //? if fabric
+        mixinsToAdd.addAll(List.of(FABRIC_ONLY_MIXINS));
 
         return MixinUtil.getMixinClassesWherePresent(PACKAGE, mixinsToAdd);
     }

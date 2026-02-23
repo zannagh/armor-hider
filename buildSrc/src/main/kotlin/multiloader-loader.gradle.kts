@@ -17,6 +17,9 @@ evaluationDependsOn(commonPath)
 val commonProject = project(commonPath)
 val commonSourceSets = commonProject.extensions.getByType(SourceSetContainer::class.java)
 
+// Expose common source sets for loader build scripts that need additional wiring
+extra["commonSourceSets"] = commonSourceSets
+
 // Carry over compile-only dependencies from common that are needed when compiling common sources
 dependencies {
     compileOnly("org.jspecify:jspecify:1.0.0")
@@ -25,8 +28,13 @@ dependencies {
 // Include common's sources in the loader's source sets so the IDE can resolve them
 sourceSets.main {
     java { commonSourceSets["main"].java.srcDirs.forEach { srcDir(it) } }
-    java { commonSourceSets["client"].java.srcDirs.forEach { srcDir(it) } }
     resources { commonSourceSets["main"].resources.srcDirs.forEach { srcDir(it) } }
+}
+
+// Wire common client sources into the loader's client source set (created later by
+// splitEnvironmentSourceSets or sourceSets.create in the loader's build script)
+sourceSets.matching { it.name == "client" }.configureEach {
+    java { commonSourceSets["client"].java.srcDirs.forEach { srcDir(it) } }
     resources { commonSourceSets["client"].resources.srcDirs.forEach { srcDir(it) } }
 }
 

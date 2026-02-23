@@ -11,7 +11,7 @@ import java.util.Set;
 
 public class MixinPlugin implements IMixinConfigPlugin {
 
-    private static final String PACKAGE = "de.zannagh.armorhider.mixin.networking";
+    private static final String PACKAGE = "de.zannagh.armorhider.mixin";
     private static final String[] GENERIC_MIXINS = new String[]{
             "networking.MinecraftServerMixin",
             "networking.ServerLoginMixin",

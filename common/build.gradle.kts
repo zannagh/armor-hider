@@ -42,3 +42,16 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
+val expandProps = mapOf("java_version" to project.prop("java.version")!!)
+
+tasks.processResources {
+    inputs.properties(expandProps)
+    filesMatching("**/*.mixins.json") { expand(expandProps) }
+}
+
+tasks.named<ProcessResources>("processClientResources") {
+    inputs.properties(expandProps)
+    filesMatching("**/*.mixins.json") { expand(expandProps) }
+}
+
+

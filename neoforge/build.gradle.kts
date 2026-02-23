@@ -26,6 +26,14 @@ val clientSourceSet = sourceSets.create("client") {
     runtimeClasspath += sourceSets.main.get().output + sourceSets.main.get().runtimeClasspath
 }
 
+// NeoForge doesn't split environments — main has the full MC jar, so common client sources
+// must also be in main for NeoForge-specific code that references common client classes.
+val commonSourceSets = extra["commonSourceSets"] as SourceSetContainer
+sourceSets.main {
+    java { commonSourceSets["client"].java.srcDirs.forEach { srcDir(it) } }
+    resources { commonSourceSets["client"].resources.srcDirs.forEach { srcDir(it) } }
+}
+
 stonecutter {
     constants["neoforge"] = true
 }
@@ -52,20 +60,28 @@ neoForge {
 
 tasks.jar {
     from(clientSourceSet.output)
+    // Common client sources are in both main and client (main needs them for compile visibility,
+    // client gets them from multiloader-loader). Exclude duplicates in the jar.
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
+val expandProps = mapOf(
+    "version" to project.version,
+    "minecraft_version" to project.prop("neoforge.minecraft_version")!!,
+    "neoforge_version" to neoforgeVersion,
+    "java_version" to project.prop("java.version")!!
+)
+
 tasks.processResources {
-    val minecraftConstraint = findProperty("neoforge.minecraft_version")!!.toString()
+    inputs.properties(expandProps)
+    filesMatching(listOf("META-INF/neoforge.mods.toml", "**/*.mixins.json")) {
+        expand(expandProps)
+    }
+}
 
-    inputs.property("version", project.version)
-    inputs.property("minecraft_version", minecraftConstraint)
-    inputs.property("neoforge_version", neoforgeVersion)
-
-    filesMatching("META-INF/neoforge.mods.toml") {
-        expand(
-            "version" to project.version,
-            "minecraft_version" to minecraftConstraint,
-            "neoforge_version" to neoforgeVersion
-        )
+tasks.named<ProcessResources>("processClientResources") {
+    inputs.properties(expandProps)
+    filesMatching("**/*.mixins.json") {
+        expand(expandProps)
     }
 }

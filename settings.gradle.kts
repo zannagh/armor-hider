@@ -21,7 +21,7 @@ fun extractVersions(data: Map<String, Any?>): List<String> = data.flatMap { (key
     when (value) {
         null -> listOf(key)
         is List<*> -> value.map { it.toString() }
-        else -> listOf(key)
+        else -> listOf()
     }
 }
 

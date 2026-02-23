@@ -47,17 +47,22 @@ dependencies {
     }
 }
 
+val expandProps = mapOf(
+    "version" to project.version,
+    "java_version" to project.prop("java.version")!!,
+    "fabric_minecraft_version" to project.prop("fabric.minecraft_version_range")!!
+)
+
 tasks.processResources {
-    val minecraftConstraint = findProperty("fabric.minecraft_version")!!.toString()
-    val javaVersion = findProperty("java.version")!!.toString()
-    inputs.property("version", project.version)
-    inputs.property("fabric.minecraft_version", minecraftConstraint)
-    inputs.property("java_version", javaVersion)
-    filesMatching("fabric.mod.json") {
-        expand(
-            "version" to project.version,
-            "minecraft_version" to minecraftConstraint,
-            "java_version" to javaVersion
-        )
+    inputs.properties(expandProps)
+    filesMatching(listOf("fabric.mod.json", "**/*.mixins.json")) {
+        expand(expandProps)
+    }
+}
+
+tasks.named<ProcessResources>("processClientResources") {
+    inputs.properties(expandProps)
+    filesMatching("**/*.mixins.json") {
+        expand(expandProps)
     }
 }
