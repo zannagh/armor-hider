@@ -38,11 +38,18 @@ public final class PayloadRegistry {
     private static final Map<ResourceLocation, Consumer<PayloadHandlerContext<?>>> S2C_HANDLERS = new HashMap<>();
     *///?}
 
-    public static void init() {
+    
+    static {
         registerC2S(PlayerConfig.TYPE, PlayerConfig.STREAM_CODEC);
         registerC2S(ServerWideSettings.TYPE, ServerWideSettings.STREAM_CODEC);
         registerS2C(ServerConfiguration.TYPE, ServerConfiguration.STREAM_CODEC);
         registerS2C(PermissionPacket.TYPE, PermissionPacket.STREAM_CODEC);
+    }
+
+    public static void init() {
+        // Payload types are registered in the static initializer above.
+        // This method is kept so callers (ArmorHider.init) don't need changes;
+        // it now only forces class-loading which triggers the static block.
     }
 
     // Register a C2S (client to server) payload type.

@@ -37,6 +37,8 @@ public class ArmorHider {
     public static void init() {
         LOGGER.info("Initializing...");
 
+        PayloadRegistry.init();
+        
         // Register server lifecycle events
         ServerLifecycleEvents.registerStarting(server -> {
             Path worldConfigPath = getWorldConfigPath(server);
@@ -51,7 +53,6 @@ public class ArmorHider {
             runtime = null;
         });
 
-        PayloadRegistry.init();
         CommsManager.initServer();
         LOGGER.info("Initialized!");
     }
