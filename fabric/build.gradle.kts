@@ -1,13 +1,13 @@
 plugins {
     id("multiloader-loader")
-    id("fabric-loom")
 }
+
+apply(plugin = if (project.isDeobf) "loom-deobfuscated" else "loom-obfuscated")
 
 val sc = project.stonecutterBuild
 val supportedVersions = SupportedVersions(rootProject.file("supportedVersions.json"), "fabric")
-val isDeobf = project.mcVersion.startsWith("26.")
 // Fabric Loader needs "26.1-alpha.X" not "26.1-snapshot-X"
-val versionTransform: (String) -> String = if (isDeobf) {
+val versionTransform: (String) -> String = if (project.isDeobf) {
     { it.replace("-snapshot-", "-alpha.") }
 } else {
     { it }
@@ -17,7 +17,7 @@ stonecutter {
     constants["fabric"] = true
 }
 
-loom {
+configure<net.fabricmc.loom.api.LoomGradleExtensionAPI> {
     splitEnvironmentSourceSets()
 
     mods {
@@ -30,20 +30,15 @@ loom {
     // Shared run directory for all versions
     runConfigs.configureEach {
         runDir = "run"
-        if (isDeobf) {
+        if (project.isDeobf) {
             vmArg("-Dfabric.gameVersion=${versionTransform(project.mcVersion)}")
         }
     }
 }
 
 dependencies {
-    minecraft("com.mojang:minecraft:${project.mcVersion}")
-    if (!isDeobf) {
-        // String-based calls: these Loom configurations don't exist when obfuscation is disabled
-        add("mappings", loom.officialMojangMappings())
-        add("modImplementation", "net.fabricmc:fabric-loader:${property("loader_version")}")
-    } else {
-        implementation("net.fabricmc:fabric-loader:${property("loader_version")}")
+    if (!project.isDeobf) {
+        add("modImplementation", "net.fabricmc:fabric-loader:$FABRIC_LOADER_VERSION")
     }
 }
 

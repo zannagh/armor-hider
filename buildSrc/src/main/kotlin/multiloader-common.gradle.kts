@@ -10,13 +10,6 @@ val loader = findProperty("mod_loader")!!.toString()
 val supportedVersions = SupportedVersions(rootProject.file("supportedVersions.json"), loader)
 val javaVersion = findProperty("java.version")!!.toString()
 
-// 26.x is already deobfuscated — tell Loom to skip mappings and remapping.
-// Must be set here (before fabric-loom is applied) because Loom reads this eagerly
-// during plugin application and finalizes it on first read.
-if (project.mcVersion.startsWith("26.")) {
-    project.extra.set("fabric.loom.disableObfuscation", "true")
-}
-
 version = Versioning.getModVersion(::findProperty) + "+" + supportedVersions.getDisplayVersion(project.mcVersion)
 group = property("maven_group").toString()
 

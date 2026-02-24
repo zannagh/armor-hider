@@ -1,17 +1,17 @@
 plugins {
     id("multiloader-common")
-    id("fabric-loom")
 }
 
-val sc = project.stonecutterBuild
-val isDeobf = project.mcVersion.startsWith("26.")
+apply(plugin = if (project.isDeobf) "loom-deobfuscated" else "loom-obfuscated")
 
-stonecutter{
+val sc = project.stonecutterBuild
+
+stonecutter {
     constants["neoforge"] = sc.current.project.contains("neoforge")
     constants["fabric"] = sc.current.project.contains("fabric")
 }
 
-loom {
+configure<net.fabricmc.loom.api.LoomGradleExtensionAPI> {
     splitEnvironmentSourceSets()
 
     mixin {
@@ -22,17 +22,11 @@ loom {
     runConfigs.configureEach {
         runDir = "run"
     }
-    
 }
 
 dependencies {
-    minecraft("com.mojang:minecraft:${project.mcVersion}")
-    if (!isDeobf) {
-        // String-based calls: these Loom configurations don't exist when obfuscation is disabled
-        add("mappings", loom.officialMojangMappings())
-        add("modCompileOnly", "net.fabricmc:fabric-loader:${property("loader_version")}")
-    } else {
-        implementation("net.fabricmc:fabric-loader:${property("loader_version")}")
+    if (!project.isDeobf) {
+        add("modCompileOnly", "net.fabricmc:fabric-loader:$FABRIC_LOADER_VERSION")
     }
 
     compileOnly("org.jspecify:jspecify:1.0.0")
@@ -53,5 +47,3 @@ tasks.named<ProcessResources>("processClientResources") {
     inputs.properties(expandProps)
     filesMatching("**/*.mixins.json") { expand(expandProps) }
 }
-
-
