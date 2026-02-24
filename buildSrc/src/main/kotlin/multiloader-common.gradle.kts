@@ -4,13 +4,23 @@ plugins {
 }
 
 val sc = project.stonecutterBuild
+val loader = sc.branch.id
 sc.constants["fabric"] = sc.current.project.contains("fabric")
 sc.constants["neoforge"] = sc.current.project.contains("neoforge")
-val loader = findProperty("mod_loader")!!.toString()
-val supportedVersions = SupportedVersions(rootProject.file("supportedVersions.json"), loader)
-val javaVersion = findProperty("java.version")!!.toString()
 
-version = Versioning.getModVersion(::findProperty) + "+" + supportedVersions.getDisplayVersion(project.mcVersion)
+val javaVersion = findProperty("java.version")?.toString() ?: error("No Java version specified")
+val displayVersion = findProperty("display_version")?.toString() ?: error("No display version specified")
+
+val isPreRelease = findProperty("prerelease")?.toString()?.lowercase() != "false"
+val semVer = findProperty("semVer")?.toString()?.takeIf { it.isNotEmpty() } ?: "0.0.1"
+val preReleaseVersion = findProperty("preReleaseVersion")?.toString()?.takeIf { it.isNotEmpty() } ?: "0"
+val modVersion = if (isPreRelease) {
+    "$semVer-preview.$preReleaseVersion" 
+} else {
+    semVer
+}
+
+version = "$modVersion+$displayVersion"
 group = property("maven_group").toString()
 
 base {
@@ -23,9 +33,7 @@ java {
 }
 
 tasks.jar {
-    from("LICENSE") {
-        rename { "${it}_${base.archivesName.get()}" }
-    }
+    includeLicense(base.archivesName.get())
 }
 
 tasks.test {

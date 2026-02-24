@@ -14,19 +14,8 @@ public class MixinPlugin implements IMixinConfigPlugin {
     private static final String PACKAGE = "de.zannagh.armorhider.mixin";
     private static final String[] GENERIC_MIXINS = new String[]{
             "networking.MinecraftServerMixin",
-            "networking.ServerLoginMixin",
+            "networking.ServerLoginMixin"
     };
-
-    private static final String[] AT_OR_ABOVE_1_20_5_MIXINS_FABRIC = new String[]{
-            "networking.CustomPayloadCodecMixin",
-            "networking.ServerGamePacketListenerMixin"
-    };
-
-    private static final String[] BELOW_1_20_5_MIXINS = new String[]{
-            "networking.ServerPlayNetworkHandlerMixin"
-    };
-
-
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
         return true;
@@ -38,17 +27,8 @@ public class MixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public List<String> getMixins() {
-
-        var list = new ArrayList<String>();
-
         var mixinsToAdd = new ArrayList<String>();
         mixinsToAdd.addAll(List.of(GENERIC_MIXINS));
-
-        //? if >= 1.20.5 && fabric 
-        mixinsToAdd.addAll(List.of(AT_OR_ABOVE_1_20_5_MIXINS_FABRIC));
-        //? if < 1.20.5 
-        //mixinsToAdd.addAll(List.of(BELOW_1_20_5_MIXINS));
-
         return MixinUtil.getMixinClassesWherePresent(PACKAGE, mixinsToAdd);
     }
 
@@ -66,6 +46,6 @@ public class MixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public String getRefMapperConfig() {
-        return "";
+        return null;
     }
 }

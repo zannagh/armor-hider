@@ -7,8 +7,8 @@ apply(plugin = if (project.isDeobf) "loom-deobfuscated" else "loom-obfuscated")
 val sc = project.stonecutterBuild
 
 stonecutter {
-    constants["neoforge"] = sc.current.project.contains("neoforge")
     constants["fabric"] = sc.current.project.contains("fabric")
+    constants["neoforge"] = sc.current.project.contains("neoforge")
 }
 
 configure<net.fabricmc.loom.api.LoomGradleExtensionAPI> {
@@ -36,14 +36,16 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
-val expandProps = mapOf("java_version" to project.prop("java.version")!!)
+val javaVersion = findProperty("java.version")?.toString() ?: error("No Java version specified")
+
+val expandProps = mapOf("java_version" to javaVersion)
 
 tasks.processResources {
     inputs.properties(expandProps)
-    filesMatching("**/*.mixins.json") { expand(expandProps) }
+    filesMatching("**/*.mixins.json", ExpandPropertiesAction(expandProps))
 }
 
 tasks.named<ProcessResources>("processClientResources") {
     inputs.properties(expandProps)
-    filesMatching("**/*.mixins.json") { expand(expandProps) }
+    filesMatching("**/*.mixins.json", ExpandPropertiesAction(expandProps))
 }

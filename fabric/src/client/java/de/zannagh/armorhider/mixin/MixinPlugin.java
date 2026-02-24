@@ -13,10 +13,7 @@ public class MixinPlugin implements IMixinConfigPlugin {
 
     private static final String PACKAGE = "de.zannagh.armorhider.mixin.client";
 
-    // Mixins listed unconditionally — Stonecutter source guards strip classes for
-    // incompatible versions, so getMixinClassesWherePresent filters them automatically.
     private static final String[] MIXINS = new String[]{
-            // Always present
             "LivingEntityMixin",
             "lang.ClientLanguageMixin",
             "hand.ItemEntityRendererMixin",
@@ -37,16 +34,11 @@ public class MixinPlugin implements IMixinConfigPlugin {
             "bodyKneesAndToes.HumanoidArmorLayerMixin",
             // Guarded by //? if < 1.21.9 in source
             "hand.ModelPartMixin",
-    };
-
-    // Fabric-only mixins (source files have no loader guard, so we filter here)
-    private static final String[] FABRIC_ONLY_MIXINS = new String[]{
             "bodyKneesAndToes.EquipmentRenderColorMixin",
             "hand.ItemRendererMixin",
             "networking.ClientPacketListenerMixin",
-            "networking.ClientPlayNetworkHandlerMixin",
+            "networking.ClientPlayNetworkHandlerMixin"
     };
-
 
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
@@ -60,10 +52,6 @@ public class MixinPlugin implements IMixinConfigPlugin {
     @Override
     public List<String> getMixins() {
         var mixinsToAdd = new ArrayList<>(List.of(MIXINS));
-
-        //? if fabric
-        mixinsToAdd.addAll(List.of(FABRIC_ONLY_MIXINS));
-
         return MixinUtil.getMixinClassesWherePresent(PACKAGE, mixinsToAdd);
     }
 
@@ -81,6 +69,6 @@ public class MixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public String getRefMapperConfig() {
-        return "";
+        return null;
     }
 }

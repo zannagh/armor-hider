@@ -5,13 +5,7 @@ plugins {
 apply(plugin = if (project.isDeobf) "loom-deobfuscated" else "loom-obfuscated")
 
 val sc = project.stonecutterBuild
-val supportedVersions = SupportedVersions(rootProject.file("supportedVersions.json"), "fabric")
-// Fabric Loader needs "26.1-alpha.X" not "26.1-snapshot-X"
-val versionTransform: (String) -> String = if (project.isDeobf) {
-    { it.replace("-snapshot-", "-alpha.") }
-} else {
-    { it }
-}
+val fabricVersion = findProperty("fabric.minecraft_version")!!.toString()
 
 stonecutter {
     constants["fabric"] = true
@@ -31,7 +25,7 @@ configure<net.fabricmc.loom.api.LoomGradleExtensionAPI> {
     runConfigs.configureEach {
         runDir = "run"
         if (project.isDeobf) {
-            vmArg("-Dfabric.gameVersion=${versionTransform(project.mcVersion)}")
+            vmArg("-Dfabric.gameVersion=${fabricVersion}")
         }
     }
 }
@@ -50,14 +44,10 @@ val expandProps = mapOf(
 
 tasks.processResources {
     inputs.properties(expandProps)
-    filesMatching(listOf("fabric.mod.json", "**/*.mixins.json")) {
-        expand(expandProps)
-    }
+    filesMatching(listOf("fabric.mod.json", "**/*.mixins.json"), ExpandPropertiesAction(expandProps))
 }
 
 tasks.named<ProcessResources>("processClientResources") {
     inputs.properties(expandProps)
-    filesMatching("**/*.mixins.json") {
-        expand(expandProps)
-    }
+    filesMatching("**/*.mixins.json", ExpandPropertiesAction(expandProps))
 }

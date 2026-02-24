@@ -1,9 +1,3 @@
-// | --------------------------------------------------- |
-// | This logic is inspired by Show Me Your Skin!        |
-// | The source for this mod is to be found on:          |
-// | https://github.com/enjarai/show-me-your-skin        |
-// | --------------------------------------------------- |
-
 //? if >= 1.21.9 {
 package de.zannagh.armorhider.mixin.client.bodyKneesAndToes;
 
@@ -88,13 +82,3 @@ public class ArmorFeatureRenderMixin {
     }
 }
 *///?}
-
-//? if < 1.21.4 {
-/*package de.zannagh.armorhider.mixin.client.bodyKneesAndToes;
-
-// This mixin is not needed in 1.20.x - HumanoidArmorLayerMixin handles context capture
-public class ArmorFeatureRenderMixin {
-    // Empty - context capture is done in HumanoidArmorLayerMixin for 1.20.x
-}
-*///?}
-
