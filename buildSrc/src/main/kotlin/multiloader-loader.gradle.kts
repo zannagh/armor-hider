@@ -4,27 +4,35 @@ plugins {
 }
 
 val sc = project.stonecutterBuild
+sc.constants["fabric"] = findProperty("mod_loader")!!.toString() == "fabric"
+sc.constants["neoforge"] = findProperty("mod_loader")!!.toString() == "neoforge"
 val commonNode = sc.node.sibling("common")
-    ?: error("Could not find common branch for version ${sc.current.project}")
+    ?: error("Could not find common branch for version ${sc.current.version}")
 val commonPath = commonNode.hierarchy.toString()
 
-// Ensure common project is fully evaluated (including splitEnvironmentSourceSets)
-// before we access its source sets
+// Ensure common project is fully evaluated before accessing its source sets
 evaluationDependsOn(commonPath)
 
 val commonProject = project(commonPath)
 val commonSourceSets = commonProject.extensions.getByType(SourceSetContainer::class.java)
+
+// Expose common source sets for loader build scripts that need additional wiring
+extra["commonSourceSets"] = commonSourceSets
 
 // Carry over compile-only dependencies from common that are needed when compiling common sources
 dependencies {
     compileOnly("org.jspecify:jspecify:1.0.0")
 }
 
-// Include common's sources in the loader's source sets so the IDE can resolve them
+// Include common's sources in the loader's source sets for IntelliJ
 sourceSets.main {
     java { commonSourceSets["main"].java.srcDirs.forEach { srcDir(it) } }
-    java { commonSourceSets["client"].java.srcDirs.forEach { srcDir(it) } }
     resources { commonSourceSets["main"].resources.srcDirs.forEach { srcDir(it) } }
+}
+
+// Source sets to be available in loader specific projects
+sourceSets.matching { it.name == "client" }.configureEach {
+    java { commonSourceSets["client"].java.srcDirs.forEach { srcDir(it) } }
     resources { commonSourceSets["client"].resources.srcDirs.forEach { srcDir(it) } }
 }
 
@@ -39,6 +47,11 @@ tasks {
     compileJava { dependsOn(commonStonecutterTasks) }
     processResources { dependsOn(commonStonecutterTasks) }
     named("sourcesJar") { dependsOn(commonStonecutterTasks) }
+
+    // When a client source set exists, its tasks also need common's Stonecutter output
+    matching { it.name in listOf("compileClientJava", "processClientResources") }.configureEach {
+        dependsOn(commonStonecutterTasks)
+    }
 
     jar {
         inputs.property("archivesName", base.archivesName)

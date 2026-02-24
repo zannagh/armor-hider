@@ -1,57 +1,63 @@
 plugins {
     id("multiloader-loader")
-    id("fabric-loom")
 }
+
+apply(plugin = if (project.isDeobf) "loom-deobfuscated" else "loom-obfuscated")
 
 val sc = project.stonecutterBuild
 val supportedVersions = SupportedVersions(rootProject.file("supportedVersions.json"), "fabric")
-val isDeobf = sc.current.project.startsWith("26.")
 // Fabric Loader needs "26.1-alpha.X" not "26.1-snapshot-X"
-val versionTransform: (String) -> String = if (isDeobf) {
+val versionTransform: (String) -> String = if (project.isDeobf) {
     { it.replace("-snapshot-", "-alpha.") }
 } else {
     { it }
 }
 
-loom {
+stonecutter {
+    constants["fabric"] = true
+}
+
+configure<net.fabricmc.loom.api.LoomGradleExtensionAPI> {
+    splitEnvironmentSourceSets()
+
     mods {
         register("armor-hider") {
             sourceSet(sourceSets.main.get())
+            sourceSet(sourceSets["client"])
         }
     }
 
     // Shared run directory for all versions
     runConfigs.configureEach {
         runDir = "run"
-        if (isDeobf) {
-            vmArg("-Dfabric.gameVersion=${versionTransform(sc.current.project)}")
+        if (project.isDeobf) {
+            vmArg("-Dfabric.gameVersion=${versionTransform(project.mcVersion)}")
         }
     }
 }
 
 dependencies {
-    minecraft("com.mojang:minecraft:${sc.current.project}")
-    if (!isDeobf) {
-        // String-based calls: these Loom configurations don't exist when obfuscation is disabled
-        add("mappings", loom.officialMojangMappings())
+    if (!project.isDeobf) {
         add("modImplementation", "net.fabricmc:fabric-loader:${property("loader_version")}")
-    } else {
-        implementation("net.fabricmc:fabric-loader:${property("loader_version")}")
     }
 }
 
-tasks.processResources {
-    val minecraftConstraint = supportedVersions.getFabricVersionConstraint(sc.current.project, versionTransform)
-    val javaVersionConverter = JavaVersionConverter(sc.current.parsed)
-    inputs.property("version", project.version)
-    inputs.property("minecraft_version", minecraftConstraint)
-    inputs.property("java_version", javaVersionConverter.getJavaVersionInt())
+val expandProps = mapOf(
+    "version" to project.version,
+    "java_version" to project.prop("java.version")!!,
+    "fabric_minecraft_version" to project.prop("fabric.minecraft_version_range")!!
+)
 
-    filesMatching("fabric.mod.json") {
-        expand(
-            "version" to project.version,
-            "minecraft_version" to minecraftConstraint,
-            "java_version" to javaVersionConverter.getJavaVersionInt()
-        )
+tasks.processResources {
+    inputs.properties(expandProps)
+    filesMatching(listOf("fabric.mod.json", "**/*.mixins.json")) {
+        expand(expandProps)
+    }
+}
+
+tasks.named<ProcessResources>("processClientResources") {
+    inputs.properties(expandProps)
+    filesMatching("**/*.mixins.json") {
+        expand(expandProps)
     }
 }

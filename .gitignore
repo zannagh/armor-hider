@@ -3,6 +3,7 @@
 .kotlin/
 .gradle/
 build/
+staging/
 out/
 classes/
 logs/

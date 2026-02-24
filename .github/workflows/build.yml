@@ -31,20 +31,8 @@ jobs:
         id: version
         uses: zannagh/versionizer/calculate-version@v1
 
-      - name: Build
-        run: ./gradlew build -PsemVer="${{ steps.version.outputs.fullSemVer }}" -Pprerelease="true"
-
-      - name: Stage Unique Artifacts
-        run: |
-          mkdir -p staging
-          find fabric/versions neoforge/versions -path '*/build/libs/*.jar' -print0 | while IFS= read -r -d '' jar; do
-            filename=$(basename "$jar")
-            if [[ ! -f "staging/$filename" ]]; then
-              cp "$jar" "staging/$filename"
-            fi
-          done
-          echo "Staged artifacts:"
-          ls -la staging/
+      - name: Build & Stage Artifacts
+        run: ./gradlew stageArtifacts -PsemVer="${{ steps.version.outputs.fullSemVer }}" -Pprerelease="true"
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v6
