@@ -12,15 +12,9 @@ val javaVersion = findProperty("java.version")?.toString() ?: error("No Java ver
 val displayVersion = findProperty("display_version")?.toString() ?: error("No display version specified")
 
 val isPreRelease = findProperty("prerelease")?.toString()?.lowercase() != "false"
-val semVer = findProperty("semVer")?.toString()?.takeIf { it.isNotEmpty() } ?: "0.0.1"
-val preReleaseVersion = findProperty("preReleaseVersion")?.toString()?.takeIf { it.isNotEmpty() } ?: "0"
-val modVersion = if (isPreRelease) {
-    "$semVer-preview.$preReleaseVersion" 
-} else {
-    semVer
-}
+val semVer = findProperty("semVer")?.toString()?.takeIf { it.isNotEmpty() } ?: "0.0.1-preview.0"
 
-version = "$modVersion+$displayVersion"
+version = "$semVer+$displayVersion"
 group = property("maven_group").toString()
 
 base {
