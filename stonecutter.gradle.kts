@@ -15,21 +15,22 @@ tasks.register("stageArtifacts") {
         dependsOn("${it.path}:build")
     }
 
+    val staging = rootProject.file("staging")
+    val versionDirs = listOf("fabric/versions", "neoforge/versions").map { rootProject.file(it) }
+
     doLast {
-        val staging = rootProject.file("staging")
         staging.deleteRecursively()
         staging.mkdirs()
 
-        listOf("fabric/versions", "neoforge/versions").forEach { dir ->
-            rootProject.fileTree(dir) {
-                include("*/build/libs/*.jar")
-                exclude("**/*-sources.jar")
-            }.forEach { jar ->
-                val target = staging.resolve(jar.name)
-                if (!target.exists()) {
-                    jar.copyTo(target)
+        versionDirs.forEach { dir ->
+            dir.walkTopDown()
+                .filter { it.extension == "jar" && it.path.contains("/build/libs/") && !it.name.endsWith("-sources.jar") }
+                .forEach { jar ->
+                    val target = staging.resolve(jar.name)
+                    if (!target.exists()) {
+                        jar.copyTo(target)
+                    }
                 }
-            }
         }
 
         val files = staging.listFiles()?.sortedBy { it.name } ?: emptyList()
