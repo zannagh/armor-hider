@@ -2,6 +2,8 @@ pluginManagement {
     repositories {
         maven("https://maven.fabricmc.net/")
         maven("https://maven.neoforged.net/releases/")
+        maven("https://maven.quiltmc.org/repository/release/")
+        maven("https://repo.papermc.io/repository/maven-public/")
         mavenCentral()
         gradlePluginPortal()
     }
@@ -30,6 +32,7 @@ stonecutter {
         "1.21", "1.21.1", "1.21.4", "1.21.5", "1.21.6", "1.21.7", "1.21.8",
         "1.21.9", "1.21.10", "1.21.11",
     )
+    val quiltVersions = fabricVersions
 
     create(rootProject) {
         vcsVersion = "fabric-1.21.11" // Latest stable
@@ -37,12 +40,16 @@ stonecutter {
         branch("common") {
             fabricVersions.forEach { version("fabric-$it", it) }
             neoforgeVersions.forEach { version("neoforge-$it", it) }
+            quiltVersions.forEach { version("quilt-$it", it) }
         }
         branch("fabric") {
             fabricVersions.forEach { version("fabric-$it", it) }
         }
         branch("neoforge") {
             neoforgeVersions.forEach { version("neoforge-$it", it) }
+        }
+        branch("quilt") {
+            quiltVersions.forEach { version("quilt-$it", it) }
         }
     }
 }

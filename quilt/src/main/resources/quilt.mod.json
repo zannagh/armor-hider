@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "quilt_loader": {
+    "group": "de.zannagh.armorhider",
+    "id": "armor-hider",
+    "version": "${version}",
+    "metadata": {
+      "name": "armor-hider",
+      "description": "Small Quilt Server/Client mod to hide armor pieces based on player preferences.",
+      "contributors": {
+        "zannagh": "Owner"
+      },
+      "contact": {
+        "email": "mail@zannagh.me",
+        "homepage": "https://github.com/zannagh",
+        "sources": "https://github.com/zannagh/armor-hider",
+        "issues": "https://github.com/zannagh/armor-hider/issues"
+      },
+      "license": "MIT",
+      "icon": "assets/armor-hider/icon.png"
+    },
+    "intermediate_mappings": "net.fabricmc:intermediary",
+    "entrypoints": {
+      "init": "de.zannagh.armorhider.quilt.ArmorHiderQuilt",
+      "client_init": "de.zannagh.armorhider.quilt.ArmorHiderClientQuilt"
+    },
+    "depends": [
+      {
+        "id": "quilt_loader",
+        "versions": ">=0.26.0"
+      },
+      {
+        "id": "minecraft",
+        "versions": "${quilt_minecraft_version}"
+      },
+      {
+        "id": "java",
+        "versions": ">=${java_version}"
+      }
+    ]
+  },
+  "mixin": [
+    "armor-hider.mixins.json",
+    {
+      "config": "armor-hider.client.mixins.json",
+      "environment": "client"
+    }
+  ]
+}

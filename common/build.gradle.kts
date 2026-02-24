@@ -7,8 +7,10 @@ apply(plugin = if (project.isDeobf) "loom-deobfuscated" else "loom-obfuscated")
 val sc = project.stonecutterBuild
 
 stonecutter {
-    constants["fabric"] = sc.current.project.contains("fabric")
-    constants["neoforge"] = sc.current.project.contains("neoforge")
+    val loaderName = sc.current.project.substringBefore("-")
+    constants["fabric"] = loaderName == "fabric"
+    constants["neoforge"] = loaderName == "neoforge"
+    constants["quilt"] = loaderName == "quilt"
 }
 
 configure<net.fabricmc.loom.api.LoomGradleExtensionAPI> {

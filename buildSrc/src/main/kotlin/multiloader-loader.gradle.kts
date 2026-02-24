@@ -4,8 +4,11 @@ plugins {
 }
 
 val sc = project.stonecutterBuild
-sc.constants["fabric"] = sc.current.project.contains("fabric")
-sc.constants["neoforge"] = sc.current.project.contains("neoforge")
+val loaderName = sc.current.project.substringBefore("-")
+sc.constants["fabric"] = loaderName == "fabric"
+sc.constants["neoforge"] = loaderName == "neoforge"
+sc.constants["quilt"] = loaderName == "quilt"
+sc.constants["paper"] = loaderName == "paper"
 val commonNode = sc.node.sibling("common")
     ?: error("Could not find common branch sibling for ${sc.current.project}")
 val commonPath = commonNode.hierarchy.toString()

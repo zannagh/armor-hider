@@ -33,7 +33,7 @@ public abstract class CustomHeadLayerMixin {
     @Inject(
             method = "submit(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;FF)V",
             at = @At("HEAD"),
-            //? if fabric
+            //? if fabric || quilt
             order = MixinConstants.HIGH_PRIO,
             cancellable = true
     )
@@ -47,7 +47,7 @@ public abstract class CustomHeadLayerMixin {
 
     @Inject(
             method = "resolveSkullRenderType",
-            //? if fabric
+            //? if fabric || quilt
             order = MixinConstants.HIGH_PRIO,
             at = @At("HEAD")
     )
@@ -60,7 +60,7 @@ public abstract class CustomHeadLayerMixin {
 
     @Inject(
             method = "submit(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;FF)V",
-            //? if fabric
+            //? if fabric || quilt
             order = MixinConstants.HIGH_PRIO,
             at = @At("TAIL")
     )
@@ -111,7 +111,7 @@ public abstract class CustomHeadLayerMixin {
     @Inject(
             method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;FF)V",
             at = @At("HEAD"),
-            //? if fabric
+            //? if fabric || quilt
             order = MixinConstants.HIGH_PRIO,
             cancellable = true
     )
@@ -125,7 +125,7 @@ public abstract class CustomHeadLayerMixin {
 
     @Inject(
             method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;FF)V",
-            //? if fabric
+            //? if fabric || quilt
             order = MixinConstants.HIGH_PRIO,
             at = @At("TAIL")
     )
@@ -171,7 +171,7 @@ public abstract class CustomHeadLayerMixin<T extends LivingEntity> {
     @Inject(
             method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/world/entity/LivingEntity;FFFFFF)V",
             at = @At("HEAD"),
-            //? if fabric
+            //? if fabric || quilt
             order = MixinConstants.HIGH_PRIO,
             cancellable = true
     )
@@ -189,7 +189,7 @@ public abstract class CustomHeadLayerMixin<T extends LivingEntity> {
 
     @Inject(
             method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/world/entity/LivingEntity;FFFFFF)V",
-            //? if fabric
+            //? if fabric || quilt
             order = MixinConstants.HIGH_PRIO,
             at = @At("TAIL")
     )

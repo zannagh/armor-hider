@@ -23,6 +23,8 @@ sourceSets.main {
 
 stonecutter {
     constants["neoforge"] = true
+    constants["quilt"] = false
+    constants["paper"] = false
 }
 
 neoForge {

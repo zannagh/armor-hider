@@ -1,6 +1,7 @@
 package de.zannagh.armorhider.net;
 
 //? if >= 1.20.5 {
+import java.util.function.BiConsumer;
 import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 //?}
@@ -24,8 +25,15 @@ public final class PacketSender {
     }
 
     //? if >= 1.20.5 {
+    private static BiConsumer<ServerPlayer, CustomPacketPayload> sendFunction =
+            (player, payload) -> player.connection.send(new ClientboundCustomPayloadPacket(payload));
+
+    public static void setSendFunction(BiConsumer<ServerPlayer, CustomPacketPayload> fn) {
+        sendFunction = fn;
+    }
+
     public static void sendToPlayer(ServerPlayer player, CustomPacketPayload payload) {
-        player.connection.send(new ClientboundCustomPayloadPacket(payload));
+        sendFunction.accept(player, payload);
     }
     //?}
 

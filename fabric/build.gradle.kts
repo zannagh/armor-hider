@@ -9,6 +9,8 @@ val fabricVersion = findProperty("fabric.minecraft_version")!!.toString()
 
 stonecutter {
     constants["fabric"] = true
+    constants["quilt"] = false
+    constants["paper"] = false
 }
 
 configure<net.fabricmc.loom.api.LoomGradleExtensionAPI> {

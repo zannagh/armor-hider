@@ -5,6 +5,7 @@ plugins {
 repositories {
     maven("https://maven.fabricmc.net/")
     maven("https://maven.neoforged.net/releases/")
+    maven("https://maven.quiltmc.org/repository/release/")
     mavenCentral()
     gradlePluginPortal()
 }

@@ -5,8 +5,11 @@ plugins {
 
 val sc = project.stonecutterBuild
 val loader = sc.branch.id
-sc.constants["fabric"] = sc.current.project.contains("fabric")
-sc.constants["neoforge"] = sc.current.project.contains("neoforge")
+val loaderName = sc.current.project.substringBefore("-")
+sc.constants["fabric"] = loaderName == "fabric"
+sc.constants["neoforge"] = loaderName == "neoforge"
+sc.constants["quilt"] = loaderName == "quilt"
+sc.constants["paper"] = loaderName == "paper"
 
 val javaVersion = findProperty("java.version")?.toString() ?: error("No Java version specified")
 val displayVersion = findProperty("display_version")?.toString() ?: error("No display version specified")

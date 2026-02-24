@@ -1,6 +1,7 @@
 plugins {
     id("dev.kikugie.stonecutter")
     id("net.neoforged.moddev") version "2.0.140" apply false
+    id("io.papermc.paperweight.userdev") version "2.0.0-beta.19" apply false
 }
 
 stonecutter active "fabric-1.21.11" /* [SC] DO NOT EDIT */
@@ -10,14 +11,15 @@ tasks.register("stageArtifacts") {
     description = "Builds all loader variants and copies unique artifacts to staging/"
 
     allprojects.filter {
-        it.path.startsWith(":fabric:") || it.path.startsWith(":neoforge:")
+        it.path.startsWith(":fabric:") || it.path.startsWith(":neoforge:") ||
+        it.path.startsWith(":quilt:") || it.path.startsWith(":paper:")
     }.forEach {
         dependsOn("${it.path}:build")
     }
 
     // Resolve everything at configuration time to stay config-cache-safe
     val staging = rootProject.file("staging")
-    val versionDirs = listOf("fabric/versions", "neoforge/versions").map { rootProject.file(it) }
+    val versionDirs = listOf("fabric/versions", "neoforge/versions", "quilt/versions", "paper/versions").map { rootProject.file(it) }
 
     // Build the version map from gradle.properties: { loader: { displayVersion: [mcVersion, ...] } }
     val versionMap = mutableMapOf<String, MutableMap<String, MutableList<String>>>()
