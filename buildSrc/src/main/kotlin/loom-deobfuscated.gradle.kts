@@ -5,5 +5,5 @@ apply(plugin = "fabric-loom")
 
 dependencies {
     "minecraft"("com.mojang:minecraft:${project.mcVersion}")
-    "implementation"("net.fabricmc:fabric-loader:$FABRIC_LOADER_VERSION")
+    "implementation"("net.fabricmc:fabric-loader:${property("loader_version")}")
 }

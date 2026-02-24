@@ -38,7 +38,7 @@ configure<net.fabricmc.loom.api.LoomGradleExtensionAPI> {
 
 dependencies {
     if (!project.isDeobf) {
-        add("modImplementation", "net.fabricmc:fabric-loader:$FABRIC_LOADER_VERSION")
+        add("modImplementation", "net.fabricmc:fabric-loader:${property("loader_version")}")
     }
 }
 

@@ -26,7 +26,7 @@ configure<net.fabricmc.loom.api.LoomGradleExtensionAPI> {
 
 dependencies {
     if (!project.isDeobf) {
-        add("modCompileOnly", "net.fabricmc:fabric-loader:$FABRIC_LOADER_VERSION")
+        add("modCompileOnly", "net.fabricmc:fabric-loader:${property("loader_version")}")
     }
 
     compileOnly("org.jspecify:jspecify:1.0.0")

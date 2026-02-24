@@ -1,8 +1,6 @@
 import dev.kikugie.stonecutter.build.StonecutterBuildExtension
 import org.gradle.api.Project
 
-const val FABRIC_LOADER_VERSION = "0.18.2"
-
 fun Project.prop(key: String): String? = findProperty(key)?.toString()
 val Project.stonecutterBuild: StonecutterBuildExtension
     get() = extensions.getByType(StonecutterBuildExtension::class.java)
