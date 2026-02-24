@@ -24,7 +24,7 @@ object Versioning {
         val baseVersion = if (ciVersionProperty.isNotEmpty()) {
             ciVersionProperty
         } else {
-            getModVersionFromGit()
+            "0.0.1"
         }
 
         return if (isPreRelease) {
@@ -36,49 +36,6 @@ object Versioning {
             }
         } else {
             baseVersion
-        }
-    }
-
-    private fun getModVersionFromGit(): String {
-        try {
-            val semVer: String
-            val commitsSinceSource: String
-            val uncommittedChanges: String
-            try {
-                semVer = Runtime.getRuntime().exec(arrayOf("gitversion", "/output", "json", "/showVariable", "majorMinorPatch"))
-                    .inputStream.bufferedReader().readText().trim()
-                commitsSinceSource = Runtime.getRuntime().exec(arrayOf("gitversion", "/output", "json", "/showVariable", "CommitsSinceVersionSource"))
-                    .inputStream.bufferedReader().readText().trim()
-                uncommittedChanges = Runtime.getRuntime().exec(arrayOf("gitversion", "/output", "json", "/showVariable", "UncommittedChanges"))
-                    .inputStream.bufferedReader().readText().trim()
-            } catch (_: Exception) {
-                val semVerProc = Runtime.getRuntime().exec(arrayOf("dotnet", "gitversion", "/output", "json", "/showVariable", "majorMinorPatch"))
-                val commitsSinceProc = Runtime.getRuntime().exec(arrayOf("dotnet", "gitversion", "/output", "json", "/showVariable", "CommitsSinceVersionSource"))
-                val uncommittedProc = Runtime.getRuntime().exec(arrayOf("dotnet", "gitversion", "/output", "json", "/showVariable", "UncommittedChanges"))
-                return modVersionFromGitVersionFallback(
-                    semVerProc.inputStream.bufferedReader().readText().trim(),
-                    commitsSinceProc.inputStream.bufferedReader().readText().trim(),
-                    uncommittedProc.inputStream.bufferedReader().readText().trim()
-                )
-            }
-            return modVersionFromGitVersionFallback(semVer, commitsSinceSource, uncommittedChanges)
-        } catch (_: Exception) {
-            return Runtime.getRuntime().exec(arrayOf("git", "describe", "--tags"))
-                .inputStream.bufferedReader().readText().trim()
-        }
-    }
-
-    private fun modVersionFromGitVersionFallback(
-        semVer: String,
-        commitsSinceSource: String,
-        uncommittedChanges: String
-    ): String {
-        if (semVer.isEmpty() || !semVer.contains(Regex("\\d")) || !commitsSinceSource.matches(Regex("\\d.*"))) {
-            throw Exception("Invalid version info")
-        }
-        return when (commitsSinceSource) {
-            "0" -> if (uncommittedChanges == "0") semVer else "$semVer-$uncommittedChanges"
-            else -> "$semVer-$commitsSinceSource"
         }
     }
 }

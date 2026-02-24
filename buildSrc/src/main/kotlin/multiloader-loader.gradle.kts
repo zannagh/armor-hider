@@ -4,10 +4,10 @@ plugins {
 }
 
 val sc = project.stonecutterBuild
-sc.constants["fabric"] = findProperty("mod_loader")!!.toString() == "fabric"
-sc.constants["neoforge"] = findProperty("mod_loader")!!.toString() == "neoforge"
+sc.constants["fabric"] = sc.current.project.contains("fabric")
+sc.constants["neoforge"] = sc.current.project.contains("neoforge")
 val commonNode = sc.node.sibling("common")
-    ?: error("Could not find common branch for version ${sc.current.version}")
+    ?: error("Could not find common branch sibling for ${sc.current.project}")
 val commonPath = commonNode.hierarchy.toString()
 
 // Ensure common project is fully evaluated before accessing its source sets

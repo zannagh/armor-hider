@@ -33,6 +33,7 @@ public abstract class CustomHeadLayerMixin {
     @Inject(
             method = "submit(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;FF)V",
             at = @At("HEAD"),
+            //? if fabric
             order = MixinConstants.HIGH_PRIO,
             cancellable = true
     )
@@ -46,8 +47,9 @@ public abstract class CustomHeadLayerMixin {
 
     @Inject(
             method = "resolveSkullRenderType",
-            at = @At("HEAD"),
-            order = MixinConstants.HIGH_PRIO
+            //? if fabric
+            order = MixinConstants.HIGH_PRIO,
+            at = @At("HEAD")
     )
     private void grabSkullRenderContext(LivingEntityRenderState livingEntityRenderState, SkullBlock.Type type, CallbackInfoReturnable<RenderType> cir) {
         if (ArmorRenderPipeline.noContext()) {
@@ -58,8 +60,9 @@ public abstract class CustomHeadLayerMixin {
 
     @Inject(
             method = "submit(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;FF)V",
-            at = @At("TAIL"),
-            order = MixinConstants.HIGH_PRIO
+            //? if fabric
+            order = MixinConstants.HIGH_PRIO,
+            at = @At("TAIL")
     )
     private <S extends LivingEntityRenderState> void releaseContext(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int i, S livingEntityRenderState, float f, float g, CallbackInfo ci) {
         ArmorRenderPipeline.clearContext();
@@ -108,6 +111,7 @@ public abstract class CustomHeadLayerMixin {
     @Inject(
             method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;FF)V",
             at = @At("HEAD"),
+            //? if fabric
             order = MixinConstants.HIGH_PRIO,
             cancellable = true
     )
@@ -121,8 +125,9 @@ public abstract class CustomHeadLayerMixin {
 
     @Inject(
             method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;FF)V",
-            at = @At("TAIL"),
-            order = MixinConstants.HIGH_PRIO
+            //? if fabric
+            order = MixinConstants.HIGH_PRIO,
+            at = @At("TAIL")
     )
     private <S extends LivingEntityRenderState> void releaseContext(PoseStack poseStack, MultiBufferSource multiBufferSource, int i, S livingEntityRenderState, float f, float g, CallbackInfo ci) {
         ArmorRenderPipeline.clearContext();
@@ -166,6 +171,7 @@ public abstract class CustomHeadLayerMixin<T extends LivingEntity> {
     @Inject(
             method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/world/entity/LivingEntity;FFFFFF)V",
             at = @At("HEAD"),
+            //? if fabric
             order = MixinConstants.HIGH_PRIO,
             cancellable = true
     )
@@ -183,8 +189,9 @@ public abstract class CustomHeadLayerMixin<T extends LivingEntity> {
 
     @Inject(
             method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/world/entity/LivingEntity;FFFFFF)V",
-            at = @At("TAIL"),
-            order = MixinConstants.HIGH_PRIO
+            //? if fabric
+            order = MixinConstants.HIGH_PRIO,
+            at = @At("TAIL")
     )
     private void releaseContext(PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, T entity, float limbSwing, float limbSwingAmount, float partialTick, float ageInTicks, float netHeadYaw, float headPitch, CallbackInfo ci) {
         ArmorRenderPipeline.clearContext();
