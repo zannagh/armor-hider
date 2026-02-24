@@ -166,23 +166,11 @@ jobs:
           prerelease-number: ${{ needs.analyze.outputs.prerelease_number }}
           commits-since: ${{ needs.analyze.outputs.commits_since }}
 
-      - name: Build
+      - name: Build & Stage Artifacts
         run: |
-          ./gradlew build \
+          ./gradlew stageArtifacts \
             -PsemVer="${{ steps.mod-ver.outputs.version }}" \
             -Pprerelease="${{ steps.mod-ver.outputs.is_prerelease }}"
-
-      - name: Stage Unique Artifacts
-        run: |
-          mkdir -p staging
-          find fabric/versions neoforge/versions -path '*/build/libs/*.jar' -print0 | while IFS= read -r -d '' jar; do
-            filename=$(basename "$jar")
-            if [[ ! -f "staging/$filename" ]]; then
-              cp "$jar" "staging/$filename"
-            fi
-          done
-          echo "Staged artifacts:"
-          ls -la staging/
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v6
