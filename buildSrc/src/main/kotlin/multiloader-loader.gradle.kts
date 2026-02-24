@@ -10,8 +10,7 @@ val commonNode = sc.node.sibling("common")
     ?: error("Could not find common branch for version ${sc.current.version}")
 val commonPath = commonNode.hierarchy.toString()
 
-// Ensure common project is fully evaluated (including splitEnvironmentSourceSets)
-// before we access its source sets
+// Ensure common project is fully evaluated before accessing its source sets
 evaluationDependsOn(commonPath)
 
 val commonProject = project(commonPath)
@@ -25,14 +24,13 @@ dependencies {
     compileOnly("org.jspecify:jspecify:1.0.0")
 }
 
-// Include common's sources in the loader's source sets so the IDE can resolve them
+// Include common's sources in the loader's source sets for IntelliJ
 sourceSets.main {
     java { commonSourceSets["main"].java.srcDirs.forEach { srcDir(it) } }
     resources { commonSourceSets["main"].resources.srcDirs.forEach { srcDir(it) } }
 }
 
-// Wire common client sources into the loader's client source set (created later by
-// splitEnvironmentSourceSets or sourceSets.create in the loader's build script)
+// Source sets to be available in loader specific projects
 sourceSets.matching { it.name == "client" }.configureEach {
     java { commonSourceSets["client"].java.srcDirs.forEach { srcDir(it) } }
     resources { commonSourceSets["client"].resources.srcDirs.forEach { srcDir(it) } }
