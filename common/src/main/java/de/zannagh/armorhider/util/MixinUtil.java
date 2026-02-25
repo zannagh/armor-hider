@@ -11,11 +11,11 @@ public final class MixinUtil {
         var list = new ArrayList<String>();
         for (String mixin : expectedClasses) {
             String mixinClassName = packageName + "." + mixin;
-            try {
-                Class.forName(mixinClassName, false, MixinUtil.class.getClassLoader());
+            String resourcePath = mixinClassName.replace('.', '/') + ".class";
+            if (MixinUtil.class.getClassLoader().getResource(resourcePath) != null) {
                 ArmorHider.LOGGER.debug("Applying present mixin: '{}'.", mixinClassName);
                 list.add(mixin);
-            } catch (ClassNotFoundException ignored) {
+            } else {
                 ArmorHider.LOGGER.debug("Skipping missing mixin: '{}'.", mixinClassName);
             }
         }
