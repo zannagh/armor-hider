@@ -37,7 +37,7 @@ jobs:
       - name: Check self-hosted runner availability
         id: check
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.RUNNER_TOKEN }}
         run: |
           RUNNER="ubuntu-latest"
           if STATUS=$(gh api "repos/${{ github.repository }}/actions/runners" \
