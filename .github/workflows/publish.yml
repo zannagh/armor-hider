@@ -30,30 +30,8 @@ env:
 jobs:
   check-runner:
     name: Check Runner
-    runs-on: ubuntu-latest
-    outputs:
-      runner: ${{ steps.check.outputs.runner }}
-    steps:
-      - name: Check self-hosted runner availability
-        id: check
-        env:
-          GH_TOKEN: ${{ secrets.RUNNER_TOKEN }}
-        run: |
-          RUNNER='["ubuntu-latest"]'
-          if STATUS=$(gh api "repos/${{ github.repository }}/actions/runners" \
-            --jq '.runners[] | select(.name == "armor-hider-runner") | .status' 2>&1); then
-            if [ "$STATUS" = "online" ]; then
-              RUNNER='["self-hosted","Windows","X64"]'
-            elif [ -z "$STATUS" ]; then
-              echo "::warning::Self-hosted runner 'armor-hider-runner' not found. Falling back to ubuntu-latest."
-            else
-              echo "::warning::Self-hosted runner 'armor-hider-runner' has status '$STATUS'. Falling back to ubuntu-latest."
-            fi
-          else
-            echo "::warning::Failed to query runner status via gh api. Falling back to ubuntu-latest."
-          fi
-          echo "Using runner: $RUNNER"
-          echo "runner=$RUNNER" >> $GITHUB_OUTPUT
+    uses: ./.github/workflows/check-runner.yml
+    secrets: inherit
 
   analyze:
     name: Analyze Changes
