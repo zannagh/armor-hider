@@ -14,6 +14,7 @@ import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.entity.EquipmentSlot;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
@@ -29,7 +30,7 @@ public class ItemRendererMixin {
             )
     )
     private void wrapShieldRender(BlockEntityWithoutLevelRenderer instance, ItemStack itemStack, ItemDisplayContext ctx, PoseStack poseStack, MultiBufferSource bufferSource, int light, int overlay, Operation<Void> original) {
-        if (ArmorRenderPipeline.hasActiveContext() && ArmorRenderPipeline.shouldModifyEquipment()) {
+        if (ArmorRenderPipeline.hasActiveContext(EquipmentSlot.OFFHAND) && ArmorRenderPipeline.shouldModifyEquipment()) {
             MultiBufferSource wrappedSource = renderType -> {
                 if (renderType == Sheets.shieldSheet()) {
                     return bufferSource.getBuffer(RenderType.entityTranslucent(Sheets.SHIELD_SHEET));
@@ -54,7 +55,7 @@ public class ItemRendererMixin {
     )
     private RenderType wrapGetRenderType(ItemStack itemStack, boolean fabulous, Operation<RenderType> original) {
         RenderType type = original.call(itemStack, fabulous);
-        if (ArmorRenderPipeline.hasActiveContext() && ArmorRenderPipeline.shouldModifyEquipment()) {
+        if (ArmorRenderPipeline.hasActiveContext(EquipmentSlot.OFFHAND) && ArmorRenderPipeline.shouldModifyEquipment()) {
             return ArmorRenderPipeline.getTranslucentItemRenderTypeIfApplicable(type);
         }
         return type;
@@ -69,7 +70,7 @@ public class ItemRendererMixin {
             )
     )
     private void wrapPutBulkData(VertexConsumer instance, PoseStack.Pose pose, BakedQuad quad, float r, float g, float b, float alpha, int light, int overlay, Operation<Void> original) {
-        if (ArmorRenderPipeline.hasActiveContext() && ArmorRenderPipeline.shouldModifyEquipment()) {
+        if (ArmorRenderPipeline.hasActiveContext(EquipmentSlot.OFFHAND) && ArmorRenderPipeline.shouldModifyEquipment()) {
             float modifiedAlpha = alpha * ArmorRenderPipeline.getTransparencyAlpha();
             original.call(instance, pose, quad, r, g, b, modifiedAlpha, light, overlay);
         } else {
@@ -91,6 +92,7 @@ import de.zannagh.armorhider.rendering.ArmorRenderPipeline;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.entity.ItemRenderer;
+import net.minecraft.world.entity.EquipmentSlot;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
@@ -109,7 +111,7 @@ public class ItemRendererMixin {
             argsOnly = true
     )
     private static RenderType modifyRenderType(RenderType renderType) {
-        if (ArmorRenderPipeline.hasActiveContext() && ArmorRenderPipeline.shouldModifyEquipment()) {
+        if (ArmorRenderPipeline.hasActiveContext(EquipmentSlot.OFFHAND) && ArmorRenderPipeline.shouldModifyEquipment()) {
             return ArmorRenderPipeline.getTranslucentItemRenderTypeIfApplicable(renderType);
         }
         return renderType;
@@ -123,7 +125,7 @@ public class ItemRendererMixin {
             )
     )
     private static void wrapPutBulkData(VertexConsumer instance, PoseStack.Pose pose, BakedQuad quad, float r, float g, float b, float alpha, int light, int overlay, Operation<Void> original) {
-        if (ArmorRenderPipeline.hasActiveContext() && ArmorRenderPipeline.shouldModifyEquipment()) {
+        if (ArmorRenderPipeline.hasActiveContext(EquipmentSlot.OFFHAND) && ArmorRenderPipeline.shouldModifyEquipment()) {
             float modifiedAlpha = alpha * ArmorRenderPipeline.getTransparencyAlpha();
             original.call(instance, pose, quad, r, g, b, modifiedAlpha, light, overlay);
         } else {

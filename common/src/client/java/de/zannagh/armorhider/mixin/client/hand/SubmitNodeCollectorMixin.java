@@ -42,7 +42,7 @@ public class SubmitNodeCollectorMixin {
     private void wrapModelPartAdd(ModelPartFeatureRenderer.Storage storage, RenderType renderType, SubmitNodeStorage.ModelPartSubmit submit, Operation<Void> original) {
     //? if 1.21.9 || 1.21.10
     //private void wrapModelPartAdd(ModelPartFeatureRenderer.Storage storage, RenderType renderType, SubmitNodeStorage.ModelPartSubmit submit, Operation<Void> original) {
-        if (ArmorRenderPipeline.hasActiveContext()
+        if (ArmorRenderPipeline.hasActiveContext(EquipmentSlot.OFFHAND)
                 && ArmorRenderPipeline.shouldModifyEquipment()
                 && ArmorRenderPipeline.getCurrentModification() != null
                 && ArmorRenderPipeline.getCurrentModification().equipmentSlot() == EquipmentSlot.OFFHAND) {
@@ -94,7 +94,7 @@ public class SubmitNodeCollectorMixin {
     private <S> void wrapModelAdd(ModelFeatureRenderer.Storage storage, RenderType renderType, SubmitNodeStorage.ModelSubmit<S> submit, Operation<Void> original) {
     //? if 1.21.9 || 1.21.10
     //private <S> void wrapModelAdd(ModelFeatureRenderer.Storage storage, RenderType renderType, SubmitNodeStorage.ModelSubmit<S> submit, Operation<Void> original) {
-        if (ArmorRenderPipeline.hasActiveContext()
+        if (ArmorRenderPipeline.hasActiveContext(EquipmentSlot.OFFHAND)
                 && ArmorRenderPipeline.shouldModifyEquipment()
                 && ArmorRenderPipeline.getCurrentModification() != null
                 && ArmorRenderPipeline.getCurrentModification().equipmentSlot() == EquipmentSlot.OFFHAND) {

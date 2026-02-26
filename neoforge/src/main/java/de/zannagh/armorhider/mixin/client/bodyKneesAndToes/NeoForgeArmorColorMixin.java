@@ -118,7 +118,7 @@ public class NeoForgeArmorColorMixin {
     }
 
     private static boolean shouldApplyArmorTransparency() {
-        return ArmorRenderPipeline.hasActiveContext()
+        return ArmorRenderPipeline.hasActiveContext(null)
                 && ArmorRenderPipeline.shouldModifyEquipment()
                 && ArmorRenderPipeline.getCurrentModification() != null
                 && ArmorRenderPipeline.getCurrentModification().equipmentSlot() != EquipmentSlot.OFFHAND;

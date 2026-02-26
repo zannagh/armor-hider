@@ -7,6 +7,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.rendering.ArmorRenderPipeline;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemDisplayContext;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -49,7 +50,8 @@ public class ItemRenderStateMixin {
     private void wrapSubmitItem(SubmitNodeCollector instance, PoseStack poseStack, ItemDisplayContext itemDisplayContext, int light, int overlay, int color, int[] tintLayers, List<BakedQuad> quads, RenderType renderType, ItemStackRenderState.FoilType foilType, Operation<Void> original) {
     //? if 1.21.9 || 1.21.10
     //private void wrapSubmitItem(SubmitNodeCollector instance, PoseStack poseStack, ItemDisplayContext itemDisplayContext, int light, int overlay, int color, int[] tintLayers, List<BakedQuad> quads, RenderType renderType, ItemStackRenderState.FoilType foilType, Operation<Void> original) {
-        if (ArmorRenderPipeline.hasActiveContext() && ArmorRenderPipeline.shouldModifyEquipment()) {
+        if (ArmorRenderPipeline.hasActiveContext(EquipmentSlot.OFFHAND) && ArmorRenderPipeline.shouldModifyEquipment()) {
+            // Note to future me: This can actually hide main hands.
             float alpha = ArmorRenderPipeline.getTransparencyAlpha();
             //? if < 26.1-snapshot-7
             RenderType translucentType = ArmorRenderPipeline.getTranslucentItemRenderTypeIfApplicable(renderType);
