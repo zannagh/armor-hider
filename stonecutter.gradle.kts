@@ -52,7 +52,7 @@ tasks.register("stageArtifacts") {
 
         versionDirs.forEach { dir ->
             dir.walkTopDown()
-                .filter { it.extension == "jar" && it.path.contains("/build/libs/") && !it.name.endsWith("-sources.jar") }
+                .filter { it.extension == "jar" && it.parentFile.name == "libs" && it.parentFile.parentFile.name == "build" && !it.name.endsWith("-sources.jar") }
                 .forEach { jar ->
                     val target = staging.resolve(jar.name)
                     if (!target.exists()) {
