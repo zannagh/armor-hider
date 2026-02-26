@@ -71,7 +71,7 @@ public class OffHandRenderMixin {
     //private void modifyItemSubmit(ItemRenderer instance, LivingEntity livingEntity, ItemStack itemStack, ItemDisplayContext itemDisplayContext, boolean b, PoseStack poseStack, MultiBufferSource multiBufferSource, Level level, int i, int j, int k, Operation<Void> original) {
     //? if 1.21.5
     //private void modifyItemSubmit(ItemRenderer instance, LivingEntity livingEntity, ItemStack itemStack, ItemDisplayContext itemDisplayContext, PoseStack poseStack, MultiBufferSource multiBufferSource, Level level, int i, int j, int k, Operation<Void> original) {
-        if (ArmorRenderPipeline.hasActiveContext()
+        if (ArmorRenderPipeline.hasActiveContext(EquipmentSlot.OFFHAND)
                 && ArmorRenderPipeline.shouldModifyEquipment()
                 && ArmorRenderPipeline.shouldHideEquipment()) {
             return;

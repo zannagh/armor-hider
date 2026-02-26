@@ -134,8 +134,11 @@ public class ArmorRenderPipeline {
         return !ArmorModificationContext.hasActiveContext();
     }
 
-    public static boolean hasActiveContext() {
-        return ArmorModificationContext.hasActiveContext();
+    public static boolean hasActiveContext(@Nullable EquipmentSlot slot) {
+        if (slot == null) {
+            return ArmorModificationContext.hasActiveContext();
+        }
+        return ArmorModificationContext.hasActiveContext() && ArmorModificationContext.getCurrentSlot() == slot;
     }
 
     public static void clearContext() {

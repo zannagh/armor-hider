@@ -67,7 +67,7 @@ public class ItemInHandLayerMixin {
         //? if < 1.21.4
         //ArmorRenderPipeline.setupContext(itemState, EquipmentSlot.OFFHAND, humanoidState);
 
-        if (ArmorRenderPipeline.hasActiveContext()
+        if (ArmorRenderPipeline.hasActiveContext(EquipmentSlot.OFFHAND)
                 && ArmorRenderPipeline.shouldModifyEquipment()
                 && ArmorRenderPipeline.shouldHideEquipment()) {
             ArmorRenderPipeline.clearContext();
