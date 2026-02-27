@@ -1,5 +1,5 @@
 //? if >= 1.21.9 {
-package de.zannagh.armorhider.mixin.client.bodyKneesAndToes;
+/*package de.zannagh.armorhider.mixin.client.bodyKneesAndToes;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -13,21 +13,21 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
 //? if >= 1.21.11 {
-import net.minecraft.client.renderer.rendertype.RenderType;
+/^import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
-//? }
+^///? }
 
 //? if 1.21.9 || 1.21.10
 //import net.minecraft.client.renderer.RenderType;
 
-/**
+/^*
  * NeoForge-specific armor color transparency mixin.
  * <p>
  * On Fabric, armor color is modified upstream via {@code getColorForLayer} in renderLayers.
  * NeoForge patches renderLayers and never invokes {@code getColorForLayer}, so we handle
  * armor transparency at the SubmitNodeCollection level instead — the same approach used
  * for offhand items in {@code SubmitNodeCollectorMixin}.
- */
+ ^/
 @SuppressWarnings({"unused", "UnusedMixin"})
 @Mixin(SubmitNodeCollection.class)
 public class NeoForgeArmorColorMixin {
@@ -37,13 +37,13 @@ public class NeoForgeArmorColorMixin {
             at = @At(
                     value = "INVOKE",
                     //? if >= 1.21.11
-                    target = "Lnet/minecraft/client/renderer/feature/ModelPartFeatureRenderer$Storage;add(Lnet/minecraft/client/renderer/rendertype/RenderType;Lnet/minecraft/client/renderer/SubmitNodeStorage$ModelPartSubmit;)V"
+                    //target = "Lnet/minecraft/client/renderer/feature/ModelPartFeatureRenderer$Storage;add(Lnet/minecraft/client/renderer/rendertype/RenderType;Lnet/minecraft/client/renderer/SubmitNodeStorage$ModelPartSubmit;)V"
                     //? if 1.21.9 || 1.21.10
                     //target = "Lnet/minecraft/client/renderer/feature/ModelPartFeatureRenderer$Storage;add(Lnet/minecraft/client/renderer/RenderType;Lnet/minecraft/client/renderer/SubmitNodeStorage$ModelPartSubmit;)V"
             )
     )
     //? if >= 1.21.11
-    private void wrapArmorModelPartAdd(ModelPartFeatureRenderer.Storage storage, RenderType renderType, SubmitNodeStorage.ModelPartSubmit submit, Operation<Void> original) {
+    //private void wrapArmorModelPartAdd(ModelPartFeatureRenderer.Storage storage, RenderType renderType, SubmitNodeStorage.ModelPartSubmit submit, Operation<Void> original) {
     //? if 1.21.9 || 1.21.10
     //private void wrapArmorModelPartAdd(ModelPartFeatureRenderer.Storage storage, RenderType renderType, SubmitNodeStorage.ModelPartSubmit submit, Operation<Void> original) {
         if (shouldApplyArmorTransparency()) {
@@ -64,7 +64,7 @@ public class NeoForgeArmorColorMixin {
             RenderType translucentType = renderType;
             if (submit.sprite() != null) {
                 //? if >= 1.21.11
-                translucentType = RenderTypes.entityTranslucent(submit.sprite().atlasLocation());
+                //translucentType = RenderTypes.entityTranslucent(submit.sprite().atlasLocation());
                 //? if 1.21.9 || 1.21.10
                 //translucentType = RenderType.entityTranslucent(submit.sprite().atlasLocation());
             }
@@ -80,13 +80,13 @@ public class NeoForgeArmorColorMixin {
             at = @At(
                     value = "INVOKE",
                     //? if >= 1.21.11
-                    target = "Lnet/minecraft/client/renderer/feature/ModelFeatureRenderer$Storage;add(Lnet/minecraft/client/renderer/rendertype/RenderType;Lnet/minecraft/client/renderer/SubmitNodeStorage$ModelSubmit;)V"
+                    //target = "Lnet/minecraft/client/renderer/feature/ModelFeatureRenderer$Storage;add(Lnet/minecraft/client/renderer/rendertype/RenderType;Lnet/minecraft/client/renderer/SubmitNodeStorage$ModelSubmit;)V"
                     //? if 1.21.9 || 1.21.10
                     //target = "Lnet/minecraft/client/renderer/feature/ModelFeatureRenderer$Storage;add(Lnet/minecraft/client/renderer/RenderType;Lnet/minecraft/client/renderer/SubmitNodeStorage$ModelSubmit;)V"
             )
     )
     //? if >= 1.21.11
-    private <S> void wrapArmorModelAdd(ModelFeatureRenderer.Storage storage, RenderType renderType, SubmitNodeStorage.ModelSubmit<S> submit, Operation<Void> original) {
+    //private <S> void wrapArmorModelAdd(ModelFeatureRenderer.Storage storage, RenderType renderType, SubmitNodeStorage.ModelSubmit<S> submit, Operation<Void> original) {
     //? if 1.21.9 || 1.21.10
     //private <S> void wrapArmorModelAdd(ModelFeatureRenderer.Storage storage, RenderType renderType, SubmitNodeStorage.ModelSubmit<S> submit, Operation<Void> original) {
         if (shouldApplyArmorTransparency()) {
@@ -106,7 +106,7 @@ public class NeoForgeArmorColorMixin {
             RenderType translucentType = renderType;
             if (submit.sprite() != null) {
                 //? if >= 1.21.11
-                translucentType = RenderTypes.entityTranslucent(submit.sprite().atlasLocation());
+                //translucentType = RenderTypes.entityTranslucent(submit.sprite().atlasLocation());
                 //? if 1.21.9 || 1.21.10
                 //translucentType = RenderType.entityTranslucent(submit.sprite().atlasLocation());
             }
@@ -124,4 +124,4 @@ public class NeoForgeArmorColorMixin {
                 && ArmorRenderPipeline.getCurrentModification().equipmentSlot() != EquipmentSlot.OFFHAND;
     }
 }
-//?}
+*///?}
