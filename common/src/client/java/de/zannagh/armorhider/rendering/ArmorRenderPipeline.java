@@ -2,7 +2,10 @@ package de.zannagh.armorhider.rendering;
 
 import com.mojang.authlib.GameProfile;
 import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.common.configuration.items.implementations.ArmorOpacity;
 import de.zannagh.armorhider.resources.ArmorModificationInfo;
+import de.zannagh.armorhider.resources.PlayerConfig;
+import de.zannagh.armorhider.resources.ServerConfiguration;
 import de.zannagh.armorhider.resources.ServerWideSettings;
 import de.zannagh.armorhider.util.ItemsUtil;
 //? if >= 1.21.4 {
@@ -52,6 +55,27 @@ public class ArmorRenderPipeline {
     public static final ThreadLocal<LivingEntityRenderState> CURRENT_ENTITY_RENDER_STATE = new ThreadLocal<>();
     //? if < 1.21.4
     //public static final ThreadLocal<LivingEntity> CURRENT_ENTITY_RENDER_STATE = new ThreadLocal<>();
+
+    /**
+     * Flag indicating we are inside EntityRenderDispatcher.render(), which covers
+     * both extractRenderState (populating render state) and the actual layer rendering.
+     * When this is true, {@link de.zannagh.armorhider.mixin.client.EquipmentSlotHidingMixin}
+     * should return the real item from getItemBySlot so that renderArmorPiece is called,
+     * allowing mods like Essential to observe render suppression at that level.
+     */
+    private static final ThreadLocal<Boolean> IN_ENTITY_RENDERING = ThreadLocal.withInitial(() -> Boolean.FALSE);
+
+    public static void enterEntityRendering() {
+        IN_ENTITY_RENDERING.set(Boolean.TRUE);
+    }
+
+    public static void exitEntityRendering() {
+        IN_ENTITY_RENDERING.set(Boolean.FALSE);
+    }
+
+    public static boolean isInEntityRendering() {
+        return IN_ENTITY_RENDERING.get();
+    }
 
     public static void setupContext(@Nullable ItemStack itemStack, @NotNull EquipmentSlot slot, @NotNull GameProfile profile) {
         setCurrentSlot(slot);
@@ -133,17 +157,28 @@ public class ArmorRenderPipeline {
     public static boolean noContext() {
         return !ArmorModificationContext.hasActiveContext();
     }
+    
+    public static boolean hasActiveContextOnAnySlot(){
+        return ArmorModificationContext.hasActiveContext();   
+    }
 
-    public static boolean hasActiveContext(@Nullable EquipmentSlot slot) {
-        if (slot == null) {
-            return ArmorModificationContext.hasActiveContext();
-        }
+    public static boolean hasActiveContext(EquipmentSlot slot) {
         return ArmorModificationContext.hasActiveContext() && ArmorModificationContext.getCurrentSlot() == slot;
     }
 
     public static void clearContext() {
         ArmorModificationContext.clearAll();
         CURRENT_ENTITY_RENDER_STATE.remove();
+    }
+
+    /**
+     * Clears only the modification context (slot, modification info, item stack) without
+     * clearing CURRENT_ENTITY_RENDER_STATE. Used when cancelling renderArmorPiece in MC 1.21.4-1.21.8
+     * where the render state ThreadLocal is shared across all renderArmorPiece calls within
+     * a single HumanoidArmorLayer.render() invocation.
+     */
+    public static void clearModificationContext() {
+        ArmorModificationContext.clearAll();
     }
 
     private static ArmorModificationInfo tryResolveConfigFromPlayerEntityState(@NotNull EquipmentSlot slot, String name) {
@@ -190,6 +225,16 @@ public class ArmorRenderPipeline {
     }
 
     // region RenderMethods
+    
+    public static boolean shouldCancelRender(Object renderStateOrPlayerEntity) {
+        return shouldModifyEquipment()
+                //? if >= 1.21.4
+                && renderStateDoesTargetPlayer(renderStateOrPlayerEntity)
+                //? if < 1.21.4
+                //&& entityIsPlayer(renderStateOrPlayerEntity)
+                && shouldHideEquipment();
+    }
+    
     public static boolean shouldHideEquipment() {
         return ArmorModificationContext.shouldHideEquipment();
     }
@@ -209,19 +254,32 @@ public class ArmorRenderPipeline {
     }
 
     //? if >= 1.21.9 {
+    public static boolean renderStateDoesTargetPlayer(Object renderState) {
+        return renderState instanceof AvatarRenderState;
+    }
+    
     public static boolean renderStateDoesNotTargetPlayer(Object renderState) {
         return !(renderState instanceof AvatarRenderState);
     }
     //?}
 
     //? if >= 1.21.4 && < 1.21.9 {
-    /*public static boolean renderStateDoesNotTargetPlayer(Object renderState) {
+    /*
+    public static boolean renderStateDoesTargetPlayer(Object renderState) {
+        return renderState instanceof PlayerRenderState;
+    }
+    
+    public static boolean renderStateDoesNotTargetPlayer(Object renderState) {
         return !(renderState instanceof PlayerRenderState);
     }
     *///?}
 
     //? if < 1.21.4 {
-    /*public static boolean entityIsNotPlayer(Object entity) {
+    /*public static boolean entityIsPlayer(Object entity) {
+        return (entity instanceof Player);
+    }
+    
+    public static boolean entityIsNotPlayer(Object entity) {
         return !(entity instanceof Player);
     }
     *///?}
@@ -392,4 +450,49 @@ public class ArmorRenderPipeline {
     }
     *///?}
     //endregion
+
+    /**
+     * Checks whether a given equipment slot should be considered visually hidden for a player.
+     * This is used to make other mods (e.g. Essential) see hidden armor slots as empty,
+     * so they can render custom skins or cosmetics in place of the hidden armor.
+     *
+     * @param playerName the name of the player whose equipment is being checked
+     * @param slot the equipment slot to check
+     * @param itemInSlot the item currently in the slot (used for skull/elytra special-case checks)
+     * @return true if the slot should appear empty to other mods
+     */
+    public static boolean isSlotFullyHidden(@NotNull String playerName, @NotNull EquipmentSlot slot, @NotNull ItemStack itemInSlot) {
+        if (ArmorHiderClient.CLIENT_CONFIG_MANAGER == null) {
+            return false;
+        }
+        if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableArmorHider.getValue()) {
+            return false;
+        }
+        ServerConfiguration serverConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getServerConfig();
+        if (serverConfig != null) {
+            ServerWideSettings serverWideSettings = serverConfig.serverWideSettings;
+            if (serverWideSettings != null && serverWideSettings.forceArmorHiderOff.getValue()) {
+                return false;
+            }
+        }
+
+        PlayerConfig config = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getConfigForPlayer(playerName);
+        if (config.disableArmorHiderForOthers.getValue()
+                && !playerName.equals(ArmorHiderClient.getCurrentPlayerName())) {
+            return false;
+        }
+
+        // Respect skull/elytra-specific settings
+        if (slot == EquipmentSlot.HEAD && ItemsUtil.isSkullBlockItem(itemInSlot.getItem())
+                && !config.opacityAffectingHatOrSkull.getValue()) {
+            return false;
+        }
+        if (slot == EquipmentSlot.CHEST && ItemsUtil.itemStackContainsElytra(itemInSlot)
+                && !config.opacityAffectingElytra.getValue()) {
+            return false;
+        }
+
+        ArmorModificationInfo info = new ArmorModificationInfo(slot, config);
+        return info.shouldHide();
+    }
 }
