@@ -82,6 +82,8 @@ public class ArmorFeatureRenderMixin {
         if (itemStack.is(Items.AIR)) {
             return;
         }
+        ArmorRenderPipeline.setupContext(itemStack, equipmentSlot, humanoidRenderState);
+
         // Cancel the entire renderArmorPiece when armor is fully hidden (0% opacity).
         // Cancelling here improves compatibility to other mods which rely on accessing whether items are drawn at all or not.
         if (ArmorRenderPipeline.shouldCancelRender(humanoidRenderState)) {
@@ -91,7 +93,6 @@ public class ArmorFeatureRenderMixin {
             ArmorRenderPipeline.clearModificationContext();
             ci.cancel();
         }
-        
     }
 
     @Inject(
