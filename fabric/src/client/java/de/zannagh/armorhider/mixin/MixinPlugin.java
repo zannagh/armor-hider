@@ -1,6 +1,5 @@
 package de.zannagh.armorhider.mixin;
 
-import de.zannagh.armorhider.mixin.client.bodyKneesAndToes.ArmorFeatureRenderMixin;
 import de.zannagh.armorhider.util.MixinUtil;
 import org.objectweb.asm.tree.ClassNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;

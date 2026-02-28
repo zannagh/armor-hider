@@ -226,9 +226,12 @@ public class ArmorRenderPipeline {
 
     // region RenderMethods
     
-    public static boolean shouldCancelRender(Object renderState) {
+    public static boolean shouldCancelRender(Object renderStateOrPlayerEntity) {
         return shouldModifyEquipment()
-                && renderStateDoesTargetPlayer(renderState)
+                //? if >= 1.21.4
+                && renderStateDoesTargetPlayer(renderStateOrPlayerEntity)
+                //? if < 1.21.4
+                //&& entityIsPlayer(renderStateOrPlayerEntity)
                 && shouldHideEquipment();
     }
     
@@ -272,7 +275,11 @@ public class ArmorRenderPipeline {
     *///?}
 
     //? if < 1.21.4 {
-    /*public static boolean entityIsNotPlayer(Object entity) {
+    /*public static boolean entityIsPlayer(Object entity) {
+        return (entity instanceof Player);
+    }
+    
+    public static boolean entityIsNotPlayer(Object entity) {
         return !(entity instanceof Player);
     }
     *///?}

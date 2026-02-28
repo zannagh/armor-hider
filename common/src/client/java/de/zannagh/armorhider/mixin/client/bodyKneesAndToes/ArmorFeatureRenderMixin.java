@@ -76,7 +76,7 @@ public class ArmorFeatureRenderMixin {
     private void captureContext(PoseStack poseStack, MultiBufferSource multiBufferSource, ItemStack itemStack, EquipmentSlot equipmentSlot, int i, HumanoidModel<?> model, CallbackInfo ci) {
         var renderState = ArmorRenderPipeline.CURRENT_ENTITY_RENDER_STATE.get();
         if (renderState instanceof ArmorStandRenderState
-            || !(renderState instanceof HumanoidRenderState humanoidState)) {
+            || !(renderState instanceof HumanoidRenderState humanoidRenderState)) {
             return;
         }
         if (itemStack.is(Items.AIR)) {

@@ -28,7 +28,8 @@ public class HumanoidArmorLayerMixin<T extends LivingEntity, M extends HumanoidM
 
     @Inject(
             method = "renderArmorPiece",
-            at = @At("HEAD")
+            at = @At("HEAD"),
+            cancellable = true
     )
     private void onRenderArmorPiece(PoseStack poseStack, MultiBufferSource bufferSource, T entity, EquipmentSlot slot, int packedLight, A armorModel, CallbackInfo ci) {
         ItemStack itemStack = entity.getItemBySlot(slot);
@@ -41,6 +42,11 @@ public class HumanoidArmorLayerMixin<T extends LivingEntity, M extends HumanoidM
         }
         
         ArmorRenderPipeline.setupContext(itemStack, slot, entity);
+        
+        if (ArmorRenderPipeline.shouldCancelRender(entity)) {
+            ArmorRenderPipeline.clearContext();
+            ci.cancel();
+        }
     }
 
     @Inject(
