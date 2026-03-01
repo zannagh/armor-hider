@@ -21,34 +21,40 @@ import org.spongepowered.asm.mixin.injection.At;
  */
 @Mixin(LivingEntity.class)
 public class EquipmentSlotHidingMixin {
-    
+
     @ModifyReturnValue(method = "getItemBySlot", at = @At("RETURN"))
     private ItemStack hideFullyHiddenSlot(ItemStack original, EquipmentSlot slot) {
         if (original.isEmpty()) {
             return original;
         }
-        
+
         if (ArmorRenderPipeline.hasActiveContextOnAnySlot()) {
             // Let armor-hider handle rendering.
             return original;
         }
-        
+
+        // Only fake empty slots during the render frame — never during game logic
+        // (tick processing, inventory interactions), as returning empty there causes
+        // items to vanish during equipment swaps (e.g. right-clicking elytra to swap
+        // with a hidden chestplate).
+        if (!ArmorRenderPipeline.isInRenderFrame()) {
+            return original;
+        }
+
         // During entity rendering (extractRenderState + layer rendering), return the
         // real item so that renderArmorPiece is called. This allows our cancel at
         // renderArmorPiece HEAD to fire, which in turn lets mods like Essential detect
         // render suppression and show cosmetics/skins.
-        
-        // TODO: I'll have to document the high-level flow of the render interception at some point, it's now getting confusing..
         if (ArmorRenderPipeline.isInEntityRendering()) {
             return original;
         }
-        
+
         //noinspection ConstantValue
         if (!((Object) this instanceof Player player)) {
             return original;
         }
         String playerName = player.getName().getString();
-        
+
         if (ArmorRenderPipeline.isSlotFullyHidden(playerName, slot, original)) {
             return ItemStack.EMPTY;
         }
