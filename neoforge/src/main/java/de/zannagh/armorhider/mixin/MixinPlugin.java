@@ -19,6 +19,7 @@ public class MixinPlugin implements IMixinConfigPlugin {
             // Always present
             "LivingEntityMixin",
             "EquipmentSlotHidingMixin",
+            "GameRendererMixin",
             // Guarded by //? if >= 1.21.4 in source
             "EntityRenderDispatcherMixin",
             "lang.ClientLanguageMixin",

@@ -57,6 +57,27 @@ public class ArmorRenderPipeline {
     //public static final ThreadLocal<LivingEntity> CURRENT_ENTITY_RENDER_STATE = new ThreadLocal<>();
 
     /**
+     * Flag indicating we are inside GameRenderer.render(), which covers the entire
+     * rendering phase of the game loop (level rendering, GUI, overlays).
+     * When this is false, we are in game logic (tick processing, inventory interactions)
+     * and {@link de.zannagh.armorhider.mixin.client.EquipmentSlotHidingMixin} must
+     * return real items to prevent item loss during equipment swaps.
+     */
+    private static final ThreadLocal<Boolean> IN_RENDER_FRAME = ThreadLocal.withInitial(() -> Boolean.FALSE);
+
+    public static void enterRenderFrame() {
+        IN_RENDER_FRAME.set(Boolean.TRUE);
+    }
+
+    public static void exitRenderFrame() {
+        IN_RENDER_FRAME.set(Boolean.FALSE);
+    }
+
+    public static boolean isInRenderFrame() {
+        return IN_RENDER_FRAME.get();
+    }
+
+    /**
      * Flag indicating we are inside EntityRenderDispatcher.render(), which covers
      * both extractRenderState (populating render state) and the actual layer rendering.
      * When this is true, {@link de.zannagh.armorhider.mixin.client.EquipmentSlotHidingMixin}
