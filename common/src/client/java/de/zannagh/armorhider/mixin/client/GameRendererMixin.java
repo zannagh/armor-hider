@@ -1,12 +1,13 @@
 //? if >= 1.21 {
 package de.zannagh.armorhider.mixin.client;
 
-import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import de.zannagh.armorhider.rendering.ArmorRenderPipeline;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.renderer.GameRenderer;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
  * Sets a render-frame flag around GameRenderer.render() so that
@@ -16,14 +17,14 @@ import org.spongepowered.asm.mixin.Mixin;
  */
 @Mixin(GameRenderer.class)
 public class GameRendererMixin {
-    @WrapMethod(method = "render(Lnet/minecraft/client/DeltaTracker;Z)V")
-    private void wrapRenderFrame(DeltaTracker deltaTracker, boolean renderLevel, Operation<Void> original) {
+    @Inject(method = "render(Lnet/minecraft/client/DeltaTracker;Z)V", at = @At("HEAD"))
+    private void enterRenderFrame(DeltaTracker deltaTracker, boolean renderLevel, CallbackInfo ci) {
         ArmorRenderPipeline.enterRenderFrame();
-        try {
-            original.call(deltaTracker, renderLevel);
-        } finally {
-            ArmorRenderPipeline.exitRenderFrame();
-        }
+    }
+
+    @Inject(method = "render(Lnet/minecraft/client/DeltaTracker;Z)V", at = @At("RETURN"))
+    private void exitRenderFrame(DeltaTracker deltaTracker, boolean renderLevel, CallbackInfo ci) {
+        ArmorRenderPipeline.exitRenderFrame();
     }
 }
 //?}
@@ -31,22 +32,23 @@ public class GameRendererMixin {
 //? if < 1.21 {
 /*package de.zannagh.armorhider.mixin.client;
 
-import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import de.zannagh.armorhider.rendering.ArmorRenderPipeline;
 import net.minecraft.client.renderer.GameRenderer;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(GameRenderer.class)
 public class GameRendererMixin {
-    @WrapMethod(method = "render(FJZ)V")
-    private void wrapRenderFrame(float partialTick, long nanoTime, boolean renderLevel, Operation<Void> original) {
+    @Inject(method = "render(FJZ)V", at = @At("HEAD"))
+    private void enterRenderFrame(float partialTick, long nanoTime, boolean renderLevel, CallbackInfo ci) {
         ArmorRenderPipeline.enterRenderFrame();
-        try {
-            original.call(partialTick, nanoTime, renderLevel);
-        } finally {
-            ArmorRenderPipeline.exitRenderFrame();
-        }
+    }
+
+    @Inject(method = "render(FJZ)V", at = @At("RETURN"))
+    private void exitRenderFrame(float partialTick, long nanoTime, boolean renderLevel, CallbackInfo ci) {
+        ArmorRenderPipeline.exitRenderFrame();
     }
 }
 *///?}
