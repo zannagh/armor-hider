@@ -26,7 +26,7 @@ public final class ScopeUtils {
     }
     
     public static boolean isNullOrSentinel(@Nullable EntityRenderScope scope) {
-        return scope != null && scope != EntityRenderScope.SENTINEL;
+        return scope == null || scope == EntityRenderScope.SENTINEL;
     }
     
     public static @Nullable ItemRenderScope getItemScopeIfModifiable(@NotNull ScopeProvider provider) {
