@@ -130,7 +130,7 @@ multi-version support. [GitVersion](https://gitversion.net/) handles semantic ve
   with `ci:`, `docs:`, `build:`, or `chore:` are skipped)
 - **Releases** are created manually via GitHub Releases with version validation
 - All versions are published to [Modrinth](https://modrinth.com/mod/zannaghs-armor-hider) automatically
-- All versions are published to [Curseforge](https://www.curseforge.com/minecraft/mc-mods/armor-hider) automatically
+- All versions are published to [CurseForge](https://www.curseforge.com/minecraft/mc-mods/armor-hider) automatically
 
 **Version format:**
 
