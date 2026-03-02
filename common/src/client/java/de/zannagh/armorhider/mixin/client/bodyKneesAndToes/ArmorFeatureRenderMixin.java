@@ -90,9 +90,7 @@ public class ArmorFeatureRenderMixin {
         }
 
         if (RenderDecisions.shouldCancelRender(scopes)) {
-            // Use clearItemScopeOnly() because in 1.21.4-1.21.8, the entity scope
-            // is shared across all renderArmorPiece calls within a single render() invocation.
-            scopes.clearItemScopeOnly();
+            scopes.exitItemRender();
             ci.cancel();
         }
     }

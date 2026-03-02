@@ -46,9 +46,7 @@ public class SubmitNodeCollectorMixin {
     //private void wrapModelPartAdd(ModelPartFeatureRenderer.Storage storage, RenderType renderType, SubmitNodeStorage.ModelPartSubmit submit, Operation<Void> original) {
         var scopes = ArmorHiderClient.SCOPE_PROVIDER;
         if (scopes.hasItemScope(EquipmentSlot.OFFHAND)
-                && RenderDecisions.shouldModifyEquipment(scopes)
-                && scopes.itemScope() != null
-                && scopes.itemScope().slot() == EquipmentSlot.OFFHAND) {
+                && RenderDecisions.shouldModifyEquipment(scopes)) {
             float alpha = RenderModifications.getTransparencyAlpha(scopes);
 
             SubmitNodeStorage.ModelPartSubmit modified = getModelPartSubmit(submit, alpha);
@@ -99,9 +97,7 @@ public class SubmitNodeCollectorMixin {
     //private <S> void wrapModelAdd(ModelFeatureRenderer.Storage storage, RenderType renderType, SubmitNodeStorage.ModelSubmit<S> submit, Operation<Void> original) {
         var scopes = ArmorHiderClient.SCOPE_PROVIDER;
         if (scopes.hasItemScope(EquipmentSlot.OFFHAND)
-                && RenderDecisions.shouldModifyEquipment(scopes)
-                && scopes.itemScope() != null
-                && scopes.itemScope().slot() == EquipmentSlot.OFFHAND) {
+                && RenderDecisions.shouldModifyEquipment(scopes)) {
             float alpha = RenderModifications.getTransparencyAlpha(scopes);
 
             int origColor = submit.tintedColor();

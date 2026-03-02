@@ -1,5 +1,6 @@
 package de.zannagh.armorhider.scopes;
 
+import de.zannagh.armorhider.rendering.RenderDecisions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 //? if >= 1.21.4
@@ -22,7 +23,7 @@ import net.minecraft.world.entity.EquipmentSlot;
  */
 public final class ScopeProvider {
 
-    private final ThreadLocal<RenderFrameScope> renderFrameScope = new ThreadLocal<>();
+    private final ThreadLocal<Boolean> renderFrameScope = ThreadLocal.withInitial(() -> false);
     private final ThreadLocal<EntityRenderScope> entityRenderScope = new ThreadLocal<>();
     private final ThreadLocal<ItemRenderScope> itemRenderScope = new ThreadLocal<>();
 
@@ -32,18 +33,18 @@ public final class ScopeProvider {
     public void enterRenderFrame() {
         entityRenderScope.remove();
         itemRenderScope.remove();
-        renderFrameScope.set(RenderFrameScope.instance());
+        renderFrameScope.set(true);
     }
 
     /** Called from GameRendererMixin at RETURN. */
     public void exitRenderFrame() {
         itemRenderScope.remove();
         entityRenderScope.remove();
-        renderFrameScope.remove();
+        renderFrameScope.set(false);
     }
 
     public boolean isInRenderFrame() {
-        return renderFrameScope.get() != null;
+        return renderFrameScope.get();
     }
 
     // --- EntityRenderScope ---
@@ -101,16 +102,6 @@ public final class ScopeProvider {
 
     /** Called from layer mixins at RETURN/TAIL. */
     public void exitItemRender() {
-        itemRenderScope.remove();
-    }
-
-    /**
-     * Clears only the ItemRenderScope without affecting the EntityRenderScope.
-     * Used in the 1.21.4-1.21.8 codepath where entity render state is shared
-     * across multiple renderArmorPiece calls within a single
-     * HumanoidArmorLayer.render() invocation.
-     */
-    public void clearItemScopeOnly() {
         itemRenderScope.remove();
     }
 

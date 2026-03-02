@@ -1,6 +1,8 @@
 package de.zannagh.armorhider.util;
 
+import de.zannagh.armorhider.rendering.RenderDecisions;
 import de.zannagh.armorhider.scopes.EntityRenderScope;
+import de.zannagh.armorhider.scopes.ItemRenderScope;
 import de.zannagh.armorhider.scopes.ScopeProvider;
 //? if >= 1.21.4
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
@@ -25,5 +27,13 @@ public final class ScopeUtils {
     
     public static boolean isNullOrSentinel(@Nullable EntityRenderScope scope) {
         return scope != null && scope != EntityRenderScope.SENTINEL;
+    }
+    
+    public static @Nullable ItemRenderScope getItemScopeIfModifiable(@NotNull ScopeProvider provider) {
+        var scope = provider.itemScope();
+        if (scope == null || !scope.shouldModify() || !RenderDecisions.shouldModifyEquipment(provider)) {
+            return null;
+        }
+        return scope;
     }
 }

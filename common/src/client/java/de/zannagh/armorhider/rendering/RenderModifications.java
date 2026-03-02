@@ -1,9 +1,9 @@
 package de.zannagh.armorhider.rendering;
 
-import de.zannagh.armorhider.resources.ArmorModificationInfo;
 import de.zannagh.armorhider.scopes.ItemRenderScope;
 import de.zannagh.armorhider.scopes.ScopeProvider;
 import de.zannagh.armorhider.util.ItemsUtil;
+import de.zannagh.armorhider.util.ScopeUtils;
 import net.minecraft.client.renderer.Sheets;
 import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.NotNull;
@@ -43,8 +43,8 @@ public final class RenderModifications {
     //public static RenderType getSkullRenderLayer(@NotNull ScopeProvider scopes, ResourceLocation texture, RenderType originalLayer) {
     //? if < 1.21.4
     //public static RenderType getSkullRenderLayer(@NotNull ScopeProvider scopes, ResourceLocation texture, RenderType originalLayer) {
-        var itemScope = scopes.itemScope();
-        if (itemScope == null || !itemScope.shouldModify() || !RenderDecisions.shouldModifyEquipment(scopes)) {
+        var itemScope = ScopeUtils.getItemScopeIfModifiable(scopes);
+        if (itemScope == null) {
             return originalLayer;
         }
         if (!itemScope.modification().playerConfig().opacityAffectingHatOrSkull.getValue()) {
@@ -63,8 +63,8 @@ public final class RenderModifications {
     //public static RenderType getTranslucentArmorRenderType(@NotNull ScopeProvider scopes, ResourceLocation texture, RenderType originalLayer) {
     //? if < 1.21.4
     //public static RenderType getTranslucentArmorRenderType(@NotNull ScopeProvider scopes, ResourceLocation texture, RenderType originalLayer) {
-        var itemScope = scopes.itemScope();
-        if (itemScope == null || !itemScope.shouldModify() || !RenderDecisions.shouldModifyEquipment(scopes)) {
+        var itemScope = ScopeUtils.getItemScopeIfModifiable(scopes);
+        if (itemScope == null) {
             return originalLayer;
         }
         double transparency = itemScope.transparency();
@@ -76,8 +76,8 @@ public final class RenderModifications {
 
     //? if >= 1.21.4 {
     public static RenderType getTrimRenderLayer(@NotNull ScopeProvider scopes, boolean decal, RenderType originalLayer) {
-        var itemScope = scopes.itemScope();
-        if (itemScope == null || !itemScope.shouldModify() || !RenderDecisions.shouldModifyEquipment(scopes)) {
+        var itemScope = ScopeUtils.getItemScopeIfModifiable(scopes);
+        if (itemScope == null) {
             return originalLayer;
         }
         double transparency = itemScope.transparency();
@@ -90,8 +90,8 @@ public final class RenderModifications {
 
     //? if < 1.21.4 {
     /*public static RenderType getTrimRenderLayer(@NotNull ScopeProvider scopes, boolean decal, RenderType originalLayer) {
-        var itemScope = scopes.itemScope();
-        if (itemScope == null || !itemScope.shouldModify() || !RenderDecisions.shouldModifyEquipment(scopes)) {
+        var itemScope = ScopeUtils.getItemScopeIfModifiable(scopes);
+        if (itemScope == null) {
             return originalLayer;
         }
         double transparency = itemScope.transparency();
@@ -103,8 +103,8 @@ public final class RenderModifications {
     *///?}
 
     public static RenderType getTranslucentItemRenderType(@NotNull ScopeProvider scopes, RenderType originalLayer) {
-        var itemScope = scopes.itemScope();
-        if (itemScope == null || !itemScope.shouldModify() || !RenderDecisions.shouldModifyEquipment(scopes)) {
+        var itemScope = ScopeUtils.getItemScopeIfModifiable(scopes);
+        if (itemScope == null) {
             return originalLayer;
         }
         double transparency = itemScope.transparency();
@@ -120,8 +120,8 @@ public final class RenderModifications {
     // --- Color modifications ---
 
     public static int applyArmorTransparency(@NotNull ScopeProvider scopes, int originalColor) {
-        var itemScope = scopes.itemScope();
-        if (itemScope == null || !itemScope.shouldModify() || !RenderDecisions.shouldModifyEquipment(scopes)) {
+        var itemScope = ScopeUtils.getItemScopeIfModifiable(scopes);
+        if (itemScope == null) {
             return originalColor;
         }
         int alpha = (int) (itemScope.transparency() * 255);
@@ -129,8 +129,8 @@ public final class RenderModifications {
     }
 
     public static int applyTransparencyFromWhite(@NotNull ScopeProvider scopes, int original) {
-        var itemScope = scopes.itemScope();
-        if (itemScope == null || !itemScope.shouldModify() || !RenderDecisions.shouldModifyEquipment(scopes)) {
+        var itemScope = ScopeUtils.getItemScopeIfModifiable(scopes);
+        if (itemScope == null) {
             return original;
         }
         int alpha = (int) (itemScope.transparency() * 255);
@@ -138,8 +138,8 @@ public final class RenderModifications {
     }
 
     public static float getTransparencyAlpha(@NotNull ScopeProvider scopes) {
-        var itemScope = scopes.itemScope();
-        if (itemScope == null || !itemScope.shouldModify() || !RenderDecisions.shouldModifyEquipment(scopes)) {
+        var itemScope = ScopeUtils.getItemScopeIfModifiable(scopes);
+        if (itemScope == null) {
             return 1.0f;
         }
         return (float) itemScope.transparency();
@@ -149,9 +149,16 @@ public final class RenderModifications {
 
     public static int modifyRenderPriority(@NotNull ScopeProvider scopes, int originalPriority) {
         var itemScope = scopes.itemScope();
-        if (itemScope == null) return originalPriority;
-        if (itemScope.itemStack().is(Items.ELYTRA)) return ELYTRA_RENDER_PRIORITY;
-        if (ItemsUtil.isSkullBlockItem(itemScope.itemStack().getItem())) return SKULL_RENDER_PRIORITY;
+        if (itemScope == null) {
+            return originalPriority;
+        }
+        var stack = itemScope.itemStack();
+        if (stack.is(Items.ELYTRA)) {
+            return ELYTRA_RENDER_PRIORITY;
+        }
+        if (ItemsUtil.isSkullBlockItem(stack.getItem())) {
+            return SKULL_RENDER_PRIORITY;
+        }
         return originalPriority;
     }
 }

@@ -38,7 +38,7 @@ public class ArmorHiderClient {
             return ClientConfigManager.DEFAULT_PLAYER_NAME;
         }
         Component displayText = clientPlayer.getDisplayName();
-        return displayText.getString();
+        return displayText.getString().isEmpty() ? ClientConfigManager.DEFAULT_PLAYER_NAME : displayText.getString();
     }
 
     @Contract("_ -> new")

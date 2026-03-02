@@ -1,6 +1,7 @@
 package de.zannagh.armorhider.scopes;
 
 import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.rendering.RenderDecisions;
 import de.zannagh.armorhider.resources.ArmorModificationInfo;
 import de.zannagh.armorhider.resources.PlayerConfig;
 import de.zannagh.armorhider.util.ItemsUtil;
