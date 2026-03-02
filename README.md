@@ -62,7 +62,7 @@ clients.
   shown normally, as without the mod) when a player's settings cannot be determined — for example when using the mod
   only client-side on an unmodded server (see [Preferences Matrix](#preferences-matrix) below)
 * **Disable Armor Hider features**: Globally disable Armor Hider on your client. If the server is forcing Armor Hider
-  off, this setting is overriden
+  off, this setting is overridden
 * **Disable Armor Hider for other players**: Disable Armor Hider rendering for other players' armors only. If the
   server is forcing Armor Hider off or the global disable is set, this setting is ignored
 
