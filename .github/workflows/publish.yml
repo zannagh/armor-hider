@@ -13,7 +13,7 @@ on:
         default: false
         type: boolean
       dry_run:
-        description: 'Run full pipeline without actually publishing (overrides PUBLISH_TO_MODRINTH and skips GitHub release creation)'
+        description: 'Run full pipeline without actually publishing (overrides PUBLISH_TO_MODRINTH/PUBLISH_TO_CURSEFORGE and skips GitHub release creation)'
         required: false
         default: false
         type: boolean
@@ -24,8 +24,10 @@ concurrency:
 
 env:
   MODRINTH_PROJECT_ID: 'zannaghs-armor-hider'
-  # Set to 'true' to enable actual Modrinth publishing, 'false' for dry-run
+  CURSEFORGE_PROJECT_ID: '1475841'
+  # Set to 'true' to enable actual publishing, 'false' for dry-run
   PUBLISH_TO_MODRINTH: 'true'
+  PUBLISH_TO_CURSEFORGE: 'true'
 
 jobs:
   check-runner:
@@ -323,7 +325,7 @@ jobs:
           echo "  Display Name:  ${{ steps.modrinth.outputs.version_name }}"
           echo "  Version Type:  ${{ steps.modrinth.outputs.version_type }}"
           echo "  Game Versions: ${{ matrix.minecraft }}"
-          echo "  Loader:        ${{ matrix.loader }}"
+          echo "  Loader:        ${{ matrix.loader }}${{ matrix.loader == 'fabric' && ', quilt' || '' }}"
           echo ""
           echo "Changelog:"
           echo "---"
@@ -341,7 +343,7 @@ jobs:
 
       - name: Publish to Modrinth
         if: ${{ steps.modrinth.outputs.found == 'true' && env.PUBLISH_TO_MODRINTH == 'true' && !inputs.dry_run }}
-        uses: Kir-Antipov/mc-publish@v3.3
+        uses: Kira-NT/mc-publish@v3.3
         with:
           modrinth-id: ${{ env.MODRINTH_PROJECT_ID }}
           modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
@@ -349,7 +351,9 @@ jobs:
           name: ${{ steps.modrinth.outputs.version_name }}
           version: ${{ steps.modrinth.outputs.version_number }}
           version-type: ${{ steps.modrinth.outputs.version_type }}
-          loaders: ${{ matrix.loader }}
+          loaders: |
+            ${{ matrix.loader }}
+            ${{ matrix.loader == 'fabric' && 'quilt' || '' }}
           game-versions: |
             ${{ steps.game-versions.outputs.list }}
           game-version-filter: any
@@ -359,12 +363,105 @@ jobs:
           retry-delay: 10000
 
   # ============================================================================
+  # PUBLISH TO CURSEFORGE
+  # ============================================================================
+  publish-curseforge:
+    name: Publish to CurseForge
+    runs-on: ubuntu-latest
+    needs: [analyze, build, changelog]
+    if: |
+      needs.analyze.outputs.should_release == 'true' &&
+      needs.analyze.outputs.is_manual_release == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.build.outputs.supported_versions) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v7
+        with:
+          name: armor-hider-${{ needs.build.outputs.mod_version }}
+          path: artifacts
+
+      - name: Get game versions
+        id: game-versions
+        run: |
+          VERSIONS=$(jq -r '."${{ matrix.loader }}"."${{ matrix.minecraft }}" // ["${{ matrix.minecraft }}"] | .[]' artifacts/versions.json)
+          echo "list<<EOF" >> $GITHUB_OUTPUT
+          echo "$VERSIONS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Prepare CurseForge Upload
+        id: curseforge
+        uses: ./.github/actions/prepare-modrinth-upload
+        with:
+          display-version: ${{ matrix.minecraft }}
+          mod-version: ${{ needs.build.outputs.mod_version }}
+          is-prerelease: ${{ needs.build.outputs.is_prerelease }}
+          artifact-path: artifacts
+          loader: ${{ matrix.loader }}
+
+      - name: Preview CurseForge Upload
+        if: steps.curseforge.outputs.found == 'true'
+        run: |
+          echo "=========================================="
+          echo "CURSEFORGE UPLOAD PREVIEW"
+          echo "=========================================="
+          echo ""
+          echo "File: ${{ steps.curseforge.outputs.jar_path }}"
+          echo ""
+          echo "Version Details:"
+          echo "  Project ID:    ${{ env.CURSEFORGE_PROJECT_ID }}"
+          echo "  Version:       ${{ steps.curseforge.outputs.version_number }}"
+          echo "  Display Name:  ${{ steps.curseforge.outputs.version_name }}"
+          echo "  Version Type:  ${{ steps.curseforge.outputs.version_type }}"
+          echo "  Game Versions: ${{ matrix.minecraft }}"
+          echo "  Loader:        ${{ matrix.loader }}${{ matrix.loader == 'fabric' && ', quilt' || '' }}"
+          echo ""
+          echo "Changelog:"
+          echo "---"
+          echo "${{ needs.changelog.outputs.user-facing }}"
+          echo "---"
+          echo ""
+          if [[ "${{ inputs.dry_run }}" != "false" ]]; then
+            echo "DRY RUN - Skipping actual CurseForge upload"
+          elif [[ "${{ env.PUBLISH_TO_CURSEFORGE }}" == "true" ]]; then
+            echo "PUBLISH_TO_CURSEFORGE=true - Will publish to CurseForge"
+          else
+            echo "PUBLISH_TO_CURSEFORGE=false - Publishing disabled"
+          fi
+          echo "=========================================="
+
+      - name: Publish to CurseForge
+        if: ${{ steps.curseforge.outputs.found == 'true' && env.PUBLISH_TO_CURSEFORGE == 'true' && !inputs.dry_run }}
+        uses: Kira-NT/mc-publish@v3.3
+        with:
+          curseforge-id: ${{ env.CURSEFORGE_PROJECT_ID }}
+          curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
+          files: ${{ steps.curseforge.outputs.jar_path }}
+          name: ${{ steps.curseforge.outputs.version_name }}
+          version: ${{ steps.curseforge.outputs.version_number }}
+          version-type: ${{ steps.curseforge.outputs.version_type }}
+          loaders: |
+            ${{ matrix.loader }}
+            ${{ matrix.loader == 'fabric' && 'quilt' || '' }}
+          game-versions: |
+            ${{ steps.game-versions.outputs.list }}
+          game-version-filter: any
+          changelog: ${{ needs.changelog.outputs.user-facing }}
+          retry-attempts: 2
+          retry-delay: 10000
+
+  # ============================================================================
   # SUMMARY
   # ============================================================================
   summary:
     name: Workflow Summary
     runs-on: ubuntu-latest
-    needs: [analyze, validate-version, check-modrinth, build, changelog, create-prerelease, upload-to-release, publish-modrinth]
+    needs: [analyze, validate-version, check-modrinth, build, changelog, create-prerelease, upload-to-release, publish-modrinth, publish-curseforge]
     if: always()
     steps:
       - name: Download Artifacts
@@ -396,13 +493,18 @@ jobs:
             Create Prerelease=${{ needs.create-prerelease.result }}
             Upload to Release=${{ needs.upload-to-release.result }}
             Publish to Modrinth=${{ needs.publish-modrinth.result }}
+            Publish to CurseForge=${{ needs.publish-curseforge.result }}
           additional-sections: |
             ### Modrinth
 
             - **Version Already Exists**: `${{ needs.check-modrinth.outputs.version_exists }}`
             - **Publish Enabled**: `${{ env.PUBLISH_TO_MODRINTH }}`
 
-      - name: Modrinth Upload Preview
+            ### CurseForge
+
+            - **Publish Enabled**: `${{ env.PUBLISH_TO_CURSEFORGE }}`
+
+      - name: Upload Preview
         if: inputs.dry_run == true && needs.build.result == 'success'
         run: |
           MOD_VERSION="${{ needs.build.outputs.mod_version }}"
@@ -412,22 +514,27 @@ jobs:
 
           TOTAL=0
           {
-            echo "## Modrinth Upload Preview (Dry Run)"
+            echo "## Upload Preview (Dry Run)"
             echo ""
-            echo "The following versions **would** be published to Modrinth:"
+            echo "The following versions **would** be published to Modrinth and CurseForge:"
             echo ""
-            echo "| Loader | Version Group | Game Versions | Modrinth Version Name | Type |"
-            echo "| ------ | ------------- | ------------- | --------------------- | ---- |"
+            echo "| Loader(s) | Version Group | Game Versions | Version Name | Type |"
+            echo "| --------- | ------------- | ------------- | ------------ | ---- |"
 
             for LOADER in fabric neoforge; do
+              if [[ "$LOADER" == "fabric" ]]; then
+                LOADERS_DISPLAY="Fabric, Quilt"
+              else
+                LOADERS_DISPLAY="${LOADER^}"
+              fi
               for GROUP in $(jq -r ".${LOADER} | keys[]" artifacts/versions.json); do
                 GAME_VERSIONS=$(jq -r ".${LOADER}.\"${GROUP}\" // [\"${GROUP}\"] | join(\", \")" artifacts/versions.json)
                 DISPLAY_LOADER="${LOADER^}"
-                echo "| ${DISPLAY_LOADER} | ${GROUP} | ${GAME_VERSIONS} | [${DISPLAY_LOADER}] ${GROUP} - ${MOD_VERSION} | ${VERSION_TYPE} |"
+                echo "| ${LOADERS_DISPLAY} | ${GROUP} | ${GAME_VERSIONS} | [${DISPLAY_LOADER}] ${GROUP} - ${MOD_VERSION} | ${VERSION_TYPE} |"
                 TOTAL=$((TOTAL + 1))
               done
             done
 
             echo ""
-            echo "**Total uploads: $TOTAL**"
+            echo "**Total uploads per platform: $TOTAL**"
           } >> "$GITHUB_STEP_SUMMARY"
