@@ -59,7 +59,7 @@ clients.
 * **Combat Detection**: Enables detection of combat to show your armor when you are in combat with a fade-off effect
 * **Apply your settings to unknown players**: Whether to use your own opacity settings or the default settings (armor
   shown normally, as without the mod) when a player's settings cannot be determined — for example when using the mod
-  only client-side on an unmodded server (see [Preferences Matrix](#preferences-matrix) below)
+  only client-side on an unmodded server (see [Server communication matrix](#server-communication-matrix) below)
 * **Disable Armor Hider features**: Globally disable Armor Hider on your client. If the server is forcing Armor Hider
   off, this setting is overridden
 * **Disable Armor Hider for other players**: Disable Armor Hider rendering for other players' armors only. If the
