@@ -1,6 +1,7 @@
 package de.zannagh.armorhider.mixin.client;
 
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
+import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.rendering.ArmorRenderPipeline;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
@@ -28,7 +29,9 @@ public class EquipmentSlotHidingMixin {
             return original;
         }
 
-        if (ArmorRenderPipeline.hasActiveContextOnAnySlot()) {
+        var scopes = ArmorHiderClient.SCOPE_PROVIDER;
+
+        if (scopes.hasItemScope()) {
             // Let armor-hider handle rendering.
             return original;
         }
@@ -37,7 +40,7 @@ public class EquipmentSlotHidingMixin {
         // (tick processing, inventory interactions), as returning empty there causes
         // items to vanish during equipment swaps (e.g. right-clicking elytra to swap
         // with a hidden chestplate).
-        if (!ArmorRenderPipeline.isInRenderFrame()) {
+        if (!scopes.isInRenderFrame()) {
             return original;
         }
 
@@ -45,7 +48,7 @@ public class EquipmentSlotHidingMixin {
         // real item so that renderArmorPiece is called. This allows our cancel at
         // renderArmorPiece HEAD to fire, which in turn lets mods like Essential detect
         // render suppression and show cosmetics/skins.
-        if (ArmorRenderPipeline.isInEntityRendering()) {
+        if (scopes.isInEntityRender()) {
             return original;
         }
 

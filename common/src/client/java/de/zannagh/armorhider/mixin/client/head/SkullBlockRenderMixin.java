@@ -4,17 +4,16 @@ package de.zannagh.armorhider.mixin.client.head;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
-import de.zannagh.armorhider.rendering.ArmorRenderPipeline;
+import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.rendering.RenderDecisions;
+import de.zannagh.armorhider.rendering.RenderModifications;
 import net.minecraft.client.model.Model;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.SkullBlockRenderer;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
 import net.minecraft.world.level.block.SkullBlock;
-import net.minecraft.world.level.block.entity.SkullBlockEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 //?if >= 1.21.11 {
 import net.minecraft.client.renderer.rendertype.RenderType;
@@ -22,7 +21,6 @@ import net.minecraft.resources.Identifier;
 //? }
 //? if < 1.21.11 {
 /*import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.client.model.SkullModel;
 *///?}
@@ -45,17 +43,18 @@ public abstract class SkullBlockRenderMixin {
     //? if < 1.21.11
     //private static <S> void modifyTransparency(SubmitNodeCollector instance, Model<? super S> model, S o, PoseStack poseStack, RenderType renderType, int i, int j, int k, ModelFeatureRenderer.CrumblingOverlay crumblingOverlay, Operation<Void> original) {
         try {
-            if (ArmorRenderPipeline.noContext() || !ArmorRenderPipeline.shouldModifyEquipment()) {
+            var scopes = ArmorHiderClient.SCOPE_PROVIDER;
+            if (!scopes.hasItemScope() || !RenderDecisions.shouldModifyEquipment(scopes)) {
                 original.call(instance, model, o, poseStack, renderType, i, j, k, crumblingOverlay);
                 return;
             }
-            if (ArmorRenderPipeline.shouldHideEquipment()) {
+            if (RenderDecisions.shouldHideEquipment(scopes)) {
                 return;
             }
-            var modifiedColor = ArmorRenderPipeline.applyTransparencyFromWhite(255);
-            instance.order(ArmorRenderPipeline.SkullRenderPriority).submitModel(model, o, poseStack, renderType, i, j, modifiedColor, null, k, crumblingOverlay);
+            var modifiedColor = RenderModifications.applyTransparencyFromWhite(scopes, 255);
+            instance.order(RenderModifications.SKULL_RENDER_PRIORITY).submitModel(model, o, poseStack, renderType, i, j, modifiedColor, null, k, crumblingOverlay);
         } finally {
-            ArmorRenderPipeline.clearContext();
+            ArmorHiderClient.SCOPE_PROVIDER.exitItemRender();
         }
     }
 
@@ -67,14 +66,14 @@ public abstract class SkullBlockRenderMixin {
                      target = "Lnet/minecraft/client/renderer/blockentity/SkullBlockRenderer;getSkullRenderType(Lnet/minecraft/world/level/block/SkullBlock$Type;Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/rendertype/RenderType;"
                     //? if < 1.21.11
                     //target = "Lnet/minecraft/client/renderer/blockentity/SkullBlockRenderer;getSkullRenderType(Lnet/minecraft/world/level/block/SkullBlock$Type;Lnet/minecraft/resources/ResourceLocation;)Lnet/minecraft/client/renderer/RenderType;"
-                    
+
             )
     )
     //? if >= 1.21.11
      private static RenderType getSkullRenderType(SkullBlock.Type type, Identifier identifier, Operation<RenderType> original) {
     //? if < 1.21.11
     //private static RenderType getSkullRenderType(SkullBlock.Type type, ResourceLocation identifier, Operation<RenderType> original) {
-        return ArmorRenderPipeline.getSkullRenderLayer(identifier, original.call(type, identifier));
+        return RenderModifications.getSkullRenderLayer(ArmorHiderClient.SCOPE_PROVIDER, identifier, original.call(type, identifier));
     }
 
     @WrapOperation(
@@ -93,7 +92,7 @@ public abstract class SkullBlockRenderMixin {
     private static RenderType getCutoutRenderLayer(Identifier texture, Operation<RenderType> original) {
     //? if < 1.21.11
     //private static RenderType getCutoutRenderLayer(ResourceLocation texture, Operation<RenderType> original) {
-        return ArmorRenderPipeline.getSkullRenderLayer(texture, original.call(texture));
+        return RenderModifications.getSkullRenderLayer(ArmorHiderClient.SCOPE_PROVIDER, texture, original.call(texture));
     }
 }
 //?}
@@ -105,7 +104,9 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import de.zannagh.armorhider.rendering.ArmorRenderPipeline;
+import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.rendering.RenderDecisions;
+import de.zannagh.armorhider.rendering.RenderModifications;
 import net.minecraft.client.model.SkullModelBase;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.SkullBlockRenderer;
@@ -124,11 +125,12 @@ public abstract class SkullBlockRenderMixin {
             )
     )
     private static void modifyTransparency(SkullModelBase instance, PoseStack poseStack, VertexConsumer vertexConsumer, int light, int overlay, Operation<Void> original) {
-        if (ArmorRenderPipeline.hasActiveContext(EquipmentSlot.HEAD) && ArmorRenderPipeline.shouldModifyEquipment()) {
-            if (ArmorRenderPipeline.shouldHideEquipment()) {
+        var scopes = ArmorHiderClient.SCOPE_PROVIDER;
+        if (scopes.hasItemScope(EquipmentSlot.HEAD) && RenderDecisions.shouldModifyEquipment(scopes)) {
+            if (RenderDecisions.shouldHideEquipment(scopes)) {
                 return;
             }
-            int modifiedColor = ArmorRenderPipeline.applyTransparencyFromWhite(-1);
+            int modifiedColor = RenderModifications.applyTransparencyFromWhite(scopes, -1);
             instance.renderToBuffer(poseStack, vertexConsumer, light, overlay, modifiedColor);
         } else {
             original.call(instance, poseStack, vertexConsumer, light, overlay);
@@ -143,7 +145,7 @@ public abstract class SkullBlockRenderMixin {
             )
     )
     private static RenderType modifySkullTransparency(ResourceLocation resourceLocation, Operation<RenderType> original) {
-        return ArmorRenderPipeline.getSkullRenderLayer(resourceLocation, original.call(resourceLocation));
+        return RenderModifications.getSkullRenderLayer(ArmorHiderClient.SCOPE_PROVIDER, resourceLocation, original.call(resourceLocation));
     }
 }
 *///?}
@@ -155,7 +157,9 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import de.zannagh.armorhider.rendering.ArmorRenderPipeline;
+import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.rendering.RenderDecisions;
+import de.zannagh.armorhider.rendering.RenderModifications;
 import net.minecraft.client.model.SkullModelBase;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.SkullBlockRenderer;
@@ -174,11 +178,12 @@ public abstract class SkullBlockRenderMixin {
             )
     )
     private static void modifyTransparency(SkullModelBase instance, PoseStack poseStack, VertexConsumer vertexConsumer, int light, int overlay, Operation<Void> original) {
-        if (ArmorRenderPipeline.hasActiveContext(EquipmentSlot.HEAD) && ArmorRenderPipeline.shouldModifyEquipment()) {
-            if (ArmorRenderPipeline.shouldHideEquipment()) {
+        var scopes = ArmorHiderClient.SCOPE_PROVIDER;
+        if (scopes.hasItemScope(EquipmentSlot.HEAD) && RenderDecisions.shouldModifyEquipment(scopes)) {
+            if (RenderDecisions.shouldHideEquipment(scopes)) {
                 return;
             }
-            int modifiedColor = ArmorRenderPipeline.applyTransparencyFromWhite(-1);
+            int modifiedColor = RenderModifications.applyTransparencyFromWhite(scopes, -1);
             instance.renderToBuffer(poseStack, vertexConsumer, light, overlay, modifiedColor);
         } else {
             original.call(instance, poseStack, vertexConsumer, light, overlay);
@@ -196,7 +201,7 @@ public abstract class SkullBlockRenderMixin {
             )
     )
     private static RenderType modifySkullTransparency(ResourceLocation texture, Operation<RenderType> original) {
-        return ArmorRenderPipeline.getSkullRenderLayer(texture, original.call(texture));
+        return RenderModifications.getSkullRenderLayer(ArmorHiderClient.SCOPE_PROVIDER, texture, original.call(texture));
     }
 
     @WrapOperation(
@@ -210,7 +215,7 @@ public abstract class SkullBlockRenderMixin {
             )
     )
     private static RenderType getCutoutRenderLayer(ResourceLocation texture, Operation<RenderType> original) {
-        return ArmorRenderPipeline.getSkullRenderLayer(texture, original.call(texture));
+        return RenderModifications.getSkullRenderLayer(ArmorHiderClient.SCOPE_PROVIDER, texture, original.call(texture));
     }
 }
 *///?}
@@ -222,12 +227,13 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import de.zannagh.armorhider.rendering.ArmorRenderPipeline;
+import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.rendering.RenderDecisions;
+import de.zannagh.armorhider.rendering.RenderModifications;
 import net.minecraft.client.model.SkullModelBase;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.SkullBlockRenderer;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.block.SkullBlock;
 import net.minecraft.world.entity.EquipmentSlot;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -242,16 +248,18 @@ public abstract class SkullBlockRenderMixin {
             )
     )
     private static void modifyTransparency(SkullModelBase instance, PoseStack poseStack, VertexConsumer vertexConsumer, int light, int overlay, float red, float green, float blue, float alpha, Operation<Void> original) {
-        if (ArmorRenderPipeline.hasActiveContext(EquipmentSlot.HEAD) && ArmorRenderPipeline.shouldModifyEquipment()) {
-            if (!ArmorRenderPipeline.getCurrentModification().playerConfig().opacityAffectingHatOrSkull.getValue()) {
+        var scopes = ArmorHiderClient.SCOPE_PROVIDER;
+        if (scopes.hasItemScope(EquipmentSlot.HEAD) && RenderDecisions.shouldModifyEquipment(scopes)) {
+            var itemScope = scopes.itemScope();
+            if (itemScope != null && !itemScope.modification().playerConfig().opacityAffectingHatOrSkull.getValue()) {
                 original.call(instance, poseStack, vertexConsumer, light, overlay, red, green, blue, alpha);
                 return;
             }
-            if (ArmorRenderPipeline.shouldHideEquipment()) {
+            if (RenderDecisions.shouldHideEquipment(scopes)) {
                 return;
             }
 
-            float newAlpha = ArmorRenderPipeline.getTransparencyAlpha();
+            float newAlpha = RenderModifications.getTransparencyAlpha(scopes);
             instance.renderToBuffer(poseStack, vertexConsumer, light, overlay, red, green, blue, newAlpha);
         } else {
             original.call(instance, poseStack, vertexConsumer, light, overlay, red, green, blue, alpha);
@@ -266,7 +274,7 @@ public abstract class SkullBlockRenderMixin {
             )
     )
     private static RenderType modifySkullTransparency(ResourceLocation texture, Operation<RenderType> original) {
-        return ArmorRenderPipeline.getSkullRenderLayer(texture, original.call(texture));
+        return RenderModifications.getSkullRenderLayer(ArmorHiderClient.SCOPE_PROVIDER, texture, original.call(texture));
     }
 
     @WrapOperation(
@@ -277,7 +285,7 @@ public abstract class SkullBlockRenderMixin {
             )
     )
     private static RenderType getCutoutRenderLayer(ResourceLocation texture, Operation<RenderType> original) {
-        return ArmorRenderPipeline.getSkullRenderLayer(texture, original.call(texture));
+        return RenderModifications.getSkullRenderLayer(ArmorHiderClient.SCOPE_PROVIDER, texture, original.call(texture));
     }
 }
 *///?}

@@ -3,7 +3,8 @@ package de.zannagh.armorhider.mixin.client.bodyKneesAndToes;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import de.zannagh.armorhider.rendering.ArmorRenderPipeline;
+import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.rendering.RenderModifications;
 import net.minecraft.client.renderer.entity.layers.EquipmentLayerRenderer;
 import net.minecraft.client.resources.model.EquipmentClientInfo;
 import org.spongepowered.asm.mixin.Mixin;
@@ -30,7 +31,7 @@ public class EquipmentRenderColorMixin {
             )
     )
     private <S> void modifyArmorColor(OrderedSubmitNodeCollector collector, Model<? super S> model, S state, PoseStack poseStack, RenderType renderType, int light, int overlay, int color, TextureAtlasSprite sprite, int param9, ModelFeatureRenderer.CrumblingOverlay crumblingOverlay, Operation<Void> original) {
-        var modifiedColor = ArmorRenderPipeline.applyArmorTransparency(color);
+        var modifiedColor = RenderModifications.applyArmorTransparency(ArmorHiderClient.SCOPE_PROVIDER, color);
         original.call(collector, model, state, poseStack, renderType, light, overlay, modifiedColor, sprite, param9, crumblingOverlay);
     }
     //?}
@@ -45,7 +46,7 @@ public class EquipmentRenderColorMixin {
     )
     private <S> int modifyArmorColor(EquipmentClientInfo.Layer layer, int i, Operation<Integer> original) {
         int originalColor = original.call(layer, i);
-        return ArmorRenderPipeline.applyArmorTransparency(originalColor);
+        return RenderModifications.applyArmorTransparency(ArmorHiderClient.SCOPE_PROVIDER, originalColor);
     }
     *///?}
 }
@@ -56,7 +57,8 @@ public class EquipmentRenderColorMixin {
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import de.zannagh.armorhider.rendering.ArmorRenderPipeline;
+import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.rendering.RenderModifications;
 import net.minecraft.client.renderer.entity.layers.EquipmentLayerRenderer;
 import net.minecraft.client.resources.model.EquipmentClientInfo;
 import org.spongepowered.asm.mixin.Mixin;
@@ -74,7 +76,7 @@ public class EquipmentRenderColorMixin {
     )
     private int modifyArmorColor(EquipmentClientInfo.Layer layer, int i, Operation<Integer> original) {
         int originalColor = original.call(layer, i);
-        return ArmorRenderPipeline.applyArmorTransparency(originalColor);
+        return RenderModifications.applyArmorTransparency(ArmorHiderClient.SCOPE_PROVIDER, originalColor);
     }
 }
 *///?}

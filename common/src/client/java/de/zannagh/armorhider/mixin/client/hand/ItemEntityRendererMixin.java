@@ -1,6 +1,7 @@
 package de.zannagh.armorhider.mixin.client.hand;
 
-import de.zannagh.armorhider.rendering.ArmorRenderPipeline;
+import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.scopes.ScopeFactory;
 import net.minecraft.client.renderer.entity.ItemEntityRenderer;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -34,7 +35,22 @@ public class ItemEntityRendererMixin {
             if (slot != EquipmentSlot.OFFHAND) {
                 return;
             }
-            ArmorRenderPipeline.setupContext(itemEntity.getItem(), EquipmentSlot.OFFHAND, player.getGameProfile());
+            var scopes = ArmorHiderClient.SCOPE_PROVIDER;
+            var scope = ScopeFactory.createItemScope(scopes, itemEntity.getItem(), EquipmentSlot.OFFHAND, player.getGameProfile());
+            if (scope != null) {
+                scopes.enterItemRender(scope);
+            }
         }
+    }
+
+    //? if >= 1.21.4 {
+    @Inject(method = "extractRenderState(Lnet/minecraft/world/entity/item/ItemEntity;Lnet/minecraft/client/renderer/entity/state/ItemEntityRenderState;F)V", at = @At("RETURN"))
+    private static void releaseContext(ItemEntity itemEntity, ItemEntityRenderState itemEntityRenderState, float f, CallbackInfo ci) {
+    //? }
+    //? if < 1.21.4 {
+    /*@Inject(method = "render(Lnet/minecraft/world/entity/item/ItemEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V", at = @At("RETURN"))
+    private static void releaseContext(ItemEntity itemEntity, float f, float g, PoseStack poseStack, MultiBufferSource multiBufferSource, int i, CallbackInfo ci) {
+    *///?}
+        ArmorHiderClient.SCOPE_PROVIDER.exitItemRender();
     }
 }

@@ -3,7 +3,9 @@
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import de.zannagh.armorhider.rendering.ArmorRenderPipeline;
+import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.rendering.RenderDecisions;
+import de.zannagh.armorhider.rendering.RenderModifications;
 import net.minecraft.client.renderer.SubmitNodeCollection;
 import net.minecraft.client.renderer.SubmitNodeStorage;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
@@ -47,7 +49,8 @@ public class NeoForgeArmorColorMixin {
     //? if 1.21.9 || 1.21.10
     //private void wrapArmorModelPartAdd(ModelPartFeatureRenderer.Storage storage, RenderType renderType, SubmitNodeStorage.ModelPartSubmit submit, Operation<Void> original) {
         if (shouldApplyArmorTransparency()) {
-            float alpha = ArmorRenderPipeline.getTransparencyAlpha();
+            var scopes = ArmorHiderClient.SCOPE_PROVIDER;
+            float alpha = RenderModifications.getTransparencyAlpha(scopes);
 
             int origColor = submit.tintedColor();
             int origAlpha = (origColor >> 24) & 0xFF;
@@ -90,7 +93,8 @@ public class NeoForgeArmorColorMixin {
     //? if 1.21.9 || 1.21.10
     //private <S> void wrapArmorModelAdd(ModelFeatureRenderer.Storage storage, RenderType renderType, SubmitNodeStorage.ModelSubmit<S> submit, Operation<Void> original) {
         if (shouldApplyArmorTransparency()) {
-            float alpha = ArmorRenderPipeline.getTransparencyAlpha();
+            var scopes = ArmorHiderClient.SCOPE_PROVIDER;
+            float alpha = RenderModifications.getTransparencyAlpha(scopes);
 
             int origColor = submit.tintedColor();
             int origAlpha = (origColor >> 24) & 0xFF;
@@ -118,10 +122,11 @@ public class NeoForgeArmorColorMixin {
     }
 
     private static boolean shouldApplyArmorTransparency() {
-        return ArmorRenderPipeline.hasActiveContext(null)
-                && ArmorRenderPipeline.shouldModifyEquipment()
-                && ArmorRenderPipeline.getCurrentModification() != null
-                && ArmorRenderPipeline.getCurrentModification().equipmentSlot() != EquipmentSlot.OFFHAND;
+        var scopes = ArmorHiderClient.SCOPE_PROVIDER;
+        return scopes.hasItemScope()
+                && RenderDecisions.shouldModifyEquipment(scopes)
+                && scopes.itemScope() != null
+                && scopes.itemScope().slot() != EquipmentSlot.OFFHAND;
     }
 }
 *///?}
