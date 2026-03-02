@@ -3,7 +3,7 @@ package de.zannagh.armorhider.scopes;
 import com.mojang.authlib.GameProfile;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.resources.ArmorModificationInfo;
-import de.zannagh.armorhider.util.ItemsUtil;
+import de.zannagh.armorhider.util.*;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -37,10 +37,7 @@ public final class ScopeFactory {
 
         // Enrich entity scope if still sentinel or absent
         var entityScope = provider.entityScope();
-        if (entityScope == null || entityScope == EntityRenderScope.SENTINEL) {
-            provider.enrichEntityScope(renderState);
-            entityScope = provider.entityScope();
-        }
+        entityScope = ScopeUtils.enrichIfNullOrSentinel(provider, entityScope, renderState);
 
         return buildItemScope(entityScope, itemStack, slot);
     }
@@ -54,10 +51,7 @@ public final class ScopeFactory {
             @NotNull LivingEntity entity) {
 
         var entityScope = provider.entityScope();
-        if (entityScope == null || entityScope == EntityRenderScope.SENTINEL) {
-            provider.enrichEntityScope(entity);
-            entityScope = provider.entityScope();
-        }
+        entityScope = ScopeUtils.enrichIfNullOrSentinel(provider, entityScope, entity);
 
         return buildItemScope(entityScope, itemStack, slot);
     }

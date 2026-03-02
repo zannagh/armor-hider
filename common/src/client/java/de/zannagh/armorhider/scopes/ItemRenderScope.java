@@ -1,6 +1,9 @@
 package de.zannagh.armorhider.scopes;
 
+import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.resources.ArmorModificationInfo;
+import de.zannagh.armorhider.resources.PlayerConfig;
+import de.zannagh.armorhider.util.ItemsUtil;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -8,27 +11,13 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Represents the scope of rendering a specific equipment item in a specific slot.
  * Active during renderArmorPiece / renderLayers / render for a specific layer renderer.
- *
+ * <p>
  * Holds the slot, item, and pre-resolved modification info.
  * Immutable value object — created on entry, read-only during scope, discarded on exit.
  */
-public final class ItemRenderScope {
-
-    private final @NotNull EquipmentSlot slot;
-    private final @NotNull ItemStack itemStack;
-    private final @NotNull ArmorModificationInfo modification;
-
-    public ItemRenderScope(@NotNull EquipmentSlot slot,
-                           @NotNull ItemStack itemStack,
-                           @NotNull ArmorModificationInfo modification) {
-        this.slot = slot;
-        this.itemStack = itemStack;
-        this.modification = modification;
-    }
-
-    public @NotNull EquipmentSlot slot() { return slot; }
-    public @NotNull ItemStack itemStack() { return itemStack; }
-    public @NotNull ArmorModificationInfo modification() { return modification; }
+public record ItemRenderScope(@NotNull EquipmentSlot slot,
+                              @NotNull ItemStack itemStack,
+                              @NotNull ArmorModificationInfo modification) {
 
     public boolean shouldHide() {
         return modification.shouldHide();
@@ -40,5 +29,33 @@ public final class ItemRenderScope {
 
     public double transparency() {
         return modification.getTransparency();
+    }
+
+    public static boolean isSlotFullyHidden(@NotNull String playerName, @NotNull EquipmentSlot slot, @NotNull ItemStack itemInSlot) {
+        if (ArmorHiderClient.CLIENT_CONFIG_MANAGER == null) {
+            return false;
+        }
+        if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.isArmorHiderDisabled()) {
+            return false;
+        }
+        
+        PlayerConfig config = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getConfigForPlayer(playerName);
+        if (config.disableArmorHiderForOthers.getValue()
+                && !playerName.equals(ArmorHiderClient.getCurrentPlayerName())) {
+            return false;
+        }
+
+        // Respect skull/elytra-specific settings
+        if (slot == EquipmentSlot.HEAD && ItemsUtil.isSkullBlockItem(itemInSlot.getItem())
+                && !config.opacityAffectingHatOrSkull.getValue()) {
+            return false;
+        }
+        if (slot == EquipmentSlot.CHEST && ItemsUtil.itemStackContainsElytra(itemInSlot)
+                && !config.opacityAffectingElytra.getValue()) {
+            return false;
+        }
+
+        ArmorModificationInfo info = new ArmorModificationInfo(slot, config);
+        return info.shouldHide();
     }
 }

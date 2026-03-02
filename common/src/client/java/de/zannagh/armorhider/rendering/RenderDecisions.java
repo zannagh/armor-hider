@@ -2,8 +2,6 @@ package de.zannagh.armorhider.rendering;
 
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.resources.ArmorModificationInfo;
-import de.zannagh.armorhider.resources.ServerConfiguration;
-import de.zannagh.armorhider.resources.ServerWideSettings;
 import de.zannagh.armorhider.scopes.ScopeProvider;
 import de.zannagh.armorhider.util.ItemsUtil;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -37,15 +35,8 @@ public final class RenderDecisions {
      * and skull/elytra special cases.
      */
     public static boolean shouldModifyEquipment(@NotNull ScopeProvider scopes) {
-        if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableArmorHider.getValue()) {
+        if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.isArmorHiderDisabled()) {
             return false;
-        }
-        ServerConfiguration serverConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getServerConfig();
-        if (serverConfig != null) {
-            ServerWideSettings serverWideSettings = serverConfig.serverWideSettings;
-            if (serverWideSettings != null && serverWideSettings.forceArmorHiderOff.getValue()) {
-                return false;
-            }
         }
 
         var itemScope = scopes.itemScope();

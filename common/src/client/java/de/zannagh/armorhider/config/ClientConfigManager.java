@@ -170,4 +170,18 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
 
         return PlayerConfig.defaults(playerId, playerName);
     }
+    
+    public boolean isArmorHiderDisabled(){
+        if (getValue().disableArmorHider.getValue()) {
+            return true;
+        }
+        ServerConfiguration serverConfig = getServerConfig();
+        if (serverConfig != null) {
+            ServerWideSettings serverWideSettings = serverConfig.serverWideSettings;
+            if (serverWideSettings != null && serverWideSettings.forceArmorHiderOff.getValue()) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

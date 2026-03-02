@@ -3,6 +3,7 @@ package de.zannagh.armorhider.mixin.client;
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.rendering.ArmorRenderPipeline;
+import de.zannagh.armorhider.scopes.ItemRenderScope;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -58,7 +59,7 @@ public class EquipmentSlotHidingMixin {
         }
         String playerName = player.getName().getString();
 
-        if (ArmorRenderPipeline.isSlotFullyHidden(playerName, slot, original)) {
+        if (ItemRenderScope.isSlotFullyHidden(playerName, slot, original)) {
             return ItemStack.EMPTY;
         }
         return original;
