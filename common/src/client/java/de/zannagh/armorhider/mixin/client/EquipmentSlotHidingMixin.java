@@ -2,7 +2,6 @@ package de.zannagh.armorhider.mixin.client;
 
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.rendering.ArmorRenderPipeline;
 import de.zannagh.armorhider.scopes.ItemRenderScope;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
