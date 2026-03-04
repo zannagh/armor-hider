@@ -36,11 +36,12 @@ public class EquipmentSlotHidingMixin {
             return original;
         }
 
-        // Only fake empty slots during the render frame — never during game logic
-        // (tick processing, inventory interactions), as returning empty there causes
-        // items to vanish during equipment swaps (e.g. right-clicking elytra to swap
-        // with a hidden chestplate).
-        if (!scopes.isInRenderFrame()) {
+        // Only fake empty slots during level rendering (3D world) — never during
+        // game logic (tick processing, inventory interactions) or HUD/GUI rendering.
+        // Returning empty during game logic causes items to vanish during equipment
+        // swaps; returning empty during HUD rendering breaks mods like DurabilityViewer
+        // that read equipment for overlay display.
+        if (!scopes.isInLevelRender()) {
             return original;
         }
 

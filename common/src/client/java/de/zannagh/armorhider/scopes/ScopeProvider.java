@@ -14,7 +14,7 @@ import net.minecraft.world.entity.EquipmentSlot;
  * All mixin interaction goes through this class.
  *
  * Scope hierarchy invariant:
- *   RenderFrameScope > EntityRenderScope > ItemRenderScope
+ *   RenderFrameScope > LevelRenderScope > EntityRenderScope > ItemRenderScope
  *
  * Entering a higher-level scope automatically clears all deeper scopes
  * (safety net for leaked contexts).
@@ -24,6 +24,7 @@ import net.minecraft.world.entity.EquipmentSlot;
 public final class ScopeProvider {
 
     private final ThreadLocal<Boolean> renderFrameScope = ThreadLocal.withInitial(() -> false);
+    private final ThreadLocal<Boolean> levelRenderScope = ThreadLocal.withInitial(() -> false);
     private final ThreadLocal<EntityRenderScope> entityRenderScope = new ThreadLocal<>();
     private final ThreadLocal<ItemRenderScope> itemRenderScope = new ThreadLocal<>();
 
@@ -31,6 +32,7 @@ public final class ScopeProvider {
 
     /** Called from GameRendererMixin at HEAD. */
     public void enterRenderFrame() {
+        levelRenderScope.set(false);
         entityRenderScope.remove();
         itemRenderScope.remove();
         renderFrameScope.set(true);
@@ -40,11 +42,32 @@ public final class ScopeProvider {
     public void exitRenderFrame() {
         itemRenderScope.remove();
         entityRenderScope.remove();
+        levelRenderScope.set(false);
         renderFrameScope.set(false);
     }
 
     public boolean isInRenderFrame() {
         return renderFrameScope.get();
+    }
+
+    // --- LevelRenderScope ---
+
+    /** Called from GameRendererMixin at renderLevel HEAD. */
+    public void enterLevelRender() {
+        entityRenderScope.remove();
+        itemRenderScope.remove();
+        levelRenderScope.set(true);
+    }
+
+    /** Called from GameRendererMixin at renderLevel RETURN. */
+    public void exitLevelRender() {
+        itemRenderScope.remove();
+        entityRenderScope.remove();
+        levelRenderScope.set(false);
+    }
+
+    public boolean isInLevelRender() {
+        return levelRenderScope.get();
     }
 
     // --- EntityRenderScope ---
