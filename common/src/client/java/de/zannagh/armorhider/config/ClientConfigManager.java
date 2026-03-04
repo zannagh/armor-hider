@@ -171,7 +171,7 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
         return PlayerConfig.defaults(playerId, playerName);
     }
     
-    public boolean isArmorHiderDisabled(){
+    public boolean isArmorHiderDisabled() {
         if (getValue().disableArmorHider.getValue()) {
             return true;
         }
