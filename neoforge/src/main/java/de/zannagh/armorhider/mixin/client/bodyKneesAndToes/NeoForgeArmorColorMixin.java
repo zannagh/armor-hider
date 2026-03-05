@@ -125,7 +125,6 @@ public class NeoForgeArmorColorMixin {
         var scopes = ArmorHiderClient.SCOPE_PROVIDER;
         return scopes.hasItemScope()
                 && RenderDecisions.shouldModifyEquipment(scopes)
-                && scopes.itemScope() != null
                 && scopes.itemScope().slot() != EquipmentSlot.OFFHAND;
     }
 }

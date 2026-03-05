@@ -21,10 +21,14 @@ public final class RenderDecisions {
      */
     public static boolean shouldCancelRender(@NotNull ScopeProvider scopes) {
         var itemScope = scopes.itemScope();
-        if (itemScope == null) return false;
+        if (itemScope == null) {
+            return false;
+        }
 
         var entityScope = scopes.entityScope();
-        if (entityScope == null || !entityScope.isPlayerEntity()) return false;
+        if (entityScope == null || !entityScope.isPlayerEntity()) {
+            return false;
+        }
 
         return shouldModifyEquipment(scopes) && itemScope.shouldHide();
     }
@@ -40,7 +44,9 @@ public final class RenderDecisions {
         }
 
         var itemScope = scopes.itemScope();
-        if (itemScope == null) return false;
+        if (itemScope == null) {
+            return false;
+        }
 
         ArmorModificationInfo modification = itemScope.modification();
 
