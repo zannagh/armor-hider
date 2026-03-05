@@ -2,13 +2,16 @@
 package de.zannagh.armorhider.mixin.client.head;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.common.constants.MixinConstants;
-import de.zannagh.armorhider.rendering.ArmorRenderPipeline;
+import de.zannagh.armorhider.rendering.RenderDecisions;
+import de.zannagh.armorhider.scopes.ScopeFactory;
 import de.zannagh.armorhider.util.ItemsUtil;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.layers.CustomHeadLayer;
 import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.SkullBlock;
@@ -39,9 +42,9 @@ public abstract class CustomHeadLayerMixin {
     )
     private <S extends LivingEntityRenderState> void interceptHeadLayerRender(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int i, S livingEntityRenderState, float f, float g, CallbackInfo ci) {
         setupContextBasedOnWornHeadType(livingEntityRenderState);
-        if (ArmorRenderPipeline.shouldHideEquipment()) {
+        if (RenderDecisions.shouldHideEquipment(ArmorHiderClient.SCOPE_PROVIDER)) {
             ci.cancel();
-            ArmorRenderPipeline.clearContext();
+            ArmorHiderClient.SCOPE_PROVIDER.exitItemRender();
         }
     }
 
@@ -52,7 +55,7 @@ public abstract class CustomHeadLayerMixin {
             at = @At("HEAD")
     )
     private void grabSkullRenderContext(LivingEntityRenderState livingEntityRenderState, SkullBlock.Type type, CallbackInfoReturnable<RenderType> cir) {
-        if (ArmorRenderPipeline.noContext()) {
+        if (!ArmorHiderClient.SCOPE_PROVIDER.hasItemScope()) {
             // Double check the context interception
             setupContextBasedOnWornHeadType(livingEntityRenderState);
         }
@@ -65,22 +68,28 @@ public abstract class CustomHeadLayerMixin {
             at = @At("TAIL")
     )
     private <S extends LivingEntityRenderState> void releaseContext(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int i, S livingEntityRenderState, float f, float g, CallbackInfo ci) {
-        ArmorRenderPipeline.clearContext();
+        ArmorHiderClient.SCOPE_PROVIDER.exitItemRender();
     }
 
     @Unique
-    private static void setupContextBasedOnWornHeadType(LivingEntityRenderState livingEntityRenderState){
+    private static void setupContextBasedOnWornHeadType(LivingEntityRenderState livingEntityRenderState) {
         if (!(livingEntityRenderState instanceof HumanoidRenderState humanoidState)) {
             return;
         }
         if (humanoidState.wornHeadProfile == null && humanoidState.wornHeadType == null) {
             return;
         }
+        var scopes = ArmorHiderClient.SCOPE_PROVIDER;
+        ItemStack headItem;
         if (humanoidState.wornHeadProfile != null) {
-            ArmorRenderPipeline.setupContext(new ItemStack(Items.PLAYER_HEAD), net.minecraft.world.entity.EquipmentSlot.HEAD, humanoidState);
-            return;
+            headItem = new ItemStack(Items.PLAYER_HEAD);
+        } else {
+            headItem = ItemsUtil.getItemStackFromSkullBlockType(humanoidState.wornHeadType);
         }
-        ArmorRenderPipeline.setupContext(ItemsUtil.getItemStackFromSkullBlockType(humanoidState.wornHeadType), net.minecraft.world.entity.EquipmentSlot.HEAD, humanoidState);
+        var scope = ScopeFactory.createItemScope(scopes, headItem, EquipmentSlot.HEAD, humanoidState);
+        if (scope != null) {
+            scopes.enterItemRender(scope);
+        }
     }
 }
 //?}
@@ -89,8 +98,10 @@ public abstract class CustomHeadLayerMixin {
 /*package de.zannagh.armorhider.mixin.client.head;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.common.constants.MixinConstants;
-import de.zannagh.armorhider.rendering.ArmorRenderPipeline;
+import de.zannagh.armorhider.rendering.RenderDecisions;
+import de.zannagh.armorhider.scopes.ScopeFactory;
 import de.zannagh.armorhider.util.ItemsUtil;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.layers.CustomHeadLayer;
@@ -117,9 +128,9 @@ public abstract class CustomHeadLayerMixin {
     )
     private <S extends LivingEntityRenderState> void interceptHeadLayerRender(PoseStack poseStack, MultiBufferSource multiBufferSource, int i, S livingEntityRenderState, float f, float g, CallbackInfo ci) {
         setupContextBasedOnWornHeadType(livingEntityRenderState);
-        if (ArmorRenderPipeline.shouldHideEquipment()) {
+        if (RenderDecisions.shouldHideEquipment(ArmorHiderClient.SCOPE_PROVIDER)) {
             ci.cancel();
-            ArmorRenderPipeline.clearContext();
+            ArmorHiderClient.SCOPE_PROVIDER.exitItemRender();
         }
     }
 
@@ -130,7 +141,7 @@ public abstract class CustomHeadLayerMixin {
             at = @At("TAIL")
     )
     private <S extends LivingEntityRenderState> void releaseContext(PoseStack poseStack, MultiBufferSource multiBufferSource, int i, S livingEntityRenderState, float f, float g, CallbackInfo ci) {
-        ArmorRenderPipeline.clearContext();
+        ArmorHiderClient.SCOPE_PROVIDER.exitItemRender();
     }
 
     @Unique
@@ -141,11 +152,17 @@ public abstract class CustomHeadLayerMixin {
         if (humanoidState.wornHeadProfile == null && humanoidState.wornHeadType == null) {
             return;
         }
+        var scopes = ArmorHiderClient.SCOPE_PROVIDER;
+        ItemStack headItem;
         if (humanoidState.wornHeadProfile != null) {
-            ArmorRenderPipeline.setupContext(new ItemStack(Items.PLAYER_HEAD), EquipmentSlot.HEAD, humanoidState);
-            return;
+            headItem = new ItemStack(Items.PLAYER_HEAD);
+        } else {
+            headItem = ItemsUtil.getItemStackFromSkullBlockType(humanoidState.wornHeadType);
         }
-        ArmorRenderPipeline.setupContext(ItemsUtil.getItemStackFromSkullBlockType(humanoidState.wornHeadType), EquipmentSlot.HEAD, humanoidState);
+        var scope = ScopeFactory.createItemScope(scopes, headItem, EquipmentSlot.HEAD, humanoidState);
+        if (scope != null) {
+            scopes.enterItemRender(scope);
+        }
     }
 }
 *///?}
@@ -154,8 +171,10 @@ public abstract class CustomHeadLayerMixin {
 /*package de.zannagh.armorhider.mixin.client.head;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.common.constants.MixinConstants;
-import de.zannagh.armorhider.rendering.ArmorRenderPipeline;
+import de.zannagh.armorhider.rendering.RenderDecisions;
+import de.zannagh.armorhider.scopes.ScopeFactory;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.layers.CustomHeadLayer;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -176,14 +195,14 @@ public abstract class CustomHeadLayerMixin<T extends LivingEntity> {
             cancellable = true
     )
     private void interceptHeadLayerRender(PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, T entity, float limbSwing, float limbSwingAmount, float partialTick, float ageInTicks, float netHeadYaw, float headPitch, CallbackInfo ci) {
-        if (ArmorRenderPipeline.entityIsNotPlayer(entity)) {
-            return;
+        var scopes = ArmorHiderClient.SCOPE_PROVIDER;
+        var scope = ScopeFactory.createItemScope(scopes, entity.getItemBySlot(EquipmentSlot.HEAD), EquipmentSlot.HEAD, entity);
+        if (scope != null) {
+            scopes.enterItemRender(scope);
         }
-        
-        ArmorRenderPipeline.setupContext(entity.getItemBySlot(EquipmentSlot.HEAD), EquipmentSlot.HEAD, entity);
-        if (ArmorRenderPipeline.shouldHideEquipment()) {
+        if (RenderDecisions.shouldHideEquipment(scopes)) {
             ci.cancel();
-            ArmorRenderPipeline.clearContext();
+            scopes.exitItemRender();
         }
     }
 
@@ -194,7 +213,7 @@ public abstract class CustomHeadLayerMixin<T extends LivingEntity> {
             at = @At("TAIL")
     )
     private void releaseContext(PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, T entity, float limbSwing, float limbSwingAmount, float partialTick, float ageInTicks, float netHeadYaw, float headPitch, CallbackInfo ci) {
-        ArmorRenderPipeline.clearContext();
+        ArmorHiderClient.SCOPE_PROVIDER.exitItemRender();
     }
 }
 *///?}

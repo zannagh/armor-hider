@@ -1,7 +1,9 @@
 package de.zannagh.armorhider.mixin.client.hand;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import de.zannagh.armorhider.rendering.ArmorRenderPipeline;
+import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.rendering.RenderDecisions;
+import de.zannagh.armorhider.scopes.ScopeFactory;
 import net.minecraft.client.renderer.entity.layers.ItemInHandLayer;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.HumanoidArm;
@@ -27,9 +29,9 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.world.entity.player.Player;
 *///? }
 
-/// Sets up and tears down the ArmorRenderPipeline context for off-hand items
-/// rendered in third person. Downstream mixins (ItemRenderStateMixin for regular
-/// items, ModelPartSubmitMixin for shields/banners) apply the actual transparency.
+/// Sets up and tears down the item scope for off-hand items rendered in third person.
+/// Downstream mixins (ItemRenderStateMixin for regular items, SubmitNodeCollectorMixin
+/// for shields/banners) apply the actual transparency.
 @SuppressWarnings({"unused", "UnusedMixin"})
 @Mixin(ItemInHandLayer.class)
 public class ItemInHandLayerMixin {
@@ -60,17 +62,21 @@ public class ItemInHandLayerMixin {
             return;
         }
 
+        var scopes = ArmorHiderClient.SCOPE_PROVIDER;
         //? if >= 1.21.11
-        ArmorRenderPipeline.setupContext(itemStack, EquipmentSlot.OFFHAND, humanoidState);
+        var scope = ScopeFactory.createItemScope(scopes, itemStack, EquipmentSlot.OFFHAND, humanoidState);
         //? if >= 1.21.4 && < 1.21.11
-        //ArmorRenderPipeline.setupContext(null, EquipmentSlot.OFFHAND, humanoidState);
+        //var scope = ScopeFactory.createItemScope(scopes, null, EquipmentSlot.OFFHAND, humanoidState);
         //? if < 1.21.4
-        //ArmorRenderPipeline.setupContext(itemState, EquipmentSlot.OFFHAND, humanoidState);
+        //var scope = ScopeFactory.createItemScope(scopes, itemState, EquipmentSlot.OFFHAND, humanoidState);
+        if (scope != null) {
+            scopes.enterItemRender(scope);
+        }
 
-        if (ArmorRenderPipeline.hasActiveContext(EquipmentSlot.OFFHAND)
-                && ArmorRenderPipeline.shouldModifyEquipment()
-                && ArmorRenderPipeline.shouldHideEquipment()) {
-            ArmorRenderPipeline.clearContext();
+        if (scopes.hasItemScope(EquipmentSlot.OFFHAND)
+                && RenderDecisions.shouldModifyEquipment(scopes)
+                && RenderDecisions.shouldHideEquipment(scopes)) {
+            scopes.exitItemRender();
             ci.cancel();
         }
     }
@@ -91,7 +97,7 @@ public class ItemInHandLayerMixin {
         if (arm != renderState.mainArm) {
         //? if < 1.21.4
         //if (arm != livingEntity.getMainArm()) {
-            ArmorRenderPipeline.clearContext();
+            ArmorHiderClient.SCOPE_PROVIDER.exitItemRender();
         }
     }
 }

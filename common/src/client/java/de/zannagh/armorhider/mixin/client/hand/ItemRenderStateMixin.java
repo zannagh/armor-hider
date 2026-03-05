@@ -4,7 +4,9 @@ package de.zannagh.armorhider.mixin.client.hand;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
-import de.zannagh.armorhider.rendering.ArmorRenderPipeline;
+import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.rendering.RenderDecisions;
+import de.zannagh.armorhider.rendering.RenderModifications;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -50,11 +52,12 @@ public class ItemRenderStateMixin {
     private void wrapSubmitItem(SubmitNodeCollector instance, PoseStack poseStack, ItemDisplayContext itemDisplayContext, int light, int overlay, int color, int[] tintLayers, List<BakedQuad> quads, RenderType renderType, ItemStackRenderState.FoilType foilType, Operation<Void> original) {
     //? if 1.21.9 || 1.21.10
     //private void wrapSubmitItem(SubmitNodeCollector instance, PoseStack poseStack, ItemDisplayContext itemDisplayContext, int light, int overlay, int color, int[] tintLayers, List<BakedQuad> quads, RenderType renderType, ItemStackRenderState.FoilType foilType, Operation<Void> original) {
-        if (ArmorRenderPipeline.hasActiveContext(EquipmentSlot.OFFHAND) && ArmorRenderPipeline.shouldModifyEquipment()) {
+        var scopes = ArmorHiderClient.SCOPE_PROVIDER;
+        if (scopes.hasItemScope(EquipmentSlot.OFFHAND) && RenderDecisions.shouldModifyEquipment(scopes)) {
             // Note to future me: This can actually hide main hands.
-            float alpha = ArmorRenderPipeline.getTransparencyAlpha();
+            float alpha = RenderModifications.getTransparencyAlpha(scopes);
             //? if < 26.1-snapshot-7
-            RenderType translucentType = ArmorRenderPipeline.getTranslucentItemRenderTypeIfApplicable(renderType);
+            RenderType translucentType = RenderModifications.getTranslucentItemRenderType(scopes, renderType);
 
             // Use one extra slot for non-tinted quads: white with our alpha
             int syntheticTintIndex = tintLayers.length;
@@ -74,26 +77,26 @@ public class ItemRenderStateMixin {
                 if (!quad.isTinted()) {
                     //? if >= 26.1-snapshot-7 {
                     /*modifiedQuads.add(new BakedQuad(
-                            quad.position0(), quad.position1(), quad.position2(), quad.position3(), 
+                            quad.position0(), quad.position1(), quad.position2(), quad.position3(),
                             quad.packedUV0(), quad.packedUV1(), quad.packedUV2(), quad.packedUV3(),
                             syntheticTintIndex, quad.direction(), makeTranslucent(quad.spriteInfo()), quad.shade(), quad.lightEmission()
                     ));
                     *///?}
                     //? if >= 1.21.11 && < 26.1-snapshot-7 {
-                    
+
                     modifiedQuads.add(new BakedQuad(
                             quad.position0(), quad.position1(), quad.position2(), quad.position3(),
                             quad.packedUV0(), quad.packedUV1(), quad.packedUV2(), quad.packedUV3(),
                             syntheticTintIndex, quad.direction(), quad.sprite(), quad.shade(), quad.lightEmission()
                     ));
                     //? }
-                    
+
                     //? if 1.21.9 || 1.21.10 {
                     /*modifiedQuads.add(new BakedQuad(
                             quad.vertices(), syntheticTintIndex, quad.direction(), quad.sprite(), quad.shade(), quad.lightEmission()
                     ));
                     *///?}
-                    
+
                 } else {
                     //? if >= 26.1-snapshot-7 {
                     /*modifiedQuads.add(new BakedQuad(

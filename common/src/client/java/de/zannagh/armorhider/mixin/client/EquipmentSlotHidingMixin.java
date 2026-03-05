@@ -1,7 +1,8 @@
 package de.zannagh.armorhider.mixin.client;
 
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
-import de.zannagh.armorhider.rendering.ArmorRenderPipeline;
+import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.scopes.ItemRenderScope;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -28,16 +29,19 @@ public class EquipmentSlotHidingMixin {
             return original;
         }
 
-        if (ArmorRenderPipeline.hasActiveContextOnAnySlot()) {
+        var scopes = ArmorHiderClient.SCOPE_PROVIDER;
+
+        if (scopes.hasItemScope()) {
             // Let armor-hider handle rendering.
             return original;
         }
 
-        // Only fake empty slots during the render frame — never during game logic
-        // (tick processing, inventory interactions), as returning empty there causes
-        // items to vanish during equipment swaps (e.g. right-clicking elytra to swap
-        // with a hidden chestplate).
-        if (!ArmorRenderPipeline.isInRenderFrame()) {
+        // Only fake empty slots during level rendering (3D world) — never during
+        // game logic (tick processing, inventory interactions) or HUD/GUI rendering.
+        // Returning empty during game logic causes items to vanish during equipment
+        // swaps; returning empty during HUD rendering breaks mods like DurabilityViewer
+        // that read equipment for overlay display.
+        if (!scopes.isInLevelRender()) {
             return original;
         }
 
@@ -45,7 +49,7 @@ public class EquipmentSlotHidingMixin {
         // real item so that renderArmorPiece is called. This allows our cancel at
         // renderArmorPiece HEAD to fire, which in turn lets mods like Essential detect
         // render suppression and show cosmetics/skins.
-        if (ArmorRenderPipeline.isInEntityRendering()) {
+        if (scopes.isInEntityRender()) {
             return original;
         }
 
@@ -55,7 +59,7 @@ public class EquipmentSlotHidingMixin {
         }
         String playerName = player.getName().getString();
 
-        if (ArmorRenderPipeline.isSlotFullyHidden(playerName, slot, original)) {
+        if (ItemRenderScope.isSlotFullyHidden(playerName, slot, original)) {
             return ItemStack.EMPTY;
         }
         return original;

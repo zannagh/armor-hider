@@ -6,8 +6,10 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import de.zannagh.armorhider.rendering.ArmorRenderPipeline;
-import de.zannagh.armorhider.resources.ArmorModificationInfo;
+import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.rendering.RenderDecisions;
+import de.zannagh.armorhider.rendering.RenderModifications;
+import de.zannagh.armorhider.scopes.ScopeFactory;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -33,18 +35,18 @@ public class HumanoidArmorLayerMixin<T extends LivingEntity, M extends HumanoidM
     )
     private void onRenderArmorPiece(PoseStack poseStack, MultiBufferSource bufferSource, T entity, EquipmentSlot slot, int packedLight, A armorModel, CallbackInfo ci) {
         ItemStack itemStack = entity.getItemBySlot(slot);
-        if (ArmorRenderPipeline.entityIsNotPlayer(entity)) {
-            return;
-        }
-        
         if (itemStack.is(Items.AIR)) {
             return;
         }
-        
-        ArmorRenderPipeline.setupContext(itemStack, slot, entity);
-        
-        if (ArmorRenderPipeline.shouldCancelRender(entity)) {
-            ArmorRenderPipeline.clearContext();
+
+        var scopes = ArmorHiderClient.SCOPE_PROVIDER;
+        var scope = ScopeFactory.createItemScope(scopes, itemStack, slot, entity);
+        if (scope != null) {
+            scopes.enterItemRender(scope);
+        }
+
+        if (RenderDecisions.shouldCancelRender(scopes)) {
+            scopes.exitItemRender();
             ci.cancel();
         }
     }
@@ -54,7 +56,7 @@ public class HumanoidArmorLayerMixin<T extends LivingEntity, M extends HumanoidM
             at = @At("RETURN")
     )
     private void onRenderArmorPieceReturn(PoseStack poseStack, MultiBufferSource bufferSource, T entity, EquipmentSlot slot, int packedLight, A armorModel, CallbackInfo ci) {
-        ArmorRenderPipeline.clearContext();
+        ArmorHiderClient.SCOPE_PROVIDER.exitItemRender();
     }
 
     @ModifyExpressionValue(
@@ -65,9 +67,10 @@ public class HumanoidArmorLayerMixin<T extends LivingEntity, M extends HumanoidM
             )
     )
     private boolean modifyGlint(boolean original) {
-        ArmorModificationInfo modification = ArmorRenderPipeline.getCurrentModification();
-        if (modification != null && modification.shouldModify() && ArmorRenderPipeline.shouldModifyEquipment()) {
-            double transparency = modification.getTransparency();
+        var scopes = ArmorHiderClient.SCOPE_PROVIDER;
+        var itemScope = scopes.itemScope();
+        if (itemScope != null && itemScope.shouldModify() && RenderDecisions.shouldModifyEquipment(scopes)) {
+            double transparency = itemScope.transparency();
             return original && transparency > 0;
         }
         return original;
@@ -81,7 +84,7 @@ public class HumanoidArmorLayerMixin<T extends LivingEntity, M extends HumanoidM
             )
     )
     private RenderType modifyArmorRenderLayer(ResourceLocation texture, Operation<RenderType> original) {
-        return ArmorRenderPipeline.getTranslucentArmorRenderTypeIfApplicable(texture, original.call(texture));
+        return RenderModifications.getTranslucentArmorRenderType(ArmorHiderClient.SCOPE_PROVIDER, texture, original.call(texture));
     }
 
     @WrapOperation(
@@ -92,7 +95,7 @@ public class HumanoidArmorLayerMixin<T extends LivingEntity, M extends HumanoidM
             )
     )
     private void modifyArmorColor(A model, PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, int color, Operation<Void> original) {
-        int modifiedColor = ArmorRenderPipeline.applyArmorTransparency(color);
+        int modifiedColor = RenderModifications.applyArmorTransparency(ArmorHiderClient.SCOPE_PROVIDER, color);
         original.call(model, poseStack, vertexConsumer, packedLight, packedOverlay, modifiedColor);
     }
 
@@ -104,7 +107,7 @@ public class HumanoidArmorLayerMixin<T extends LivingEntity, M extends HumanoidM
             )
     )
     private RenderType modifyTrimRenderLayer(boolean decal, Operation<RenderType> original) {
-        return ArmorRenderPipeline.getTrimRenderLayer(decal, original.call(decal));
+        return RenderModifications.getTrimRenderLayer(ArmorHiderClient.SCOPE_PROVIDER, decal, original.call(decal));
     }
 
     @WrapOperation(
@@ -115,7 +118,7 @@ public class HumanoidArmorLayerMixin<T extends LivingEntity, M extends HumanoidM
             )
     )
     private void modifyTrimColor(A model, PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, Operation<Void> original) {
-        int modifiedColor = ArmorRenderPipeline.applyArmorTransparency(packedOverlay);
+        int modifiedColor = RenderModifications.applyArmorTransparency(ArmorHiderClient.SCOPE_PROVIDER, packedOverlay);
         model.renderToBuffer(poseStack, vertexConsumer, packedLight, packedOverlay, modifiedColor);
     }
 }
@@ -129,8 +132,10 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import de.zannagh.armorhider.rendering.ArmorRenderPipeline;
-import de.zannagh.armorhider.resources.ArmorModificationInfo;
+import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.rendering.RenderDecisions;
+import de.zannagh.armorhider.rendering.RenderModifications;
+import de.zannagh.armorhider.scopes.ScopeFactory;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -138,7 +143,6 @@ import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -154,15 +158,16 @@ public class HumanoidArmorLayerMixin<T extends LivingEntity, M extends HumanoidM
             at = @At("HEAD")
     )
     private void onRenderArmorPiece(PoseStack poseStack, MultiBufferSource bufferSource, T entity, EquipmentSlot slot, int packedLight, A armorModel, CallbackInfo ci) {
-        if (ArmorRenderPipeline.entityIsNotPlayer(entity)) {
-            return;
-        }
         if (entity.getItemBySlot(slot).is(Items.AIR)) {
             return;
         }
 
-        ItemStack itemStack = entity.getItemBySlot(slot);
-        ArmorRenderPipeline.setupContext(itemStack, slot, entity);
+        var itemStack = entity.getItemBySlot(slot);
+        var scopes = ArmorHiderClient.SCOPE_PROVIDER;
+        var scope = ScopeFactory.createItemScope(scopes, itemStack, slot, entity);
+        if (scope != null) {
+            scopes.enterItemRender(scope);
+        }
     }
 
     @Inject(
@@ -170,7 +175,7 @@ public class HumanoidArmorLayerMixin<T extends LivingEntity, M extends HumanoidM
             at = @At("RETURN")
     )
     private void onRenderArmorPieceReturn(PoseStack poseStack, MultiBufferSource bufferSource, T entity, EquipmentSlot slot, int packedLight, A armorModel, CallbackInfo ci) {
-        ArmorRenderPipeline.clearContext();
+        ArmorHiderClient.SCOPE_PROVIDER.exitItemRender();
     }
 
     @ModifyExpressionValue(
@@ -181,9 +186,10 @@ public class HumanoidArmorLayerMixin<T extends LivingEntity, M extends HumanoidM
             )
     )
     private boolean modifyGlint(boolean original) {
-        ArmorModificationInfo modification = ArmorRenderPipeline.getCurrentModification();
-        if (modification != null && modification.shouldModify() && ArmorRenderPipeline.shouldModifyEquipment()) {
-            double transparency = modification.getTransparency();
+        var scopes = ArmorHiderClient.SCOPE_PROVIDER;
+        var itemScope = scopes.itemScope();
+        if (itemScope != null && itemScope.shouldModify() && RenderDecisions.shouldModifyEquipment(scopes)) {
+            double transparency = itemScope.transparency();
             return original && transparency > 0;
         }
         return original;
@@ -197,7 +203,7 @@ public class HumanoidArmorLayerMixin<T extends LivingEntity, M extends HumanoidM
             )
     )
     private RenderType modifyArmorRenderLayer(ResourceLocation texture, Operation<RenderType> original) {
-        return ArmorRenderPipeline.getTranslucentArmorRenderTypeIfApplicable(texture, original.call(texture));
+        return RenderModifications.getTranslucentArmorRenderType(ArmorHiderClient.SCOPE_PROVIDER, texture, original.call(texture));
     }
 
     @WrapOperation(
@@ -208,7 +214,7 @@ public class HumanoidArmorLayerMixin<T extends LivingEntity, M extends HumanoidM
             )
     )
     private void modifyArmorColor(A model, PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, float red, float green, float blue, float v, Operation<Void> original) {
-        float modifiedAlpha = ArmorRenderPipeline.getTransparencyAlpha();
+        float modifiedAlpha = RenderModifications.getTransparencyAlpha(ArmorHiderClient.SCOPE_PROVIDER);
         original.call(model, poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, modifiedAlpha);
     }
 
@@ -222,7 +228,7 @@ public class HumanoidArmorLayerMixin<T extends LivingEntity, M extends HumanoidM
             require = 0
     )
     private void modifyTrimColor(HumanoidModel<?> model, PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, float red, float green, float blue, float alpha, Operation<Void> original) {
-        float modifiedAlpha = ArmorRenderPipeline.getTransparencyAlpha();
+        float modifiedAlpha = RenderModifications.getTransparencyAlpha(ArmorHiderClient.SCOPE_PROVIDER);
         original.call(model, poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, modifiedAlpha);
     }
 }

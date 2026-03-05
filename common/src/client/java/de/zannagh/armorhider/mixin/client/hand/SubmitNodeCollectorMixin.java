@@ -4,7 +4,9 @@ package de.zannagh.armorhider.mixin.client.hand;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import de.zannagh.armorhider.rendering.ArmorRenderPipeline;
+import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.rendering.RenderDecisions;
+import de.zannagh.armorhider.rendering.RenderModifications;
 
 import net.minecraft.client.renderer.SubmitNodeCollection;
 import net.minecraft.client.renderer.SubmitNodeStorage;
@@ -42,11 +44,10 @@ public class SubmitNodeCollectorMixin {
     private void wrapModelPartAdd(ModelPartFeatureRenderer.Storage storage, RenderType renderType, SubmitNodeStorage.ModelPartSubmit submit, Operation<Void> original) {
     //? if 1.21.9 || 1.21.10
     //private void wrapModelPartAdd(ModelPartFeatureRenderer.Storage storage, RenderType renderType, SubmitNodeStorage.ModelPartSubmit submit, Operation<Void> original) {
-        if (ArmorRenderPipeline.hasActiveContext(EquipmentSlot.OFFHAND)
-                && ArmorRenderPipeline.shouldModifyEquipment()
-                && ArmorRenderPipeline.getCurrentModification() != null
-                && ArmorRenderPipeline.getCurrentModification().equipmentSlot() == EquipmentSlot.OFFHAND) {
-            float alpha = ArmorRenderPipeline.getTransparencyAlpha();
+        var scopes = ArmorHiderClient.SCOPE_PROVIDER;
+        if (scopes.hasItemScope(EquipmentSlot.OFFHAND)
+                && RenderDecisions.shouldModifyEquipment(scopes)) {
+            float alpha = RenderModifications.getTransparencyAlpha(scopes);
 
             SubmitNodeStorage.ModelPartSubmit modified = getModelPartSubmit(submit, alpha);
 
@@ -94,11 +95,10 @@ public class SubmitNodeCollectorMixin {
     private <S> void wrapModelAdd(ModelFeatureRenderer.Storage storage, RenderType renderType, SubmitNodeStorage.ModelSubmit<S> submit, Operation<Void> original) {
     //? if 1.21.9 || 1.21.10
     //private <S> void wrapModelAdd(ModelFeatureRenderer.Storage storage, RenderType renderType, SubmitNodeStorage.ModelSubmit<S> submit, Operation<Void> original) {
-        if (ArmorRenderPipeline.hasActiveContext(EquipmentSlot.OFFHAND)
-                && ArmorRenderPipeline.shouldModifyEquipment()
-                && ArmorRenderPipeline.getCurrentModification() != null
-                && ArmorRenderPipeline.getCurrentModification().equipmentSlot() == EquipmentSlot.OFFHAND) {
-            float alpha = ArmorRenderPipeline.getTransparencyAlpha();
+        var scopes = ArmorHiderClient.SCOPE_PROVIDER;
+        if (scopes.hasItemScope(EquipmentSlot.OFFHAND)
+                && RenderDecisions.shouldModifyEquipment(scopes)) {
+            float alpha = RenderModifications.getTransparencyAlpha(scopes);
 
             int origColor = submit.tintedColor();
             int origAlpha = (origColor >> 24) & 0xFF;

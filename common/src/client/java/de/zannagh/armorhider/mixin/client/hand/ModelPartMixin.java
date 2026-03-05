@@ -1,7 +1,9 @@
 //? if < 1.21.9 {
 /*package de.zannagh.armorhider.mixin.client.hand;
 
-import de.zannagh.armorhider.rendering.ArmorRenderPipeline;
+import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.rendering.RenderDecisions;
+import de.zannagh.armorhider.rendering.RenderModifications;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.world.entity.EquipmentSlot;
 import org.spongepowered.asm.mixin.Mixin;
@@ -20,8 +22,9 @@ public class ModelPartMixin {
             argsOnly = true
     )
     private int modifyRenderColor(int color) {
-        if (ArmorRenderPipeline.hasActiveContext(EquipmentSlot.OFFHAND) && ArmorRenderPipeline.shouldModifyEquipment()) {
-            return ArmorRenderPipeline.applyArmorTransparency(color);
+        var scopes = ArmorHiderClient.SCOPE_PROVIDER;
+        if (scopes.hasItemScope(EquipmentSlot.OFFHAND) && RenderDecisions.shouldModifyEquipment(scopes)) {
+            return RenderModifications.applyArmorTransparency(scopes, color);
         }
         return color;
     }
@@ -35,8 +38,9 @@ public class ModelPartMixin {
             argsOnly = true
     )
     private float modifyRenderAlpha(float alpha) {
-        if (ArmorRenderPipeline.hasActiveContext(EquipmentSlot.OFFHAND) && ArmorRenderPipeline.shouldModifyEquipment()) {
-            return alpha * ArmorRenderPipeline.getTransparencyAlpha();
+        var scopes = ArmorHiderClient.SCOPE_PROVIDER;
+        if (scopes.hasItemScope(EquipmentSlot.OFFHAND) && RenderDecisions.shouldModifyEquipment(scopes)) {
+            return alpha * RenderModifications.getTransparencyAlpha(scopes);
         }
         return alpha;
     }

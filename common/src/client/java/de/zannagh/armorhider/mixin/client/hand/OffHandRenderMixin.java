@@ -3,10 +3,11 @@ package de.zannagh.armorhider.mixin.client.hand;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
-import de.zannagh.armorhider.rendering.ArmorRenderPipeline;
+import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.rendering.RenderDecisions;
+import de.zannagh.armorhider.scopes.ScopeFactory;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.ItemInHandRenderer;
-import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
@@ -22,6 +23,7 @@ import net.minecraft.client.renderer.item.ItemStackRenderState;
  //? }
 //? if < 1.21.9 {
 /*import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.level.Level;
@@ -46,7 +48,11 @@ public class OffHandRenderMixin {
         if (interactionHand == InteractionHand.MAIN_HAND){
             return;
         }
-        ArmorRenderPipeline.setupContext(itemStack, EquipmentSlot.OFFHAND, abstractClientPlayer.getGameProfile());
+        var scopes = ArmorHiderClient.SCOPE_PROVIDER;
+        var scope = ScopeFactory.createItemScope(scopes, itemStack, EquipmentSlot.OFFHAND, abstractClientPlayer.getGameProfile());
+        if (scope != null) {
+            scopes.enterItemRender(scope);
+        }
     }
 
     @WrapOperation(
@@ -71,9 +77,10 @@ public class OffHandRenderMixin {
     //private void modifyItemSubmit(ItemRenderer instance, LivingEntity livingEntity, ItemStack itemStack, ItemDisplayContext itemDisplayContext, boolean b, PoseStack poseStack, MultiBufferSource multiBufferSource, Level level, int i, int j, int k, Operation<Void> original) {
     //? if 1.21.5
     //private void modifyItemSubmit(ItemRenderer instance, LivingEntity livingEntity, ItemStack itemStack, ItemDisplayContext itemDisplayContext, PoseStack poseStack, MultiBufferSource multiBufferSource, Level level, int i, int j, int k, Operation<Void> original) {
-        if (ArmorRenderPipeline.hasActiveContext(EquipmentSlot.OFFHAND)
-                && ArmorRenderPipeline.shouldModifyEquipment()
-                && ArmorRenderPipeline.shouldHideEquipment()) {
+        var scopes = ArmorHiderClient.SCOPE_PROVIDER;
+        if (scopes.hasItemScope(EquipmentSlot.OFFHAND)
+                && RenderDecisions.shouldModifyEquipment(scopes)
+                && RenderDecisions.shouldHideEquipment(scopes)) {
             return;
         }
         // Partial opacity is handled downstream by ItemRenderMixin
@@ -96,6 +103,6 @@ public class OffHandRenderMixin {
     private void releaseContext(AbstractClientPlayer abstractClientPlayer, float f, float g, InteractionHand interactionHand, float h, ItemStack itemStack, float i, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int j, CallbackInfo ci) {
     //? if < 1.21.9
     //private void releaseContext(AbstractClientPlayer abstractClientPlayer, float f, float g, InteractionHand interactionHand, float h, ItemStack itemStack, float i, PoseStack poseStack, MultiBufferSource multiBufferSource, int j, CallbackInfo ci) {
-        ArmorRenderPipeline.clearContext();
+        ArmorHiderClient.SCOPE_PROVIDER.exitItemRender();
     }
 }
