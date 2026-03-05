@@ -7,7 +7,6 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.rendering.RenderDecisions;
 import de.zannagh.armorhider.rendering.RenderModifications;
-import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemDisplayContext;
@@ -15,12 +14,16 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import net.minecraft.client.renderer.SubmitNodeCollector;
-
 import java.util.ArrayList;
 import java.util.List;
 
-//? if >= 26.1-snapshot-7
-//import net.minecraft.client.renderer.Sheets;
+//? if >= 26.1-snapshot.11
+import net.minecraft.client.resources.model.geometry.BakedQuad;
+//? if < 26.1-snapshot.11
+//import net.minecraft.client.renderer.block.model.BakedQuad;
+
+//? if >= 26.1-snapshot.7
+import net.minecraft.client.renderer.Sheets;
 //? if >= 1.21.11
 import net.minecraft.client.renderer.rendertype.RenderType;
 //? if < 1.21.11
@@ -38,26 +41,26 @@ public class ItemRenderStateMixin {
             method = "submit",
             at = @At(
                 value = "INVOKE",
-                //? if >= 26.1-snapshot-7
-                //target = "Lnet/minecraft/client/renderer/SubmitNodeCollector;submitItem(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/world/item/ItemDisplayContext;III[ILjava/util/List;Lnet/minecraft/client/renderer/item/ItemStackRenderState$FoilType;)V"
-                //? if >= 1.21.11 && < 26.1-snapshot-7
-                target = "Lnet/minecraft/client/renderer/SubmitNodeCollector;submitItem(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/world/item/ItemDisplayContext;III[ILjava/util/List;Lnet/minecraft/client/renderer/rendertype/RenderType;Lnet/minecraft/client/renderer/item/ItemStackRenderState$FoilType;)V"
+                //? if >= 26.1-snapshot.7
+                target = "Lnet/minecraft/client/renderer/SubmitNodeCollector;submitItem(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/world/item/ItemDisplayContext;III[ILjava/util/List;Lnet/minecraft/client/renderer/item/ItemStackRenderState$FoilType;)V"
+                //? if >= 1.21.11 && < 26.1-snapshot.7
+                //target = "Lnet/minecraft/client/renderer/SubmitNodeCollector;submitItem(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/world/item/ItemDisplayContext;III[ILjava/util/List;Lnet/minecraft/client/renderer/rendertype/RenderType;Lnet/minecraft/client/renderer/item/ItemStackRenderState$FoilType;)V"
                 //? if 1.21.9 || 1.21.10
                 //target = "Lnet/minecraft/client/renderer/SubmitNodeCollector;submitItem(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/world/item/ItemDisplayContext;III[ILjava/util/List;Lnet/minecraft/client/renderer/RenderType;Lnet/minecraft/client/renderer/item/ItemStackRenderState$FoilType;)V"
             )
     )
-    //? if >= 26.1-snapshot-7
-    //private void wrapSubmitItem(SubmitNodeCollector instance, PoseStack poseStack, ItemDisplayContext itemDisplayContext, int light, int overlay, int color, int[] tintLayers, List<BakedQuad> quads, ItemStackRenderState.FoilType foilType, Operation<Void> original) {
-    //? if >= 1.21.11 && < 26.1-snapshot-7
-    private void wrapSubmitItem(SubmitNodeCollector instance, PoseStack poseStack, ItemDisplayContext itemDisplayContext, int light, int overlay, int color, int[] tintLayers, List<BakedQuad> quads, RenderType renderType, ItemStackRenderState.FoilType foilType, Operation<Void> original) {
+    //? if >= 26.1-snapshot.7
+    private void wrapSubmitItem(SubmitNodeCollector instance, PoseStack poseStack, ItemDisplayContext itemDisplayContext, int light, int overlay, int color, int[] tintLayers, List<BakedQuad> quads, ItemStackRenderState.FoilType foilType, Operation<Void> original) {
+    //? if >= 1.21.11 && < 26.1-snapshot.7
+    //private void wrapSubmitItem(SubmitNodeCollector instance, PoseStack poseStack, ItemDisplayContext itemDisplayContext, int light, int overlay, int color, int[] tintLayers, List<BakedQuad> quads, RenderType renderType, ItemStackRenderState.FoilType foilType, Operation<Void> original) {
     //? if 1.21.9 || 1.21.10
     //private void wrapSubmitItem(SubmitNodeCollector instance, PoseStack poseStack, ItemDisplayContext itemDisplayContext, int light, int overlay, int color, int[] tintLayers, List<BakedQuad> quads, RenderType renderType, ItemStackRenderState.FoilType foilType, Operation<Void> original) {
         var scopes = ArmorHiderClient.SCOPE_PROVIDER;
         if (scopes.hasItemScope(EquipmentSlot.OFFHAND) && RenderDecisions.shouldModifyEquipment(scopes)) {
             // Note to future me: This can actually hide main hands.
             float alpha = RenderModifications.getTransparencyAlpha(scopes);
-            //? if < 26.1-snapshot-7
-            RenderType translucentType = RenderModifications.getTranslucentItemRenderType(scopes, renderType);
+            //? if < 26.1-snapshot.7
+            //RenderType translucentType = RenderModifications.getTranslucentItemRenderType(scopes, renderType);
 
             // Use one extra slot for non-tinted quads: white with our alpha
             int syntheticTintIndex = tintLayers.length;
@@ -75,21 +78,21 @@ public class ItemRenderStateMixin {
             List<BakedQuad> modifiedQuads = new ArrayList<>(quads.size());
             for (BakedQuad quad : quads) {
                 if (!quad.isTinted()) {
-                    //? if >= 26.1-snapshot-7 {
-                    /*modifiedQuads.add(new BakedQuad(
+                    //? if >= 26.1-snapshot.7 {
+                    modifiedQuads.add(new BakedQuad(
                             quad.position0(), quad.position1(), quad.position2(), quad.position3(),
                             quad.packedUV0(), quad.packedUV1(), quad.packedUV2(), quad.packedUV3(),
                             syntheticTintIndex, quad.direction(), makeTranslucent(quad.spriteInfo()), quad.shade(), quad.lightEmission()
                     ));
-                    *///?}
-                    //? if >= 1.21.11 && < 26.1-snapshot-7 {
+                    //?}
+                    //? if >= 1.21.11 && < 26.1-snapshot.7 {
 
-                    modifiedQuads.add(new BakedQuad(
+                    /*modifiedQuads.add(new BakedQuad(
                             quad.position0(), quad.position1(), quad.position2(), quad.position3(),
                             quad.packedUV0(), quad.packedUV1(), quad.packedUV2(), quad.packedUV3(),
                             syntheticTintIndex, quad.direction(), quad.sprite(), quad.shade(), quad.lightEmission()
                     ));
-                    //? }
+                    *///? }
 
                     //? if 1.21.9 || 1.21.10 {
                     /*modifiedQuads.add(new BakedQuad(
@@ -98,31 +101,31 @@ public class ItemRenderStateMixin {
                     *///?}
 
                 } else {
-                    //? if >= 26.1-snapshot-7 {
-                    /*modifiedQuads.add(new BakedQuad(
+                    //? if >= 26.1-snapshot.7 {
+                    modifiedQuads.add(new BakedQuad(
                             quad.position0(), quad.position1(), quad.position2(), quad.position3(),
                             quad.packedUV0(), quad.packedUV1(), quad.packedUV2(), quad.packedUV3(),
                             quad.tintIndex(), quad.direction(), makeTranslucent(quad.spriteInfo()), quad.shade(), quad.lightEmission()
                     ));
-                    *///? }
-                    //? if < 26.1-snapshot-7
-                    modifiedQuads.add(quad);
+                    //? }
+                    //? if < 26.1-snapshot.7
+                    //modifiedQuads.add(quad);
                 }
             }
-            //? if >= 26.1-snapshot-7
-            //original.call(instance, poseStack, itemDisplayContext, light, overlay, color, modifiedTints, modifiedQuads, foilType);
-            //? if < 26.1-snapshot-7
-            original.call(instance, poseStack, itemDisplayContext, light, overlay, color, modifiedTints, modifiedQuads, translucentType, foilType);
+            //? if >= 26.1-snapshot.7
+            original.call(instance, poseStack, itemDisplayContext, light, overlay, color, modifiedTints, modifiedQuads, foilType);
+            //? if < 26.1-snapshot.7
+            //original.call(instance, poseStack, itemDisplayContext, light, overlay, color, modifiedTints, modifiedQuads, translucentType, foilType);
         } else {
-            //? if >= 26.1-snapshot-7
-            //original.call(instance, poseStack, itemDisplayContext, light, overlay, color, tintLayers, quads, foilType);
-            //? if < 26.1-snapshot-7
-            original.call(instance, poseStack, itemDisplayContext, light, overlay, color, tintLayers, quads, renderType, foilType);
+            //? if >= 26.1-snapshot.7
+            original.call(instance, poseStack, itemDisplayContext, light, overlay, color, tintLayers, quads, foilType);
+            //? if < 26.1-snapshot.7
+            //original.call(instance, poseStack, itemDisplayContext, light, overlay, color, tintLayers, quads, renderType, foilType);
         }
     }
 
-    //? if >= 26.1-snapshot-7 {
-    /*@Unique
+    //? if >= 26.1-snapshot.7 {
+    @Unique
     private static BakedQuad.SpriteInfo makeTranslucent(BakedQuad.SpriteInfo info) {
         RenderType current = info.itemRenderType();
         if (current == Sheets.cutoutBlockItemSheet()) {
@@ -133,6 +136,6 @@ public class ItemRenderStateMixin {
         }
         return info;
     }
-    *///? }
+    //? }
 }
 //?}
