@@ -13,7 +13,7 @@ val Project.stonecutterBuild: StonecutterBuildExtension
 val Project.loader: String get() = stonecutterBuild.current.project.substringBefore("-")
 
 /** The Minecraft version from the Stonecutter project, e.g. "1.21.11" from "fabric-1.21.11". */
-val Project.mcVersion: String get() = stonecutterBuild.current.version
+val Project.mcVersion: String get() = stonecutterBuild.current.version.replace("snapshot.", "snapshot-")
 
 /** Whether this version uses deobfuscated (unmapped) Minecraft jars. */
 val Project.isDeobf: Boolean get() = mcVersion.startsWith("26.")
