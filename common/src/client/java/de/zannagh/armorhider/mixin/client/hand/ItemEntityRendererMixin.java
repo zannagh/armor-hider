@@ -43,14 +43,15 @@ public class ItemEntityRendererMixin {
         }
     }
 
-    //? if >= 1.21.4 {
-    @Inject(method = "extractRenderState(Lnet/minecraft/world/entity/item/ItemEntity;Lnet/minecraft/client/renderer/entity/state/ItemEntityRenderState;F)V", at = @At("RETURN"))
-    private static void releaseContext(ItemEntity itemEntity, ItemEntityRenderState itemEntityRenderState, float f, CallbackInfo ci) {
-    //? }
+    // For < 1.21.4, exit the item scope at render() RETURN (same method as entry).
+    // For >= 1.21.4, no explicit exit needed here: extractRenderState() runs inside
+    // EntityRenderDispatcher.submit()/render(), and exitEntityRender() already clears
+    // the item scope. Exiting at extractRenderState RETURN would kill the scope before
+    // the actual render/submit phase, leaving downstream mixins with no active scope.
     //? if < 1.21.4 {
     /*@Inject(method = "render(Lnet/minecraft/world/entity/item/ItemEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V", at = @At("RETURN"))
     private static void releaseContext(ItemEntity itemEntity, float f, float g, PoseStack poseStack, MultiBufferSource multiBufferSource, int i, CallbackInfo ci) {
-    *///?}
         ArmorHiderClient.SCOPE_PROVIDER.exitItemRender();
     }
+    *///?}
 }
