@@ -31,6 +31,10 @@ stonecutter {
         "1.21", "1.21.1", "1.21.4", "1.21.5", "1.21.6", "1.21.7", "1.21.8",
         "1.21.9", "1.21.10", "1.21.11",
     )
+    val paperVersions = listOf(
+        "1.21", "1.21.1", "1.21.4", "1.21.5", "1.21.6", "1.21.7", "1.21.8",
+        "1.21.9", "1.21.10", "1.21.11"
+    )
 
     // Required to have a parseable semVer for StoneCutter (26.1-snapshot.2 instead of 26.1-snapshot-2)
     // since this causes problems with snapshots higher than -snapshot-10.
@@ -48,6 +52,9 @@ stonecutter {
         }
         branch("neoforge") {
             neoforgeVersions.forEach { version("neoforge-$it", semver(it)) }
+        }
+        branch("paper") {
+            paperVersions.forEach { version("paper-$it", semver(it)) }
         }
     }
 }
