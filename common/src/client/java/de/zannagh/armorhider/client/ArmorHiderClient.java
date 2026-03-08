@@ -1,13 +1,10 @@
 package de.zannagh.armorhider.client;
 
-import com.mojang.authlib.minecraft.client.MinecraftClient;
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.config.ClientConfigManager;
 import de.zannagh.armorhider.networking.ClientCommunicationManager;
 import de.zannagh.armorhider.scopes.ScopeProvider;
-import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.Options;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraft.network.chat.Component;
@@ -15,8 +12,6 @@ import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.NonNull;
 import oshi.util.tuples.Pair;
-
-import java.awt.event.KeyEvent;
 
 public class ArmorHiderClient {
 

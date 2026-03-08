@@ -11,13 +11,11 @@ import java.awt.event.KeyEvent;
 
 public class OpenSettingsKeyMapping extends CustomKeyMapping {
     
-    public static String MAPPING_NAME = Component.translatable("key.armorhider.open_settings").getString();
-    
     public OpenSettingsKeyMapping() {
         //? if > 1.21.8
-        super(MAPPING_NAME, KeyEvent.VK_J);
+        super("key.armorhider.open_settings", KeyEvent.VK_J);
         //? if <= 1.21.8
-        // super(MAPPING_NAME, KeyEvent.VK_J);
+        // super("key.armorhider.open_settings", KeyEvent.VK_J);
     }
 
     @Override

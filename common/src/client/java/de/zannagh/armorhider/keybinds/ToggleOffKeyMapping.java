@@ -8,19 +8,17 @@ import java.awt.event.KeyEvent;
 
 public class ToggleOffKeyMapping extends CustomKeyMapping {
     
-    public static String MAPPING_NAME = Component.translatable("key.armorhider.toggle_keybind").getString();
-    
     public ToggleOffKeyMapping() {
         //? if > 1.21.8
-        super(MAPPING_NAME, KeyEvent.VK_K);
+        super("key.armorhider.toggle_keybind", KeyEvent.VK_K);
         //? if <= 1.21.8
-        // super("Toggle Armor Hider", KeyEvent.VK_K);
+        // super("key.armorhider.toggle_keybind", KeyEvent.VK_K);
     }
     
     @Override
     public void onKeyDown() {
-        boolean currentDisable = (boolean) ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableArmorHider.getValue();
-        ((ConfigurationItemBase<Boolean>)ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableArmorHider).setValue(!currentDisable);
+        boolean currentDisable = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableArmorHider.getValue();
+        ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableArmorHider.setValue(!currentDisable);
     }
 
     @Override
