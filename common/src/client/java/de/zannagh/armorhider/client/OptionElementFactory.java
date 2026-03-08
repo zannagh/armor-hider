@@ -1,5 +1,6 @@
 package de.zannagh.armorhider.client;
 
+import de.zannagh.armorhider.gui.CompoundOptionWidget;
 import de.zannagh.armorhider.rendering.RenderUtilities;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.OptionInstance;
@@ -112,6 +113,27 @@ public class OptionElementFactory {
         *///?}
         //? if < 1.21 {
         /*return new MultiLineTextWidget(text, net.minecraft.client.Minecraft.getInstance().font).setCentered(true);
+        *///?}
+    }
+
+    public static AbstractWidget createSliderWithToggle(OptionInstance<Double> slider, OptionInstance<Boolean> toggle, Options options, int width) {
+        AbstractWidget sliderWidget = slider.createButton(options, 0, 0, (int) (width * 0.8));
+        // TODO: This should have a very abbreviated text or even better
+        // an icon.
+        AbstractWidget toggleWidget = toggle.createButton(options, 0, 0, width - (int) (width * 0.8) - 4);
+        return new CompoundOptionWidget(sliderWidget, toggleWidget, width, 20);
+    }
+
+    public void addSliderWithToggle(OptionInstance<Double> slider, OptionInstance<Boolean> toggle) {
+        //? if >= 1.21.9 {
+        int rowWidth = RenderUtilities.getRowWidth(body);
+        int width = renderOptionsFullWidth ? rowWidth : rowWidth / 2;
+        addElementAsWidget(createSliderWithToggle(slider, toggle, gameOptions, width));
+        //?}
+        //? if < 1.21.9 {
+        /*// For older versions, fall back to separate rows
+        addSimpleOptionAsWidget(slider);
+        addSimpleOptionAsWidget(toggle);
         *///?}
     }
 
