@@ -1,6 +1,5 @@
 package de.zannagh.armorhider.keybinds;
 
-import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 //? if > 1.20.1
 import net.minecraft.client.gui.screens.options.SkinCustomizationScreen;
@@ -10,23 +9,19 @@ import net.minecraft.network.chat.Component;
 
 import java.awt.event.KeyEvent;
 
-public class OpenSettingsKeyMapping extends KeyMapping {
+public class OpenSettingsKeyMapping extends CustomKeyMapping {
     
     public static String MAPPING_NAME = Component.translatable("key.armorhider.open_settings").getString();
     
     public OpenSettingsKeyMapping() {
         //? if > 1.21.8
-        super(MAPPING_NAME, KeyEvent.VK_J, Category.MISC);
+        super(MAPPING_NAME, KeyEvent.VK_J);
         //? if <= 1.21.8
-        // super(MAPPING_NAME, KeyEvent.VK_J, "key.categories.misc");
+        // super(MAPPING_NAME, KeyEvent.VK_J);
     }
 
     @Override
-    public void setDown(boolean bl) {
-        if (!bl) {
-            super.setDown(false);
-            return;
-        }
+    public void onKeyDown() {
         //? if >= 1.21.9 {
         assert Minecraft.getInstance().screen != null;
         Minecraft.getInstance().setScreenAndShow(new SkinCustomizationScreen(Minecraft.getInstance().screen, Minecraft.getInstance().options));
@@ -43,6 +38,8 @@ public class OpenSettingsKeyMapping extends KeyMapping {
         Minecraft.getInstance().setScreen(new OldArmorHiderOptionsScreen(Minecraft.getInstance().screen, Minecraft.getInstance().options));
          */
         //?}
-        super.setDown(true);
     }
+
+    @Override
+    public void onKeyUp() { }
 }
