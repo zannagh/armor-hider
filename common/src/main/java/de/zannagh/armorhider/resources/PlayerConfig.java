@@ -50,12 +50,20 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
 
     @SerializedName(value = "helmetOpacity", alternate = {"helmetTransparency"})
     public ArmorOpacity helmetOpacity;
+    @SerializedName(value = "helmetGlint")
+    public EnableGlint helmetGlint;
     @SerializedName(value = "chestOpacity", alternate = {"chestTransparency"})
     public ArmorOpacity chestOpacity;
+    @SerializedName(value = "chestGlint")
+    public EnableGlint chestGlint;
     @SerializedName(value = "legsOpacity", alternate = {"legsTransparency"})
     public ArmorOpacity legsOpacity;
+    @SerializedName(value = "legsGlint")
+    public EnableGlint legsGlint;
     @SerializedName(value = "bootsOpacity", alternate = {"bootsTransparency"})
     public ArmorOpacity bootsOpacity;
+    @SerializedName(value = "bootsGlint")
+    public EnableGlint bootsGlint;
     @SerializedName(value = "enableCombatDetection")
     public CombatDetection enableCombatDetection;
     @SerializedName(value = "opacityAffectingElytra")
@@ -93,6 +101,10 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         disableArmorHiderForOthers = new DisableArmorHiderForOthers();
         usePlayerSettingsWhenUndeterminable = new UsePlayerSettingsWhenUndeterminable();
         offHandOpacity = new OffHandOpacity();
+        helmetGlint = new EnableGlint();
+        chestGlint = new EnableGlint();
+        legsGlint = new EnableGlint();
+        bootsGlint = new EnableGlint();
     }
 
     public static PlayerConfig deserialize(Reader reader) {
@@ -136,6 +148,10 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         newConfig.opacityAffectingElytra.setValue(this.opacityAffectingElytra.getValue());
         newConfig.usePlayerSettingsWhenUndeterminable.setValue(this.usePlayerSettingsWhenUndeterminable.getValue());
         newConfig.offHandOpacity.setValue(this.offHandOpacity.getValue());
+        newConfig.helmetGlint.setValue(this.helmetGlint.getValue());
+        newConfig.chestGlint.setValue(this.chestGlint.getValue());
+        newConfig.legsGlint.setValue(this.legsGlint.getValue());
+        newConfig.bootsGlint.setValue(this.bootsGlint.getValue());
         return newConfig;
     }
 }

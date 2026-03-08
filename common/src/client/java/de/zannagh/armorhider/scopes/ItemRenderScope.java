@@ -26,6 +26,10 @@ public record ItemRenderScope(@NotNull EquipmentSlot slot,
     public boolean shouldModify() {
         return modification.shouldModify();
     }
+    
+    public boolean shouldDisableGlint() {
+        return modification.shouldDisableGlint();
+    }
 
     public double transparency() {
         return modification.getTransparency();

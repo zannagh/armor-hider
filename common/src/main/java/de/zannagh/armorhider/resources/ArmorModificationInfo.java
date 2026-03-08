@@ -17,6 +17,16 @@ public record ArmorModificationInfo(EquipmentSlot equipmentSlot, @NotNull Player
         };
         return CombatManager.transformTransparencyBasedOnCombat(playerConfig.playerName.getValue(), setting);
     }
+    
+    public boolean shouldDisableGlint() {
+        return switch (equipmentSlot) {
+            case HEAD -> !playerConfig.helmetGlint.getValue();
+            case CHEST -> !playerConfig.chestGlint.getValue();
+            case LEGS -> !playerConfig.legsGlint.getValue();
+            case FEET -> !playerConfig.bootsGlint.getValue();
+            default -> false;
+        };
+    }
 
     public boolean shouldHide() {
         double transparency = getTransparency();
@@ -25,7 +35,7 @@ public record ArmorModificationInfo(EquipmentSlot equipmentSlot, @NotNull Player
 
     public boolean shouldModify() {
         double transparency = getTransparency();
-        return transparency < 1 - ArmorOpacity.TRANSPARENCY_STEP / 2;
+        return (transparency < 1 - ArmorOpacity.TRANSPARENCY_STEP / 2) || shouldDisableGlint();
     }
 
     public boolean isConfigForRemotePlayer(String localPlayerName) {
