@@ -22,15 +22,20 @@ public class OptionsMixin {
             at = @At("HEAD")
     )
     private void onLoad(CallbackInfo ci){
-        boolean wereOptionsAddedAlready = Arrays.stream(keyMappings).anyMatch(map -> map.getName().equals(ToggleOffKeyMapping.MAPPING_NAME));
-        if (wereOptionsAddedAlready) {
+        boolean hasToggleMapping = Arrays.stream(keyMappings).anyMatch(map -> map instanceof ToggleOffKeyMapping);
+        boolean hasOpenSettingsMapping = Arrays.stream(keyMappings).anyMatch(map -> map instanceof OpenSettingsKeyMapping);
+        if (hasToggleMapping && hasOpenSettingsMapping) {
             return;
         }
-        var armorHiderKeyMapping = new ToggleOffKeyMapping();
-        var openSettingsKeyMapping = new OpenSettingsKeyMapping();
+        var armorHiderKeyMapping = hasToggleMapping ? null : new ToggleOffKeyMapping();
+        var openSettingsKeyMapping = hasOpenSettingsMapping ? null : new OpenSettingsKeyMapping();
         var existingMappings = new java.util.ArrayList<>(Arrays.stream(keyMappings.clone()).toList());
-        existingMappings.add(armorHiderKeyMapping);
-        existingMappings.add(openSettingsKeyMapping);
+        if (armorHiderKeyMapping != null) {
+            existingMappings.add(armorHiderKeyMapping);
+        }
+        if (openSettingsKeyMapping != null) {
+            existingMappings.add(openSettingsKeyMapping);
+        }
         keyMappings = existingMappings.toArray(new KeyMapping[0]);
     }
 }
