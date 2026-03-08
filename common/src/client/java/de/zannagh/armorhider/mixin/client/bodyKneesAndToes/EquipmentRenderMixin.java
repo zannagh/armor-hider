@@ -112,8 +112,9 @@ public class EquipmentRenderMixin {
         var scopes = ArmorHiderClient.SCOPE_PROVIDER;
         var itemScope = scopes.itemScope();
         if (itemScope != null && itemScope.shouldModify() && RenderDecisions.shouldModifyEquipment(scopes)) {
-            double transparency = itemScope.transparency();
-            return original && transparency > 0;
+            if (itemScope.shouldDisableGlint() || itemScope.shouldHide()) {
+                return false;
+            }
         }
         return original;
     }

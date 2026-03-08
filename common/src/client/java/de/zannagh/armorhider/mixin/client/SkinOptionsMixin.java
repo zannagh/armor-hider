@@ -120,6 +120,16 @@ public abstract class SkinOptionsMixin extends Screen {
         optionElementFactory.addSimpleOptionAsWidget(skullOrHatOption);
 
         //noinspection Convert2MethodRef, required for mixin to work
+        var disableHelmetGlint = optionElementFactory.buildBooleanOption(
+                Component.translatable("armorhider.options.disable_helmet_glint.title"),
+                Component.translatable("armorhider.options.disable_helmet_glint.tooltip"),
+                Component.translatable("armorhider.options.disable_helmet_glint.tooltip"),
+                ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableHelmetGlint.getValue(),
+                value -> setDisableHelmetGlint(value)
+        );
+        optionElementFactory.addSimpleOptionAsWidget(disableHelmetGlint);
+
+        //noinspection Convert2MethodRef, required for mixin to work
         var chestOption = optionElementFactory.buildDoubleOption(
                 "armorhider.chestplate.transparency",
                 Component.translatable("armorhider.options.chestplate.tooltip"),
@@ -140,6 +150,16 @@ public abstract class SkinOptionsMixin extends Screen {
         optionElementFactory.addSimpleOptionAsWidget(elytraOption);
 
         //noinspection Convert2MethodRef, required for mixin to work
+        var disableChestGlint = optionElementFactory.buildBooleanOption(
+                Component.translatable("armorhider.options.disable_chest_glint.title"),
+                Component.translatable("armorhider.options.disable_chest_glint.tooltip"),
+                Component.translatable("armorhider.options.disable_chest_glint.tooltip"),
+                ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableChestGlint.getValue(),
+                value -> setDisableChestGlint(value)
+        );
+        optionElementFactory.addSimpleOptionAsWidget(disableChestGlint);
+
+        //noinspection Convert2MethodRef, required for mixin to work
         var legsOption = optionElementFactory.buildDoubleOption(
                 "armorhider.legs.transparency",
                 Component.translatable("armorhider.options.leggings.tooltip"),
@@ -150,6 +170,16 @@ public abstract class SkinOptionsMixin extends Screen {
         optionElementFactory.addSimpleOptionAsWidget(legsOption);
 
         //noinspection Convert2MethodRef, required for mixin to work
+        var disableLegsGlint = optionElementFactory.buildBooleanOption(
+                Component.translatable("armorhider.options.disable_legs_glint.title"),
+                Component.translatable("armorhider.options.disable_legs_glint.tooltip"),
+                Component.translatable("armorhider.options.disable_legs_glint.tooltip"),
+                ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableLegsGlint.getValue(),
+                value -> setDisableLegsGlint(value)
+        );
+        optionElementFactory.addSimpleOptionAsWidget(disableLegsGlint);
+
+        //noinspection Convert2MethodRef, required for mixin to work
         var bootsOption = optionElementFactory.buildDoubleOption(
                 "armorhider.boots.transparency",
                 Component.translatable("armorhider.options.boots.tooltip"),
@@ -158,6 +188,16 @@ public abstract class SkinOptionsMixin extends Screen {
                 ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().bootsOpacity.getValue(),
                 value -> setBootsTransparency(value));
         optionElementFactory.addSimpleOptionAsWidget(bootsOption);
+
+        //noinspection Convert2MethodRef, required for mixin to work
+        var disableBootsGlint = optionElementFactory.buildBooleanOption(
+                Component.translatable("armorhider.options.disable_boots_glint.title"),
+                Component.translatable("armorhider.options.disable_boots_glint.tooltip"),
+                Component.translatable("armorhider.options.disable_boots_glint.tooltip"),
+                ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableBootsGlint.getValue(),
+                value -> setDisableBootsGlint(value)
+        );
+        optionElementFactory.addSimpleOptionAsWidget(disableBootsGlint);
 
         //noinspection Convert2MethodRef, required for mixin to work
         var offHandOption = optionElementFactory.buildDoubleOption(
@@ -242,6 +282,30 @@ public abstract class SkinOptionsMixin extends Screen {
     @Unique
     private void setCombatDetection(boolean enabled) {
         ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().enableCombatDetection.setValue(enabled);
+        settingsChanged = true;
+    }
+
+    @Unique
+    private void setDisableHelmetGlint(boolean value) {
+        ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableHelmetGlint.setValue(value);
+        settingsChanged = true;
+    }
+
+    @Unique
+    private void setDisableChestGlint(boolean value) {
+        ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableChestGlint.setValue(value);
+        settingsChanged = true;
+    }
+
+    @Unique
+    private void setDisableLegsGlint(boolean value) {
+        ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableLegsGlint.setValue(value);
+        settingsChanged = true;
+    }
+
+    @Unique
+    private void setDisableBootsGlint(boolean value) {
+        ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableBootsGlint.setValue(value);
         settingsChanged = true;
     }
 

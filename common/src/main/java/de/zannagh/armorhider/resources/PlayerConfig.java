@@ -50,12 +50,20 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
 
     @SerializedName(value = "helmetOpacity", alternate = {"helmetTransparency"})
     public ArmorOpacity helmetOpacity;
+    @SerializedName(value = "disableHelmetGlint")
+    public DisableGlint disableHelmetGlint;
     @SerializedName(value = "chestOpacity", alternate = {"chestTransparency"})
     public ArmorOpacity chestOpacity;
+    @SerializedName(value = "disableChestGlint")
+    public DisableGlint disableChestGlint;
     @SerializedName(value = "legsOpacity", alternate = {"legsTransparency"})
     public ArmorOpacity legsOpacity;
+    @SerializedName(value = "disableLegsGlint")
+    public DisableGlint disableLegsGlint;
     @SerializedName(value = "bootsOpacity", alternate = {"bootsTransparency"})
     public ArmorOpacity bootsOpacity;
+    @SerializedName(value = "disableBootsGlint")
+    public DisableGlint disableBootsGlint;
     @SerializedName(value = "enableCombatDetection")
     public CombatDetection enableCombatDetection;
     @SerializedName(value = "opacityAffectingElytra")
@@ -93,6 +101,10 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         disableArmorHiderForOthers = new DisableArmorHiderForOthers();
         usePlayerSettingsWhenUndeterminable = new UsePlayerSettingsWhenUndeterminable();
         offHandOpacity = new OffHandOpacity();
+        disableHelmetGlint = new DisableGlint();
+        disableChestGlint = new DisableGlint();
+        disableLegsGlint = new DisableGlint();
+        disableBootsGlint = new DisableGlint();
     }
 
     public static PlayerConfig deserialize(Reader reader) {
@@ -136,6 +148,10 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         newConfig.opacityAffectingElytra.setValue(this.opacityAffectingElytra.getValue());
         newConfig.usePlayerSettingsWhenUndeterminable.setValue(this.usePlayerSettingsWhenUndeterminable.getValue());
         newConfig.offHandOpacity.setValue(this.offHandOpacity.getValue());
+        newConfig.disableHelmetGlint.setValue(this.disableHelmetGlint.getValue());
+        newConfig.disableChestGlint.setValue(this.disableChestGlint.getValue());
+        newConfig.disableLegsGlint.setValue(this.disableLegsGlint.getValue());
+        newConfig.disableBootsGlint.setValue(this.disableBootsGlint.getValue());
         return newConfig;
     }
 }

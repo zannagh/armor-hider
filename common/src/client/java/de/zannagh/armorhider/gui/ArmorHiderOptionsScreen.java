@@ -96,6 +96,15 @@ public class ArmorHiderOptionsScreen extends OptionsSubScreen {
         );
         optionElementFactory.addSimpleOptionAsWidget(skullOrHatOption);
 
+        var disableHelmetGlint = optionElementFactory.buildBooleanOption(
+            Component.translatable("armorhider.options.disable_helmet_glint.title"),
+            Component.translatable("armorhider.options.disable_helmet_glint.tooltip"),
+            Component.translatable("armorhider.options.disable_helmet_glint.tooltip"),
+            ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableHelmetGlint.getValue(),
+            this::setDisableHelmetGlint
+        );
+        optionElementFactory.addSimpleOptionAsWidget(disableHelmetGlint);
+
         var chestOption = optionElementFactory.buildDoubleOption(
             "armorhider.chestplate.transparency",
             Component.translatable("armorhider.options.chestplate.tooltip"),
@@ -116,6 +125,15 @@ public class ArmorHiderOptionsScreen extends OptionsSubScreen {
         );
         optionElementFactory.addSimpleOptionAsWidget(elytraOption);
 
+        var disableChestGlint = optionElementFactory.buildBooleanOption(
+            Component.translatable("armorhider.options.disable_chest_glint.title"),
+            Component.translatable("armorhider.options.disable_chest_glint.tooltip"),
+            Component.translatable("armorhider.options.disable_chest_glint.tooltip"),
+            ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableChestGlint.getValue(),
+            this::setDisableChestGlint
+        );
+        optionElementFactory.addSimpleOptionAsWidget(disableChestGlint);
+
         var legsOption = optionElementFactory.buildDoubleOption(
             "armorhider.legs.transparency",
             Component.translatable("armorhider.options.leggings.tooltip"),
@@ -127,6 +145,15 @@ public class ArmorHiderOptionsScreen extends OptionsSubScreen {
         );
         optionElementFactory.addSimpleOptionAsWidget(legsOption);
 
+        var disableLegsGlint = optionElementFactory.buildBooleanOption(
+            Component.translatable("armorhider.options.disable_legs_glint.title"),
+            Component.translatable("armorhider.options.disable_legs_glint.tooltip"),
+            Component.translatable("armorhider.options.disable_legs_glint.tooltip"),
+            ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableLegsGlint.getValue(),
+            this::setDisableLegsGlint
+        );
+        optionElementFactory.addSimpleOptionAsWidget(disableLegsGlint);
+
         var bootsOption = optionElementFactory.buildDoubleOption(
             "armorhider.boots.transparency",
             Component.translatable("armorhider.options.boots.tooltip"),
@@ -137,6 +164,15 @@ public class ArmorHiderOptionsScreen extends OptionsSubScreen {
             this::setBootsTransparency
         );
         optionElementFactory.addSimpleOptionAsWidget(bootsOption);
+
+        var disableBootsGlint = optionElementFactory.buildBooleanOption(
+            Component.translatable("armorhider.options.disable_boots_glint.title"),
+            Component.translatable("armorhider.options.disable_boots_glint.tooltip"),
+            Component.translatable("armorhider.options.disable_boots_glint.tooltip"),
+            ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableBootsGlint.getValue(),
+            this::setDisableBootsGlint
+        );
+        optionElementFactory.addSimpleOptionAsWidget(disableBootsGlint);
 
         var offhandOption = optionElementFactory.buildDoubleOption(
                 "armorhider.offhand.transparency",
@@ -241,6 +277,26 @@ public class ArmorHiderOptionsScreen extends OptionsSubScreen {
 
     private void setCombatDetection(boolean enabled) {
         ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().enableCombatDetection.setValue(enabled);
+        settingsChanged = true;
+    }
+
+    private void setDisableHelmetGlint(boolean value) {
+        ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableHelmetGlint.setValue(value);
+        settingsChanged = true;
+    }
+
+    private void setDisableChestGlint(boolean value) {
+        ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableChestGlint.setValue(value);
+        settingsChanged = true;
+    }
+
+    private void setDisableLegsGlint(boolean value) {
+        ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableLegsGlint.setValue(value);
+        settingsChanged = true;
+    }
+
+    private void setDisableBootsGlint(boolean value) {
+        ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableBootsGlint.setValue(value);
         settingsChanged = true;
     }
 
