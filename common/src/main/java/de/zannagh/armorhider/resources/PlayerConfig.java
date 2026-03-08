@@ -51,19 +51,19 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
     @SerializedName(value = "helmetOpacity", alternate = {"helmetTransparency"})
     public ArmorOpacity helmetOpacity;
     @SerializedName(value = "disableHelmetGlint")
-    public DisableGlint disableHelmetGlint;
+    public EnableGlint helmetGlint;
     @SerializedName(value = "chestOpacity", alternate = {"chestTransparency"})
     public ArmorOpacity chestOpacity;
     @SerializedName(value = "disableChestGlint")
-    public DisableGlint disableChestGlint;
+    public EnableGlint chestGlint;
     @SerializedName(value = "legsOpacity", alternate = {"legsTransparency"})
     public ArmorOpacity legsOpacity;
     @SerializedName(value = "disableLegsGlint")
-    public DisableGlint disableLegsGlint;
+    public EnableGlint legsGlint;
     @SerializedName(value = "bootsOpacity", alternate = {"bootsTransparency"})
     public ArmorOpacity bootsOpacity;
     @SerializedName(value = "disableBootsGlint")
-    public DisableGlint disableBootsGlint;
+    public EnableGlint bootsGlint;
     @SerializedName(value = "enableCombatDetection")
     public CombatDetection enableCombatDetection;
     @SerializedName(value = "opacityAffectingElytra")
@@ -101,10 +101,10 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         disableArmorHiderForOthers = new DisableArmorHiderForOthers();
         usePlayerSettingsWhenUndeterminable = new UsePlayerSettingsWhenUndeterminable();
         offHandOpacity = new OffHandOpacity();
-        disableHelmetGlint = new DisableGlint();
-        disableChestGlint = new DisableGlint();
-        disableLegsGlint = new DisableGlint();
-        disableBootsGlint = new DisableGlint();
+        helmetGlint = new EnableGlint();
+        chestGlint = new EnableGlint();
+        legsGlint = new EnableGlint();
+        bootsGlint = new EnableGlint();
     }
 
     public static PlayerConfig deserialize(Reader reader) {
@@ -148,10 +148,10 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         newConfig.opacityAffectingElytra.setValue(this.opacityAffectingElytra.getValue());
         newConfig.usePlayerSettingsWhenUndeterminable.setValue(this.usePlayerSettingsWhenUndeterminable.getValue());
         newConfig.offHandOpacity.setValue(this.offHandOpacity.getValue());
-        newConfig.disableHelmetGlint.setValue(this.disableHelmetGlint.getValue());
-        newConfig.disableChestGlint.setValue(this.disableChestGlint.getValue());
-        newConfig.disableLegsGlint.setValue(this.disableLegsGlint.getValue());
-        newConfig.disableBootsGlint.setValue(this.disableBootsGlint.getValue());
+        newConfig.helmetGlint.setValue(this.helmetGlint.getValue());
+        newConfig.chestGlint.setValue(this.chestGlint.getValue());
+        newConfig.legsGlint.setValue(this.legsGlint.getValue());
+        newConfig.bootsGlint.setValue(this.bootsGlint.getValue());
         return newConfig;
     }
 }

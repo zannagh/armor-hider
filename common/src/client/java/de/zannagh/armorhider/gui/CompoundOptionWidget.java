@@ -24,8 +24,8 @@ public class CompoundOptionWidget extends AbstractWidget {
     }
 
     private void updateLayout() {
-        int secondaryWidth = this.width - (int) (this.width * 0.8) - GAP;
-        int primaryWidth = (int) (this.width * 0.8);
+        int secondaryWidth = this.width - (int) (this.width * 0.6) - GAP;
+        int primaryWidth = (int) (this.width * 0.6);
 
         primary.setX(this.getX());
         primary.setY(this.getY());
@@ -45,14 +45,14 @@ public class CompoundOptionWidget extends AbstractWidget {
     }
     //?}
     //? if <= 1.20.1 {
-    /*
-    public void renderWidget(@NonNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+    
+    /*public void renderWidget(@NonNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         updateLayout();
         primary.render(guiGraphics, mouseX, mouseY, partialTick);
         secondary.render(guiGraphics, mouseX, mouseY, partialTick);
     }
-    */
-    //?}
+    
+    *///?}
 
     @Override
     //? if > 1.21.8
@@ -66,13 +66,13 @@ public class CompoundOptionWidget extends AbstractWidget {
         return secondary.mouseClicked(event, doubleClick);
         //? }
         //? if <= 1.21.8 {
-        /*
-        if (primary.mouseClicked(d, e, i)) {
+        
+        /*if (primary.mouseClicked(d, e, i)) {
             return true;
         }
         return secondary.mouseClicked(d, e, i);
-         */
-        //?}
+         
+        *///?}
     }
 
     @Override
@@ -87,13 +87,13 @@ public class CompoundOptionWidget extends AbstractWidget {
         return secondary.mouseReleased(event);
         //?}
         //? if <= 1.21.8 {
-        /*
-        if (primary.mouseReleased(d, e, i)) {
+        
+        /*if (primary.mouseReleased(d, e, i)) {
             return true;
         }
         return secondary.mouseReleased(d, e, i);
-         */
-        //?}
+         
+        *///?}
     }
 
     @Override
@@ -108,8 +108,8 @@ public class CompoundOptionWidget extends AbstractWidget {
         return secondary.mouseDragged(event, dx, dy);
         //? }
         //? if <= 1.21.8 {
-        /*
-        if (primary.mouseDragged(d, e, i, f, g)) {
+        
+        /*if (primary.mouseDragged(d, e, i, f, g)) {
             return true;
         }
         return secondary.mouseDragged(d, e, i, f, g);

@@ -20,10 +20,10 @@ public record ArmorModificationInfo(EquipmentSlot equipmentSlot, @NotNull Player
     
     public boolean shouldDisableGlint() {
         return switch (equipmentSlot) {
-            case HEAD -> playerConfig.disableHelmetGlint.getValue();
-            case CHEST -> playerConfig.disableChestGlint.getValue();
-            case LEGS -> playerConfig.disableLegsGlint.getValue();
-            case FEET -> playerConfig.disableBootsGlint.getValue();
+            case HEAD -> !playerConfig.helmetGlint.getValue();
+            case CHEST -> !playerConfig.chestGlint.getValue();
+            case LEGS -> !playerConfig.legsGlint.getValue();
+            case FEET -> !playerConfig.bootsGlint.getValue();
             default -> false;
         };
     }

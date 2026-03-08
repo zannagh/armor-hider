@@ -103,8 +103,8 @@ public abstract class SkinOptionsMixin extends Screen {
                 Component.translatable("armorhider.options.disable_helmet_glint.title"),
                 Component.translatable("armorhider.options.disable_helmet_glint.tooltip"),
                 Component.translatable("armorhider.options.disable_helmet_glint.tooltip"),
-                ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableHelmetGlint.getValue(),
-                value -> setDisableHelmetGlint(value)
+                ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().helmetGlint.getValue(),
+                value -> setHelmetGlint(value)
         );
         if (Minecraft.getInstance().player != null) {
             //? if >= 1.21.9 {
@@ -140,8 +140,8 @@ public abstract class SkinOptionsMixin extends Screen {
                 Component.translatable("armorhider.options.disable_chest_glint.title"),
                 Component.translatable("armorhider.options.disable_chest_glint.tooltip"),
                 Component.translatable("armorhider.options.disable_chest_glint.tooltip"),
-                ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableChestGlint.getValue(),
-                value -> setDisableChestGlint(value)
+                ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().chestGlint.getValue(),
+                value -> setChestGlint(value)
         );
         optionElementFactory.addSliderWithToggle(chestOption, disableChestGlint);
 
@@ -168,8 +168,8 @@ public abstract class SkinOptionsMixin extends Screen {
                 Component.translatable("armorhider.options.disable_legs_glint.title"),
                 Component.translatable("armorhider.options.disable_legs_glint.tooltip"),
                 Component.translatable("armorhider.options.disable_legs_glint.tooltip"),
-                ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableLegsGlint.getValue(),
-                value -> setDisableLegsGlint(value)
+                ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().legsGlint.getValue(),
+                value -> setLegsGlint(value)
         );
         optionElementFactory.addSliderWithToggle(legsOption, disableLegsGlint);
 
@@ -186,8 +186,8 @@ public abstract class SkinOptionsMixin extends Screen {
                 Component.translatable("armorhider.options.disable_boots_glint.title"),
                 Component.translatable("armorhider.options.disable_boots_glint.tooltip"),
                 Component.translatable("armorhider.options.disable_boots_glint.tooltip"),
-                ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableBootsGlint.getValue(),
-                value -> setDisableBootsGlint(value)
+                ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().bootsGlint.getValue(),
+                value -> setBootsGlint(value)
         );
         optionElementFactory.addSliderWithToggle(bootsOption, disableBootsGlint);
 
@@ -278,26 +278,26 @@ public abstract class SkinOptionsMixin extends Screen {
     }
 
     @Unique
-    private void setDisableHelmetGlint(boolean value) {
-        ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableHelmetGlint.setValue(value);
+    private void setHelmetGlint(boolean value) {
+        ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().helmetGlint.setValue(value);
         settingsChanged = true;
     }
 
     @Unique
-    private void setDisableChestGlint(boolean value) {
-        ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableChestGlint.setValue(value);
+    private void setChestGlint(boolean value) {
+        ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().chestGlint.setValue(value);
         settingsChanged = true;
     }
 
     @Unique
-    private void setDisableLegsGlint(boolean value) {
-        ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableLegsGlint.setValue(value);
+    private void setLegsGlint(boolean value) {
+        ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().legsGlint.setValue(value);
         settingsChanged = true;
     }
 
     @Unique
-    private void setDisableBootsGlint(boolean value) {
-        ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableBootsGlint.setValue(value);
+    private void setBootsGlint(boolean value) {
+        ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().bootsGlint.setValue(value);
         settingsChanged = true;
     }
 

@@ -57,6 +57,17 @@ public class OptionElementFactory {
             }
         }
     }
+
+    public <T> void addOptionWithWidget(AbstractWidget option, AbstractWidget widget) {
+        if (body != null) {
+            if (Minecraft.getInstance().player == null || widget == null) {
+                body.addSmall(option, null);
+            }
+            else {
+                body.addSmall(option, widget);
+            }
+        }
+    }
     *///?}
 
     public <T> void addSimpleOptionAsWidget(OptionInstance<T> option) {
@@ -89,14 +100,22 @@ public class OptionElementFactory {
         // In 1.20.x, text widgets aren't added to the options list - they could be rendered separately or skipped
     }
 
+    /**
+     * Adds an option element as a widget to the screen.
+     * In 1.20.x, this is a no-op.
+     * @param widget The widget to add.
+     */
     public final void addElementAsWidget(AbstractWidget widget) {
         //? if >= 1.21.9 {
         if (body == null) {
             return;
         }
         body.addSmall(widget, null);
+        return;
         //?}
         // In 1.20.x, arbitrary widgets cannot be added to OptionsList - they need to be added directly to the screen
+        //? if <= 1.21.1 && >= 1.21
+        // body.addSmall(widget, null);
     }
 
     //? if < 1.21 {
@@ -117,10 +136,8 @@ public class OptionElementFactory {
     }
 
     public static AbstractWidget createSliderWithToggle(OptionInstance<Double> slider, OptionInstance<Boolean> toggle, Options options, int width) {
-        AbstractWidget sliderWidget = slider.createButton(options, 0, 0, (int) (width * 0.8));
-        // TODO: This should have a very abbreviated text or even better
-        // an icon.
-        AbstractWidget toggleWidget = toggle.createButton(options, 0, 0, width - (int) (width * 0.8) - 4);
+        AbstractWidget sliderWidget = slider.createButton(options, 0, 0, (int) (width * 0.6));
+        AbstractWidget toggleWidget = toggle.createButton(options, 0, 0, width - (int) (width * 0.6) - 4);
         return new CompoundOptionWidget(sliderWidget, toggleWidget, width, 20);
     }
 
@@ -130,8 +147,12 @@ public class OptionElementFactory {
         int width = renderOptionsFullWidth ? rowWidth : rowWidth / 2;
         addElementAsWidget(createSliderWithToggle(slider, toggle, gameOptions, width));
         //?}
-        //? if < 1.21.9 {
-        /*// For older versions, fall back to separate rows
+        //? if < 1.21.9 && >= 1.21 {
+        // For older versions, fall back to separate rows
+        // addElementAsWidget(createSliderWithToggle(slider, toggle, gameOptions, RenderUtilities.getRowWidth(body)));
+        //?}
+        //? if < 1.21 {
+        /*// In 1.20.x, slider and toggle are added directly to the screen as rows due to missing APIs
         addSimpleOptionAsWidget(slider);
         addSimpleOptionAsWidget(toggle);
         *///?}

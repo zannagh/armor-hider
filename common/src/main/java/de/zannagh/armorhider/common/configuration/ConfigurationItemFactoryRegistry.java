@@ -34,7 +34,7 @@ public class ConfigurationItemFactoryRegistry {
         registerFactoriesForClass(PlayerUuid.class);
         registerFactoriesForClass(UsePlayerSettingsWhenUndeterminable.class);
         registerFactoriesForClass(OffHandOpacity.class);
-        registerFactoriesForClass(DisableGlint.class);
+        registerFactoriesForClass(EnableGlint.class);
 
         initialized = true;
     }
