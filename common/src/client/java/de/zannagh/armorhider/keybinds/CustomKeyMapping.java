@@ -1,15 +1,8 @@
 package de.zannagh.armorhider.keybinds;
 
 import net.minecraft.client.KeyMapping;
-import net.minecraft.client.Minecraft;
-import net.minecraft.core.component.predicates.DataComponentPredicate;
-
-import javax.naming.InterruptedNamingException;
-import java.util.Arrays;
 
 public abstract class CustomKeyMapping extends KeyMapping {
-    
-    private static final int A_KEY_CODE = 65;
     
     public CustomKeyMapping(String name, int preferredKey) {
         //? if > 1.21.8
