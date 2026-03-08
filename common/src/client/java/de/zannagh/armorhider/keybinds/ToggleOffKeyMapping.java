@@ -1,14 +1,18 @@
-package de.zannagh.armorhider.config;
+package de.zannagh.armorhider.keybinds;
 
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import net.minecraft.client.KeyMapping;
+import net.minecraft.network.chat.Component;
 
 import java.awt.event.KeyEvent;
 
 public class ToggleOffKeyMapping extends KeyMapping {
+    
+    public static String MAPPING_NAME = Component.translatable("key.armorhider.toggle_keybind").getString();
+    
     public ToggleOffKeyMapping() {
         //? if > 1.21.8
-        super("Toggle Armor Hider", KeyEvent.VK_K, Category.MISC);
+        super(MAPPING_NAME, KeyEvent.VK_K, Category.MISC);
         //? if <= 1.21.8
         // super("Toggle Armor Hider", KeyEvent.VK_K, "key.categories.misc");
     }

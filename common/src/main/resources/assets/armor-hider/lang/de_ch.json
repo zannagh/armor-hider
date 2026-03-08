@@ -43,5 +43,7 @@
   "armorhider.options.disable_local.tooltip_narration": "Aktiviert oder deaktiviert die Verwendung von Armor Hider global. Wenn der Server Armor Hider erzwingt, wird diese Einstellung ignoriert, da die Rüstung in jedem Fall angezeigt wird.",
   "armorhider.options.disable_others.title": "Armor Hider für andere Spieler deaktivieren",
   "armorhider.options.disable_others.tooltip": "Deaktiviert die Verwendung von Armor Hider für die Rüstungen anderer Spieler. Wenn der Server Armor Hider erzwingt oder die globale Deaktivierung gesetzt ist, wird diese Einstellung ignoriert, da die Rüstung in jedem Fall angezeigt wird.",
-  "armorhider.options.disable_others.tooltip_narration": "Deaktiviert die Verwendung von Armor Hider für die Rüstungen anderer Spieler. Wenn der Server Armor Hider erzwingt oder die globale Deaktivierung gesetzt ist, wird diese Einstellung ignoriert, da die Rüstung in jedem Fall angezeigt wird."
+  "armorhider.options.disable_others.tooltip_narration": "Deaktiviert die Verwendung von Armor Hider für die Rüstungen anderer Spieler. Wenn der Server Armor Hider erzwingt oder die globale Deaktivierung gesetzt ist, wird diese Einstellung ignoriert, da die Rüstung in jedem Fall angezeigt wird.",
+  "key.armorhider.toggle_keybind": "Armor Hider aktivieren/deaktivieren",
+  "key.armorhider.open_settings": "Armor Hider Einstellungen öffnen"
 }

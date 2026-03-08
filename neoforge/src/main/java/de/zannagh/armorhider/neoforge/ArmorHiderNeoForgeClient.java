@@ -13,13 +13,10 @@ import net.neoforged.neoforge.common.NeoForge;
 @Mod(value = "armor_hider", dist = Dist.CLIENT)
 public class ArmorHiderNeoForgeClient {
     public ArmorHiderNeoForgeClient(IEventBus modBus) {
-        modBus.addListener(this::onClientSetup);
         NeoForge.EVENT_BUS.addListener(this::onClientLogin);
-    }
-
-    private void onClientSetup(FMLClientSetupEvent event) {
         ArmorHiderClient.init();
     }
+
 
     private void onClientLogin(ClientPlayerNetworkEvent.LoggingIn event) {
         var listener = Minecraft.getInstance().getConnection();

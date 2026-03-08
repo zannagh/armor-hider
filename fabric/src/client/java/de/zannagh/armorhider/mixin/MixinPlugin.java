@@ -42,7 +42,6 @@ public class MixinPlugin implements IMixinConfigPlugin {
             "hand.ItemRendererMixin",
             "networking.ClientPacketListenerMixin",
             "networking.ClientPlayNetworkHandlerMixin",
-            "KeyBindingMixin",
             "OptionsMixin"
     };
 

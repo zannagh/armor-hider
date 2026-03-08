@@ -1,24 +1,17 @@
 package de.zannagh.armorhider.mixin.client;
 
-import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import de.zannagh.armorhider.config.OpenSettingsKeyMapping;
-import de.zannagh.armorhider.config.ToggleOffKeyMapping;
+import de.zannagh.armorhider.keybinds.OpenSettingsKeyMapping;
+import de.zannagh.armorhider.keybinds.ToggleOffKeyMapping;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Options;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import java.awt.event.KeyEvent;
 import java.util.Arrays;
 
 @Mixin(Options.class)
 public class OptionsMixin {
-
-    @Unique
-    private static final String TOGGLE_KEY_NAME = "Toggle Armor Hider";
-    
     @Mutable
     @Shadow
     @Final
@@ -29,8 +22,8 @@ public class OptionsMixin {
             at = @At("HEAD")
     )
     private void onLoad(CallbackInfo ci){
-        // TODO: Localisation of name
-        if (Arrays.stream(keyMappings).anyMatch(map -> map.getName().equals("Toggle Armor Hider"))) {
+        boolean wereOptionsAddedAlready = Arrays.stream(keyMappings).anyMatch(map -> map.getName().equals(ToggleOffKeyMapping.MAPPING_NAME));
+        if (wereOptionsAddedAlready) {
             return;
         }
         var armorHiderKeyMapping = new ToggleOffKeyMapping();

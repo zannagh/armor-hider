@@ -21,14 +21,12 @@ import java.awt.event.KeyEvent;
 public class ArmorHiderClient {
 
     public static Boolean isCurrentPlayerSinglePlayerHostOrAdmin = false;
-    public static ClientConfigManager CLIENT_CONFIG_MANAGER;
-    public static ScopeProvider SCOPE_PROVIDER;
+    public static ClientConfigManager CLIENT_CONFIG_MANAGER = new ClientConfigManager();
+    public static ScopeProvider SCOPE_PROVIDER = new ScopeProvider();
 
     public static void init() {
         ArmorHider.LOGGER.info("Armor Hider client initializing...");
         ClientCommunicationManager.initClient();
-        CLIENT_CONFIG_MANAGER = new ClientConfigManager();
-        SCOPE_PROVIDER = new ScopeProvider();
     }
     
     public static @NonNull Boolean isClientConnectedToServer() {
