@@ -42,7 +42,7 @@ public abstract class CustomHeadLayerMixin {
     )
     private <S extends LivingEntityRenderState> void interceptHeadLayerRender(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int i, S livingEntityRenderState, float f, float g, CallbackInfo ci) {
         setupContextBasedOnWornHeadType(livingEntityRenderState);
-        if (RenderDecisions.shouldHideEquipment(ArmorHiderClient.SCOPE_PROVIDER)) {
+        if (RenderDecisions.shouldCancelRender(ArmorHiderClient.SCOPE_PROVIDER)) {
             ci.cancel();
             ArmorHiderClient.SCOPE_PROVIDER.exitItemRender();
         }
@@ -128,7 +128,7 @@ public abstract class CustomHeadLayerMixin {
     )
     private <S extends LivingEntityRenderState> void interceptHeadLayerRender(PoseStack poseStack, MultiBufferSource multiBufferSource, int i, S livingEntityRenderState, float f, float g, CallbackInfo ci) {
         setupContextBasedOnWornHeadType(livingEntityRenderState);
-        if (RenderDecisions.shouldHideEquipment(ArmorHiderClient.SCOPE_PROVIDER)) {
+        if (RenderDecisions.shouldCancelRender(ArmorHiderClient.SCOPE_PROVIDER)) {
             ci.cancel();
             ArmorHiderClient.SCOPE_PROVIDER.exitItemRender();
         }
@@ -200,7 +200,7 @@ public abstract class CustomHeadLayerMixin<T extends LivingEntity> {
         if (scope != null) {
             scopes.enterItemRender(scope);
         }
-        if (RenderDecisions.shouldHideEquipment(scopes)) {
+        if (RenderDecisions.shouldCancelRender(scopes)) {
             ci.cancel();
             scopes.exitItemRender();
         }
