@@ -148,12 +148,10 @@ public class OptionElementFactory {
         addElementAsWidget(createSliderWithToggle(slider, toggle, gameOptions, width));
         //?}
         //? if < 1.21.9 && >= 1.21 {
-        // For older versions, fall back to separate rows
         // addElementAsWidget(createSliderWithToggle(slider, toggle, gameOptions, RenderUtilities.getRowWidth(body)));
         //?}
         //? if < 1.21 {
-        /*// In 1.20.x, slider and toggle are added directly to the screen as rows due to missing APIs
-        addSimpleOptionAsWidget(slider);
+        /*addSimpleOptionAsWidget(slider);
         addSimpleOptionAsWidget(toggle);
         *///?}
     }

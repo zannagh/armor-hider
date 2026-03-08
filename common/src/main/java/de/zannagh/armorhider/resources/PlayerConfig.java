@@ -50,19 +50,19 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
 
     @SerializedName(value = "helmetOpacity", alternate = {"helmetTransparency"})
     public ArmorOpacity helmetOpacity;
-    @SerializedName(value = "disableHelmetGlint")
+    @SerializedName(value = "helmetGlint")
     public EnableGlint helmetGlint;
     @SerializedName(value = "chestOpacity", alternate = {"chestTransparency"})
     public ArmorOpacity chestOpacity;
-    @SerializedName(value = "disableChestGlint")
+    @SerializedName(value = "chestGlint")
     public EnableGlint chestGlint;
     @SerializedName(value = "legsOpacity", alternate = {"legsTransparency"})
     public ArmorOpacity legsOpacity;
-    @SerializedName(value = "disableLegsGlint")
+    @SerializedName(value = "legsGlint")
     public EnableGlint legsGlint;
     @SerializedName(value = "bootsOpacity", alternate = {"bootsTransparency"})
     public ArmorOpacity bootsOpacity;
-    @SerializedName(value = "disableBootsGlint")
+    @SerializedName(value = "bootsGlint")
     public EnableGlint bootsGlint;
     @SerializedName(value = "enableCombatDetection")
     public CombatDetection enableCombatDetection;

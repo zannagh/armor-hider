@@ -15,7 +15,7 @@
   "armorhider.options.elytra_affection.tooltip": "When enabled, chestplate opacity also affects elytra (non-armor chest item).",
   "armorhider.options.elytra_affection.tooltip_narration": "When disabled, chestplate opacity also affects elytra (non-armor chest item).",
   "armorhider.options.disable_chest_glint.title": "Glint",
-  "armorhider.options.disable_chest_glint.tooltip": "When enabled, the enchantment glint effect on the chestplate is hidden.",
+  "armorhider.options.disable_chest_glint.tooltip": "When disabled, the enchantment glint effect on the chestplate is hidden.",
   "armorhider.options.leggings.button_text": "Leggings: %s",
   "armorhider.options.leggings.tooltip": "Adjusts the legs opacity for your model between 0 (transparent) and 100% (visible).",
   "armorhider.options.leggings.tooltip_narration": "Adjusts the legs opacity for your model between 0 (transparent) and 100% (visible).",
