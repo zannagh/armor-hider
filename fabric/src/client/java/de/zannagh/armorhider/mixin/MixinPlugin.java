@@ -41,7 +41,8 @@ public class MixinPlugin implements IMixinConfigPlugin {
             "bodyKneesAndToes.EquipmentRenderColorMixin",
             "hand.ItemRendererMixin",
             "networking.ClientPacketListenerMixin",
-            "networking.ClientPlayNetworkHandlerMixin"
+            "networking.ClientPlayNetworkHandlerMixin",
+            "OptionsMixin"
     };
 
     @Override

@@ -43,5 +43,7 @@
   "armorhider.options.disable_local.tooltip_narration": "Enable or disable usage of Armor Hider globally. If the server is forcing Armor Hider off, this setting is ignored as armor will be shown in any case.",
   "armorhider.options.disable_others.title": "Disable Armor Hider for other players",
   "armorhider.options.disable_others.tooltip": "Disable usage of Armor Hider for other player's armors. If the server is forcing Armor Hider off or the global disable is set, this setting is ignored as armor will be shown in any case.",
-  "armorhider.options.disable_others.tooltip_narration": "Disable usage of Armor Hider for other player's armors. If the server is forcing Armor Hider off or the global disable is set, this setting is ignored as armor will be shown in any case."
+  "armorhider.options.disable_others.tooltip_narration": "Disable usage of Armor Hider for other player's armors. If the server is forcing Armor Hider off or the global disable is set, this setting is ignored as armor will be shown in any case.",
+  "key.armorhider.toggle_keybind": "Armor Hider - Toggle",
+  "key.armorhider.open_settings": "Armor Hider - Settings"
 }

@@ -43,5 +43,7 @@
   "armorhider.options.disable_local.tooltip_narration": "Active ou désactive l'utilisation d'Armor Hider globalement. Si le serveur force la désactivation d'Armor Hider, ce paramètre est ignoré car l'armure sera affichée dans tous les cas.",
   "armorhider.options.disable_others.title": "Désactiver Armor Hider pour les autres joueurs",
   "armorhider.options.disable_others.tooltip": "Désactive l'utilisation d'Armor Hider pour les armures des autres joueurs. Si le serveur force la désactivation d'Armor Hider ou si la désactivation globale est définie, ce paramètre est ignoré car l'armure sera affichée dans tous les cas.",
-  "armorhider.options.disable_others.tooltip_narration": "Désactive l'utilisation d'Armor Hider pour les armures des autres joueurs. Si le serveur force la désactivation d'Armor Hider ou si la désactivation globale est définie, ce paramètre est ignoré car l'armure sera affichée dans tous les cas."
+  "armorhider.options.disable_others.tooltip_narration": "Désactive l'utilisation d'Armor Hider pour les armures des autres joueurs. Si le serveur force la désactivation d'Armor Hider ou si la désactivation globale est définie, ce paramètre est ignoré car l'armure sera affichée dans tous les cas.",
+  "key.armorhider.toggle_keybind": "Armor Hider - Activer/Désactiver",
+  "key.armorhider.open_settings": "Armor Hider - Ouvrir les Paramètres"
 }

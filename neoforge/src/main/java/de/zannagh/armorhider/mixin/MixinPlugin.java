@@ -42,6 +42,7 @@ public class MixinPlugin implements IMixinConfigPlugin {
             // Guarded by //? if < 1.21.9 in source
             "hand.ModelPartMixin",
             "bodyKneesAndToes.NeoForgeArmorColorMixin",
+            "OptionsMixin"
     };
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
