@@ -51,9 +51,11 @@ public class PlayerConfigFileProvider implements ConfigurationProvider<PlayerCon
                 save(defaults);
                 return defaults;
             }
-        } catch (IOException e) {
-            ArmorHider.LOGGER.error("Failed to load client config!", e);
-            return getDefault();
+        } catch (Exception e) {
+            ArmorHider.LOGGER.error("Failed to load client config, replacing with defaults!", e);
+            var defaults = getDefault();
+            save(defaults);
+            return defaults;
         }
     }
 
