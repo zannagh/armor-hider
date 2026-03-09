@@ -3,36 +3,21 @@ package de.zannagh.armorhider.combat;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.common.services.CombatManager;
 import net.minecraft.client.player.AbstractClientPlayer;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.player.RemotePlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.player.Player;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
 import java.util.function.Function;
 
 public final class ClientCombatManager {
-    public static void handleCombat(Function<Player, Boolean> shouldLogCombat, DamageSource damageSource, Player entity) {
-        if (entity instanceof LocalPlayer player) {
-            if (shouldLogCombat.apply(player)) {
-                CombatManager.logCombat(player.getDisplayName().getString());
-            }
-        }
-        else if (entity instanceof AbstractClientPlayer otherPlayer) {
-            if (shouldLogCombat.apply(otherPlayer)) {
-                CombatManager.logCombat(otherPlayer.getDisplayName().getString());
-            }
+    public static void handleCombat(Function<Player, Boolean> shouldLogCombat, DamageSource damageSource, @Nullable Player victim) {
+        if (victim != null && shouldLogCombat.apply(victim)) {
+            CombatManager.logCombat(victim.getDisplayName().getString());
         }
 
-        if (damageSource.getEntity() instanceof LocalPlayer player) {
-            if (shouldLogCombat.apply(player)) {
-                CombatManager.logCombat(Objects.requireNonNull(player.getDisplayName()).getString());
-            }
-        }
-        else if (damageSource.getEntity() instanceof AbstractClientPlayer otherPlayer) {
-            if (shouldLogCombat.apply(otherPlayer)) {
-                CombatManager.logCombat(Objects.requireNonNull(otherPlayer.getDisplayName()).getString());
-            }
+        if (damageSource.getEntity() instanceof AbstractClientPlayer attacker && shouldLogCombat.apply(attacker)) {
+            CombatManager.logCombat(attacker.getDisplayName().getString());
         }
     }
 
