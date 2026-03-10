@@ -16,6 +16,7 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 final class NeoForgePayloadHandler {
 
     static void registerAll(PayloadRegistrar registrar) {
+        registrar = registrar.optional();
         for (var entry : PayloadRegistry.getAllC2S().values()) {
             registerC2S(registrar, entry);
         }
