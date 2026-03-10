@@ -31,6 +31,10 @@ A mod to alter the transparency or fully hide armor and equipment with multiplay
 
 I track issues (including feature requests) via GitHub and do my best to close out any bugs timely (plus, I get way too excited about new features myself..). If you don't have an account, feel free to join the Discord server and let me know there.
 
+If you like my work and would like to support me, you can do so here:
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/K3K41VR5H1)
+
 ---
 
 ## Customizability
