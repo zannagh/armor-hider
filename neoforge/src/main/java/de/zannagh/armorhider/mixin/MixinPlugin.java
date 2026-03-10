@@ -1,6 +1,8 @@
 package de.zannagh.armorhider.mixin;
 
 import de.zannagh.armorhider.util.MixinUtil;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.loading.FMLEnvironment;
 import org.objectweb.asm.tree.ClassNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
@@ -46,6 +48,7 @@ public class MixinPlugin implements IMixinConfigPlugin {
     };
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
+        
         return true;
     }
 
@@ -55,12 +58,18 @@ public class MixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public List<String> getMixins() {
+        //? if >= 1.21.9 {
+        if (FMLEnvironment.getDist() == Dist.DEDICATED_SERVER) return List.of();
+        //?} else {
+        /*if (FMLEnvironment.dist == Dist.DEDICATED_SERVER) return List.of();*/
+        //?}
         var mixinsToAdd = new ArrayList<>(List.of(MIXINS));
         return MixinUtil.getMixinClassesWherePresent(PACKAGE, mixinsToAdd);
     }
 
     @Override
     public void preApply(String targetClassName, ClassNode targetClass, String mixinClassName, IMixinInfo mixinInfo) {
+        
     }
 
     @Override
