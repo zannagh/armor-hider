@@ -29,11 +29,13 @@ public class LivingEntityRendererMixin {
     )
     private void capturePlayerIdentity(LivingEntity entity, LivingEntityRenderState state, float partialTick, CallbackInfo ci) {
         if (entity instanceof Player player) {
-            String name = player.getDisplayName().getString();
+            String name = player.getDisplayName() != null ? player.getDisplayName().getString() : null;
             if (name != null && !name.isEmpty()) {
                 EntityIdentityResolver.setIdentityHint(
                         new EntityIdentityResolver.Identity(name, true)
                 );
+            } else {
+                EntityIdentityResolver.clearIdentityHint();
             }
         } else {
             EntityIdentityResolver.clearIdentityHint();
