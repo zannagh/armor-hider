@@ -24,6 +24,22 @@ public final class EntityIdentityResolver {
 
     private EntityIdentityResolver() {}
 
+    /**
+     * Identity hint captured from the entity during {@code extractRenderState},
+     * where we still have access to the actual {@link net.minecraft.world.entity.player.Player}
+     * entity. Used as a reliable fallback when {@code nameTag} is null (which happens
+     * for sneaking players, invisible players, hidden nametags, etc. — not just the local player).
+     */
+    private static final ThreadLocal<Identity> identityHint = new ThreadLocal<>();
+
+    public static void setIdentityHint(Identity hint) {
+        identityHint.set(hint);
+    }
+
+    public static void clearIdentityHint() {
+        identityHint.remove();
+    }
+
     public record Identity(@Nullable String playerName, boolean isPlayer) {}
 
     //? if >= 1.21.9 {
@@ -32,11 +48,19 @@ public final class EntityIdentityResolver {
         boolean isPlayer = renderState instanceof AvatarRenderState;
         if (!isPlayer) return new Identity(null, false);
 
-        boolean isLocalPlayer = renderState.nameTag == null;
-        String name = isLocalPlayer
-                ? ArmorHiderClient.getCurrentPlayerName()
-                : renderState.nameTag.getString();
-        return new Identity(name, true);
+        if (renderState.nameTag != null) {
+            return new Identity(renderState.nameTag.getString(), true);
+        }
+
+        // nameTag is null — use the identity hint captured from extractRenderState
+        // where we had access to the actual Player entity
+        Identity hint = identityHint.get();
+        if (hint != null) {
+            return hint;
+        }
+
+        // No hint available — can't reliably identify this player
+        return new Identity(null, true);
     }
     //?}
 
@@ -46,11 +70,19 @@ public final class EntityIdentityResolver {
         boolean isPlayer = renderState instanceof PlayerRenderState;
         if (!isPlayer) return new Identity(null, false);
 
-        boolean isLocalPlayer = renderState.nameTag == null;
-        String name = isLocalPlayer
-                ? ArmorHiderClient.getCurrentPlayerName()
-                : renderState.nameTag.getString();
-        return new Identity(name, true);
+        if (renderState.nameTag != null) {
+            return new Identity(renderState.nameTag.getString(), true);
+        }
+
+        // nameTag is null — use the identity hint captured from extractRenderState
+        // where we had access to the actual Player entity
+        Identity hint = identityHint.get();
+        if (hint != null) {
+            return hint;
+        }
+
+        // No hint available — can't reliably identify this player
+        return new Identity(null, true);
     }
     *///?}
 

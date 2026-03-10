@@ -12,13 +12,10 @@ import net.minecraft.world.entity.EquipmentSlot;
 /**
  * Central manager for the rendering scope hierarchy.
  * All mixin interaction goes through this class.
- *
  * Scope hierarchy invariant:
  *   RenderFrameScope > LevelRenderScope > EntityRenderScope > ItemRenderScope
- *
  * Entering a higher-level scope automatically clears all deeper scopes
  * (safety net for leaked contexts).
- *
  * Thread safety: each ThreadLocal is independent per-thread.
  */
 public final class ScopeProvider {
@@ -104,6 +101,7 @@ public final class ScopeProvider {
     public void exitEntityRender() {
         itemRenderScope.remove();
         entityRenderScope.remove();
+        EntityIdentityResolver.clearIdentityHint();
     }
 
     public boolean isInEntityRender() {
