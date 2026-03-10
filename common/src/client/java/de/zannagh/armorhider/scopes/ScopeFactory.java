@@ -100,7 +100,7 @@ public final class ScopeFactory {
             @Nullable ItemStack itemStack,
             @NotNull EquipmentSlot slot) {
 
-        if (entityScope == null || entityScope.resolvedPlayerName() == null) {
+        if (entityScope == null || !entityScope.isPlayerEntity()) {
             return null;
         }
 

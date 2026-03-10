@@ -9,7 +9,6 @@ import de.zannagh.armorhider.resources.ServerConfiguration;
 import de.zannagh.armorhider.resources.ServerWideSettings;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
@@ -128,9 +127,18 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
         serverConfiguration = serverConfig;
     }
 
-    public PlayerConfig getConfigForPlayer(@NotNull String playerName) {
-        if (playerName.equals(ArmorHiderClient.getCurrentPlayerName())) {
+    public PlayerConfig getConfigForPlayer(@Nullable String playerName) {
+        if (playerName != null && playerName.equals(ArmorHiderClient.getCurrentPlayerName())) {
             return CURRENT;
+        }
+
+        // Null name means the player couldn't be identified (e.g. hidden nametag
+        // with no identity hint) — treat as undeterminable
+        if (playerName == null) {
+            if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().usePlayerSettingsWhenUndeterminable.getValue()) {
+                return ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().deepCopy(DEFAULT_PLAYER_NAME, DEFAULT_PLAYER_ID);
+            }
+            return PlayerConfig.defaults(DEFAULT_PLAYER_ID, DEFAULT_PLAYER_NAME);
         }
 
         if (serverConfiguration == null) {
@@ -145,7 +153,6 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
         if (config != null) {
             return config;
         }
-        
 
         var isRemotePlayer = ArmorHiderClient.isPlayerRemotePlayer(playerName);
 
