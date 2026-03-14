@@ -4,7 +4,7 @@ import org.jetbrains.annotations.Nullable;
 //? if >= 1.21.4
 
 //? if < 1.21.4
-import net.minecraft.world.entity.LivingEntity;
+//import net.minecraft.world.entity.LivingEntity;
 
 /**
  * Represents the scope of rendering a single entity.

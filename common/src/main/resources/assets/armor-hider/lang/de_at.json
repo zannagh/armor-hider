@@ -57,5 +57,5 @@
   "armorhider.options.debug.title": "Debug",
   "armorhider.options.debug.enable": "Debug Logging aktivieren (5 min)",
   "armorhider.options.debug.enabled": "Debug: %s verbleibend (Klicken zum Anhalten)",
-  "armorhider.options.debug.tooltip": "Aktivierted detailliertes debug logging für 5 Minuten, um Renderfehler besser diagnostizieren zu können. Diese Log-Mitteilungen sind im Spiel-Log mit '[ArmorHider DEBUG]' gekennzeichnet."
+  "armorhider.options.debug.tooltip": "Aktiviert detailliertes debug logging für 5 Minuten, um Renderfehler besser diagnostizieren zu können. Diese Log-Mitteilungen sind im Spiel-Log mit '[ArmorHider DEBUG]' gekennzeichnet."
 }
