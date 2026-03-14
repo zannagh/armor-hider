@@ -1,6 +1,7 @@
 package de.zannagh.armorhider.rendering;
 
 import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.debug.DebugTracer;
 import de.zannagh.armorhider.resources.ArmorModificationInfo;
 import de.zannagh.armorhider.scopes.ScopeProvider;
 import de.zannagh.armorhider.util.ItemsUtil;
@@ -30,7 +31,12 @@ public final class RenderDecisions {
             return false;
         }
 
-        return shouldModifyEquipment(scopes) && itemScope.shouldHide();
+        boolean result = shouldModifyEquipment(scopes) && itemScope.shouldHide();
+        DebugTracer.renderDecisionShouldCancel(
+                itemScope.slot(),
+                entityScope.resolvedPlayerName(),
+                result);
+        return result;
     }
 
     /**
@@ -52,22 +58,31 @@ public final class RenderDecisions {
 
         if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableArmorHiderForOthers.getValue()
                 && modification.isConfigForRemotePlayer(ArmorHiderClient.getCurrentPlayerName())) {
+            DebugTracer.renderDecisionShouldModify(modification.equipmentSlot(),
+                    modification.playerConfig().playerName.getValue(), false, "disabledForOthers");
             return false;
         }
 
         if (modification.equipmentSlot() == EquipmentSlot.HEAD
                 && ItemsUtil.isSkullBlockItem(itemScope.itemStack().getItem())
                 && !modification.playerConfig().opacityAffectingHatOrSkull.getValue()) {
+            DebugTracer.renderDecisionShouldModify(EquipmentSlot.HEAD,
+                    modification.playerConfig().playerName.getValue(), false, "skullNotAffected");
             return false;
         }
 
         if (modification.equipmentSlot() == EquipmentSlot.CHEST
                 && ItemsUtil.itemStackContainsElytra(itemScope.itemStack())
                 && !modification.playerConfig().opacityAffectingElytra.getValue()) {
+            DebugTracer.renderDecisionShouldModify(EquipmentSlot.CHEST,
+                    modification.playerConfig().playerName.getValue(), false, "elytraNotAffected");
             return false;
         }
 
-        return modification.shouldModify();
+        boolean result = modification.shouldModify();
+        DebugTracer.renderDecisionShouldModify(modification.equipmentSlot(),
+                modification.playerConfig().playerName.getValue(), result, result ? "opacityOrGlint" : "noModification");
+        return result;
     }
 
     /**

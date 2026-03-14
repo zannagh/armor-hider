@@ -53,5 +53,9 @@
   "armorhider.options.disable_others.tooltip": "Désactive l'utilisation d'Armor Hider pour les armures des autres joueurs. Si le serveur force la désactivation d'Armor Hider ou si la désactivation globale est définie, ce paramètre est ignoré car l'armure sera affichée dans tous les cas.",
   "armorhider.options.disable_others.tooltip_narration": "Désactive l'utilisation d'Armor Hider pour les armures des autres joueurs. Si le serveur force la désactivation d'Armor Hider ou si la désactivation globale est définie, ce paramètre est ignoré car l'armure sera affichée dans tous les cas.",
   "key.armorhider.toggle_keybind": "Armor Hider - Activer/Désactiver",
-  "key.armorhider.open_settings": "Armor Hider - Ouvrir les Paramètres"
+  "key.armorhider.open_settings": "Armor Hider - Ouvrir les Paramètres",
+  "armorhider.options.debug.title": "Débogage",
+  "armorhider.options.debug.enable": "Activer le journal de débogage (5 min)",
+  "armorhider.options.debug.enabled": "Débogage : %s restant (cliquer pour arrêter)",
+  "armorhider.options.debug.tooltip": "Active la journalisation détaillée pendant 5 minutes pour aider à diagnostiquer les problèmes de rendu. Les messages sont préfixés par [ArmorHider DEBUG] dans le journal du jeu."
 }

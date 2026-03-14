@@ -4,7 +4,7 @@ import net.minecraft.client.Minecraft;
 //? if > 1.20.1
 import net.minecraft.client.gui.screens.options.SkinCustomizationScreen;
 //? if <= 1.20.1
-// import de.zannagh.armorhider.gui.OldArmorHiderOptionsScreen;
+ //import de.zannagh.armorhider.gui.OldArmorHiderOptionsScreen;
 import net.minecraft.network.chat.Component;
 
 import java.awt.event.KeyEvent;
@@ -15,7 +15,7 @@ public class OpenSettingsKeyMapping extends CustomKeyMapping {
         //? if > 1.21.8
         super("key.armorhider.open_settings", KeyEvent.VK_J);
         //? if <= 1.21.8
-        // super("key.armorhider.open_settings", KeyEvent.VK_J);
+         //super("key.armorhider.open_settings", KeyEvent.VK_J);
     }
 
     @Override
@@ -31,11 +31,11 @@ public class OpenSettingsKeyMapping extends CustomKeyMapping {
          */
         //?}
         //? if <= 1.20.1 {
-        /*
-        assert Minecraft.getInstance().screen != null;
+        
+        /*assert Minecraft.getInstance().screen != null;
         Minecraft.getInstance().setScreen(new OldArmorHiderOptionsScreen(Minecraft.getInstance().screen, Minecraft.getInstance().options));
-         */
-        //?}
+         
+        *///?}
     }
 
     @Override

@@ -7,6 +7,7 @@ import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.NarratedTooltipFactory;
 import de.zannagh.armorhider.client.OptionElementFactory;
+import de.zannagh.armorhider.debug.DebugLogger;
 import de.zannagh.armorhider.rendering.PlayerPreviewWidget;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.OptionInstance;
@@ -236,6 +237,15 @@ public class OldArmorHiderOptionsScreen extends OptionsSubScreen {
         );
         optionElementFactory.addSimpleOptionAsWidget(enableCombatDetection);
 
+        OptionInstance<Boolean> enableDebugLogging = optionElementFactory.buildBooleanOption(
+            Component.translatable("armorhider.options.debug.enable"),
+            Component.translatable("armorhider.options.debug.tooltip"),
+            Component.translatable("armorhider.options.debug.tooltip"),
+            DebugLogger.isEnabled(),
+            this::toggleDebugLogging
+        );
+        optionElementFactory.addSimpleOptionAsWidget(enableDebugLogging);
+
         Component advancedKey = Component.translatable("armorhider.options.regular.title");
         String advancedKeyString;
         if (advancedKey.getContents() instanceof net.minecraft.network.chat.contents.TranslatableContents translatableContents) {
@@ -345,6 +355,14 @@ public class OldArmorHiderOptionsScreen extends OptionsSubScreen {
     private void setServerCombatDetection(boolean enabled) {
         newServerCombatDetection = enabled;
         serverSettingsChanged = true;
+    }
+
+    private void toggleDebugLogging(boolean enabled) {
+        if (enabled) {
+            DebugLogger.enable();
+        } else {
+            DebugLogger.disable();
+        }
     }
 }
 *///?}

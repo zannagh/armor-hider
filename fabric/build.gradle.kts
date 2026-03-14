@@ -24,6 +24,7 @@ configure<net.fabricmc.loom.api.LoomGradleExtensionAPI> {
     // Shared run directory for all versions
     runConfigs.configureEach {
         runDir = "run"
+        ideConfigGenerated(true)
         if (project.isDeobf) {
             vmArg("-Dfabric.gameVersion=${fabricVersion}")
         }

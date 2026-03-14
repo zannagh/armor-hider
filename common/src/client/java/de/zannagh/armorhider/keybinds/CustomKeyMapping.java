@@ -8,7 +8,7 @@ public abstract class CustomKeyMapping extends KeyMapping {
         //? if > 1.21.8
         super(name, preferredKey, Category.MISC);
         //? if <= 1.21.8
-        // super(name, preferredKey, "key.categories.misc");
+         //super(name, preferredKey, "key.categories.misc");
     }
     
     

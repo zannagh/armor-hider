@@ -53,5 +53,9 @@
   "armorhider.options.disable_others.tooltip": "Disable usage of Armor Hider for other player's armors. If the server is forcing Armor Hider off or the global disable is set, this setting is ignored as armor will be shown in any case.",
   "armorhider.options.disable_others.tooltip_narration": "Disable usage of Armor Hider for other player's armors. If the server is forcing Armor Hider off or the global disable is set, this setting is ignored as armor will be shown in any case.",
   "key.armorhider.toggle_keybind": "Armor Hider - Toggle",
-  "key.armorhider.open_settings": "Armor Hider - Settings"
+  "key.armorhider.open_settings": "Armor Hider - Settings",
+  "armorhider.options.debug.title": "Debug",
+  "armorhider.options.debug.enable": "Enable Debug Logging (5 min)",
+  "armorhider.options.debug.enabled": "Debug: %s remaining (click to stop)",
+  "armorhider.options.debug.tooltip": "Enables detailed debug logging for 5 minutes to help diagnose rendering issues. Log messages are prefixed with [ArmorHider DEBUG] in the game log."
 }

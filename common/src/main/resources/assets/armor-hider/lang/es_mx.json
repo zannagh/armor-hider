@@ -53,5 +53,9 @@
   "armorhider.options.disable_others.tooltip": "Desactiva el uso de Armor Hider para las armaduras de otros jugadores. Si el servidor está forzando Armor Hider a desactivado o la desactivación global está configurada, esta configuración se ignora ya que la armadura se mostrará en cualquier caso.",
   "armorhider.options.disable_others.tooltip_narration": "Desactiva el uso de Armor Hider para las armaduras de otros jugadores. Si el servidor está forzando Armor Hider a desactivado o la desactivación global está configurada, esta configuración se ignora ya que la armadura se mostrará en cualquier caso.",
   "key.armorhider.toggle_keybind": "Armor Hider - Activar/Desactivar",
-  "key.armorhider.open_settings": "Armor Hider - Abrir Configuración"
+  "key.armorhider.open_settings": "Armor Hider - Abrir Configuración",
+  "armorhider.options.debug.title": "Depuración",
+  "armorhider.options.debug.enable": "Activar registro de depuración (5 min)",
+  "armorhider.options.debug.enabled": "Depuración: %s restante (clic para detener)",
+  "armorhider.options.debug.tooltip": "Activa el registro detallado de depuración durante 5 minutos para ayudar a diagnosticar problemas de renderizado. Los mensajes se prefijan con [ArmorHider DEBUG] en el registro del juego."
 }

@@ -3,6 +3,7 @@ package de.zannagh.armorhider.gui;
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.OptionElementFactory;
+import de.zannagh.armorhider.debug.DebugLogger;
 import de.zannagh.armorhider.rendering.RenderUtilities;
 import net.minecraft.client.OptionInstance;
 import net.minecraft.client.Options;
@@ -41,6 +42,8 @@ public class AdvancedArmorHiderSettingsScreen extends OptionsSubScreen {
     private OptionInstance<Boolean> forceOffOption;
     
     private OptionInstance<Boolean> combatDetectionServerOption;
+
+    private Button debugButton;
 
     //? if < 1.21
     //protected OptionsList list;
@@ -229,6 +232,27 @@ public class AdvancedArmorHiderSettingsScreen extends OptionsSubScreen {
         optionElementFactory.addSimpleOptionAsWidget(settingsToUse);
         optionElementFactory.addSimpleOptionAsWidget(globalToggle);
         optionElementFactory.addSimpleOptionAsWidget(otherToggle);
+
+        //? if >= 1.21.9
+        var debugCategory = new MultiLineTextWidget(RenderUtilities.getRowWidth(list), 20, Component.translatable("armorhider.options.debug.title"), this.getFont());
+        //? if < 1.21.9
+        //var debugCategory = new MultiLineTextWidget(RenderUtilities.getRowWidth(list), 20, Component.translatable("armorhider.options.debug.title"), net.minecraft.client.Minecraft.getInstance().font);
+        optionElementFactory.addElementAsWidget(debugCategory);
+
+        debugButton = Button.builder(
+                getDebugButtonText(),
+                btn -> {
+                    if (DebugLogger.isEnabled()) {
+                        DebugLogger.disable();
+                    } else {
+                        DebugLogger.enable();
+                    }
+                    btn.setMessage(getDebugButtonText());
+                })
+                .tooltip(Tooltip.create(Component.translatable("armorhider.options.debug.tooltip")))
+                .width(RenderUtilities.getRowWidth(list))
+                .build();
+        optionElementFactory.addElementAsWidget(debugButton);
     }
 
     @Override
@@ -285,5 +309,26 @@ public class AdvancedArmorHiderSettingsScreen extends OptionsSubScreen {
     private void setDisableLocal(boolean enabled) {
         setDisableLocal = enabled;
         localSettingsChanged = true;
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        if (debugButton != null) {
+            debugButton.setMessage(getDebugButtonText());
+        }
+    }
+
+    private static Component getDebugButtonText() {
+        if (DebugLogger.isEnabled()) {
+            long secs = DebugLogger.remainingSeconds();
+            long mins = secs / 60;
+            long remainSecs = secs % 60;
+            String timeStr = mins > 0
+                    ? String.format("%dm %02ds", mins, remainSecs)
+                    : String.format("%ds", remainSecs);
+            return Component.translatable("armorhider.options.debug.enabled", timeStr);
+        }
+        return Component.translatable("armorhider.options.debug.enable");
     }
 }

@@ -2,6 +2,7 @@ package de.zannagh.armorhider.scopes;
 
 import com.mojang.authlib.GameProfile;
 import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.debug.DebugTracer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 //? if >= 1.21.4
@@ -34,10 +35,12 @@ public final class EntityIdentityResolver {
 
     public static void setIdentityHint(Identity hint) {
         identityHint.set(hint);
+        DebugTracer.identityHintSet(hint.playerName());
     }
 
     public static void clearIdentityHint() {
         identityHint.remove();
+        DebugTracer.identityHintCleared();
     }
 
     public record Identity(@Nullable String playerName, boolean isPlayer) {}
@@ -49,17 +52,18 @@ public final class EntityIdentityResolver {
         if (!isPlayer) return new Identity(null, false);
 
         if (renderState.nameTag != null) {
-            return new Identity(renderState.nameTag.getString(), true);
+            var result = new Identity(renderState.nameTag.getString(), true);
+            DebugTracer.identityResolved("nameTag", result.playerName(), true);
+            return result;
         }
 
-        // nameTag is null — use the identity hint captured from extractRenderState
-        // where we had access to the actual Player entity
         Identity hint = identityHint.get();
         if (hint != null) {
+            DebugTracer.identityResolved("hint", hint.playerName(), hint.isPlayer());
             return hint;
         }
 
-        // No hint available — can't reliably identify this player
+        DebugTracer.identityResolved("fallback-null", null, true);
         return new Identity(null, true);
     }
     //?}
@@ -71,17 +75,18 @@ public final class EntityIdentityResolver {
         if (!isPlayer) return new Identity(null, false);
 
         if (renderState.nameTag != null) {
-            return new Identity(renderState.nameTag.getString(), true);
+            var result = new Identity(renderState.nameTag.getString(), true);
+            DebugTracer.identityResolved("nameTag", result.playerName(), true);
+            return result;
         }
 
-        // nameTag is null — use the identity hint captured from extractRenderState
-        // where we had access to the actual Player entity
         Identity hint = identityHint.get();
         if (hint != null) {
+            DebugTracer.identityResolved("hint", hint.playerName(), hint.isPlayer());
             return hint;
         }
 
-        // No hint available — can't reliably identify this player
+        DebugTracer.identityResolved("fallback-null", null, true);
         return new Identity(null, true);
     }
     *///?}
@@ -93,6 +98,7 @@ public final class EntityIdentityResolver {
         if (!isPlayer) return new Identity(null, false);
 
         String name = ((Player) entity).getName().getString();
+        DebugTracer.identityResolved("entity-direct", name, true);
         return new Identity(name, true);
     }
     *///?}

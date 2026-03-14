@@ -53,5 +53,9 @@
   "armorhider.options.disable_others.tooltip": "Deaktiviert die Verwendung von Armor Hider für die Rüstungen anderer Spieler. Wenn der Server Armor Hider erzwingt oder die globale Deaktivierung gesetzt ist, wird diese Einstellung ignoriert, da die Rüstung in jedem Fall angezeigt wird.",
   "armorhider.options.disable_others.tooltip_narration": "Deaktiviert die Verwendung von Armor Hider für die Rüstungen anderer Spieler. Wenn der Server Armor Hider erzwingt oder die globale Deaktivierung gesetzt ist, wird diese Einstellung ignoriert, da die Rüstung in jedem Fall angezeigt wird.",
   "key.armorhider.toggle_keybind": "Armor Hider - aktivieren/deaktivieren",
-  "key.armorhider.open_settings": "Armor Hider - Einstellungen öffnen"
+  "key.armorhider.open_settings": "Armor Hider - Einstellungen öffnen",
+  "armorhider.options.debug.title": "Debug",
+  "armorhider.options.debug.enable": "Debug Logging aktivieren (5 min)",
+  "armorhider.options.debug.enabled": "Debug: %s verbleibend (Klicken zum Anhalten)",
+  "armorhider.options.debug.tooltip": "Aktivierted detailliertes debug logging für 5 Minuten, um Renderfehler besser diagnostizieren zu können. Diese Log-Mitteilungen sind im Spiel-Log mit '[ArmorHider DEBUG]' gekennzeichnet."
 }
