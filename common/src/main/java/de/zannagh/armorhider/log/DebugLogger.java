@@ -49,7 +49,7 @@ public final class DebugLogger {
 
     public static void log(String msg) {
         if (isEnabled()) {
-            LOGGER.info(formatMessage(msg), msg);
+            LOGGER.info(formatMessage(msg));
         }
     }
 

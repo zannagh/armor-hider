@@ -54,7 +54,7 @@ public final class CombatManager {
             if (result >= 1) {
                 result = 1;
             }
-            DebugLogger.log("Combat logger finalized evaluation, returning transparency: " + result);
+            DebugLogger.log("Combat logger finalized evaluation, returning transparency: {}", result);
             return result;
         }
         return transparency;

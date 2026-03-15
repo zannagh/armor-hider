@@ -81,9 +81,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
     
     public PlayerUuid playerId;
     
-    /**
-    The name of the player, derived from the display name.
-     */
+    /** The name of the player, derived from the display name. */
     public PlayerName playerName;
     
     private transient boolean hasChangedFromSerializedContent;
