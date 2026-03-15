@@ -12,12 +12,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 //?}
 import org.jspecify.annotations.NonNull;
 
-//? if >= 1.21.11 {
 import net.minecraft.resources.Identifier;
- //?}
-//? if >= 1.20.5 && < 1.21.11 {
-/*import net.minecraft.resources.ResourceLocation;
-*///?}
 
 public class ServerWideSettings implements ConfigurationSource<ServerWideSettings> {
 

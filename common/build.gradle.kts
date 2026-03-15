@@ -9,6 +9,13 @@ val sc = project.stonecutterBuild
 stonecutter {
     constants["fabric"] = sc.current.project.contains("fabric")
     constants["neoforge"] = sc.current.project.contains("neoforge")
+
+    replacements.string(current.parsed >= "1.21.11") {
+        replace("ResourceLocation", "Identifier")
+    }
+    replacements.string(false) {
+        replace("packet.getIdentifier()", "packet.getResourceLocation()")
+    }
 }
 
 configure<net.fabricmc.loom.api.LoomGradleExtensionAPI> {

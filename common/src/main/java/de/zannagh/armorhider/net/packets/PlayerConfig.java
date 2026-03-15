@@ -78,9 +78,14 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
     public UsePlayerSettingsWhenUndeterminable usePlayerSettingsWhenUndeterminable;
     @SerializedName(value = "offHandOpacity")
     public OffHandOpacity offHandOpacity;
+    
     public PlayerUuid playerId;
+    
+    /** The name of the player, derived from the display name. */
     public PlayerName playerName;
+    
     private transient boolean hasChangedFromSerializedContent;
+    
     public PlayerConfig(UUID uuid, String name) {
         this();
         this.playerId = new PlayerUuid(uuid);

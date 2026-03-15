@@ -7,6 +7,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 //? if < 1.20.5 {
 /*import de.zannagh.armorhider.net.CompressedJsonCodec;
 import de.zannagh.armorhider.net.packets.PermissionPacket;
+import de.zannagh.armorhider.net.packets.CombatLogNotificationPacket;
 import de.zannagh.armorhider.server.ServerConfiguration;
 import io.netty.buffer.Unpooled;
 import net.minecraft.network.FriendlyByteBuf;
@@ -41,6 +42,13 @@ public final class PacketSender {
         ResourceLocation channel = LegacyPacketHandler.getPermissionChannel();
         FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
         CompressedJsonCodec.encodeLegacy(permissions, buf);
+        player.connection.send(new ClientboundCustomPayloadPacket(channel, buf));
+    }
+    
+    public static void sendToPlayer(ServerPlayer player, CombatLogNotificationPacket combatLogNotification) {
+        ResourceLocation channel = LegacyPacketHandler.getCombatLogNotificationChannel();
+        FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
+        CompressedJsonCodec.encodeLegacy(combatLogNotification, buf);
         player.connection.send(new ClientboundCustomPayloadPacket(channel, buf));
     }
     *///?}

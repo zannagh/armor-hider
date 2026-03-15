@@ -2,48 +2,35 @@
 package de.zannagh.armorhider.net;
 
 import de.zannagh.armorhider.ArmorHider;
-import de.zannagh.armorhider.net.packets.PermissionPacket;
-import de.zannagh.armorhider.net.packets.PlayerConfig;
-import de.zannagh.armorhider.net.packets.ServerWideSettings;
+import de.zannagh.armorhider.net.packets.*;
 import de.zannagh.armorhider.server.ServerConfiguration;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.Identifier;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
-//? if >= 1.21.11 {
-import net.minecraft.resources.Identifier;
- //?}
-//? if >= 1.20.5 && < 1.21.11 {
-/*import net.minecraft.resources.ResourceLocation;
-*///?}
+
 
 public final class PayloadRegistry {
 
-    //? if >= 1.21.11 {
     private static final Map<Identifier, PayloadEntry<?>> C2S_PAYLOADS = new HashMap<>();
     private static final Map<Identifier, PayloadEntry<?>> S2C_PAYLOADS = new HashMap<>();
 
     private static final Map<Identifier, Consumer<PayloadHandlerContext<?>>> C2S_HANDLERS = new HashMap<>();
     private static final Map<Identifier, Consumer<PayloadHandlerContext<?>>> S2C_HANDLERS = new HashMap<>();
-    //?}
-    //? if >= 1.20.5 && < 1.21.11 {
-    /*private static final Map<ResourceLocation, PayloadEntry<?>> C2S_PAYLOADS = new HashMap<>();
-    private static final Map<ResourceLocation, PayloadEntry<?>> S2C_PAYLOADS = new HashMap<>();
-
-    private static final Map<ResourceLocation, Consumer<PayloadHandlerContext<?>>> C2S_HANDLERS = new HashMap<>();
-    private static final Map<ResourceLocation, Consumer<PayloadHandlerContext<?>>> S2C_HANDLERS = new HashMap<>();
-    *///?}
 
     
     static {
         registerC2S(PlayerConfig.TYPE, PlayerConfig.STREAM_CODEC);
         registerC2S(ServerWideSettings.TYPE, ServerWideSettings.STREAM_CODEC);
+        registerC2S(CombatLogEventPacket.TYPE, CombatLogEventPacket.STREAM_CODEC);
         registerS2C(ServerConfiguration.TYPE, ServerConfiguration.STREAM_CODEC);
         registerS2C(PermissionPacket.TYPE, PermissionPacket.STREAM_CODEC);
+        registerS2C(CombatLogNotificationPacket.TYPE, CombatLogNotificationPacket.STREAM_CODEC);
     }
 
     public static void init() {
@@ -84,7 +71,6 @@ public final class PayloadRegistry {
         S2C_HANDLERS.put(type.id(), (Consumer<PayloadHandlerContext<?>>) (Consumer<?>) handler);
     }
 
-    //? if >= 1.21.11 {
     public static Consumer<PayloadHandlerContext<?>> getC2SHandler(Identifier id) {
         return C2S_HANDLERS.get(id);
     }
@@ -100,26 +86,6 @@ public final class PayloadRegistry {
     public static Map<Identifier, PayloadEntry<?>> getAllS2C() {
         return S2C_PAYLOADS;
     }
-    //?}
-
-    //? if >= 1.20.5 && < 1.21.11 {
-    /*public static Consumer<PayloadHandlerContext<?>> getC2SHandler(ResourceLocation id) {
-        return C2S_HANDLERS.get(id);
-    }
-
-    public static Consumer<PayloadHandlerContext<?>> getS2CHandler(ResourceLocation id) {
-        return S2C_HANDLERS.get(id);
-    }
-
-    public static Map<ResourceLocation, PayloadEntry<?>> getAllC2S() {
-        return C2S_PAYLOADS;
-    }
-
-    public static Map<ResourceLocation, PayloadEntry<?>> getAllS2C() {
-        return S2C_PAYLOADS;
-    }
-    *///?}
-    
 
     public record PayloadEntry<T extends CustomPacketPayload>(
             CustomPacketPayload.Type<T> type,
