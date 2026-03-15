@@ -17,7 +17,7 @@ A mod to alter the transparency or fully hide armor and equipment with multiplay
 ### Features
 - **Per-slot opacity sliders** for helmet, chestplate, leggings, boots and offhand
 - **Enchantment glint control** to selectively hide the glint on any slot
-- **Combat detection** let you automatically show armor when in combat
+- **Combat detection** lets you automatically show armor when in combat - with full synchronization in multiplayer
 - **Full multiplayer sync** so other players see your settings when the server has the mod
 - **Works client-side only** too without  server mod required
 - **Live in-game preview** of your changes
@@ -44,7 +44,7 @@ If you like my work and would like to support me, you can do so here:
 Find Armor Hider's settings integrated into the game via "Skin Customization" in the game settings (or via 'Zannagh's Armor Hider' on older game versions). When in-game, the mod settings feature a live preview of your changes.
 
 <p align="center">
-<img width="960" height="540" alt="Armor Hider Ingame Settings" src="https://github.com/user-attachments/assets/a8d15a03-bfd8-4fb1-a166-6d6118e523e2" />
+<img alt="Armor Hider Ingame Settings" src="https://github.com/user-attachments/assets/a8d15a03-bfd8-4fb1-a166-6d6118e523e2" />
 </p>
 
 ### Armor Opacity
@@ -58,11 +58,13 @@ Armor Hider additionally offers to hide the offhand slot if you don't want your 
 ## Synchronization
 If the mod is installed on the server you're joining, all of your local preferences will get sent to the server on change or join. The server-side mod then takes care of relaying your preferences to all other clients. That way, if the mod is present on the server, everyone will see your avatar exactly as you've configured it (including combat detection, glint and other features).
 
+Combat events are synchronized and not only client-side, so when the server runs the mod, you'll see another player's armor once they enter combat (granted they have the related setting enabled).
+
 If a host is not yet running the mod, there's a setting available which lets you define whether the then 'unknown' players should have their armor rendering unaffected or carry over your own settings.
 
 ## Advanced Settings
 <p align="center">
-<img width="960" height="540" alt="Armor Hider Advanced Settings" src="https://github.com/user-attachments/assets/eb4cc6d7-50b2-4210-b57c-9d04fcdf15d9" />
+<img alt="Armor Hider Advanced Settings" src="https://github.com/user-attachments/assets/eb4cc6d7-50b2-4210-b57c-9d04fcdf15d9" />
 </p>
 
 * **Apply your settings to unknown players**: Whether to use your own opacity settings or the default settings (armor
@@ -99,12 +101,12 @@ preference library from the server in order to apply other players' preferences 
 
 The following matrix shows how preferences are resolved depending on where the mod is installed:
 
-| Mod on Server | Mod on Client | Behavior |
-|:---:|:---:|---|
-| Yes | Yes | Full functionality. Your preferences are synced to the server and relayed to other players. You see other players' actual configured armor opacity. |
-| Yes | No | No effect. The server stores preferences but the vanilla client cannot render transparency changes. |
-| No | Yes | Client-side only. Other players' preferences cannot be determined. Depending on the **"Apply your settings to unknown players"** setting: **ON** — your own opacity settings are applied to all players; **OFF** — default settings are used (armor rendered normally, as without the mod). |
-| No | No | No effect. The mod is not present. |
+| Mod on Server | Mod on Client | Behavior                                                                                                                                                                                                                                                                                                                                           |
+|:---:|:---:|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Yes | Yes | Full functionality. Your preferences are synced to the server and relayed to other players. You see other players' actual configured armor opacity.                                                                                                                                                                                                |
+| Yes | No | No effect. The server stores preferences but the vanilla client cannot render transparency changes.                                                                                                                                                                                                                                                |
+| No | Yes | Client-side only. Other players' preferences cannot be determined. Depending on the **"Apply your settings to unknown players"** setting: **ON** — your own opacity settings are applied to all players; **OFF** — default settings are used (armor rendered normally, as without the mod). Combat events will not be passed around in the server. |
+| No | No | No effect. The mod is not present.                                                                                                                                                                                                                                                                                                                 |
 
 ## Community
 
