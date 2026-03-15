@@ -6,14 +6,18 @@ import org.gradle.api.tasks.bundling.Jar
 import java.io.Serializable
 
 fun Project.prop(key: String): String? = findProperty(key)?.toString()
+
 val Project.stonecutterBuild: StonecutterBuildExtension
     get() = extensions.getByType(StonecutterBuildExtension::class.java)
 
-/** The loader encoded in the Stonecutter project name, e.g. "fabric" from "fabric-1.21.11". */
-val Project.loader: String get() = stonecutterBuild.current.project.substringBefore("-")
-
-/** The Minecraft version from the Stonecutter project, e.g. "1.21.11" from "fabric-1.21.11". */
-val Project.mcVersion: String get() = stonecutterBuild.current.version.replace("snapshot.", "snapshot-")
+/** The Minecraft version from the Stonecutter project, e.g. "1.21.11" from "fabric-1.21.11".
+ * For snapshots and pre-releases Stonecutter encodes versions as e.g. 26.1-0.snapshot.1 or 26.1-1.pre.1
+ * to satisfy its versioning / semVer parsing. The corresponding Minecraft versions use a dash before
+ * the prerelease number, so we convert them back to e.g. 26.1-snapshot-1 or 26.1-pre-1.
+ */
+val Project.mcVersion: String get() = stonecutterBuild.current.version
+    .replace("0.snapshot.", "snapshot-")
+    .replace("1.pre.", "pre-")
 
 /** Whether this version uses deobfuscated (unmapped) Minecraft jars. */
 val Project.isDeobf: Boolean get() = mcVersion.startsWith("26.")

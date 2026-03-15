@@ -2,18 +2,25 @@
 package de.zannagh.armorhider.client.rendering;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.OptionsList;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.gui.screens.options.SkinCustomizationScreen;
 import net.minecraft.client.player.AbstractClientPlayer;
+
+//? if < 26.1-1.pre.1
+//import net.minecraft.client.gui.GuiGraphics;
+//? if >= 26.1-1.pre.1
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 import java.awt.*;
 
 public class PlayerPreviewRenderer {
     private static final int armorHiderSegmentRow = 5;
 
-    public static void renderPlayerPreview(GuiGraphics graphics, OptionsList body, int mouseX, int mouseY) {
+    //? if < 26.1-1.pre.1
+    //public static void renderPlayerPreview(GuiGraphics graphics, OptionsList body, int mouseX, int mouseY) {
+    //? if >= 26.1-1.pre.1
+    public static void renderPlayerPreview(GuiGraphicsExtractor graphics, OptionsList body, int mouseX, int mouseY) {
         AbstractClientPlayer player = Minecraft.getInstance().player;
         if (player == null) {
             return;
@@ -65,7 +72,10 @@ public class PlayerPreviewRenderer {
         graphics.fill(panelLeft, panelTop, panelLeft + 1, panelBottom, borderColor); // Left
         graphics.fill(panelRight - 1, panelTop, panelRight, panelBottom, borderColor); // Right
 
-        InventoryScreen.renderEntityInInventoryFollowsMouse(
+        //? if < 26.1-1.pre.1
+        //InventoryScreen.renderEntityInInventoryFollowsMouse(
+        //? if >= 26.1-1.pre.1
+        InventoryScreen.extractEntityInInventoryFollowsMouse(
                 graphics,
                 panelLeft,
                 panelTop - margin,

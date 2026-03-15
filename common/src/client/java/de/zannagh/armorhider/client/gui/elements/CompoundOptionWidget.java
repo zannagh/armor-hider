@@ -1,12 +1,16 @@
 package de.zannagh.armorhider.client.gui.elements;
 
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 //? if > 1.21.8
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import org.jspecify.annotations.NonNull;
+
+//? if < 26.1-1.pre.1
+//import net.minecraft.client.gui.GuiGraphics;
+//? if >= 26.1-1.pre.1
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 /**
  * A compound widget that places a primary widget (e.g. slider) at ~80% width
@@ -37,15 +41,22 @@ public class CompoundOptionWidget extends AbstractWidget {
     }
 
     @Override
-    //? if > 1.20.1 {
+    //? if >= 26.1-1.pre.1 {
+    protected void extractWidgetRenderState(@NonNull GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
+        updateLayout();
+        primary.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
+        secondary.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
+    }
+    //?}
+    //? if > 1.20.1 && < 26.1-1.pre.1 {
+    /*
     protected void renderWidget(@NonNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         updateLayout();
         primary.render(guiGraphics, mouseX, mouseY, partialTick);
         secondary.render(guiGraphics, mouseX, mouseY, partialTick);
     }
-    //?}
+    *///?}
     //? if <= 1.20.1 {
-    
     /*public void renderWidget(@NonNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         updateLayout();
         primary.render(guiGraphics, mouseX, mouseY, partialTick);

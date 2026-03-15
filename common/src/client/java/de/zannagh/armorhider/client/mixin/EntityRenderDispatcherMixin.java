@@ -13,11 +13,11 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-//? if >= 26.1-snapshot.11
-//import net.minecraft.client.renderer.state.level.CameraRenderState;
+//? if >= 26.1-0.snapshot.11
+import net.minecraft.client.renderer.state.level.CameraRenderState;
 
-//? if < 26.1-snapshot.11
-import net.minecraft.client.renderer.state.CameraRenderState;
+//? if < 26.1-0.snapshot.11
+//import net.minecraft.client.renderer.state.CameraRenderState;
 
 // Sets a flag around the entire entity render cycle (extractRenderState + layer rendering)
 // so that EquipmentSlotHidingMixin can return real items during rendering. This ensures
