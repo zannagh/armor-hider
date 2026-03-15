@@ -87,7 +87,7 @@ public class ItemRenderStateMixin {
                     //? if >= 26.1-1.pre.1 {
                     modifiedQuads.add(new BakedQuad(
                             quad.position0(), quad.position1(), quad.position2(), quad.position3(),
-                            quad.packedUV0(), quad.packedUV1(), quad.packedUV2(), quad.packedUV3(), quad.direction(), makeTranslucent(quad.materialInfo())
+                            quad.packedUV0(), quad.packedUV1(), quad.packedUV2(), quad.packedUV3(), quad.direction(), makeTranslucent(quad.materialInfo(), syntheticTintIndex)
                     ));
                     //?}
                     //? if >= 26.1-0.snapshot.7 && < 26.1-1.pre.1 {
@@ -147,12 +147,20 @@ public class ItemRenderStateMixin {
     //? if >= 26.1-1.pre.1 {
     @Unique
     private static BakedQuad.MaterialInfo makeTranslucent(BakedQuad.MaterialInfo info) {
+        return makeTranslucent(info, info.tintIndex());
+    }
+
+    @Unique
+    private static BakedQuad.MaterialInfo makeTranslucent(BakedQuad.MaterialInfo info, int tintIndex) {
         RenderType current = info.itemRenderType();
         if (current == Sheets.cutoutBlockItemSheet()) {
-            return new BakedQuad.MaterialInfo(info.sprite(), info.layer(), Sheets.translucentBlockItemSheet(), info.tintIndex(), info.shade(), info.lightEmission());
+            return new BakedQuad.MaterialInfo(info.sprite(), info.layer(), Sheets.translucentBlockItemSheet(), tintIndex, info.shade(), info.lightEmission());
         }
         if (current == Sheets.cutoutItemSheet()) {
-            return new BakedQuad.MaterialInfo(info.sprite(), info.layer(), Sheets.translucentItemSheet(), info.tintIndex(), info.shade(), info.lightEmission());
+            return new BakedQuad.MaterialInfo(info.sprite(), info.layer(), Sheets.translucentItemSheet(), tintIndex, info.shade(), info.lightEmission());
+        }
+        if (tintIndex != info.tintIndex()) {
+            return new BakedQuad.MaterialInfo(info.sprite(), info.layer(), current, tintIndex, info.shade(), info.lightEmission());
         }
         return info;
     }
