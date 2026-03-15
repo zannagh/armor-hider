@@ -1,11 +1,10 @@
 //? if < 1.20.5 {
-/*package de.zannagh.armorhider.mixin.client.networking;
+/*package de.zannagh.armorhider.client.mixin.networking;
 
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.net.LegacyPacketHandler;
 import de.zannagh.armorhider.net.packets.PayloadRegistry;
-import de.zannagh.armorhider.networking.ClientConnectionEvents;
-import de.zannagh.armorhider.networking.ClientPayloadContext;
+import de.zannagh.armorhider.client.net.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.network.FriendlyByteBuf;

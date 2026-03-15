@@ -5,8 +5,8 @@ package de.zannagh.armorhider.client.mixin.hand;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.rendering.RenderDecisions;
-import de.zannagh.armorhider.rendering.RenderModifications;
+import de.zannagh.armorhider.client.rendering.RenderDecisions;
+import de.zannagh.armorhider.client.rendering.RenderModifications;
 
 import net.minecraft.client.renderer.SubmitNodeCollection;
 import net.minecraft.client.renderer.SubmitNodeStorage;

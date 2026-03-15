@@ -1,5 +1,5 @@
 //? if < 1.21.9 {
-/*package de.zannagh.armorhider.mixin.client;
+/*package de.zannagh.armorhider.client.mixin;
 
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
@@ -7,17 +7,17 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 
 import net.minecraft.client.Options;
 //? if < 1.21 {
-/^import de.zannagh.armorhider.gui.OldArmorHiderOptionsScreen;
+import de.zannagh.armorhider.client.gui.screens.OldArmorHiderOptionsScreen;
 import net.minecraft.client.gui.layouts.GridLayout;
 import net.minecraft.client.gui.layouts.LayoutElement;
 import net.minecraft.client.gui.layouts.SpacerElement;
 import net.minecraft.client.gui.screens.OptionsScreen;
-^///?}
+//?}
 //? if >= 1.21 {
-import de.zannagh.armorhider.gui.ArmorHiderOptionsScreen;
+import de.zannagh.armorhider.client.gui.screens.ArmorHiderOptionsScreen;
 import net.minecraft.client.gui.layouts.GridLayout;
 import net.minecraft.client.gui.screens.options.OptionsScreen;
- //?}
+//?}
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.Component;

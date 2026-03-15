@@ -3,8 +3,8 @@ package de.zannagh.armorhider.client.mixin.bodyKneesAndToes;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.rendering.RenderDecisions;
-import de.zannagh.armorhider.scopes.ScopeFactory;
+import de.zannagh.armorhider.client.rendering.RenderDecisions;
+import de.zannagh.armorhider.client.scopes.ScopeFactory;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
 import net.minecraft.client.renderer.entity.state.ArmorStandRenderState;
@@ -45,8 +45,8 @@ public class ArmorFeatureRenderMixin {
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.rendering.RenderDecisions;
-import de.zannagh.armorhider.scopes.ScopeFactory;
+import de.zannagh.armorhider.client.rendering.RenderDecisions;
+import de.zannagh.armorhider.client.scopes.ScopeFactory;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;

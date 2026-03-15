@@ -1,7 +1,7 @@
 package de.zannagh.armorhider.neoforge;
 
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.networking.ClientConnectionEvents;
+import de.zannagh.armorhider.client.net.ClientConnectionEvents;
 import net.minecraft.client.Minecraft;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;

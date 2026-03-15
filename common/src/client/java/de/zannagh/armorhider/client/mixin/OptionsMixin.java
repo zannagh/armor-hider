@@ -1,7 +1,6 @@
 package de.zannagh.armorhider.client.mixin;
 
-import de.zannagh.armorhider.keybinds.OpenSettingsKeyMapping;
-import de.zannagh.armorhider.keybinds.ToggleOffKeyMapping;
+import de.zannagh.armorhider.client.keybinds.*;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Options;
 import org.spongepowered.asm.mixin.*;

@@ -6,7 +6,7 @@
 
 package de.zannagh.armorhider.client.mixin;
 
-import de.zannagh.armorhider.combat.ClientCombatManager;
+import de.zannagh.armorhider.client.combat.ClientCombatManager;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;

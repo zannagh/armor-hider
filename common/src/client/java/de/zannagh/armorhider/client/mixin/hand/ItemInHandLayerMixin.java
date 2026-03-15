@@ -2,8 +2,8 @@ package de.zannagh.armorhider.client.mixin.hand;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.rendering.RenderDecisions;
-import de.zannagh.armorhider.scopes.ScopeFactory;
+import de.zannagh.armorhider.client.rendering.RenderDecisions;
+import de.zannagh.armorhider.client.scopes.ScopeFactory;
 import net.minecraft.client.renderer.entity.layers.ItemInHandLayer;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.HumanoidArm;

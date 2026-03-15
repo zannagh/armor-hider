@@ -2,7 +2,7 @@ package de.zannagh.armorhider;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import de.zannagh.armorhider.common.util.EnrichedLogger;
+import de.zannagh.armorhider.log.EnrichedLogger;
 import de.zannagh.armorhider.common.configuration.ConfigurationItemSerializer;
 import de.zannagh.armorhider.configuration.ConfigurationSourceSerializer;
 import de.zannagh.armorhider.configuration.ServerConfigurationDeserializer;

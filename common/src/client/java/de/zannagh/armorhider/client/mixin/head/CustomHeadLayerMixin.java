@@ -4,8 +4,8 @@ package de.zannagh.armorhider.client.mixin.head;
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.common.constants.MixinConstants;
-import de.zannagh.armorhider.rendering.RenderDecisions;
-import de.zannagh.armorhider.scopes.ScopeFactory;
+import de.zannagh.armorhider.client.rendering.RenderDecisions;
+import de.zannagh.armorhider.client.scopes.ScopeFactory;
 import de.zannagh.armorhider.util.ItemsUtil;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.layers.CustomHeadLayer;
@@ -24,7 +24,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 //?if >= 1.21.11 {
 import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.resources.Identifier;
 //? }
 //? if >= 1.21.9 && < 1.21.11 {
 /*import net.minecraft.client.renderer.RenderType;
@@ -100,8 +99,8 @@ public abstract class CustomHeadLayerMixin {
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.common.constants.MixinConstants;
-import de.zannagh.armorhider.rendering.RenderDecisions;
-import de.zannagh.armorhider.scopes.ScopeFactory;
+import de.zannagh.armorhider.client.rendering.RenderDecisions;
+import de.zannagh.armorhider.client.scopes.ScopeFactory;
 import de.zannagh.armorhider.util.ItemsUtil;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.layers.CustomHeadLayer;
@@ -173,8 +172,8 @@ public abstract class CustomHeadLayerMixin {
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.common.constants.MixinConstants;
-import de.zannagh.armorhider.rendering.RenderDecisions;
-import de.zannagh.armorhider.scopes.ScopeFactory;
+import de.zannagh.armorhider.client.rendering.RenderDecisions;
+import de.zannagh.armorhider.client.scopes.ScopeFactory;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.layers.CustomHeadLayer;
 import net.minecraft.world.entity.EquipmentSlot;

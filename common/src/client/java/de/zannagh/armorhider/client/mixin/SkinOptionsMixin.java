@@ -9,9 +9,9 @@ package de.zannagh.armorhider.client.mixin;
 
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.OptionElementFactory;
-import de.zannagh.armorhider.gui.AdvancedArmorHiderSettingsScreen;
-import de.zannagh.armorhider.rendering.PlayerPreviewRenderer;
+import de.zannagh.armorhider.client.gui.elements.*;
+import de.zannagh.armorhider.client.gui.screens.*;
+import de.zannagh.armorhider.client.rendering.PlayerPreviewRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.OptionInstance;
 import net.minecraft.client.Options;
@@ -31,8 +31,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(OptionsSubScreen.class)
 public abstract class SkinOptionsMixin extends Screen {
-
-    // TODO: This may have to be extended into not sending network stuff if the server doesn't support it.
 
     @Shadow
     protected OptionsList list;

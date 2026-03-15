@@ -1,5 +1,5 @@
 //? if >= 1.21 && < 1.21.4 {
-/*package de.zannagh.armorhider.mixin.client.bodyKneesAndToes;
+/*package de.zannagh.armorhider.client.mixin.bodyKneesAndToes;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
@@ -7,9 +7,9 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.rendering.RenderDecisions;
-import de.zannagh.armorhider.rendering.RenderModifications;
-import de.zannagh.armorhider.scopes.ScopeFactory;
+import de.zannagh.armorhider.client.rendering.RenderDecisions;
+import de.zannagh.armorhider.client.rendering.RenderModifications;
+import de.zannagh.armorhider.client.scopes.ScopeFactory;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -134,9 +134,9 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.rendering.RenderDecisions;
-import de.zannagh.armorhider.rendering.RenderModifications;
-import de.zannagh.armorhider.scopes.ScopeFactory;
+import de.zannagh.armorhider.client.rendering.RenderDecisions;
+import de.zannagh.armorhider.client.rendering.RenderModifications;
+import de.zannagh.armorhider.client.scopes.ScopeFactory;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;

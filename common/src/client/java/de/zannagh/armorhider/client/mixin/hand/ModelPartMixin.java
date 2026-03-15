@@ -1,9 +1,9 @@
 //? if < 1.21.9 {
-/*package de.zannagh.armorhider.mixin.client.hand;
+/*package de.zannagh.armorhider.client.mixin.hand;
 
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.rendering.RenderDecisions;
-import de.zannagh.armorhider.rendering.RenderModifications;
+import de.zannagh.armorhider.client.rendering.RenderDecisions;
+import de.zannagh.armorhider.client.rendering.RenderModifications;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.world.entity.EquipmentSlot;
 import org.spongepowered.asm.mixin.Mixin;

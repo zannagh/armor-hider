@@ -2,7 +2,7 @@ package de.zannagh.armorhider.server;
 
 import com.mojang.authlib.GameProfile;
 import de.zannagh.armorhider.ArmorHider;
-import de.zannagh.armorhider.common.util.ExponentialBackoffHelper;
+import de.zannagh.armorhider.util.ExponentialBackoff;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 
@@ -44,7 +44,7 @@ public final class ServerConnectionEvents {
 
         CompletableFuture.runAsync(() -> {
             ServerPlayer player;
-            var backoff = new ExponentialBackoffHelper(PLAYER_WAIT_TIMEOUT_MS);
+            var backoff = new ExponentialBackoff(PLAYER_WAIT_TIMEOUT_MS);
             do {
                 player = server.getPlayerList().getPlayer(playerId);
                 if (player != null) {
