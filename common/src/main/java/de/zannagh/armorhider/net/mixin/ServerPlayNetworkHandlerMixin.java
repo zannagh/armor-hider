@@ -1,5 +1,5 @@
 //? if < 1.20.5 {
-/*package de.zannagh.armorhider.mixin.networking;
+/*package de.zannagh.armorhider.net.mixin;
 
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.net.LegacyPacketHandler;
