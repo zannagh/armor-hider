@@ -26,8 +26,11 @@ A mod to alter the transparency or fully hide armor and equipment with multiplay
 
 ![Demo](https://github.com/user-attachments/assets/5e799db8-3f8c-4e30-b1e5-465d100f7b06)
 
-[![Issues](https://img.shields.io/github/issues/zannagh/armor-hider?label=Open%20Issues&logo=github)](https://github.com/zannagh/armor-hider/issues)
-[![OpenIssues](https://img.shields.io/github/issues-closed/zannagh/armor-hider?label=Closed%20Issues&color=green&logo=github)](https://github.com/zannagh/armor-hider/issues)
+[![OpenBugs](https://img.shields.io/github/issues-search?query=repo%3Azannagh%2Farmor-hider%20is%3Aopen%20label%3Abug&logo=github&label=Open%20Bugs&color=red
+)](https://github.com/zannagh/armor-hider/issues)
+[![OpenFRs](https://img.shields.io/github/issues-search?query=repo%3Azannagh%2Farmor-hider%20is%3Aopen%20label%3Aenhancement&logo=github&label=Open%20Feature%20Requests&color=green
+)](https://github.com/zannagh/armor-hider/issues)
+[![ClosedIssues](https://img.shields.io/github/issues-closed/zannagh/armor-hider?label=Closed%20Issues&color=green&logo=github)](https://github.com/zannagh/armor-hider/issues)
 
 I track issues (including feature requests) via GitHub and do my best to close out any bugs timely (plus, I get way too excited about new features myself..). If you don't have an account, feel free to join the Discord server and let me know there.
 
