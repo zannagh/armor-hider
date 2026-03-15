@@ -1,7 +1,6 @@
 package de.zannagh.armorhider.client.scopes;
 
 import com.mojang.authlib.GameProfile;
-import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.log.DebugTracer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -25,24 +24,6 @@ public final class EntityIdentityResolver {
 
     private EntityIdentityResolver() {}
 
-    /**
-     * Identity hint captured from the entity during {@code extractRenderState},
-     * where we still have access to the actual {@link net.minecraft.world.entity.player.Player}
-     * entity. Used as a reliable fallback when {@code nameTag} is null (which happens
-     * for sneaking players, invisible players, hidden nametags, etc. — not just the local player).
-     */
-    private static final ThreadLocal<Identity> identityHint = new ThreadLocal<>();
-
-    public static void setIdentityHint(Identity hint) {
-        identityHint.set(hint);
-        DebugTracer.identityHintSet(hint.playerName());
-    }
-
-    public static void clearIdentityHint() {
-        identityHint.remove();
-        DebugTracer.identityHintCleared();
-    }
-
     public record Identity(@Nullable String playerName, boolean isPlayer) {}
 
     //? if >= 1.21.9 {
@@ -57,10 +38,15 @@ public final class EntityIdentityResolver {
             return result;
         }
 
-        Identity hint = identityHint.get();
-        if (hint != null) {
-            DebugTracer.identityResolved("hint", hint.playerName(), hint.isPlayer());
-            return hint;
+        // Read player name from the render state itself (set during extractRenderState
+        // via IdentityCarrier). This is per-entity and immune to ordering issues.
+        if (renderState instanceof IdentityCarrier carrier) {
+            String carriedName = carrier.armorHider$getPlayerName();
+            if (carriedName != null) {
+                var result = new Identity(carriedName, true);
+                DebugTracer.identityResolved("carrier", result.playerName(), true);
+                return result;
+            }
         }
 
         DebugTracer.identityResolved("fallback-null", null, true);
@@ -80,10 +66,13 @@ public final class EntityIdentityResolver {
             return result;
         }
 
-        Identity hint = identityHint.get();
-        if (hint != null) {
-            DebugTracer.identityResolved("hint", hint.playerName(), hint.isPlayer());
-            return hint;
+        if (renderState instanceof IdentityCarrier carrier) {
+            String carriedName = carrier.armorHider$getPlayerName();
+            if (carriedName != null) {
+                var result = new Identity(carriedName, true);
+                DebugTracer.identityResolved("carrier", result.playerName(), true);
+                return result;
+            }
         }
 
         DebugTracer.identityResolved("fallback-null", null, true);

@@ -2,7 +2,7 @@
 package de.zannagh.armorhider.client.mixin;
 
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.scopes.EntityIdentityResolver;
+import de.zannagh.armorhider.client.scopes.IdentityCarrier;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.world.entity.LivingEntity;
@@ -16,10 +16,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * Captures the player's identity from the actual entity during {@code extractRenderState},
  * before the entity reference is lost and only the render state remains.
  * <p>
- * This is needed because {@code renderState.nameTag} is null not only for the local player
- * but also for sneaking players, invisible players, and players with hidden nametags
- * (e.g. team settings). Without this hint, the identity resolver would incorrectly
- * treat all null-nameTag players as the local player.
+ * The identity is stored directly on the render state object via {@link IdentityCarrier},
+ * so it travels with the render state from extraction to submission without any global state.
+ * This avoids cross-entity contamination when multiple players are extracted before their
+ * render states are submitted (which happens when entity render order changes with camera angle).
  * <p>
  * In 1.21.9+, {@code extractRenderState} and {@code EntityRenderDispatcher.submit} are
  * separate phases. The entity render scope (set by {@code EntityRenderDispatcherMixin}) only
@@ -49,31 +49,18 @@ public class LivingEntityRendererMixin {
         ArmorHiderClient.SCOPE_PROVIDER.enterEntityRender();
     }
 
+    /**
+     * Captures the player's identity onto the render state object itself.
+     * For non-player entities, the render state's player name is explicitly set to null.
+     */
     @Inject(
             method = "extractRenderState(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;F)V",
             at = @At("TAIL")
     )
     private void capturePlayerIdentity(LivingEntity entity, LivingEntityRenderState state, float partialTick, CallbackInfo ci) {
-        // No clearing of identity hint when a non-player identity is resolved.
-        // 1.21.9+ upwards extracts all render states and submits later.
-        // This can cause the downstream pipeline to not find the identity hint any longer
-        // if the render order changes between extraction and submission.
-        // The hint is safely cleaned up by exitEntityRender() after the player's submit completes,
-        // and resolve() only consumes it for player entities (instanceof AvatarRenderState check).
-        // I'm leaving the boolean here to maybe use version-dependent code later down the road.
-        boolean clearIdentityHintOnNonPlayerEntity = false;
-        if (entity instanceof Player player) {
-            player.getDisplayName();
-            String name = player.getDisplayName().getString();
-            if (!name.isEmpty()) {
-                EntityIdentityResolver.setIdentityHint(
-                        new EntityIdentityResolver.Identity(name, true)
-                );
-            } else if (clearIdentityHintOnNonPlayerEntity) {
-                EntityIdentityResolver.clearIdentityHint();
-            }
-        } else if (clearIdentityHintOnNonPlayerEntity) {
-            EntityIdentityResolver.clearIdentityHint();
+        if (entity instanceof Player player && state instanceof IdentityCarrier carrier) {
+            String name = player.getDisplayName() != null ? player.getDisplayName().getString() : null;
+            carrier.armorHider$setPlayerName(name != null && !name.isEmpty() ? name : null);
         }
     }
 }

@@ -109,7 +109,6 @@ public final class ScopeProvider {
     public void exitEntityRender() {
         itemRenderScope.remove();
         entityRenderScope.remove();
-        EntityIdentityResolver.clearIdentityHint();
         DebugTracer.scopeExitEntityRender();
     }
 
