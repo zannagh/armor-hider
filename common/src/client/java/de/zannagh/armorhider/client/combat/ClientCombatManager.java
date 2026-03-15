@@ -1,7 +1,10 @@
 package de.zannagh.armorhider.client.combat;
 
 import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.client.net.ClientPacketSender;
 import de.zannagh.armorhider.combat.CombatManager;
+import de.zannagh.armorhider.net.packets.CombatLogEventPacket;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.player.RemotePlayer;
 import net.minecraft.world.damagesource.DamageSource;
@@ -14,10 +17,16 @@ public final class ClientCombatManager {
     public static void handleCombat(Function<Player, Boolean> shouldLogCombat, DamageSource damageSource, @Nullable Player victim) {
         if (victim != null && shouldLogCombat.apply(victim)) {
             CombatManager.logCombat(victim.getDisplayName().getString());
+            if (Minecraft.getInstance().player != null) {
+                ClientPacketSender.sendToServer(new CombatLogEventPacket(victim, Minecraft.getInstance().player.getUUID()));
+            }
         }
 
         if (damageSource.getEntity() instanceof AbstractClientPlayer attacker && shouldLogCombat.apply(attacker)) {
             CombatManager.logCombat(attacker.getDisplayName().getString());
+            if (Minecraft.getInstance().player != null) {
+                ClientPacketSender.sendToServer(new CombatLogEventPacket(attacker, Minecraft.getInstance().player.getUUID()));
+            }
         }
     }
 

@@ -1,5 +1,7 @@
 package de.zannagh.armorhider.combat;
 
+import de.zannagh.armorhider.log.DebugLogger;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -19,30 +21,40 @@ public final class CombatManager {
         removalKeys.forEach(combatTimes::remove);
     }
 
-    public static void logCombat(String player) {
+    public static void logCombat(String playerDisplayName) {
         clearCombatTimesOlderThanTenSeconds();
-        combatTimes.put(player, System.currentTimeMillis());
+        if (!playerDisplayName.isEmpty()) {
+            combatTimes.put(playerDisplayName, System.currentTimeMillis());
+        }
     }
 
-    public static double transformTransparencyBasedOnCombat(String playerName, double transparency) {
+    public static void logCombat(String playerDisplayName, long timestamp) {
         clearCombatTimesOlderThanTenSeconds();
-        if (playerName.isEmpty()) {
+        if (!playerDisplayName.isEmpty()) {
+            combatTimes.put(playerDisplayName, timestamp);
+        }
+    }
+
+    public static double transformTransparencyBasedOnCombat(String playerDisplayName, double transparency) {
+        clearCombatTimesOlderThanTenSeconds();
+        if (playerDisplayName.isEmpty()) {
+            DebugLogger.log("Combat logger queried for transparency but player display name was empty.");
             return transparency;
         }
-        if (combatTimes.containsKey(playerName)) {
-            var lastCombatTime = combatTimes.get(playerName);
-
+        if (combatTimes.containsKey(playerDisplayName)) {
+            var lastCombatTime = combatTimes.get(playerDisplayName);
             var milliSecondDiff = System.currentTimeMillis() - lastCombatTime;
             var steps = milliSecondDiff / 25;
             var fade = steps * fadePer25Ms;
 
             double result = 1 - fade;
             if (result < transparency) {
-                return transparency;
+                result = transparency;
             }
             if (result >= 1) {
-                return 1;
+                result = 1;
             }
+            DebugLogger.log("Combat logger finalized evaluation, returning transparency: " + result);
             return result;
         }
         return transparency;

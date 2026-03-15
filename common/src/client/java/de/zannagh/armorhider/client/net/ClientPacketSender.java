@@ -8,6 +8,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 //? if < 1.20.5 {
 /*import de.zannagh.armorhider.net.LegacyPacketHandler;
 import de.zannagh.armorhider.net.CompressedJsonCodec;
+import de.zannagh.armorhider.net.packets.CombatLogEventPacket;
 import de.zannagh.armorhider.net.packets.PlayerConfig;
 import de.zannagh.armorhider.net.packets.ServerWideSettings;
 import io.netty.buffer.Unpooled;
@@ -54,6 +55,17 @@ public final class ClientPacketSender {
         ResourceLocation channel = LegacyPacketHandler.getServerWideSettingsChannel();
         FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
         CompressedJsonCodec.encodeLegacy(settings, buf);
+        connection.send(new ServerboundCustomPayloadPacket(channel, buf));
+    }
+    
+    public static void sendToServer(CombatLogEventPacket combatLogPacket) {
+        var connection = Minecraft.getInstance().getConnection();
+        if (connection == null) {
+            throw new IllegalStateException("Cannot send packet: not connected to a server");
+        }
+        ResourceLocation channel = LegacyPacketHandler.getCombatLogEventChannel();
+        FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
+        CompressedJsonCodec.encodeLegacy(combatLogPacket, buf);
         connection.send(new ServerboundCustomPayloadPacket(channel, buf));
     }
     *///?}

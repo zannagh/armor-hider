@@ -49,25 +49,29 @@ public final class DebugLogger {
 
     public static void log(String msg) {
         if (isEnabled()) {
-            LOGGER.info(PREFIX + msg);
+            LOGGER.info(formatMessage(msg), msg);
         }
     }
 
     public static void log(String msg, Object arg) {
         if (isEnabled()) {
-            LOGGER.info(PREFIX + msg, arg);
+            LOGGER.info(formatMessage(msg), arg);
         }
     }
 
     public static void log(String msg, Object arg1, Object arg2) {
         if (isEnabled()) {
-            LOGGER.info(PREFIX + msg, arg1, arg2);
+            LOGGER.info(formatMessage(msg), arg1, arg2);
         }
     }
 
     public static void log(String msg, Object... args) {
         if (isEnabled()) {
-            LOGGER.info(PREFIX + msg, args);
+            LOGGER.info(formatMessage(msg), args);
         }
+    }
+
+    private static String formatMessage(String message) {
+        return PREFIX + message;
     }
 }

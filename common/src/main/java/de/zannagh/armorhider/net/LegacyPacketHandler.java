@@ -21,6 +21,8 @@ public final class LegacyPacketHandler {
     private static final ResourceLocation SERVER_WIDE_SETTINGS_CHANNEL = new ResourceLocation("armorhider", "server_wide_settings");
     private static final ResourceLocation SERVER_CONFIG_CHANNEL = new ResourceLocation("armorhider", "settings_s2c_packet");
     private static final ResourceLocation PERMISSION_CHANNEL = new ResourceLocation("armorhider", "permissions_s2c_packet");
+    private static final ResourceLocation COMBAT_LOG_EVENT_CHANNEL = new ResourceLocation("armorhider", "combatlog_c2s_packet");
+    private static final ResourceLocation COMBAT_LOG_NOTIFICATION_CHANNEL = new ResourceLocation("armorhider", "combatlog_s2c_packet");
 
     private static final Map<ResourceLocation, Function<FriendlyByteBuf, Object>> DECODERS = new HashMap<>();
     private static final Map<ResourceLocation, BiConsumer<Object, FriendlyByteBuf>> ENCODERS = new HashMap<>();
@@ -31,6 +33,8 @@ public final class LegacyPacketHandler {
         // Register decoders for C2S packets
         DECODERS.put(PLAYER_CONFIG_CHANNEL, buf -> CompressedJsonCodec.decodeLegacy(buf, PlayerConfig.class));
         DECODERS.put(SERVER_WIDE_SETTINGS_CHANNEL, buf -> CompressedJsonCodec.decodeLegacy(buf, ServerWideSettings.class));
+        DECODERS.put(COMBAT_LOG_EVENT_CHANNEL, buf -> CompressedJsonCodec.decodeLegacy(buf, CombatLogEventPacket.class));
+        DECODERS.put(COMBAT_LOG_NOTIFICATION_CHANNEL, buf -> CompressedJsonCodec.decodeLegacy(buf, CombatLogNotificationPacket.class));
 
         // Register decoders for S2C packets
         DECODERS.put(SERVER_CONFIG_CHANNEL, buf -> CompressedJsonCodec.decodeLegacy(buf, ServerConfiguration.class));
@@ -41,6 +45,8 @@ public final class LegacyPacketHandler {
         ENCODERS.put(SERVER_WIDE_SETTINGS_CHANNEL, (obj, buf) -> CompressedJsonCodec.encodeLegacy((ServerWideSettings) obj, buf));
         ENCODERS.put(SERVER_CONFIG_CHANNEL, (obj, buf) -> CompressedJsonCodec.encodeLegacy((ServerConfiguration) obj, buf));
         ENCODERS.put(PERMISSION_CHANNEL, (obj, buf) -> CompressedJsonCodec.encodeLegacy((de.zannagh.armorhider.net.packets.PermissionPacket) obj, buf));
+        ENCODERS.put(COMBAT_LOG_EVENT_CHANNEL, (obj, buf) -> CompressedJsonCodec.encodeLegacy((CombatLogEventPacket) obj, buf));
+        ENCODERS.put(COMBAT_LOG_NOTIFICATION_CHANNEL, (obj, buf) -> CompressedJsonCodec.encodeLegacy((CombatLogNotificationPacket) obj, buf));
     }
 
     public static void registerC2SHandler(ResourceLocation channel, java.util.function.Consumer<PayloadRegistry.PayloadHandlerContext<?>> handler) {
@@ -100,6 +106,14 @@ public final class LegacyPacketHandler {
 
     public static ResourceLocation getPermissionChannel() {
         return PERMISSION_CHANNEL;
+    }
+    
+    public static ResourceLocation getCombatLogEventChannel() {
+        return COMBAT_LOG_EVENT_CHANNEL;
+    }
+    
+    public static ResourceLocation getCombatLogNotificationChannel() {
+        return COMBAT_LOG_NOTIFICATION_CHANNEL;
     }
 
     public static void encode(ResourceLocation channel, Object payload, FriendlyByteBuf buf) {

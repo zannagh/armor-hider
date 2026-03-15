@@ -1,13 +1,11 @@
 package de.zannagh.armorhider.net;
 
 import de.zannagh.armorhider.ArmorHider;
-import de.zannagh.armorhider.net.packets.PermissionPacket;
+import de.zannagh.armorhider.net.packets.*;
 import de.zannagh.armorhider.server.ServerConnectionEvents;
 import de.zannagh.armorhider.server.ServerPayloadContext;
 import de.zannagh.armorhider.server.ServerRuntime;
-import de.zannagh.armorhider.net.packets.PlayerConfig;
 import de.zannagh.armorhider.server.ServerConfiguration;
-import de.zannagh.armorhider.net.packets.ServerWideSettings;
 import de.zannagh.armorhider.util.ServerUtil;
 import net.minecraft.server.level.ServerPlayer;
 
@@ -80,6 +78,41 @@ public final class CommsManager {
             handleServerWideSettingsReceived(payload, serverCtx.player(), serverCtx.server());
         });
         *///?}
+        
+        // Register combat log event packet (C2S)
+        //? if >= 1.20.5 {
+        PayloadRegistry.registerC2SHandler(CombatLogEventPacket.TYPE, ctx -> {
+            if (!(ctx.context() instanceof ServerPayloadContext serverCtx)) {
+                return;
+            }
+            handleCombatLogEventReceived(ctx.payload(), serverCtx);
+        });
+        //?}
+        //? if < 1.20.5 {
+        /*LegacyPacketHandler.registerC2SHandler(LegacyPacketHandler.getCombatLogEventChannel(), ctx -> {
+            if (!(ctx.payload() instanceof CombatLogEventPacket payload)) {
+                return;
+            }
+            if (!(ctx.context() instanceof ServerPayloadContext serverCtx)) {
+                return;
+            }
+            handleCombatLogEventReceived(payload, serverCtx);
+        });
+        *///?}
+    }
+    
+    private static void handleCombatLogEventReceived(CombatLogEventPacket eventPacket, ServerPayloadContext ctx) {
+        if (eventPacket == null) {
+            return;
+        }
+        if (ctx == null) {
+            return;
+        }
+        try {
+            sendPackageToAllClientsButSender(eventPacket.originator, eventPacket);
+        } catch (Exception e) {
+            ArmorHider.LOGGER.error("Failed to store player data!", e);
+        }
     }
 
     private static void handlePlayerConfigReceived(PlayerConfig config, ServerPayloadContext serverCtx) {
@@ -145,6 +178,21 @@ public final class CommsManager {
             ArmorHider.LOGGER.info("Sending config to players...");
             if (!player.getUUID().equals(playerId)) {
                 PacketSender.sendToPlayer(player, config);
+            }
+        });
+    }
+    
+    private static void sendPackageToAllClientsButSender(UUID playerId, CombatLogEventPacket eventPacket) {
+        ServerRuntime runtime = ArmorHider.getRuntime();
+        if (runtime == null) {
+            ArmorHider.LOGGER.warn("Runtime not initialized, cannot broadcast config");
+            return;
+        }
+        var players = runtime.getServer().getPlayerList().getPlayers();
+        var notificationPacket = new CombatLogNotificationPacket(eventPacket.playerName, eventPacket.originator, eventPacket.timestamp);
+        players.forEach(player -> {
+            if (!player.getUUID().equals(playerId)) {
+                PacketSender.sendToPlayer(player, notificationPacket);
             }
         });
     }
