@@ -33,7 +33,7 @@ public class LivingEntityRendererMixin {
 
     /**
      * Enters the entity render scope during {@code extractRenderState} so that
-     * {@link de.zannagh.armorhider.mixin.client.EquipmentSlotHidingMixin} does not
+     * EquipmentSlotHidingMixin does not
      * intercept {@code getItemBySlot} calls made by vanilla during state extraction.
      * <p>
      * In 1.21.4–1.21.8 this is redundant (the scope is already entered by
@@ -54,16 +54,25 @@ public class LivingEntityRendererMixin {
             at = @At("TAIL")
     )
     private void capturePlayerIdentity(LivingEntity entity, LivingEntityRenderState state, float partialTick, CallbackInfo ci) {
+        // No clearing of identity hint when a non-player identity is resolved.
+        // 1.21.9+ upwards extracts all render states and submits later.
+        // This can cause the downstream pipeline to not find the identity hint any longer
+        // if the render order changes between extraction and submission.
+        // The hint is safely cleaned up by exitEntityRender() after the player's submit completes,
+        // and resolve() only consumes it for player entities (instanceof AvatarRenderState check).
+        // I'm leaving the boolean here to maybe use version-dependent code later down the road.
+        boolean clearIdentityHintOnNonPlayerEntity = false;
         if (entity instanceof Player player) {
-            String name = player.getDisplayName() != null ? player.getDisplayName().getString() : null;
-            if (name != null && !name.isEmpty()) {
+            player.getDisplayName();
+            String name = player.getDisplayName().getString();
+            if (!name.isEmpty()) {
                 EntityIdentityResolver.setIdentityHint(
                         new EntityIdentityResolver.Identity(name, true)
                 );
-            } else {
+            } else if (clearIdentityHintOnNonPlayerEntity) {
                 EntityIdentityResolver.clearIdentityHint();
             }
-        } else {
+        } else if (clearIdentityHintOnNonPlayerEntity) {
             EntityIdentityResolver.clearIdentityHint();
         }
     }
