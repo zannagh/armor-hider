@@ -5,7 +5,6 @@ import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.server.*;
 import de.zannagh.armorhider.net.packets.*;
 import de.zannagh.armorhider.net.*;
-import de.zannagh.armorhider.server.packets.*;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 

@@ -2,7 +2,7 @@ package de.zannagh.armorhider.client.scopes;
 
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.resources.ArmorModificationInfo;
-import de.zannagh.armorhider.server.packets.PlayerConfig;
+import de.zannagh.armorhider.net.packets.PlayerConfig;
 import de.zannagh.armorhider.util.ItemsUtil;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;

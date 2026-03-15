@@ -1,7 +1,7 @@
 package de.zannagh.armorhider;
 
-import de.zannagh.armorhider.common.abstractions.ConfigurationProvider;
-import de.zannagh.armorhider.server.packets.PlayerConfig;
+import de.zannagh.armorhider.configuration.ConfigurationProvider;
+import de.zannagh.armorhider.net.packets.PlayerConfig;
 
 import java.util.UUID;
 

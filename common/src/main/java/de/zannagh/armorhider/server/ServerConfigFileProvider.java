@@ -1,7 +1,7 @@
 package de.zannagh.armorhider.server;
 
 import de.zannagh.armorhider.ArmorHider;
-import de.zannagh.armorhider.common.abstractions.ConfigurationProvider;
+import de.zannagh.armorhider.configuration.ConfigurationProvider;
 
 import java.io.IOException;
 import java.io.Reader;

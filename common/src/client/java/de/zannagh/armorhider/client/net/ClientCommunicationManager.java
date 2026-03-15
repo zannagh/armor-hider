@@ -3,7 +3,7 @@ package de.zannagh.armorhider.client.net;
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 //? if >= 1.20.5 {
-import de.zannagh.armorhider.net.packets.PayloadRegistry;
+import de.zannagh.armorhider.net.PayloadRegistry;
 //?}
 //? if < 1.20.5 {
 /*import de.zannagh.armorhider.net.LegacyPacketHandler;

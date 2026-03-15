@@ -2,7 +2,7 @@
 package de.zannagh.armorhider.net.mixin;
 
 import de.zannagh.armorhider.ArmorHider;
-import de.zannagh.armorhider.net.packets.PayloadRegistry;
+import de.zannagh.armorhider.net.PayloadRegistry;
 import de.zannagh.armorhider.server.ServerPayloadContext;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.common.ServerboundCustomPayloadPacket;

@@ -2,8 +2,8 @@
 package de.zannagh.armorhider.net.mixin;
 
 import de.zannagh.armorhider.ArmorHider;
-import de.zannagh.armorhider.net.packets.ArmorHiderPayloadList;
-import de.zannagh.armorhider.net.packets.PayloadRegistry;
+import de.zannagh.armorhider.net.ArmorHiderPayloadList;
+import de.zannagh.armorhider.net.PayloadRegistry;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import org.spongepowered.asm.mixin.Mixin;

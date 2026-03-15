@@ -7,10 +7,10 @@ import com.google.gson.annotations.SerializedName;
 import com.google.gson.reflect.TypeToken;
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.configuration.ConfigurationSource;
-import de.zannagh.armorhider.server.packets.ServerWideSettings;
+import de.zannagh.armorhider.net.packets.ServerWideSettings;
 
 import de.zannagh.armorhider.net.CompressedJsonCodec;
-import de.zannagh.armorhider.server.packets.PlayerConfig;
+import de.zannagh.armorhider.net.packets.PlayerConfig;
 //? if >= 1.20.5 {
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.StreamCodec;

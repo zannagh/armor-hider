@@ -1,6 +1,6 @@
 package de.zannagh.armorhider.server;
 
-import de.zannagh.armorhider.server.packets.PlayerConfig;
+import de.zannagh.armorhider.net.packets.PlayerConfig;
 import net.minecraft.server.MinecraftServer;
 
 import java.nio.file.Path;

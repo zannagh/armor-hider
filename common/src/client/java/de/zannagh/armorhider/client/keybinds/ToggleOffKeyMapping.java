@@ -1,8 +1,6 @@
 package de.zannagh.armorhider.client.keybinds;
 
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.common.configuration.ConfigurationItemBase;
-import net.minecraft.network.chat.Component;
 
 import java.awt.event.KeyEvent;
 

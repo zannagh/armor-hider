@@ -8,8 +8,8 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 //? if < 1.20.5 {
 /*import de.zannagh.armorhider.net.LegacyPacketHandler;
 import de.zannagh.armorhider.net.CompressedJsonCodec;
-import de.zannagh.armorhider.server.packets.PlayerConfig;
-import de.zannagh.armorhider.server.packets.ServerWideSettings;
+import de.zannagh.armorhider.net.packets.PlayerConfig;
+import de.zannagh.armorhider.net.packets.ServerWideSettings;
 import io.netty.buffer.Unpooled;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.game.ServerboundCustomPayloadPacket;

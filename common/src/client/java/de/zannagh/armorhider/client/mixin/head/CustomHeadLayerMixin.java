@@ -3,7 +3,7 @@ package de.zannagh.armorhider.client.mixin.head;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.common.constants.MixinConstants;
+import de.zannagh.armorhider.constants.MixinConstants;
 import de.zannagh.armorhider.client.rendering.RenderDecisions;
 import de.zannagh.armorhider.client.scopes.ScopeFactory;
 import de.zannagh.armorhider.util.ItemsUtil;
@@ -98,7 +98,7 @@ public abstract class CustomHeadLayerMixin {
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.common.constants.MixinConstants;
+import de.zannagh.armorhider.constants.MixinConstants;
 import de.zannagh.armorhider.client.rendering.RenderDecisions;
 import de.zannagh.armorhider.client.scopes.ScopeFactory;
 import de.zannagh.armorhider.util.ItemsUtil;
@@ -171,7 +171,7 @@ public abstract class CustomHeadLayerMixin {
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.common.constants.MixinConstants;
+import de.zannagh.armorhider.constants.MixinConstants;
 import de.zannagh.armorhider.client.rendering.RenderDecisions;
 import de.zannagh.armorhider.client.scopes.ScopeFactory;
 import net.minecraft.client.renderer.MultiBufferSource;

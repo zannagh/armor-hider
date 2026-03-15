@@ -1,11 +1,11 @@
 package de.zannagh.armorhider.client;
 
 import de.zannagh.armorhider.ArmorHider;
-import de.zannagh.armorhider.common.abstractions.ConfigurationProvider;
+import de.zannagh.armorhider.configuration.ConfigurationProvider;
 import de.zannagh.armorhider.client.net.*;
-import de.zannagh.armorhider.server.packets.PlayerConfig;
+import de.zannagh.armorhider.net.packets.PlayerConfig;
 import de.zannagh.armorhider.server.ServerConfiguration;
-import de.zannagh.armorhider.server.packets.ServerWideSettings;
+import de.zannagh.armorhider.net.packets.ServerWideSettings;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import org.jetbrains.annotations.Nullable;

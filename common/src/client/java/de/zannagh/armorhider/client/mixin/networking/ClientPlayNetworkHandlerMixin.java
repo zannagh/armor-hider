@@ -3,7 +3,7 @@
 
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.net.LegacyPacketHandler;
-import de.zannagh.armorhider.net.packets.PayloadRegistry;
+import de.zannagh.armorhider.net.PayloadRegistry;
 import de.zannagh.armorhider.client.net.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;

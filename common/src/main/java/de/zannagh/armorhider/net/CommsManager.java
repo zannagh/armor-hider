@@ -1,14 +1,13 @@
 package de.zannagh.armorhider.net;
 
 import de.zannagh.armorhider.ArmorHider;
-import de.zannagh.armorhider.net.packets.PayloadRegistry;
 import de.zannagh.armorhider.net.packets.PermissionPacket;
 import de.zannagh.armorhider.server.ServerConnectionEvents;
 import de.zannagh.armorhider.server.ServerPayloadContext;
 import de.zannagh.armorhider.server.ServerRuntime;
-import de.zannagh.armorhider.server.packets.PlayerConfig;
+import de.zannagh.armorhider.net.packets.PlayerConfig;
 import de.zannagh.armorhider.server.ServerConfiguration;
-import de.zannagh.armorhider.server.packets.ServerWideSettings;
+import de.zannagh.armorhider.net.packets.ServerWideSettings;
 import de.zannagh.armorhider.util.ServerUtil;
 import net.minecraft.server.level.ServerPlayer;
 
