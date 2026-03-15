@@ -3,7 +3,7 @@ package de.zannagh.armorhider.client.net;
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.combat.CombatManager;
-import de.zannagh.armorhider.net.packets.CombatLogEventPacket;
+import de.zannagh.armorhider.net.packets.CombatLogNotificationPacket;
 import de.zannagh.armorhider.net.packets.PermissionPacket;
 import de.zannagh.armorhider.server.ServerConfiguration;
 import net.minecraft.client.multiplayer.ServerData;
@@ -23,7 +23,7 @@ public final class ClientCommunicationManager {
         //? if >= 1.20.5 {
         PayloadRegistry.registerS2CHandler(ServerConfiguration.TYPE, ctx -> ClientCommunicationManager.handleServerConfigReceived(ctx.payload()));
         PayloadRegistry.registerS2CHandler(PermissionPacket.TYPE, ctx -> ClientCommunicationManager.handlePermissionPacketReceived(ctx.payload()));
-        PayloadRegistry.registerS2CHandler(CombatLogEventPacket.TYPE, ctx -> ClientCommunicationManager.handleCombatLogEventPacketReceived(ctx.payload()));
+        PayloadRegistry.registerS2CHandler(CombatLogNotificationPacket.TYPE, ctx -> ClientCommunicationManager.handleCombatLogNotificationReceived(ctx.payload()));
         //?}
 
         //? if < 1.20.5 {
@@ -41,11 +41,11 @@ public final class ClientCommunicationManager {
             handlePermissionPacketReceived(payload);
         });
         
-        LegacyPacketHandler.registerS2CHandler(LegacyPacketHandler.getCombatLogEventChannel(), ctx -> {
-            if (!(ctx.payload() instanceof CombatLogEventPacket payload)) {
+        LegacyPacketHandler.registerS2CHandler(LegacyPacketHandler.getCombatLogNotificationChannel(), ctx -> {
+            if (!(ctx.payload() instanceof CombatLogNotificationPacket payload)) {
                 return;
             }
-            handleCombatLogEventPacketReceived(payload);
+            handleCombatLogNotificationReceived(payload);
         });
         *///?}
 
@@ -90,7 +90,7 @@ public final class ClientCommunicationManager {
         }
     }
 
-    private static void handleCombatLogEventPacketReceived(CombatLogEventPacket ctx) {
+    private static void handleCombatLogNotificationReceived(CombatLogNotificationPacket ctx) {
         CombatManager.logCombat(ctx.playerName, ctx.timestamp);
     }
 }

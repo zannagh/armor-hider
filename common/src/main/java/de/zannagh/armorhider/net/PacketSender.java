@@ -46,7 +46,7 @@ public final class PacketSender {
     }
     
     public static void sendToPlayer(ServerPlayer player, CombatLogNotificationPacket combatLogNotification) {
-        ResourceLocation channel = LegacyPacketHandler.getCombatLogEventChannel();
+        ResourceLocation channel = LegacyPacketHandler.getCombatLogNotificationChannel();
         FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
         CompressedJsonCodec.encodeLegacy(combatLogNotification, buf);
         player.connection.send(new ClientboundCustomPayloadPacket(channel, buf));

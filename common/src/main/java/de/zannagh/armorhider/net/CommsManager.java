@@ -102,16 +102,14 @@ public final class CommsManager {
     }
     
     private static void handleCombatLogEventReceived(CombatLogEventPacket eventPacket, ServerPayloadContext ctx) {
-        if (eventPacket == null) {
-            return;
-        }
-        if (ctx == null) {
+        if (eventPacket == null || ctx == null) {
             return;
         }
         try {
-            sendPackageToAllClientsButSender(eventPacket.originator, eventPacket);
+            // Use the authenticated sender UUID from the server context, not the client-provided one
+            sendPackageToAllClientsButSender(ctx.player().getUUID(), eventPacket);
         } catch (Exception e) {
-            ArmorHider.LOGGER.error("Failed to store player data!", e);
+            ArmorHider.LOGGER.error("Failed to broadcast combat log event for player {}!", eventPacket.playerName, e);
         }
     }
 
@@ -185,7 +183,7 @@ public final class CommsManager {
     private static void sendPackageToAllClientsButSender(UUID playerId, CombatLogEventPacket eventPacket) {
         ServerRuntime runtime = ArmorHider.getRuntime();
         if (runtime == null) {
-            ArmorHider.LOGGER.warn("Runtime not initialized, cannot broadcast config");
+            ArmorHider.LOGGER.warn("Runtime not initialized, cannot broadcast combat log event");
             return;
         }
         var players = runtime.getServer().getPlayerList().getPlayers();
