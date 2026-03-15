@@ -50,8 +50,9 @@ public class LivingEntityRendererMixin {
     }
 
     /**
-     * Captures the player's identity onto the render state object itself.
-     * For non-player entities, the render state's player name is explicitly set to null.
+     * Captures the player's identity onto the render state object itself when rendering player entities.
+     * For non-player entities, the render state's player name is left unchanged (each renderer owns its
+     * own state object, so this is safe).
      */
     @Inject(
             method = "extractRenderState(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;F)V",
