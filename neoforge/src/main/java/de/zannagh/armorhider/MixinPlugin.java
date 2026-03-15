@@ -11,10 +11,10 @@ import java.util.Set;
 
 public class MixinPlugin implements IMixinConfigPlugin {
 
-    private static final String PACKAGE = "de.zannagh.armorhider.mixin";
+    private static final String PACKAGE = "de.zannagh.armorhider.net.mixin";
     private static final String[] GENERIC_MIXINS = new String[]{
-            "networking.MinecraftServerMixin",
-            "networking.ServerLoginMixin"
+            "MinecraftServerMixin",
+            "ServerLoginMixin"
     };
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {

@@ -1,7 +1,7 @@
 package de.zannagh.armorhider;
 
-import de.zannagh.armorhider.resources.PlayerConfig;
-import de.zannagh.armorhider.resources.ServerConfiguration;
+import de.zannagh.armorhider.net.packets.PlayerConfig;
+import de.zannagh.armorhider.server.ServerConfiguration;
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.NonNull;
 

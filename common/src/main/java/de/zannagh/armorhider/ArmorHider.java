@@ -2,14 +2,11 @@ package de.zannagh.armorhider;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import de.zannagh.armorhider.common.util.EnrichedLogger;
-import de.zannagh.armorhider.common.configuration.ConfigurationItemSerializer;
-import de.zannagh.armorhider.configuration.ConfigurationSourceSerializer;
-import de.zannagh.armorhider.configuration.ServerConfigurationDeserializer;
-import de.zannagh.armorhider.net.CommsManager;
-import de.zannagh.armorhider.net.PayloadRegistry;
-import de.zannagh.armorhider.net.ServerLifecycleEvents;
-import de.zannagh.armorhider.net.ServerRuntime;
+import de.zannagh.armorhider.log.EnrichedLogger;
+import de.zannagh.armorhider.configuration.serialization.*;
+import de.zannagh.armorhider.net.*;
+import de.zannagh.armorhider.server.ServerLifecycleEvents;
+import de.zannagh.armorhider.server.ServerRuntime;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;

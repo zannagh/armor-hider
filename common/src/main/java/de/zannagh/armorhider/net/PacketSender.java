@@ -5,9 +5,9 @@ import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 //?}
 //? if < 1.20.5 {
-/*import de.zannagh.armorhider.netPackets.CompressedJsonCodec;
-import de.zannagh.armorhider.netPackets.PermissionPacket;
-import de.zannagh.armorhider.resources.ServerConfiguration;
+/*import de.zannagh.armorhider.net.CompressedJsonCodec;
+import de.zannagh.armorhider.net.packets.PermissionPacket;
+import de.zannagh.armorhider.server.ServerConfiguration;
 import io.netty.buffer.Unpooled;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.game.ClientboundCustomPayloadPacket;

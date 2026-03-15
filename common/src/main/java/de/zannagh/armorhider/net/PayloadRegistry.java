@@ -2,10 +2,10 @@
 package de.zannagh.armorhider.net;
 
 import de.zannagh.armorhider.ArmorHider;
-import de.zannagh.armorhider.netPackets.PermissionPacket;
-import de.zannagh.armorhider.resources.PlayerConfig;
-import de.zannagh.armorhider.resources.ServerConfiguration;
-import de.zannagh.armorhider.resources.ServerWideSettings;
+import de.zannagh.armorhider.net.packets.PermissionPacket;
+import de.zannagh.armorhider.net.packets.PlayerConfig;
+import de.zannagh.armorhider.net.packets.ServerWideSettings;
+import de.zannagh.armorhider.server.ServerConfiguration;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;

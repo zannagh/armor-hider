@@ -1,9 +1,8 @@
 package de.zannagh.armorhider.client;
 
 import de.zannagh.armorhider.ArmorHider;
-import de.zannagh.armorhider.config.ClientConfigManager;
-import de.zannagh.armorhider.networking.ClientCommunicationManager;
-import de.zannagh.armorhider.scopes.ScopeProvider;
+import de.zannagh.armorhider.client.net.ClientCommunicationManager;
+import de.zannagh.armorhider.client.scopes.ScopeProvider;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.multiplayer.PlayerInfo;
