@@ -2,10 +2,10 @@
 /*package de.zannagh.armorhider.net;
 
 import de.zannagh.armorhider.ArmorHider;
-import de.zannagh.armorhider.netPackets.CompressedJsonCodec;
-import de.zannagh.armorhider.resources.PlayerConfig;
-import de.zannagh.armorhider.resources.ServerConfiguration;
-import de.zannagh.armorhider.resources.ServerWideSettings;
+import de.zannagh.armorhider.server.*;
+import de.zannagh.armorhider.net.packets.*;
+import de.zannagh.armorhider.net.*;
+import de.zannagh.armorhider.server.packets.*;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 
@@ -35,13 +35,13 @@ public final class LegacyPacketHandler {
 
         // Register decoders for S2C packets
         DECODERS.put(SERVER_CONFIG_CHANNEL, buf -> CompressedJsonCodec.decodeLegacy(buf, ServerConfiguration.class));
-        DECODERS.put(PERMISSION_CHANNEL, buf -> CompressedJsonCodec.decodeLegacy(buf, de.zannagh.armorhider.netPackets.PermissionPacket.class));
+        DECODERS.put(PERMISSION_CHANNEL, buf -> CompressedJsonCodec.decodeLegacy(buf, de.zannagh.armorhider.net.packets.PermissionPacket.class));
 
         // Register encoders
         ENCODERS.put(PLAYER_CONFIG_CHANNEL, (obj, buf) -> CompressedJsonCodec.encodeLegacy((PlayerConfig) obj, buf));
         ENCODERS.put(SERVER_WIDE_SETTINGS_CHANNEL, (obj, buf) -> CompressedJsonCodec.encodeLegacy((ServerWideSettings) obj, buf));
         ENCODERS.put(SERVER_CONFIG_CHANNEL, (obj, buf) -> CompressedJsonCodec.encodeLegacy((ServerConfiguration) obj, buf));
-        ENCODERS.put(PERMISSION_CHANNEL, (obj, buf) -> CompressedJsonCodec.encodeLegacy((de.zannagh.armorhider.netPackets.PermissionPacket) obj, buf));
+        ENCODERS.put(PERMISSION_CHANNEL, (obj, buf) -> CompressedJsonCodec.encodeLegacy((de.zannagh.armorhider.net.packets.PermissionPacket) obj, buf));
     }
 
     public static void registerC2SHandler(ResourceLocation channel, java.util.function.Consumer<PayloadRegistry.PayloadHandlerContext<?>> handler) {

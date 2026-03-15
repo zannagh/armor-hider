@@ -23,10 +23,10 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "de.zannagh.armorhider.fabric.ArmorHiderFabric"
+      "de.zannagh.armorhider.ArmorHiderFabric"
     ],
     "client": [
-      "de.zannagh.armorhider.fabric.ArmorHiderClientFabric"
+      "de.zannagh.armorhider.client.FabricArmorHiderClient"
     ]
   },
   "mixins": [

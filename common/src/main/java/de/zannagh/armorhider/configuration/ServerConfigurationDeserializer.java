@@ -5,8 +5,8 @@ import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import de.zannagh.armorhider.ArmorHider;
-import de.zannagh.armorhider.resources.ServerConfiguration;
-import de.zannagh.armorhider.resources.ServerWideSettings;
+import de.zannagh.armorhider.server.ServerConfiguration;
+import de.zannagh.armorhider.server.packets.ServerWideSettings;
 
 import java.io.IOException;
 

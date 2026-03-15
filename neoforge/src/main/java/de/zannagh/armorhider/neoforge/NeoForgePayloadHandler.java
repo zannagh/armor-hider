@@ -1,8 +1,8 @@
 package de.zannagh.armorhider.neoforge;
 
 import de.zannagh.armorhider.ArmorHider;
-import de.zannagh.armorhider.net.PayloadRegistry;
-import de.zannagh.armorhider.net.ServerPayloadContext;
+import de.zannagh.armorhider.net.packets.PayloadRegistry;
+import de.zannagh.armorhider.server.ServerPayloadContext;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.handling.IPayloadContext;

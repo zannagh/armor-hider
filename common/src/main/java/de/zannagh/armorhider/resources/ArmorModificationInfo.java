@@ -2,6 +2,7 @@ package de.zannagh.armorhider.resources;
 
 import de.zannagh.armorhider.common.services.CombatManager;
 import de.zannagh.armorhider.common.configuration.items.implementations.ArmorOpacity;
+import de.zannagh.armorhider.server.packets.PlayerConfig;
 import net.minecraft.world.entity.EquipmentSlot;
 import org.jetbrains.annotations.NotNull;
 

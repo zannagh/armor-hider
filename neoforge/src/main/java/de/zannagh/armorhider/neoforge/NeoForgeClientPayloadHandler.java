@@ -1,6 +1,6 @@
 package de.zannagh.armorhider.neoforge;
 
-import de.zannagh.armorhider.net.PayloadRegistry;
+import de.zannagh.armorhider.net.packets.PayloadRegistry;
 import de.zannagh.armorhider.networking.ClientPayloadContext;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;

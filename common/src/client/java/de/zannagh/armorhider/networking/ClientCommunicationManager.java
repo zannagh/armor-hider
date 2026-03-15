@@ -3,13 +3,13 @@ package de.zannagh.armorhider.networking;
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 //? if >= 1.20.5 {
-import de.zannagh.armorhider.net.PayloadRegistry;
+import de.zannagh.armorhider.net.packets.PayloadRegistry;
 //?}
 //? if < 1.20.5 {
 /*import de.zannagh.armorhider.net.LegacyPacketHandler;
 *///?}
-import de.zannagh.armorhider.netPackets.PermissionPacket;
-import de.zannagh.armorhider.resources.ServerConfiguration;
+import de.zannagh.armorhider.net.packets.PermissionPacket;
+import de.zannagh.armorhider.server.ServerConfiguration;
 import net.minecraft.client.multiplayer.ServerData;
 
 /**

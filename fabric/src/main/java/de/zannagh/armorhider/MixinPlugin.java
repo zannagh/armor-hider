@@ -11,19 +11,19 @@ import java.util.Set;
 
 public class MixinPlugin implements IMixinConfigPlugin {
 
-    private static final String PACKAGE = "de.zannagh.armorhider.mixin";
+    private static final String PACKAGE = "de.zannagh.armorhider.net.mixin";
     private static final String[] GENERIC_MIXINS = new String[]{
-            "networking.MinecraftServerMixin",
-            "networking.ServerLoginMixin",
+            "MinecraftServerMixin",
+            "ServerLoginMixin",
     };
 
     private static final String[] AT_OR_ABOVE_1_20_5_MIXINS_FABRIC = new String[]{
-            "networking.CustomPayloadCodecMixin",
-            "networking.ServerGamePacketListenerMixin"
+            "CustomPayloadCodecMixin",
+            "ServerGamePacketListenerMixin"
     };
 
     private static final String[] BELOW_1_20_5_MIXINS = new String[]{
-            "networking.ServerPlayNetworkHandlerMixin"
+            "ServerPlayNetworkHandlerMixin"
     };
 
 
