@@ -9,11 +9,11 @@ import net.minecraft.resources.Identifier;
 //? }
 //? if >= 1.21.4 && < 1.21.11 {
 /*import net.minecraft.client.renderer.RenderType;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 *///?}
 //? if < 1.21.4 {
 /*import net.minecraft.client.renderer.RenderType;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 *///?}
 
 /**
@@ -27,16 +27,16 @@ public final class RenderTypeResolver {
     //? if >= 1.21.11
     public static RenderType translucentArmor(Identifier texture) { return RenderTypes.armorTranslucent(texture); }
     //? if >= 1.21.4 && < 1.21.11
-    //public static RenderType translucentArmor(ResourceLocation texture) { return RenderType.armorTranslucent(texture); }
+    //public static RenderType translucentArmor(Identifier texture) { return RenderType.armorTranslucent(texture); }
     //? if < 1.21.4
-    //public static RenderType translucentArmor(ResourceLocation texture) { return RenderType.entityTranslucent(texture); }
+    //public static RenderType translucentArmor(Identifier texture) { return RenderType.entityTranslucent(texture); }
 
     //? if >= 1.21.11
     public static RenderType translucentEntity(Identifier texture) { return RenderTypes.entityTranslucent(texture); }
     //? if >= 1.21.4 && < 1.21.11
-    //public static RenderType translucentEntity(ResourceLocation texture) { return RenderType.entityTranslucent(texture); }
+    //public static RenderType translucentEntity(Identifier texture) { return RenderType.entityTranslucent(texture); }
     //? if < 1.21.4
-    //public static RenderType translucentEntity(ResourceLocation texture) { return RenderType.entityTranslucent(texture); }
+    //public static RenderType translucentEntity(Identifier texture) { return RenderType.entityTranslucent(texture); }
 
     //? if >= 1.21.11
     public static RenderType translucentArmorTrim() { return RenderTypes.armorTranslucent(Sheets.ARMOR_TRIMS_SHEET); }

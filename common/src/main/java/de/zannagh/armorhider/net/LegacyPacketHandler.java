@@ -6,7 +6,7 @@ import de.zannagh.armorhider.server.*;
 import de.zannagh.armorhider.net.packets.*;
 import de.zannagh.armorhider.net.*;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -17,17 +17,17 @@ import java.util.function.Function;
 // In these versions, there is no CustomPacketPayload interface or StreamCodec.
 public final class LegacyPacketHandler {
 
-    private static final ResourceLocation PLAYER_CONFIG_CHANNEL = new ResourceLocation("armorhider", "settings_c2s_packet");
-    private static final ResourceLocation SERVER_WIDE_SETTINGS_CHANNEL = new ResourceLocation("armorhider", "server_wide_settings");
-    private static final ResourceLocation SERVER_CONFIG_CHANNEL = new ResourceLocation("armorhider", "settings_s2c_packet");
-    private static final ResourceLocation PERMISSION_CHANNEL = new ResourceLocation("armorhider", "permissions_s2c_packet");
-    private static final ResourceLocation COMBAT_LOG_EVENT_CHANNEL = new ResourceLocation("armorhider", "combatlog_c2s_packet");
-    private static final ResourceLocation COMBAT_LOG_NOTIFICATION_CHANNEL = new ResourceLocation("armorhider", "combatlog_s2c_packet");
+    private static final Identifier PLAYER_CONFIG_CHANNEL = new Identifier("armorhider", "settings_c2s_packet");
+    private static final Identifier SERVER_WIDE_SETTINGS_CHANNEL = new Identifier("armorhider", "server_wide_settings");
+    private static final Identifier SERVER_CONFIG_CHANNEL = new Identifier("armorhider", "settings_s2c_packet");
+    private static final Identifier PERMISSION_CHANNEL = new Identifier("armorhider", "permissions_s2c_packet");
+    private static final Identifier COMBAT_LOG_EVENT_CHANNEL = new Identifier("armorhider", "combatlog_c2s_packet");
+    private static final Identifier COMBAT_LOG_NOTIFICATION_CHANNEL = new Identifier("armorhider", "combatlog_s2c_packet");
 
-    private static final Map<ResourceLocation, Function<FriendlyByteBuf, Object>> DECODERS = new HashMap<>();
-    private static final Map<ResourceLocation, BiConsumer<Object, FriendlyByteBuf>> ENCODERS = new HashMap<>();
-    private static final Map<ResourceLocation, java.util.function.Consumer<PayloadRegistry.PayloadHandlerContext<?>>> C2S_HANDLERS = new HashMap<>();
-    private static final Map<ResourceLocation, java.util.function.Consumer<PayloadRegistry.PayloadHandlerContext<?>>> S2C_HANDLERS = new HashMap<>();
+    private static final Map<Identifier, Function<FriendlyByteBuf, Object>> DECODERS = new HashMap<>();
+    private static final Map<Identifier, BiConsumer<Object, FriendlyByteBuf>> ENCODERS = new HashMap<>();
+    private static final Map<Identifier, java.util.function.Consumer<PayloadRegistry.PayloadHandlerContext<?>>> C2S_HANDLERS = new HashMap<>();
+    private static final Map<Identifier, java.util.function.Consumer<PayloadRegistry.PayloadHandlerContext<?>>> S2C_HANDLERS = new HashMap<>();
 
     static {
         // Register decoders for C2S packets
@@ -49,25 +49,25 @@ public final class LegacyPacketHandler {
         ENCODERS.put(COMBAT_LOG_NOTIFICATION_CHANNEL, (obj, buf) -> CompressedJsonCodec.encodeLegacy((CombatLogNotificationPacket) obj, buf));
     }
 
-    public static void registerC2SHandler(ResourceLocation channel, java.util.function.Consumer<PayloadRegistry.PayloadHandlerContext<?>> handler) {
+    public static void registerC2SHandler(Identifier channel, java.util.function.Consumer<PayloadRegistry.PayloadHandlerContext<?>> handler) {
         C2S_HANDLERS.put(channel, handler);
     }
 
-    public static void registerS2CHandler(ResourceLocation channel, java.util.function.Consumer<PayloadRegistry.PayloadHandlerContext<?>> handler) {
+    public static void registerS2CHandler(Identifier channel, java.util.function.Consumer<PayloadRegistry.PayloadHandlerContext<?>> handler) {
         S2C_HANDLERS.put(channel, handler);
     }
 
-    public static java.util.function.Consumer<PayloadRegistry.PayloadHandlerContext<?>> getS2CHandler(ResourceLocation channel) {
+    public static java.util.function.Consumer<PayloadRegistry.PayloadHandlerContext<?>> getS2CHandler(Identifier channel) {
         return S2C_HANDLERS.get(channel);
     }
 
-    public static Function<FriendlyByteBuf, Object> getDecoder(ResourceLocation channel) {
+    public static Function<FriendlyByteBuf, Object> getDecoder(Identifier channel) {
         return DECODERS.get(channel);
     }
 
     // Handles a C2S packet received from the client.
     // Returns true if the packet was handled, false otherwise.
-    public static boolean handleC2SPacket(ResourceLocation channel, FriendlyByteBuf data, ServerPayloadContext context) {
+    public static boolean handleC2SPacket(Identifier channel, FriendlyByteBuf data, ServerPayloadContext context) {
         var decoder = DECODERS.get(channel);
         if (decoder == null) {
             return false;
@@ -92,31 +92,31 @@ public final class LegacyPacketHandler {
         }
     }
 
-    public static ResourceLocation getPlayerConfigChannel() {
+    public static Identifier getPlayerConfigChannel() {
         return PLAYER_CONFIG_CHANNEL;
     }
 
-    public static ResourceLocation getServerWideSettingsChannel() {
+    public static Identifier getServerWideSettingsChannel() {
         return SERVER_WIDE_SETTINGS_CHANNEL;
     }
 
-    public static ResourceLocation getServerConfigChannel() {
+    public static Identifier getServerConfigChannel() {
         return SERVER_CONFIG_CHANNEL;
     }
 
-    public static ResourceLocation getPermissionChannel() {
+    public static Identifier getPermissionChannel() {
         return PERMISSION_CHANNEL;
     }
     
-    public static ResourceLocation getCombatLogEventChannel() {
+    public static Identifier getCombatLogEventChannel() {
         return COMBAT_LOG_EVENT_CHANNEL;
     }
     
-    public static ResourceLocation getCombatLogNotificationChannel() {
+    public static Identifier getCombatLogNotificationChannel() {
         return COMBAT_LOG_NOTIFICATION_CHANNEL;
     }
 
-    public static void encode(ResourceLocation channel, Object payload, FriendlyByteBuf buf) {
+    public static void encode(Identifier channel, Object payload, FriendlyByteBuf buf) {
         var encoder = ENCODERS.get(channel);
         if (encoder != null) {
             encoder.accept(payload, buf);

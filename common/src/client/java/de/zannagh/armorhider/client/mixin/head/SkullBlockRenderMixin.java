@@ -21,7 +21,7 @@ import net.minecraft.resources.Identifier;
 //? }
 //? if < 1.21.11 {
 /*import net.minecraft.client.renderer.RenderType;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.client.model.SkullModel;
 *///?}
 
@@ -65,14 +65,14 @@ public abstract class SkullBlockRenderMixin {
                     //? if >= 1.21.11
                      target = "Lnet/minecraft/client/renderer/blockentity/SkullBlockRenderer;getSkullRenderType(Lnet/minecraft/world/level/block/SkullBlock$Type;Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/rendertype/RenderType;"
                     //? if < 1.21.11
-                    //target = "Lnet/minecraft/client/renderer/blockentity/SkullBlockRenderer;getSkullRenderType(Lnet/minecraft/world/level/block/SkullBlock$Type;Lnet/minecraft/resources/ResourceLocation;)Lnet/minecraft/client/renderer/RenderType;"
+                    //target = "Lnet/minecraft/client/renderer/blockentity/SkullBlockRenderer;getSkullRenderType(Lnet/minecraft/world/level/block/SkullBlock$Type;Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/RenderType;"
 
             )
     )
     //? if >= 1.21.11
      private static RenderType getSkullRenderType(SkullBlock.Type type, Identifier identifier, Operation<RenderType> original) {
     //? if < 1.21.11
-    //private static RenderType getSkullRenderType(SkullBlock.Type type, ResourceLocation identifier, Operation<RenderType> original) {
+    //private static RenderType getSkullRenderType(SkullBlock.Type type, Identifier identifier, Operation<RenderType> original) {
         return RenderModifications.getSkullRenderLayer(ArmorHiderClient.SCOPE_PROVIDER, identifier, original.call(type, identifier));
     }
 
@@ -85,13 +85,13 @@ public abstract class SkullBlockRenderMixin {
                     //? if >= 1.21.11 && < 26.1-0.snapshot.6
                     //target = "Lnet/minecraft/client/renderer/rendertype/RenderTypes;entityCutoutNoCullZOffset(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/rendertype/RenderType;"
                     //? if >= 1.21.9 && < 1.21.11
-                    //target = "Lnet/minecraft/client/renderer/RenderType;entityCutoutNoCullZOffset(Lnet/minecraft/resources/ResourceLocation;)Lnet/minecraft/client/renderer/RenderType;"
+                    //target = "Lnet/minecraft/client/renderer/RenderType;entityCutoutNoCullZOffset(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/RenderType;"
             )
     )
     //? if >= 1.21.11
     private static RenderType getCutoutRenderLayer(Identifier texture, Operation<RenderType> original) {
     //? if < 1.21.11
-    //private static RenderType getCutoutRenderLayer(ResourceLocation texture, Operation<RenderType> original) {
+    //private static RenderType getCutoutRenderLayer(Identifier texture, Operation<RenderType> original) {
         return RenderModifications.getSkullRenderLayer(ArmorHiderClient.SCOPE_PROVIDER, texture, original.call(texture));
     }
 }
@@ -110,7 +110,7 @@ import de.zannagh.armorhider.client.rendering.RenderModifications;
 import net.minecraft.client.model.SkullModelBase;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.SkullBlockRenderer;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -141,10 +141,10 @@ public abstract class SkullBlockRenderMixin {
             method = "getRenderType",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/client/renderer/RenderType;entityCutoutNoCullZOffset(Lnet/minecraft/resources/ResourceLocation;)Lnet/minecraft/client/renderer/RenderType;"
+                    target = "Lnet/minecraft/client/renderer/RenderType;entityCutoutNoCullZOffset(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/RenderType;"
             )
     )
-    private static RenderType modifySkullTransparency(ResourceLocation resourceLocation, Operation<RenderType> original) {
+    private static RenderType modifySkullTransparency(Identifier resourceLocation, Operation<RenderType> original) {
         return RenderModifications.getSkullRenderLayer(ArmorHiderClient.SCOPE_PROVIDER, resourceLocation, original.call(resourceLocation));
     }
 }
@@ -163,7 +163,7 @@ import de.zannagh.armorhider.client.rendering.RenderModifications;
 import net.minecraft.client.model.SkullModelBase;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.SkullBlockRenderer;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -194,13 +194,13 @@ public abstract class SkullBlockRenderMixin {
             //? if >= 1.21.6
             method = "getPlayerSkinRenderType",
             //? if < 1.21.6
-            //method = "getRenderType(Lnet/minecraft/world/level/block/SkullBlock$Type;Lnet/minecraft/world/item/component/ResolvableProfile;Lnet/minecraft/resources/ResourceLocation;)Lnet/minecraft/client/renderer/RenderType;",
+            //method = "getRenderType(Lnet/minecraft/world/level/block/SkullBlock$Type;Lnet/minecraft/world/item/component/ResolvableProfile;Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/RenderType;",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/client/renderer/RenderType;entityTranslucent(Lnet/minecraft/resources/ResourceLocation;)Lnet/minecraft/client/renderer/RenderType;"
+                    target = "Lnet/minecraft/client/renderer/RenderType;entityTranslucent(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/RenderType;"
             )
     )
-    private static RenderType modifySkullTransparency(ResourceLocation texture, Operation<RenderType> original) {
+    private static RenderType modifySkullTransparency(Identifier texture, Operation<RenderType> original) {
         return RenderModifications.getSkullRenderLayer(ArmorHiderClient.SCOPE_PROVIDER, texture, original.call(texture));
     }
 
@@ -208,13 +208,13 @@ public abstract class SkullBlockRenderMixin {
             //? if >= 1.21.6
             method = "getSkullRenderType",
             //? if < 1.21.6
-            //method = "getRenderType(Lnet/minecraft/world/level/block/SkullBlock$Type;Lnet/minecraft/world/item/component/ResolvableProfile;Lnet/minecraft/resources/ResourceLocation;)Lnet/minecraft/client/renderer/RenderType;",
+            //method = "getRenderType(Lnet/minecraft/world/level/block/SkullBlock$Type;Lnet/minecraft/world/item/component/ResolvableProfile;Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/RenderType;",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/client/renderer/RenderType;entityCutoutNoCullZOffset(Lnet/minecraft/resources/ResourceLocation;)Lnet/minecraft/client/renderer/RenderType;"
+                    target = "Lnet/minecraft/client/renderer/RenderType;entityCutoutNoCullZOffset(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/RenderType;"
             )
     )
-    private static RenderType getCutoutRenderLayer(ResourceLocation texture, Operation<RenderType> original) {
+    private static RenderType getCutoutRenderLayer(Identifier texture, Operation<RenderType> original) {
         return RenderModifications.getSkullRenderLayer(ArmorHiderClient.SCOPE_PROVIDER, texture, original.call(texture));
     }
 }
@@ -233,7 +233,7 @@ import de.zannagh.armorhider.client.rendering.RenderModifications;
 import net.minecraft.client.model.SkullModelBase;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.SkullBlockRenderer;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -270,10 +270,10 @@ public abstract class SkullBlockRenderMixin {
             method = "getRenderType",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/client/renderer/RenderType;entityTranslucent(Lnet/minecraft/resources/ResourceLocation;)Lnet/minecraft/client/renderer/RenderType;"
+                    target = "Lnet/minecraft/client/renderer/RenderType;entityTranslucent(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/RenderType;"
             )
     )
-    private static RenderType modifySkullTransparency(ResourceLocation texture, Operation<RenderType> original) {
+    private static RenderType modifySkullTransparency(Identifier texture, Operation<RenderType> original) {
         return RenderModifications.getSkullRenderLayer(ArmorHiderClient.SCOPE_PROVIDER, texture, original.call(texture));
     }
 
@@ -281,10 +281,10 @@ public abstract class SkullBlockRenderMixin {
             method = "getRenderType",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/client/renderer/RenderType;entityCutoutNoCullZOffset(Lnet/minecraft/resources/ResourceLocation;)Lnet/minecraft/client/renderer/RenderType;"
+                    target = "Lnet/minecraft/client/renderer/RenderType;entityCutoutNoCullZOffset(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/RenderType;"
             )
     )
-    private static RenderType getCutoutRenderLayer(ResourceLocation texture, Operation<RenderType> original) {
+    private static RenderType getCutoutRenderLayer(Identifier texture, Operation<RenderType> original) {
         return RenderModifications.getSkullRenderLayer(ArmorHiderClient.SCOPE_PROVIDER, texture, original.call(texture));
     }
 }

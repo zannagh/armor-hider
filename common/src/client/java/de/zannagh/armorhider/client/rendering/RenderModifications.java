@@ -13,11 +13,11 @@ import net.minecraft.resources.Identifier;
 //? }
 //? if >= 1.21.4 && < 1.21.11 {
 /*import net.minecraft.client.renderer.RenderType;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 *///?}
 //? if < 1.21.4 {
 /*import net.minecraft.client.renderer.RenderType;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 *///?}
 
 /**
@@ -39,9 +39,9 @@ public final class RenderModifications {
     //? if >= 1.21.11
     public static RenderType getSkullRenderLayer(@NotNull ScopeProvider scopes, Identifier texture, RenderType originalLayer) {
     //? if >= 1.21.4 && < 1.21.11
-    //public static RenderType getSkullRenderLayer(@NotNull ScopeProvider scopes, ResourceLocation texture, RenderType originalLayer) {
+    //public static RenderType getSkullRenderLayer(@NotNull ScopeProvider scopes, Identifier texture, RenderType originalLayer) {
     //? if < 1.21.4
-    //public static RenderType getSkullRenderLayer(@NotNull ScopeProvider scopes, ResourceLocation texture, RenderType originalLayer) {
+    //public static RenderType getSkullRenderLayer(@NotNull ScopeProvider scopes, Identifier texture, RenderType originalLayer) {
         var itemScope = ScopeUtils.getItemScopeIfModifiable(scopes);
         if (itemScope == null) {
             return originalLayer;
@@ -59,9 +59,9 @@ public final class RenderModifications {
     //? if >= 1.21.11
     public static RenderType getTranslucentArmorRenderType(@NotNull ScopeProvider scopes, Identifier texture, RenderType originalLayer) {
     //? if >= 1.21.4 && < 1.21.11
-    //public static RenderType getTranslucentArmorRenderType(@NotNull ScopeProvider scopes, ResourceLocation texture, RenderType originalLayer) {
+    //public static RenderType getTranslucentArmorRenderType(@NotNull ScopeProvider scopes, Identifier texture, RenderType originalLayer) {
     //? if < 1.21.4
-    //public static RenderType getTranslucentArmorRenderType(@NotNull ScopeProvider scopes, ResourceLocation texture, RenderType originalLayer) {
+    //public static RenderType getTranslucentArmorRenderType(@NotNull ScopeProvider scopes, Identifier texture, RenderType originalLayer) {
         var itemScope = ScopeUtils.getItemScopeIfModifiable(scopes);
         if (itemScope == null) {
             return originalLayer;
@@ -160,4 +160,49 @@ public final class RenderModifications {
         }
         return originalPriority;
     }
+
+    // Buffer wrapping for < 1.21.4
+
+    //? if < 1.21.4 {
+    /*
+    // Cache: maps entitySolid/entityCutout Identifiers to entityTranslucent equivalents.
+    // RenderType.entitySolid(rl) and RenderType.entityTranslucent(rl) use the same texture parameter.
+    private static final java.util.Map<net.minecraft.client.renderer.RenderType, net.minecraft.client.renderer.RenderType> solidToTranslucent
+            = new java.util.concurrent.ConcurrentHashMap<>();
+
+    static {
+       
+        solidToTranslucent.put(
+                net.minecraft.client.renderer.RenderType.entitySolid(Sheets.SHIELD_SHEET),
+                net.minecraft.client.renderer.RenderType.entityTranslucent(Sheets.SHIELD_SHEET));
+        solidToTranslucent.put(
+                net.minecraft.client.renderer.RenderType.entitySolid(Sheets.BANNER_SHEET),
+                net.minecraft.client.renderer.RenderType.entityTranslucent(Sheets.BANNER_SHEET));
+        // block atlas for anything that's not a shield, I think
+        solidToTranslucent.put(
+                net.minecraft.client.renderer.RenderType.entitySolid(net.minecraft.world.inventory.InventoryMenu.BLOCK_ATLAS),
+                net.minecraft.client.renderer.RenderType.entityTranslucent(net.minecraft.world.inventory.InventoryMenu.BLOCK_ATLAS));
+    }
+
+    public static net.minecraft.client.renderer.MultiBufferSource wrapTranslucentBufferSource(
+            net.minecraft.client.renderer.MultiBufferSource original, float alpha) {
+        return (net.minecraft.client.renderer.RenderType renderType) -> {
+            // Try to swap opaque entity types to translucent
+            var translucent = solidToTranslucent.get(renderType);
+            if (translucent != null) {
+                return original.getBuffer(translucent);
+            }
+            // Swap cutout block sheet to translucent item sheet
+            if (renderType == Sheets.cutoutBlockSheet()) {
+                return original.getBuffer(Sheets.translucentItemSheet());
+            }
+            return original.getBuffer(renderType);
+        };
+    }
+
+    // Called from downstream rendering to register additional solid→translucent mappings at runtime
+    public static void registerSolidToTranslucent(net.minecraft.client.renderer.RenderType solid, net.minecraft.client.renderer.RenderType translucent) {
+        solidToTranslucent.putIfAbsent(solid, translucent);
+    }
+    *///? }
 }

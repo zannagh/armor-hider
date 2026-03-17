@@ -14,7 +14,7 @@ import de.zannagh.armorhider.net.packets.ServerWideSettings;
 import io.netty.buffer.Unpooled;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.game.ServerboundCustomPayloadPacket;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 *///?}
 
 /**
@@ -41,7 +41,7 @@ public final class ClientPacketSender {
         if (connection == null) {
             throw new IllegalStateException("Cannot send packet: not connected to a server");
         }
-        ResourceLocation channel = LegacyPacketHandler.getPlayerConfigChannel();
+        Identifier channel = LegacyPacketHandler.getPlayerConfigChannel();
         FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
         CompressedJsonCodec.encodeLegacy(config, buf);
         connection.send(new ServerboundCustomPayloadPacket(channel, buf));
@@ -52,7 +52,7 @@ public final class ClientPacketSender {
         if (connection == null) {
             throw new IllegalStateException("Cannot send packet: not connected to a server");
         }
-        ResourceLocation channel = LegacyPacketHandler.getServerWideSettingsChannel();
+        Identifier channel = LegacyPacketHandler.getServerWideSettingsChannel();
         FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
         CompressedJsonCodec.encodeLegacy(settings, buf);
         connection.send(new ServerboundCustomPayloadPacket(channel, buf));
@@ -63,7 +63,7 @@ public final class ClientPacketSender {
         if (connection == null) {
             throw new IllegalStateException("Cannot send packet: not connected to a server");
         }
-        ResourceLocation channel = LegacyPacketHandler.getCombatLogEventChannel();
+        Identifier channel = LegacyPacketHandler.getCombatLogEventChannel();
         FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
         CompressedJsonCodec.encodeLegacy(combatLogPacket, buf);
         connection.send(new ServerboundCustomPayloadPacket(channel, buf));
