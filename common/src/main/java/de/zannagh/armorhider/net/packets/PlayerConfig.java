@@ -20,7 +20,7 @@ import java.util.UUID;
 import net.minecraft.resources.Identifier;
  //?}
 //? if >= 1.20.5 && < 1.21.11 {
-/*import net.minecraft.resources.ResourceLocation;
+/*import net.minecraft.resources.Identifier;
 *///?}
 
 public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
@@ -30,7 +30,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
     //?}
 
     //? if >= 1.20.5 && < 1.21.11 {
-    /*public static final ResourceLocation PACKET_IDENTIFIER = ResourceLocation.fromNamespaceAndPath("armorhider", "settings_c2s_packet");
+    /*public static final Identifier PACKET_IDENTIFIER = Identifier.fromNamespaceAndPath("armorhider", "settings_c2s_packet");
     *///?}
 
     //? if >= 1.20.5 {

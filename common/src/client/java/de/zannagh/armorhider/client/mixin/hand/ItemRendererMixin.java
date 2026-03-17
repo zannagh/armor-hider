@@ -19,10 +19,41 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.entity.EquipmentSlot;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
 @SuppressWarnings({"unused", "UnusedMixin"})
 @Mixin(ItemRenderer.class)
 public class ItemRendererMixin {
+
+    @ModifyVariable(
+            method = "render(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemDisplayContext;ZLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;IILnet/minecraft/client/resources/model/BakedModel;)V",
+            at = @At("HEAD"),
+            ordinal = 0,
+            argsOnly = true
+    )
+    private MultiBufferSource wrapBufferSourceForTransparency(MultiBufferSource bufferSource) {
+        var scopes = ArmorHiderClient.SCOPE_PROVIDER;
+        if (!scopes.hasItemScope(EquipmentSlot.OFFHAND) || !RenderDecisions.shouldModifyEquipment(scopes)) {
+            return bufferSource;
+        }
+        var itemScope = scopes.itemScope();
+        if (itemScope == null || itemScope.transparency() >= 1.0 || itemScope.transparency() <= 0) {
+            return bufferSource;
+        }
+        // Wrap to swap cutout render types to translucent equivalents
+        return (RenderType renderType) -> {
+            if (renderType == Sheets.cutoutBlockSheet()) {
+                return bufferSource.getBuffer(Sheets.translucentItemSheet());
+            }
+            if (renderType == Sheets.shieldSheet()) {
+                return bufferSource.getBuffer(RenderType.entityTranslucent(Sheets.SHIELD_SHEET));
+            }
+            if (renderType == Sheets.bannerSheet()) {
+                return bufferSource.getBuffer(RenderType.entityTranslucent(Sheets.BANNER_SHEET));
+            }
+            return bufferSource.getBuffer(renderType);
+        };
+    }
 
     @WrapOperation(
             method = "render(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemDisplayContext;ZLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;IILnet/minecraft/client/resources/model/BakedModel;)V",
@@ -66,22 +97,44 @@ public class ItemRendererMixin {
     }
 
     //? if >= 1.21 {
+    //? if !neoforge {
+    //@WrapOperation(
+    //        method = "renderQuadList(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;Ljava/util/List;Lnet/minecraft/world/item/ItemStack;II)V",
+    //        at = @At(
+    //                value = "INVOKE",
+    //                target = "Lcom/mojang/blaze3d/vertex/VertexConsumer;putBulkData(Lcom/mojang/blaze3d/vertex/PoseStack$Pose;Lnet/minecraft/client/renderer/block/model/BakedQuad;FFFFII)V"
+    //        )
+    //)
+    //private void wrapPutBulkData(VertexConsumer instance, PoseStack.Pose pose, BakedQuad quad, float r, float g, float b, float alpha, int light, int overlay, Operation<Void> original) {
+    //    var scopes = ArmorHiderClient.SCOPE_PROVIDER;
+    //    if (scopes.hasItemScope(EquipmentSlot.OFFHAND) && RenderDecisions.shouldModifyEquipment(scopes)) {
+    //        float modifiedAlpha = alpha * RenderModifications.getTransparencyAlpha(scopes);
+    //        original.call(instance, pose, quad, r, g, b, modifiedAlpha, light, overlay);
+    //    } else {
+    //        original.call(instance, pose, quad, r, g, b, alpha, light, overlay);
+    //    }
+    //}
+    //?}
+
+    //? if neoforge {
+    // NeoForge adds an extra boolean parameter to putBulkData
     @WrapOperation(
             method = "renderQuadList(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;Ljava/util/List;Lnet/minecraft/world/item/ItemStack;II)V",
             at = @At(
                     value = "INVOKE",
-                    target = "Lcom/mojang/blaze3d/vertex/VertexConsumer;putBulkData(Lcom/mojang/blaze3d/vertex/PoseStack$Pose;Lnet/minecraft/client/renderer/block/model/BakedQuad;FFFFII)V"
+                    target = "Lcom/mojang/blaze3d/vertex/VertexConsumer;putBulkData(Lcom/mojang/blaze3d/vertex/PoseStack$Pose;Lnet/minecraft/client/renderer/block/model/BakedQuad;FFFFIIZ)V"
             )
     )
-    private void wrapPutBulkData(VertexConsumer instance, PoseStack.Pose pose, BakedQuad quad, float r, float g, float b, float alpha, int light, int overlay, Operation<Void> original) {
+    private void wrapPutBulkData(VertexConsumer instance, PoseStack.Pose pose, BakedQuad quad, float r, float g, float b, float alpha, int light, int overlay, boolean useBlockLight, Operation<Void> original) {
         var scopes = ArmorHiderClient.SCOPE_PROVIDER;
         if (scopes.hasItemScope(EquipmentSlot.OFFHAND) && RenderDecisions.shouldModifyEquipment(scopes)) {
             float modifiedAlpha = alpha * RenderModifications.getTransparencyAlpha(scopes);
-            original.call(instance, pose, quad, r, g, b, modifiedAlpha, light, overlay);
+            original.call(instance, pose, quad, r, g, b, modifiedAlpha, light, overlay, useBlockLight);
         } else {
-            original.call(instance, pose, quad, r, g, b, alpha, light, overlay);
+            original.call(instance, pose, quad, r, g, b, alpha, light, overlay, useBlockLight);
         }
     }
+    //?}
     //? }
 }
 *///? }

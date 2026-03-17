@@ -45,6 +45,7 @@ public class MixinPlugin implements IMixinConfigPlugin {
             "bodyKneesAndToes.HumanoidArmorLayerMixin",
             // Guarded by //? if < 1.21.9 in source
             "hand.ModelPartMixin",
+            "hand.ItemRendererMixin",
             "bodyKneesAndToes.NeoForgeArmorColorMixin",
             "bodyKneesAndToes.NeoForgeHumanoidArmorLayerMixin",
             "OptionsMixin"

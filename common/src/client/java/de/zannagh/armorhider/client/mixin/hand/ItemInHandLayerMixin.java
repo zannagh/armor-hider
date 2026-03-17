@@ -12,6 +12,14 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+//? if < 1.21.4 {
+/*import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import de.zannagh.armorhider.client.rendering.RenderModifications;
+import net.minecraft.client.renderer.ItemInHandRenderer;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.Sheets;
+*///? }
 
 //? if >= 1.21.4 {
 import net.minecraft.client.renderer.entity.state.ArmedEntityRenderState;
@@ -80,6 +88,30 @@ public class ItemInHandLayerMixin {
             ci.cancel();
         }
     }
+
+    //? if < 1.21.4 {
+    /*@WrapOperation(
+            method = "renderArmWithItem",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/renderer/ItemInHandRenderer;renderItem(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemDisplayContext;ZLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V"
+            )
+    )
+    private void wrapOffhandRenderItem(ItemInHandRenderer renderer, LivingEntity entity, ItemStack itemStack, ItemDisplayContext displayContext, boolean isLeftHand, PoseStack poseStack, MultiBufferSource bufferSource, int light, Operation<Void> original) {
+        System.out.println("[AH-WRAP] item=" + itemStack.getItem() + " hasScope=" + ArmorHiderClient.SCOPE_PROVIDER.hasItemScope(EquipmentSlot.OFFHAND) + " shouldModify=" + (ArmorHiderClient.SCOPE_PROVIDER.itemScope() != null ? RenderDecisions.shouldModifyEquipment(ArmorHiderClient.SCOPE_PROVIDER) : "no-scope") + " transparency=" + (ArmorHiderClient.SCOPE_PROVIDER.itemScope() != null ? ArmorHiderClient.SCOPE_PROVIDER.itemScope().transparency() : "N/A"));
+        var scopes = ArmorHiderClient.SCOPE_PROVIDER;
+        if (scopes.hasItemScope(EquipmentSlot.OFFHAND)
+                && RenderDecisions.shouldModifyEquipment(scopes)
+                && scopes.itemScope().transparency() < 1.0
+                && scopes.itemScope().transparency() > 0) {
+            float alpha = RenderModifications.getTransparencyAlpha(scopes);
+            MultiBufferSource wrapped = RenderModifications.wrapTranslucentBufferSource(bufferSource, alpha);
+            original.call(renderer, entity, itemStack, displayContext, isLeftHand, poseStack, wrapped, light);
+        } else {
+            original.call(renderer, entity, itemStack, displayContext, isLeftHand, poseStack, bufferSource, light);
+        }
+    }
+    *///? }
 
     //? if >= 1.21.9
     @Inject(method = "submitArmWithItem", at = @At("TAIL"))

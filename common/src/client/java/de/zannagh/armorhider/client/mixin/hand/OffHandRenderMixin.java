@@ -24,6 +24,7 @@ import net.minecraft.client.renderer.item.ItemStackRenderState;
 //? if < 1.21.9 {
 /*import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.ItemRenderer;
+import de.zannagh.armorhider.client.rendering.RenderModifications;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.level.Level;
@@ -83,16 +84,25 @@ public class OffHandRenderMixin {
                 && RenderDecisions.shouldHideEquipment(scopes)) {
             return;
         }
-        // Partial opacity is handled downstream by ItemRenderMixin
-        // which modifies tint layers and render types at the submitItem level.
         //? if >= 1.21.9
         original.call(instance, poseStack, submitNodeCollector, light, overlay, color);
+        //? if < 1.21.9 {
+        /*// Wrap buffer source for transparency: swap opaque render types to translucent
+        MultiBufferSource source = multiBufferSource;
+        if (scopes.hasItemScope(EquipmentSlot.OFFHAND)
+                && RenderDecisions.shouldModifyEquipment(scopes)
+                && scopes.itemScope().transparency() < 1.0
+                && scopes.itemScope().transparency() > 0) {
+            source = RenderModifications.wrapTranslucentBufferSource(multiBufferSource,
+                    RenderModifications.getTransparencyAlpha(scopes));
+        }
+        *///? }
         //? if >= 1.21.6 && < 1.21.9
-        //original.call(instance, livingEntity, itemStack, itemDisplayContext, poseStack, multiBufferSource, level, i, j, k);
+        //original.call(instance, livingEntity, itemStack, itemDisplayContext, poseStack, source, level, i, j, k);
         //? if < 1.21.6 && != 1.21.5
-        //original.call(instance, livingEntity, itemStack, itemDisplayContext, b, poseStack, multiBufferSource, level, i, j, k);
+        //original.call(instance, livingEntity, itemStack, itemDisplayContext, b, poseStack, source, level, i, j, k);
         //? if 1.21.5
-        //original.call(instance, livingEntity, itemStack, itemDisplayContext, poseStack, multiBufferSource, level, i, j, k);
+        //original.call(instance, livingEntity, itemStack, itemDisplayContext, poseStack, source, level, i, j, k);
     }
 
     @Inject(

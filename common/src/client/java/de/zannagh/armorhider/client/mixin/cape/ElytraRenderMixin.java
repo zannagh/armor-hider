@@ -93,14 +93,21 @@ public class ElytraRenderMixin {
 //? if < 1.21.4 {
 /*package de.zannagh.armorhider.client.mixin.cape;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.rendering.RenderDecisions;
+import de.zannagh.armorhider.client.rendering.RenderModifications;
 import de.zannagh.armorhider.client.scopes.ScopeFactory;
 import de.zannagh.armorhider.util.ItemsUtil;
+import net.minecraft.client.model.ElytraModel;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.layers.ElytraLayer;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import org.spongepowered.asm.mixin.Mixin;
@@ -143,5 +150,55 @@ public class ElytraRenderMixin<T extends LivingEntity, M extends EntityModel<T>>
     private void releaseContext(PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, T entity, float limbSwing, float limbSwingAmount, float partialTick, float ageInTicks, float netHeadYaw, float headPitch, CallbackInfo ci) {
         ArmorHiderClient.SCOPE_PROVIDER.exitItemRender();
     }
+
+    // --- Elytra transparency: render type swap ---
+
+    @WrapOperation(
+            method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/world/entity/LivingEntity;FFFFFF)V",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/renderer/RenderType;armorCutoutNoCull(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/RenderType;"
+            )
+    )
+    private RenderType modifyElytraRenderType(Identifier texture, Operation<RenderType> original) {
+        return RenderModifications.getTranslucentArmorRenderType(ArmorHiderClient.SCOPE_PROVIDER, texture, original.call(texture));
+    }
+
+    // --- Elytra transparency: color alpha modification ---
+    // ElytraModel.renderToBuffer(PoseStack, VertexConsumer, int, int) is the 4-param final
+    // method that delegates to the 5-param abstract renderToBuffer with default color 0xFFFFFFFF.
+    // We intercept the 4-param call and redirect to the 5-param version with modified alpha.
+
+    //? if >= 1.21 {
+    @WrapOperation(
+            method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/world/entity/LivingEntity;FFFFFF)V",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/model/ElytraModel;renderToBuffer(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;II)V"
+            )
+    )
+    private void modifyElytraColor(ElytraModel<?> model, PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, Operation<Void> original) {
+        int color = RenderModifications.applyArmorTransparency(ArmorHiderClient.SCOPE_PROVIDER, 0xFFFFFFFF);
+        if (color != 0xFFFFFFFF) {
+            model.renderToBuffer(poseStack, vertexConsumer, packedLight, packedOverlay, color);
+        } else {
+            original.call(model, poseStack, vertexConsumer, packedLight, packedOverlay);
+        }
+    }
+    //?}
+
+    //? if < 1.21 {
+    //@WrapOperation(
+    //        method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/world/entity/LivingEntity;FFFFFF)V",
+    //        at = @At(
+    //                value = "INVOKE",
+    //                target = "Lnet/minecraft/client/model/ElytraModel;renderToBuffer(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;IIFFFF)V"
+    //        )
+    //)
+    //private void modifyElytraColor(ElytraModel<?> model, PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, float red, float green, float blue, float alpha, Operation<Void> original) {
+    //    float modifiedAlpha = alpha * RenderModifications.getTransparencyAlpha(ArmorHiderClient.SCOPE_PROVIDER);
+    //    original.call(model, poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, modifiedAlpha);
+    //}
+    //?}
 }
 *///?}
