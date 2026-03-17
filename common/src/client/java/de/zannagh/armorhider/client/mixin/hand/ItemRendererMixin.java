@@ -87,7 +87,7 @@ public class ItemRendererMixin {
 *///? }
 
 //? if >= 1.21.4 && < 1.21.9 {
-/*package de.zannagh.armorhider.mixin.client.hand;
+/*package de.zannagh.armorhider.client.mixin.hand;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;

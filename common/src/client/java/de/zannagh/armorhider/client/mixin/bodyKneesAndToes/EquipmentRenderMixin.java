@@ -164,7 +164,7 @@ public class EquipmentRenderMixin {
 //?}
 
 //? if >= 1.21.4 && < 1.21.9 {
-/*package de.zannagh.armorhider.mixin.client.bodyKneesAndToes;
+/*package de.zannagh.armorhider.client.mixin.bodyKneesAndToes;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
