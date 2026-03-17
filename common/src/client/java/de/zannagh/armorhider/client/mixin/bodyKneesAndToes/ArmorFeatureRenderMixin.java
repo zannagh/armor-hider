@@ -41,7 +41,7 @@ public class ArmorFeatureRenderMixin {
 //?}
 
 //? if >= 1.21.4 && < 1.21.9 {
-/*package de.zannagh.armorhider.mixin.client.bodyKneesAndToes;
+/*package de.zannagh.armorhider.client.mixin.bodyKneesAndToes;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.ArmorHiderClient;

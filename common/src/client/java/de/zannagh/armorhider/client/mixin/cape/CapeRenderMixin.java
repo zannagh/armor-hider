@@ -58,7 +58,7 @@ public class CapeRenderMixin {
 //?}
 
 //? if >= 1.21.4 && < 1.21.9 {
-/*package de.zannagh.armorhider.mixin.client.cape;
+/*package de.zannagh.armorhider.client.mixin.cape;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -116,7 +116,7 @@ public class CapeRenderMixin {
 *///?}
 
 //? if < 1.21.4 {
-/*package de.zannagh.armorhider.mixin.client.cape;
+/*package de.zannagh.armorhider.client.mixin.cape;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;

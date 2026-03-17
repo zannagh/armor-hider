@@ -98,7 +98,7 @@ public abstract class SkullBlockRenderMixin {
 //?}
 
 //? if >= 1.21 && < 1.21.4 {
-/*package de.zannagh.armorhider.mixin.client.head;
+/*package de.zannagh.armorhider.client.mixin.head;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -151,7 +151,7 @@ public abstract class SkullBlockRenderMixin {
 *///?}
 
 //? if >= 1.21.4 && < 1.21.9 {
-/*package de.zannagh.armorhider.mixin.client.head;
+/*package de.zannagh.armorhider.client.mixin.head;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -221,7 +221,7 @@ public abstract class SkullBlockRenderMixin {
 *///?}
 
 //? if < 1.21 {
-/*package de.zannagh.armorhider.mixin.client.head;
+/*package de.zannagh.armorhider.client.mixin.head;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;

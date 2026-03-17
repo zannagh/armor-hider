@@ -44,7 +44,7 @@ public class GameRendererMixin {
 //?}
 
 //? if < 1.21 {
-/*package de.zannagh.armorhider.mixin.client;
+/*package de.zannagh.armorhider.client.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.ArmorHiderClient;

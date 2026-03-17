@@ -45,7 +45,7 @@ public class ElytraRenderMixin {
 //?}
 
 //? if >= 1.21.4 && < 1.21.9 {
-/*package de.zannagh.armorhider.mixin.client.cape;
+/*package de.zannagh.armorhider.client.mixin.cape;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.ArmorHiderClient;
@@ -91,7 +91,7 @@ public class ElytraRenderMixin {
 *///?}
 
 //? if < 1.21.4 {
-/*package de.zannagh.armorhider.mixin.client.cape;
+/*package de.zannagh.armorhider.client.mixin.cape;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.ArmorHiderClient;
