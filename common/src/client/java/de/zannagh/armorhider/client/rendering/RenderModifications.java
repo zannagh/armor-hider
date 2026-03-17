@@ -161,9 +161,9 @@ public final class RenderModifications {
         return originalPriority;
     }
 
-    // Buffer wrapping for < 1.21.4
+    // Buffer wrapping for < 1.21.9 (used by ItemInHandLayerMixin and OffHandRenderMixin)
 
-    //? if < 1.21.4 {
+    //? if < 1.21.9 {
     /*
     // Cache: maps entitySolid/entityCutout Identifiers to entityTranslucent equivalents.
     // RenderType.entitySolid(rl) and RenderType.entityTranslucent(rl) use the same texture parameter.
@@ -178,10 +178,12 @@ public final class RenderModifications {
         solidToTranslucent.put(
                 net.minecraft.client.renderer.RenderType.entitySolid(Sheets.BANNER_SHEET),
                 net.minecraft.client.renderer.RenderType.entityTranslucent(Sheets.BANNER_SHEET));
-        // block atlas for anything that's not a shield, I think
+        //? if < 1.21.4 {
+        // Block atlas — used by baked quad items (swords, tools, etc.)
         solidToTranslucent.put(
                 net.minecraft.client.renderer.RenderType.entitySolid(net.minecraft.world.inventory.InventoryMenu.BLOCK_ATLAS),
                 net.minecraft.client.renderer.RenderType.entityTranslucent(net.minecraft.world.inventory.InventoryMenu.BLOCK_ATLAS));
+        //?}
     }
 
     public static net.minecraft.client.renderer.MultiBufferSource wrapTranslucentBufferSource(
