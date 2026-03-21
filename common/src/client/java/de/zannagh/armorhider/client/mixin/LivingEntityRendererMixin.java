@@ -72,6 +72,7 @@ public class LivingEntityRendererMixin {
                     carrier.armorHider$setCustomHeadItem(entity.getItemBySlot(EquipmentSlot.HEAD).copy());
                 }
             }
+            carrier.armorHider$setPlayerFlying(player.isFlyingVehicle() || player.isFallFlying());
         }
     }
 }

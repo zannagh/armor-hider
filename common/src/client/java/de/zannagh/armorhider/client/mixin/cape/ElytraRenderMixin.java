@@ -4,6 +4,7 @@ package de.zannagh.armorhider.client.mixin.cape;
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.rendering.RenderDecisions;
+import de.zannagh.armorhider.client.scopes.IdentityCarrier;
 import de.zannagh.armorhider.client.scopes.ScopeFactory;
 import de.zannagh.armorhider.util.ItemsUtil;
 import net.minecraft.client.model.EntityModel;
@@ -24,6 +25,10 @@ public class ElytraRenderMixin {
             cancellable = true
     )
     private <S extends HumanoidRenderState, M extends EntityModel<S>> void interceptElytraRender(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int i, S humanoidRenderState, float f, float g, CallbackInfo ci) {
+        if (humanoidRenderState instanceof IdentityCarrier carrier
+                && Boolean.TRUE.equals(carrier.armorHider$isPlayerFlying())) {
+            return;
+        }
         var scopes = ArmorHiderClient.SCOPE_PROVIDER;
         var scope = ScopeFactory.createItemScope(scopes, ItemsUtil.ELYTRA_ITEM_STACK, EquipmentSlot.CHEST, humanoidRenderState);
         if (scope != null) {
