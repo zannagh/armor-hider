@@ -1,7 +1,6 @@
 //? if >= 1.21.4 {
 package de.zannagh.armorhider.client.scopes;
 
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 

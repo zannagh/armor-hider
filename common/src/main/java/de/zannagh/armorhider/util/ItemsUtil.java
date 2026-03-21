@@ -11,7 +11,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 //region ConditionalImports
-//? if >= 1.21
+//? if >= 1.21.9
 import net.minecraft.core.component.DataComponents;
 //endregion
 
