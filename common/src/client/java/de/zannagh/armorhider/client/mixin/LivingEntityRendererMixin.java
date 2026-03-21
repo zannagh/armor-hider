@@ -5,6 +5,7 @@ import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import org.spongepowered.asm.mixin.Mixin;
@@ -62,6 +63,12 @@ public class LivingEntityRendererMixin {
         if (entity instanceof Player player && state instanceof IdentityCarrier carrier) {
             String name = player.getDisplayName() != null ? player.getDisplayName().getString() : null;
             carrier.armorHider$setPlayerName(name != null && !name.isEmpty() ? name : null);
+            if (state.wornHeadProfile == null 
+                    && state.wornHeadType == null) {
+                if (!entity.getItemBySlot(EquipmentSlot.HEAD).isEmpty()) {
+                    carrier.armorHider$setCustomHeadItem(entity.getItemBySlot(EquipmentSlot.HEAD));
+                }
+            }
         }
     }
 }

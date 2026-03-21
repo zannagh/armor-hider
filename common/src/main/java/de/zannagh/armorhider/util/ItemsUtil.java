@@ -1,8 +1,5 @@
 package de.zannagh.armorhider.util;
 
-//? if >= 1.21 {
-import net.minecraft.core.component.DataComponents;
-//?}
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -12,6 +9,11 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+
+//region ConditionalImports
+//? if >= 1.21
+import net.minecraft.core.component.DataComponents;
+//endregion
 
 public final class ItemsUtil {
     public static final Set<Item> SKULL_BLOCK_ITEMS = new HashSet<>(
@@ -58,9 +60,9 @@ public final class ItemsUtil {
         if (itemStack == null) {
             return false;
         }
-        //? if >= 1.21.9
-        return itemStack.getComponents().has(DataComponents.GLIDER) || itemStack.is(ELYTRA_ITEM_STACK.getItem()) || itemStack.getItem().toString().toLowerCase().contains("elytra");
-        //? if < 1.21.9
+        //? if < 1.21.9 {
         //return itemStack.is(ELYTRA_ITEM_STACK.getItem()) || itemStack.getItem().toString().toLowerCase().contains("elytra");
+        //?} else
+        return itemStack.getComponents().has(DataComponents.GLIDER) || itemStack.is(ELYTRA_ITEM_STACK.getItem()) || itemStack.getItem().toString().toLowerCase().contains("elytra");
     }
 }

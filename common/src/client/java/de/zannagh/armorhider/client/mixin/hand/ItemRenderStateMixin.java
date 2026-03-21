@@ -56,7 +56,11 @@ public class ItemRenderStateMixin {
     //? if 1.21.9 || 1.21.10
     //private void wrapSubmitItem(SubmitNodeCollector instance, PoseStack poseStack, ItemDisplayContext itemDisplayContext, int light, int overlay, int color, int[] tintLayers, List<BakedQuad> quads, RenderType renderType, ItemStackRenderState.FoilType foilType, Operation<Void> original) {
         var scopes = ArmorHiderClient.SCOPE_PROVIDER;
-        if (scopes.hasItemScope(EquipmentSlot.OFFHAND) && RenderDecisions.shouldModifyEquipment(scopes)) {
+        boolean shouldInterceptOffHandRender = scopes.hasItemScope(EquipmentSlot.OFFHAND)
+                && RenderDecisions.shouldModifyEquipment(scopes);
+        boolean shouldInterceptCustomHeadRender = scopes.hasItemScope(EquipmentSlot.HEAD)
+                && RenderDecisions.shouldModifyEquipment(scopes);
+        if (shouldInterceptOffHandRender || shouldInterceptCustomHeadRender) {
             // Note to future me: This can actually hide main hands.
             float alpha = RenderModifications.getTransparencyAlpha(scopes);
             //? if < 26.1-0.snapshot.7

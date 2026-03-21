@@ -1,6 +1,8 @@
 //? if >= 1.21.4 {
 package de.zannagh.armorhider.client.scopes;
 
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -15,5 +17,8 @@ import org.jetbrains.annotations.Nullable;
 public interface IdentityCarrier {
     @Nullable String armorHider$getPlayerName();
     void armorHider$setPlayerName(@Nullable String name);
+    
+    @Nullable ItemStack armorHider$customHeadItem();
+    void armorHider$setCustomHeadItem(@Nullable ItemStack item);
 }
 //?}

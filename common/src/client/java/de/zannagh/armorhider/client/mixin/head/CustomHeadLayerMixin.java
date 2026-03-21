@@ -3,6 +3,7 @@ package de.zannagh.armorhider.client.mixin.head;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.client.scopes.IdentityCarrier;
 import de.zannagh.armorhider.constants.MixinConstants;
 import de.zannagh.armorhider.client.rendering.RenderDecisions;
 import de.zannagh.armorhider.client.scopes.ScopeFactory;
@@ -12,10 +13,14 @@ import net.minecraft.client.renderer.entity.layers.CustomHeadLayer;
 import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.flag.FeatureFlag;
+import net.minecraft.world.flag.FeatureFlagSet;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.SkullBlock;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -31,6 +36,10 @@ import net.minecraft.client.renderer.rendertype.RenderType;
 
 @Mixin(CustomHeadLayer.class)
 public abstract class CustomHeadLayerMixin {
+
+    @Shadow
+    @Final
+    private static float ITEM_SCALE;
 
     @Inject(
             method = "submit(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;FF)V",
@@ -75,7 +84,16 @@ public abstract class CustomHeadLayerMixin {
         if (!(livingEntityRenderState instanceof HumanoidRenderState humanoidState)) {
             return;
         }
-        if (humanoidState.wornHeadProfile == null && humanoidState.wornHeadType == null) {
+        boolean playerIsWearingCustomItem = humanoidState.headEquipment.isEmpty()
+                && humanoidState.wornHeadType == null
+                && humanoidState.wornHeadProfile == null
+                && humanoidState instanceof IdentityCarrier carrier
+                && carrier.armorHider$customHeadItem() != null 
+                && !carrier.armorHider$customHeadItem().isEmpty();
+        
+        if (!playerIsWearingCustomItem
+                && humanoidState.wornHeadProfile == null 
+                && humanoidState.wornHeadType == null) {
             return;
         }
         var scopes = ArmorHiderClient.SCOPE_PROVIDER;
@@ -84,6 +102,10 @@ public abstract class CustomHeadLayerMixin {
             headItem = new ItemStack(Items.PLAYER_HEAD);
         } else {
             headItem = ItemsUtil.getItemStackFromSkullBlockType(humanoidState.wornHeadType);
+        }
+        if (playerIsWearingCustomItem
+            && humanoidState instanceof IdentityCarrier carrier) {
+            headItem = carrier.armorHider$customHeadItem();
         }
         var scope = ScopeFactory.createItemScope(scopes, headItem, EquipmentSlot.HEAD, humanoidState);
         if (scope != null) {
