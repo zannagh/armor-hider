@@ -98,7 +98,6 @@ public class ItemInHandLayerMixin {
             )
     )
     private void wrapOffhandRenderItem(ItemInHandRenderer renderer, LivingEntity entity, ItemStack itemStack, ItemDisplayContext displayContext, boolean isLeftHand, PoseStack poseStack, MultiBufferSource bufferSource, int light, Operation<Void> original) {
-        System.out.println("[AH-WRAP] item=" + itemStack.getItem() + " hasScope=" + ArmorHiderClient.SCOPE_PROVIDER.hasItemScope(EquipmentSlot.OFFHAND) + " shouldModify=" + (ArmorHiderClient.SCOPE_PROVIDER.itemScope() != null ? RenderDecisions.shouldModifyEquipment(ArmorHiderClient.SCOPE_PROVIDER) : "no-scope") + " transparency=" + (ArmorHiderClient.SCOPE_PROVIDER.itemScope() != null ? ArmorHiderClient.SCOPE_PROVIDER.itemScope().transparency() : "N/A"));
         var scopes = ArmorHiderClient.SCOPE_PROVIDER;
         if (scopes.hasItemScope(EquipmentSlot.OFFHAND)
                 && RenderDecisions.shouldModifyEquipment(scopes)

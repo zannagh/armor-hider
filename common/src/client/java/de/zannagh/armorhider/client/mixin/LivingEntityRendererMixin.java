@@ -61,8 +61,8 @@ public class LivingEntityRendererMixin {
     )
     private void capturePlayerIdentity(LivingEntity entity, LivingEntityRenderState state, float partialTick, CallbackInfo ci) {
         if (entity instanceof Player player && state instanceof IdentityCarrier carrier) {
-            String name = player.getDisplayName() != null ? player.getDisplayName().getString() : null;
-            carrier.armorHider$setPlayerName(name != null && !name.isEmpty() ? name : null);
+            String name = player.getDisplayName().getString();
+            carrier.armorHider$setPlayerName(!name.isEmpty() ? name : null);
             if (state.wornHeadProfile == null 
                     && state.wornHeadType == null) {
                 if (!entity.getItemBySlot(EquipmentSlot.HEAD).isEmpty()) {
