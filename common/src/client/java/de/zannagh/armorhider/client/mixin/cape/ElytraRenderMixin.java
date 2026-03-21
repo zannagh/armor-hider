@@ -20,7 +20,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class ElytraRenderMixin {
     @Inject(
             method = "submit(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/client/renderer/entity/state/HumanoidRenderState;FF)V",
-            at = @At(value = "HEAD")
+            at = @At(value = "HEAD"),
+            cancellable = true
     )
     private <S extends HumanoidRenderState, M extends EntityModel<S>> void interceptElytraRender(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int i, S humanoidRenderState, float f, float g, CallbackInfo ci) {
         var scopes = ArmorHiderClient.SCOPE_PROVIDER;
@@ -31,6 +32,12 @@ public class ElytraRenderMixin {
 
         if (!scopes.hasItemScope() || !RenderDecisions.shouldModifyEquipment(scopes)) {
             scopes.exitItemRender();
+            return;
+        }
+
+        if (RenderDecisions.shouldHideEquipment(scopes)) {
+            scopes.exitItemRender();
+            ci.cancel();
         }
     }
 
@@ -66,7 +73,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class ElytraRenderMixin {
     @Inject(
             method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/renderer/entity/state/HumanoidRenderState;FF)V",
-            at = @At(value = "HEAD")
+            at = @At(value = "HEAD"),
+            cancellable = true
     )
     private <S extends HumanoidRenderState, M extends EntityModel<S>> void interceptElytraRender(PoseStack poseStack, MultiBufferSource multiBufferSource, int i, S humanoidRenderState, float f, float g, CallbackInfo ci) {
         var scopes = ArmorHiderClient.SCOPE_PROVIDER;
@@ -77,6 +85,12 @@ public class ElytraRenderMixin {
 
         if (!scopes.hasItemScope() || !RenderDecisions.shouldModifyEquipment(scopes)) {
             scopes.exitItemRender();
+            return;
+        }
+
+        if (RenderDecisions.shouldHideEquipment(scopes)) {
+            scopes.exitItemRender();
+            ci.cancel();
         }
     }
 
