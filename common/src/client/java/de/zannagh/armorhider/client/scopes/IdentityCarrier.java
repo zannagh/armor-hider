@@ -20,7 +20,7 @@ public interface IdentityCarrier {
     @Nullable ItemStack armorHider$customHeadItem();
     void armorHider$setCustomHeadItem(@Nullable ItemStack item);
     
-    @Nullable Boolean armorHider$isPlayerFlying();
-    void armorHider$setPlayerFlying(Boolean flying);
+    boolean armorHider$isPlayerFlying();
+    void armorHider$setPlayerFlying(boolean flying);
 }
 //?}

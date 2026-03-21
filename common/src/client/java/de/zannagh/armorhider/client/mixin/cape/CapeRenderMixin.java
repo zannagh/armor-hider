@@ -39,7 +39,7 @@ public class CapeRenderMixin {
         // When flying, the elytra is force-shown even if our mod would hide it.
         // Cancel the cape so both don't render at the same time.
         if (avatarRenderState instanceof IdentityCarrier carrier
-                && Boolean.TRUE.equals(carrier.armorHider$isPlayerFlying())
+                && carrier.armorHider$isPlayerFlying()
                 && ItemsUtil.itemStackContainsElytra(avatarRenderState.chestEquipment)) {
             var entityScope = scopes.entityScope();
             if (entityScope != null && entityScope.resolvedPlayerName() != null
@@ -135,7 +135,7 @@ public class CapeRenderMixin {
         }
 
         if (playerRenderState instanceof IdentityCarrier carrier
-                && Boolean.TRUE.equals(carrier.armorHider$isPlayerFlying())
+                && carrier.armorHider$isPlayerFlying()
                 && ItemsUtil.itemStackContainsElytra(playerRenderState.chestEquipment)) {
             var entityScope = scopes.entityScope();
             if (entityScope != null && entityScope.resolvedPlayerName() != null

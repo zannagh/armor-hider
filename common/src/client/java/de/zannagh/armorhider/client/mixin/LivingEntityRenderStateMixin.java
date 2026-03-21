@@ -23,7 +23,7 @@ public class LivingEntityRenderStateMixin implements IdentityCarrier {
     private @Nullable ItemStack armorHider$customHeadItem;
     
     @Unique
-    private @Nullable Boolean armorHider$isPlayerFlying;
+    private boolean armorHider$isPlayerFlying;
 
     @Override
     public @Nullable String armorHider$getPlayerName() {
@@ -46,12 +46,12 @@ public class LivingEntityRenderStateMixin implements IdentityCarrier {
     }
     
     @Override
-    public @Nullable Boolean armorHider$isPlayerFlying() {
+    public boolean armorHider$isPlayerFlying() {
         return armorHider$isPlayerFlying;
     }
-    
+
     @Override
-    public void armorHider$setPlayerFlying(Boolean flying) {
+    public void armorHider$setPlayerFlying(boolean flying) {
         armorHider$isPlayerFlying = flying;
     }
 }

@@ -26,7 +26,7 @@ public class ElytraRenderMixin {
     )
     private <S extends HumanoidRenderState, M extends EntityModel<S>> void interceptElytraRender(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int i, S humanoidRenderState, float f, float g, CallbackInfo ci) {
         if (humanoidRenderState instanceof IdentityCarrier carrier
-                && Boolean.TRUE.equals(carrier.armorHider$isPlayerFlying())) {
+                && carrier.armorHider$isPlayerFlying()) {
             return;
         }
         var scopes = ArmorHiderClient.SCOPE_PROVIDER;
@@ -36,7 +36,6 @@ public class ElytraRenderMixin {
         }
 
         if (!scopes.hasItemScope() || !RenderDecisions.shouldModifyEquipment(scopes)) {
-            scopes.exitItemRender();
             return;
         }
 
@@ -84,7 +83,7 @@ public class ElytraRenderMixin {
     )
     private <S extends HumanoidRenderState, M extends EntityModel<S>> void interceptElytraRender(PoseStack poseStack, MultiBufferSource multiBufferSource, int i, S humanoidRenderState, float f, float g, CallbackInfo ci) {
         if (humanoidRenderState instanceof IdentityCarrier carrier
-                && Boolean.TRUE.equals(carrier.armorHider$isPlayerFlying())) {
+                && carrier.armorHider$isPlayerFlying()) {
             return;
         }
         var scopes = ArmorHiderClient.SCOPE_PROVIDER;
@@ -94,7 +93,6 @@ public class ElytraRenderMixin {
         }
 
         if (!scopes.hasItemScope() || !RenderDecisions.shouldModifyEquipment(scopes)) {
-            scopes.exitItemRender();
             return;
         }
 
@@ -134,6 +132,7 @@ import net.minecraft.client.renderer.entity.layers.ElytraLayer;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -148,6 +147,10 @@ public class ElytraRenderMixin<T extends LivingEntity, M extends EntityModel<T>>
             cancellable = true
     )
     private void interceptElytraRender(PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, T entity, float limbSwing, float limbSwingAmount, float partialTick, float ageInTicks, float netHeadYaw, float headPitch, CallbackInfo ci) {
+        if (entity instanceof Player player
+                && (player.isFallFlying() || player.getAbilities().flying)) {
+            return;
+        }
         var scopes = ArmorHiderClient.SCOPE_PROVIDER;
         var scope = ScopeFactory.createItemScope(scopes, ItemsUtil.ELYTRA_ITEM_STACK, EquipmentSlot.CHEST, entity);
         if (scope != null) {
@@ -155,15 +158,12 @@ public class ElytraRenderMixin<T extends LivingEntity, M extends EntityModel<T>>
         }
 
         if (!scopes.hasItemScope() || !RenderDecisions.shouldModifyEquipment(scopes)) {
-            scopes.exitItemRender();
             return;
         }
 
         if (RenderDecisions.shouldHideEquipment(scopes)) {
             scopes.exitItemRender();
-            if (ci != null) {
-                ci.cancel();
-            }
+            ci.cancel();
         }
     }
 
