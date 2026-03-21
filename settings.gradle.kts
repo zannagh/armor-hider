@@ -22,11 +22,7 @@ stonecutter {
         "1.21", "1.21.1",
         "1.21.4", "1.21.5", "1.21.6", "1.21.7", "1.21.8",
         "1.21.9", "1.21.10", "1.21.11",
-        "26.1-snapshot-1", "26.1-snapshot-2", "26.1-snapshot-3",
-        "26.1-snapshot-4", "26.1-snapshot-5", "26.1-snapshot-6",
-        "26.1-snapshot-7", "26.1-snapshot-8", "26.1-snapshot-9",
-        "26.1-snapshot-10", "26.1-snapshot-11",
-        "26.1-pre-1", "26.1-pre-2"
+        "26.1-rc-1", "26.1-rc-2"
     )
     val neoforgeVersions = listOf(
         "1.21", "1.21.1", "1.21.4", "1.21.5", "1.21.6", "1.21.7", "1.21.8",
@@ -40,6 +36,7 @@ stonecutter {
     fun semver(v: String) = v
         .replace(Regex("snapshot-(\\d+)"), "0.snapshot.$1")
         .replace(Regex("pre-(\\d+)"), "1.pre.$1")
+        .replace(Regex("rc-(\\d+)"), "2.rc.$1")
 
     create(rootProject) {
         vcsVersion = "fabric-1.21.11" // Latest stable

@@ -3,7 +3,7 @@ plugins {
     id("net.neoforged.moddev") version "2.0.140" apply false
 }
 
-stonecutter active "fabric-26.1-pre-1" /* [SC] DO NOT EDIT */
+stonecutter active "fabric-1.21.11" /* [SC] DO NOT EDIT */
 
 tasks.register("stageArtifacts") {
     group = "build"
