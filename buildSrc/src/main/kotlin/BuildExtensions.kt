@@ -18,6 +18,7 @@ val Project.stonecutterBuild: StonecutterBuildExtension
 val Project.mcVersion: String get() = stonecutterBuild.current.version
     .replace("0.snapshot.", "snapshot-")
     .replace("1.pre.", "pre-")
+    .replace("2.rc.", "rc-")
 
 /** Whether this version uses deobfuscated (unmapped) Minecraft jars. */
 val Project.isDeobf: Boolean get() = mcVersion.startsWith("26.")

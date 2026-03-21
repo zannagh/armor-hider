@@ -29,9 +29,9 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 //? if < 26.1-1.pre.1
-//import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphics;
 //? if >= 26.1-1.pre.1
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+//import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 @Mixin(OptionsSubScreen.class)
 public abstract class SkinOptionsMixin extends Screen {
@@ -53,7 +53,7 @@ public abstract class SkinOptionsMixin extends Screen {
     }
 
     //? if < 26.1-1.pre.1 {
-    /*
+    
     @Override
     public void render(@NonNull GuiGraphics context, int mouseX, int mouseY, float deltaTicks) {
         super.render(context, mouseX, mouseY, deltaTicks);
@@ -61,17 +61,17 @@ public abstract class SkinOptionsMixin extends Screen {
             PlayerPreviewRenderer.renderPlayerPreview(context, list, mouseX, mouseY);
         }
     }
-    *///?}
+    //?}
     
     //? if >= 26.1-1.pre.1 {
-    @Override
+    /*@Override
     public void extractRenderState(final @NonNull GuiGraphicsExtractor graphics, final int mouseX, final int mouseY, final float a) {
         super.extractRenderState(graphics, mouseX, mouseY, a);
         if (list != null && isSkinOptionsScreen) {
             PlayerPreviewRenderer.renderPlayerPreview(graphics, list, mouseX, mouseY);
         }
     }
-    //?}
+    *///?}
 
     @Inject(method = "onClose()V", at = @At("HEAD"))
     private void onCloseHead(CallbackInfo ci) {
