@@ -31,7 +31,7 @@ stonecutter {
 // IDEA's output dir, placed as a post-Make before-launch step by ModDevGradle.
 val expandResourcesForIdea by tasks.registering(Copy::class) {
     dependsOn(tasks.processResources)
-    from(tasks.processResources.map { it.destinationDir })
+    from(tasks.processResources.flatMap { it.destinationDirectory })
     into(layout.projectDirectory.dir("out/production/resources"))
 }
 

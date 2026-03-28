@@ -43,7 +43,7 @@ stonecutter {
         .replace(Regex("rc-(\\d+)"), "2.rc.$1")
 
     create(rootProject) {
-        vcsVersion = "fabric-1.21.11" // Latest stable
+        vcsVersion = "fabric-26.1" // Latest stable
 
         branch("common") {
             fabricVersions.forEach { version("fabric-$it", semver(it)) }
