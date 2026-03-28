@@ -30,6 +30,7 @@ stonecutter {
     val neoforgeVersions = listOf(
         "1.21", "1.21.1", "1.21.4", "1.21.5", "1.21.6", "1.21.7", "1.21.8",
         "1.21.9", "1.21.10", "1.21.11",
+        "26.1"
     )
 
     // Required to have a parseable semVer for StoneCutter (26.1-0.snapshot.2 instead of 26.1-snapshot-2)
@@ -42,7 +43,7 @@ stonecutter {
         .replace(Regex("rc-(\\d+)"), "2.rc.$1")
 
     create(rootProject) {
-        vcsVersion = "fabric-1.21.11" // Latest stable
+        vcsVersion = "fabric-26.1" // Latest stable
 
         branch("common") {
             fabricVersions.forEach { version("fabric-$it", semver(it)) }
