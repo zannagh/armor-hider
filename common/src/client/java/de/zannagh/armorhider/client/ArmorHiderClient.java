@@ -2,7 +2,7 @@ package de.zannagh.armorhider.client;
 
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.client.net.ClientCommunicationManager;
-import de.zannagh.armorhider.client.scopes.ScopeProvider;
+import de.zannagh.armorhider.client.scopes.RenderContext;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.multiplayer.PlayerInfo;
@@ -16,7 +16,7 @@ public class ArmorHiderClient {
 
     public static Boolean isCurrentPlayerSinglePlayerHostOrAdmin = false;
     public static ClientConfigManager CLIENT_CONFIG_MANAGER = new ClientConfigManager();
-    public static ScopeProvider SCOPE_PROVIDER = new ScopeProvider();
+    public static RenderContext RENDER_CONTEXT = new RenderContext();
 
     public static void init() {
         ArmorHider.LOGGER.info("Armor Hider client initializing...");

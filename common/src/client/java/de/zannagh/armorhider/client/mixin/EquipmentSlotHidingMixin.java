@@ -3,7 +3,7 @@ package de.zannagh.armorhider.client.mixin;
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.log.DebugTracer;
-import de.zannagh.armorhider.client.scopes.ItemRenderScope;
+import de.zannagh.armorhider.client.scopes.ActiveModification;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -30,9 +30,9 @@ public class EquipmentSlotHidingMixin {
             return original;
         }
 
-        var scopes = ArmorHiderClient.SCOPE_PROVIDER;
+        var ctx = ArmorHiderClient.RENDER_CONTEXT;
 
-        if (scopes.hasItemScope()) {
+        if (ctx.hasActiveModification()) {
             // Let armor-hider handle rendering.
             return original;
         }
@@ -42,7 +42,7 @@ public class EquipmentSlotHidingMixin {
         // Returning empty during game logic causes items to vanish during equipment
         // swaps; returning empty during HUD rendering breaks mods like DurabilityViewer
         // that read equipment for overlay display.
-        if (!scopes.isInLevelRender()) {
+        if (!ctx.isInLevelRender()) {
             return original;
         }
 
@@ -50,7 +50,7 @@ public class EquipmentSlotHidingMixin {
         // real item so that renderArmorPiece is called. This allows our cancel at
         // renderArmorPiece HEAD to fire, which in turn lets mods like Essential detect
         // render suppression and show cosmetics/skins.
-        if (scopes.isInEntityRender()) {
+        if (ctx.isInEntityRender()) {
             return original;
         }
 
@@ -60,7 +60,7 @@ public class EquipmentSlotHidingMixin {
         }
         String playerName = player.getName().getString();
 
-        if (ItemRenderScope.isSlotFullyHidden(playerName, slot, original)) {
+        if (ActiveModification.isSlotFullyHidden(playerName, slot, original)) {
             DebugTracer.equipmentSlotHidingFired(playerName, slot, true, "isSlotFullyHidden");
             return ItemStack.EMPTY;
         }

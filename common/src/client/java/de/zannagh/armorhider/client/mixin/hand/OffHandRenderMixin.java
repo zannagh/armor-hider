@@ -4,8 +4,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.rendering.RenderDecisions;
-import de.zannagh.armorhider.client.scopes.ScopeFactory;
+import de.zannagh.armorhider.client.scopes.ActiveModification;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.ItemInHandRenderer;
 import net.minecraft.world.InteractionHand;
@@ -49,11 +48,13 @@ public class OffHandRenderMixin {
         if (interactionHand == InteractionHand.MAIN_HAND){
             return;
         }
-        var scopes = ArmorHiderClient.SCOPE_PROVIDER;
-        var scope = ScopeFactory.createItemScope(scopes, itemStack, EquipmentSlot.OFFHAND, abstractClientPlayer.getGameProfile());
-        if (scope != null) {
-            scopes.enterItemRender(scope);
-        }
+        //? if >= 1.21.9
+        String name = abstractClientPlayer.getGameProfile().name();
+        //? if < 1.21.9
+        //String name = abstractClientPlayer.getGameProfile().getName();
+        var ctx = ArmorHiderClient.RENDER_CONTEXT;
+        var mod = ActiveModification.create(name, EquipmentSlot.OFFHAND, itemStack);
+        if (mod != null) { ctx.setActiveModification(mod); }
     }
 
     @WrapOperation(
@@ -78,10 +79,8 @@ public class OffHandRenderMixin {
     //private void modifyItemSubmit(ItemRenderer instance, LivingEntity livingEntity, ItemStack itemStack, ItemDisplayContext itemDisplayContext, boolean b, PoseStack poseStack, MultiBufferSource multiBufferSource, Level level, int i, int j, int k, Operation<Void> original) {
     //? if 1.21.5
     //private void modifyItemSubmit(ItemRenderer instance, LivingEntity livingEntity, ItemStack itemStack, ItemDisplayContext itemDisplayContext, PoseStack poseStack, MultiBufferSource multiBufferSource, Level level, int i, int j, int k, Operation<Void> original) {
-        var scopes = ArmorHiderClient.SCOPE_PROVIDER;
-        if (scopes.hasItemScope(EquipmentSlot.OFFHAND)
-                && RenderDecisions.shouldModifyEquipment(scopes)
-                && RenderDecisions.shouldHideEquipment(scopes)) {
+        var ctx = ArmorHiderClient.RENDER_CONTEXT;
+        if (ctx.hasActiveModification(EquipmentSlot.OFFHAND) && ctx.activeModification().shouldHide()) {
             return;
         }
         //? if >= 1.21.9
@@ -89,12 +88,11 @@ public class OffHandRenderMixin {
         //? if < 1.21.9 {
         /*// Wrap buffer source for transparency: swap opaque render types to translucent
         MultiBufferSource source = multiBufferSource;
-        if (scopes.hasItemScope(EquipmentSlot.OFFHAND)
-                && RenderDecisions.shouldModifyEquipment(scopes)
-                && scopes.itemScope().transparency() < 1.0
-                && scopes.itemScope().transparency() > 0) {
+        if (ctx.hasActiveModification(EquipmentSlot.OFFHAND)
+                && ctx.activeModification().transparency() < 1.0
+                && ctx.activeModification().transparency() > 0) {
             source = RenderModifications.wrapTranslucentBufferSource(multiBufferSource,
-                    RenderModifications.getTransparencyAlpha(scopes));
+                    RenderModifications.getTransparencyAlpha(ctx));
         }
         *///? }
         //? if >= 1.21.6 && < 1.21.9
@@ -113,6 +111,6 @@ public class OffHandRenderMixin {
     private void releaseContext(AbstractClientPlayer abstractClientPlayer, float f, float g, InteractionHand interactionHand, float h, ItemStack itemStack, float i, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int j, CallbackInfo ci) {
     //? if < 1.21.9
     //private void releaseContext(AbstractClientPlayer abstractClientPlayer, float f, float g, InteractionHand interactionHand, float h, ItemStack itemStack, float i, PoseStack poseStack, MultiBufferSource multiBufferSource, int j, CallbackInfo ci) {
-        ArmorHiderClient.SCOPE_PROVIDER.exitItemRender();
+        ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
     }
 }

@@ -4,7 +4,6 @@ package de.zannagh.armorhider.client.mixin.bodyKneesAndToes;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.rendering.RenderDecisions;
 import de.zannagh.armorhider.client.rendering.RenderModifications;
 import net.minecraft.client.renderer.SubmitNodeCollection;
 import net.minecraft.client.renderer.SubmitNodeStorage;
@@ -49,7 +48,7 @@ public class NeoForgeArmorColorMixin {
     //? if 1.21.9 || 1.21.10
     //private void wrapArmorModelPartAdd(ModelPartFeatureRenderer.Storage storage, RenderType renderType, SubmitNodeStorage.ModelPartSubmit submit, Operation<Void> original) {
         if (shouldApplyArmorTransparency()) {
-            var scopes = ArmorHiderClient.SCOPE_PROVIDER;
+            var scopes = ArmorHiderClient.RENDER_CONTEXT;
             float alpha = RenderModifications.getTransparencyAlpha(scopes);
 
             int origColor = submit.tintedColor();
@@ -93,7 +92,7 @@ public class NeoForgeArmorColorMixin {
     //? if 1.21.9 || 1.21.10
     //private <S> void wrapArmorModelAdd(ModelFeatureRenderer.Storage storage, RenderType renderType, SubmitNodeStorage.ModelSubmit<S> submit, Operation<Void> original) {
         if (shouldApplyArmorTransparency()) {
-            var scopes = ArmorHiderClient.SCOPE_PROVIDER;
+            var scopes = ArmorHiderClient.RENDER_CONTEXT;
             float alpha = RenderModifications.getTransparencyAlpha(scopes);
 
             int origColor = submit.tintedColor();
@@ -122,10 +121,9 @@ public class NeoForgeArmorColorMixin {
     }
 
     private static boolean shouldApplyArmorTransparency() {
-        var scopes = ArmorHiderClient.SCOPE_PROVIDER;
-        return scopes.hasItemScope()
-                && RenderDecisions.shouldModifyEquipment(scopes)
-                && scopes.itemScope().slot() != EquipmentSlot.OFFHAND;
+        var ctx = ArmorHiderClient.RENDER_CONTEXT;
+        var mod = ctx.activeModification();
+        return mod != null && mod.slot() != EquipmentSlot.OFFHAND;
     }
 }
 //?}

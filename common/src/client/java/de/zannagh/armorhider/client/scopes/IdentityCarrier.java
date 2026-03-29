@@ -1,4 +1,3 @@
-//? if >= 1.21.4 {
 package de.zannagh.armorhider.client.scopes;
 
 import net.minecraft.world.item.ItemStack;
@@ -23,4 +22,3 @@ public interface IdentityCarrier {
     boolean armorHider$isPlayerFlying();
     void armorHider$setPlayerFlying(boolean flying);
 }
-//?}

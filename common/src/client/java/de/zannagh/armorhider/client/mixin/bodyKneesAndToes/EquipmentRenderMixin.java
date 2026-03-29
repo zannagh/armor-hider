@@ -6,9 +6,8 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.rendering.RenderDecisions;
 import de.zannagh.armorhider.client.rendering.RenderModifications;
-import de.zannagh.armorhider.client.scopes.ScopeFactory;
+import de.zannagh.armorhider.client.scopes.ActiveModification;
 import net.minecraft.client.model.Model;
 import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.SubmitNodeCollector;
@@ -48,7 +47,7 @@ public class EquipmentRenderMixin {
             argsOnly = true
     )
     private static int modifyRenderOrder(int value) {
-        return RenderModifications.modifyRenderPriority(ArmorHiderClient.SCOPE_PROVIDER, value);
+        return RenderModifications.modifyRenderPriority(ArmorHiderClient.RENDER_CONTEXT, value);
     }
 
     @Inject(
@@ -66,26 +65,18 @@ public class EquipmentRenderMixin {
             return;
         }
 
-        var scopes = ArmorHiderClient.SCOPE_PROVIDER;
+        var ctx = ArmorHiderClient.RENDER_CONTEXT;
         var slot = equippable.slot();
-        var scope = ScopeFactory.createItemScope(scopes, itemStack, slot, (HumanoidRenderState) object);
-        if (scope != null) {
-            scopes.enterItemRender(scope);
+        var mod = ActiveModification.forCarrier(object, slot, itemStack);
+        if (mod != null) {
+            ctx.setActiveModification(mod);
         }
 
-        if (!RenderDecisions.shouldModifyEquipment(scopes)) {
+        if (mod == null) {
             return;
         }
 
-        if (layerType == EquipmentClientInfo.LayerType.WINGS) {
-            var itemScope = scopes.itemScope();
-            if (itemScope != null && !itemScope.modification().playerConfig().opacityAffectingElytra.getValue()) {
-                scopes.exitItemRender();
-                return;
-            }
-        }
-
-        if (RenderDecisions.shouldHideEquipment(scopes) && ci != null) {
+        if (mod.shouldHide() && ci != null) {
             ci.cancel();
         }
     }
@@ -95,7 +86,7 @@ public class EquipmentRenderMixin {
             at = @At("RETURN")
     )
     private static <S> void resetContext(EquipmentClientInfo.LayerType layerType, ResourceKey<EquipmentAsset> resourceKey, Model<? super S> model, S object, ItemStack itemStack, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int i, int j, CallbackInfo ci) {
-        ArmorHiderClient.SCOPE_PROVIDER.exitItemRender();
+        ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
     }
 
     @ModifyExpressionValue(
@@ -109,12 +100,10 @@ public class EquipmentRenderMixin {
             )
     )
     private boolean modifyGlint(boolean original) {
-        var scopes = ArmorHiderClient.SCOPE_PROVIDER;
-        var itemScope = scopes.itemScope();
-        if (itemScope != null && itemScope.shouldModify() && RenderDecisions.shouldModifyEquipment(scopes)) {
-            if (itemScope.shouldDisableGlint() || itemScope.shouldHide()) {
-                return false;
-            }
+        var ctx = ArmorHiderClient.RENDER_CONTEXT;
+        var mod = ctx.activeModification();
+        if (mod != null) {
+            if (mod.shouldDisableGlint() || mod.shouldHide()) return false;
         }
         return original;
     }
@@ -136,7 +125,7 @@ public class EquipmentRenderMixin {
     private RenderType modifyArmorRenderLayer(Identifier texture, Operation<RenderType> original) {
     //? if >= 1.21.9 && < 1.21.11
     //private RenderType modifyArmorRenderLayer(Identifier texture, Operation<RenderType> original) {
-        return RenderModifications.getTranslucentArmorRenderType(ArmorHiderClient.SCOPE_PROVIDER, texture, original.call(texture));
+        return RenderModifications.getTranslucentArmorRenderType(ArmorHiderClient.RENDER_CONTEXT, texture, original.call(texture));
     }
 
     @WrapOperation(
@@ -156,7 +145,7 @@ public class EquipmentRenderMixin {
     private RenderType modifyTrimRenderLayer(boolean decal, Operation<RenderType> original) {
     //? if >= 1.21.9 && < 1.21.11
     //private RenderType modifyTrimRenderLayer(boolean decal, Operation<RenderType> original) {
-        return RenderModifications.getTranslucentArmorRenderType(ArmorHiderClient.SCOPE_PROVIDER, Sheets.ARMOR_TRIMS_SHEET, original.call(decal));
+        return RenderModifications.getTranslucentArmorRenderType(ArmorHiderClient.RENDER_CONTEXT, Sheets.ARMOR_TRIMS_SHEET, original.call(decal));
     }
 
 }
@@ -171,16 +160,13 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.rendering.RenderDecisions;
 import de.zannagh.armorhider.client.rendering.RenderModifications;
-import de.zannagh.armorhider.client.scopes.ScopeFactory;
+import de.zannagh.armorhider.client.scopes.ActiveModification;
 import net.minecraft.client.model.Model;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.entity.layers.EquipmentLayerRenderer;
-import net.minecraft.client.renderer.entity.state.ArmorStandRenderState;
-import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 import net.minecraft.client.resources.model.EquipmentClientInfo;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.ResourceKey;
@@ -206,32 +192,23 @@ public class EquipmentRenderMixin {
             return;
         }
 
-        var scopes = ArmorHiderClient.SCOPE_PROVIDER;
-        var entityScope = scopes.entityScope();
-        if (entityScope == null || !entityScope.isPlayerEntity()) {
+        var ctx = ArmorHiderClient.RENDER_CONTEXT;
+        String playerName = ctx.currentPlayerName();
+        if (playerName == null) {
             return;
         }
 
         var slot = equippable.slot();
-        // Use entity-scope-only overload since render state was enriched by ArmorFeatureRenderMixin
-        var scope = ScopeFactory.createItemScope(scopes, itemStack, slot);
-        if (scope != null) {
-            scopes.enterItemRender(scope);
+        var mod = ActiveModification.create(playerName, slot, itemStack);
+        if (mod != null) {
+            ctx.setActiveModification(mod);
         }
 
-        if (!RenderDecisions.shouldModifyEquipment(scopes)) {
+        if (mod == null) {
             return;
         }
 
-        if (layerType == EquipmentClientInfo.LayerType.WINGS) {
-            var itemScope = scopes.itemScope();
-            if (itemScope != null && !itemScope.modification().playerConfig().opacityAffectingElytra.getValue()) {
-                scopes.exitItemRender();
-                return;
-            }
-        }
-
-        if (RenderDecisions.shouldHideEquipment(scopes) && ci != null) {
+        if (mod.shouldHide() && ci != null) {
             ci.cancel();
         }
     }
@@ -241,7 +218,7 @@ public class EquipmentRenderMixin {
             at = @At("RETURN")
     )
     private static void resetContext(EquipmentClientInfo.LayerType layerType, ResourceKey<EquipmentAsset> resourceKey, Model model, ItemStack itemStack, PoseStack poseStack, MultiBufferSource multiBufferSource, int i, CallbackInfo ci) {
-        ArmorHiderClient.SCOPE_PROVIDER.exitItemRender();
+        ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
     }
 
     @ModifyExpressionValue(
@@ -252,11 +229,10 @@ public class EquipmentRenderMixin {
             )
     )
     private boolean modifyGlint(boolean original) {
-        var scopes = ArmorHiderClient.SCOPE_PROVIDER;
-        var itemScope = scopes.itemScope();
-        if (itemScope != null && itemScope.shouldModify() && RenderDecisions.shouldModifyEquipment(scopes)) {
-            double transparency = itemScope.transparency();
-            return original && transparency > 0;
+        var ctx = ArmorHiderClient.RENDER_CONTEXT;
+        var mod = ctx.activeModification();
+        if (mod != null) {
+            if (mod.shouldDisableGlint() || mod.shouldHide()) return false;
         }
         return original;
     }
@@ -269,7 +245,7 @@ public class EquipmentRenderMixin {
             )
     )
     private RenderType modifyArmorRenderLayer(Identifier texture, Operation<RenderType> original) {
-        return RenderModifications.getTranslucentArmorRenderType(ArmorHiderClient.SCOPE_PROVIDER, texture, original.call(texture));
+        return RenderModifications.getTranslucentArmorRenderType(ArmorHiderClient.RENDER_CONTEXT, texture, original.call(texture));
     }
 
     @WrapOperation(
@@ -280,7 +256,7 @@ public class EquipmentRenderMixin {
             )
     )
     private RenderType modifyTrimRenderLayer(boolean decal, Operation<RenderType> original) {
-        return RenderModifications.getTranslucentArmorRenderType(ArmorHiderClient.SCOPE_PROVIDER, Sheets.ARMOR_TRIMS_SHEET, original.call(decal));
+        return RenderModifications.getTranslucentArmorRenderType(ArmorHiderClient.RENDER_CONTEXT, Sheets.ARMOR_TRIMS_SHEET, original.call(decal));
     }
 
 }

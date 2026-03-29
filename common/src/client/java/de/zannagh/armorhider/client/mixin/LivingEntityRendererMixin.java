@@ -48,7 +48,7 @@ public class LivingEntityRendererMixin {
             at = @At("HEAD")
     )
     private void enterEntityRenderDuringExtraction(LivingEntity entity, LivingEntityRenderState state, float partialTick, CallbackInfo ci) {
-        ArmorHiderClient.SCOPE_PROVIDER.enterEntityRender();
+        ArmorHiderClient.RENDER_CONTEXT.enterEntityRender();
     }
 
     /**

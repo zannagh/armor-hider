@@ -2,7 +2,6 @@
 /*package de.zannagh.armorhider.client.mixin.hand;
 
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.rendering.RenderDecisions;
 import de.zannagh.armorhider.client.rendering.RenderModifications;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -22,9 +21,9 @@ public class ModelPartMixin {
             argsOnly = true
     )
     private int modifyRenderColor(int color) {
-        var scopes = ArmorHiderClient.SCOPE_PROVIDER;
-        if ((scopes.hasItemScope(EquipmentSlot.OFFHAND) || scopes.hasItemScope(EquipmentSlot.HEAD)) && RenderDecisions.shouldModifyEquipment(scopes)) {
-            return RenderModifications.applyArmorTransparency(scopes, color);
+        var ctx = ArmorHiderClient.RENDER_CONTEXT;
+        if (ctx.hasActiveModification(EquipmentSlot.OFFHAND) || ctx.hasActiveModification(EquipmentSlot.HEAD)) {
+            return RenderModifications.applyArmorTransparency(ctx, color);
         }
         return color;
     }
@@ -38,9 +37,9 @@ public class ModelPartMixin {
             argsOnly = true
     )
     private float modifyRenderAlpha(float alpha) {
-        var scopes = ArmorHiderClient.SCOPE_PROVIDER;
-        if ((scopes.hasItemScope(EquipmentSlot.OFFHAND) || scopes.hasItemScope(EquipmentSlot.HEAD)) && RenderDecisions.shouldModifyEquipment(scopes)) {
-            return alpha * RenderModifications.getTransparencyAlpha(scopes);
+        var ctx = ArmorHiderClient.RENDER_CONTEXT;
+        if (ctx.hasActiveModification(EquipmentSlot.OFFHAND) || ctx.hasActiveModification(EquipmentSlot.HEAD)) {
+            return alpha * RenderModifications.getTransparencyAlpha(ctx);
         }
         return alpha;
     }

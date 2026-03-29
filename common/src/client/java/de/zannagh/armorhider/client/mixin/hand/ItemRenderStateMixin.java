@@ -5,7 +5,6 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.rendering.RenderDecisions;
 import de.zannagh.armorhider.client.rendering.RenderModifications;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -55,16 +54,14 @@ public class ItemRenderStateMixin {
     //private void wrapSubmitItem(SubmitNodeCollector instance, PoseStack poseStack, ItemDisplayContext itemDisplayContext, int light, int overlay, int color, int[] tintLayers, List<BakedQuad> quads, RenderType renderType, ItemStackRenderState.FoilType foilType, Operation<Void> original) {
     //? if 1.21.9 || 1.21.10
     //private void wrapSubmitItem(SubmitNodeCollector instance, PoseStack poseStack, ItemDisplayContext itemDisplayContext, int light, int overlay, int color, int[] tintLayers, List<BakedQuad> quads, RenderType renderType, ItemStackRenderState.FoilType foilType, Operation<Void> original) {
-        var scopes = ArmorHiderClient.SCOPE_PROVIDER;
-        boolean shouldInterceptOffHandRender = scopes.hasItemScope(EquipmentSlot.OFFHAND)
-                && RenderDecisions.shouldModifyEquipment(scopes);
-        boolean shouldInterceptCustomHeadRender = scopes.hasItemScope(EquipmentSlot.HEAD)
-                && RenderDecisions.shouldModifyEquipment(scopes);
+        var ctx = ArmorHiderClient.RENDER_CONTEXT;
+        boolean shouldInterceptOffHandRender = ctx.hasActiveModification(EquipmentSlot.OFFHAND);
+        boolean shouldInterceptCustomHeadRender = ctx.hasActiveModification(EquipmentSlot.HEAD);
         if (shouldInterceptOffHandRender || shouldInterceptCustomHeadRender) {
             // Note to future me: This can actually hide main hands.
-            float alpha = RenderModifications.getTransparencyAlpha(scopes);
+            float alpha = RenderModifications.getTransparencyAlpha(ctx);
             //? if < 26.1-0.snapshot.7
-            //RenderType translucentType = RenderModifications.getTranslucentItemRenderType(scopes, renderType);
+            //RenderType translucentType = RenderModifications.getTranslucentItemRenderType(ctx, renderType);
 
             // Use one extra slot for non-tinted quads: white with our alpha
             int syntheticTintIndex = tintLayers.length;
