@@ -16,6 +16,10 @@ stonecutter {
     replacements.string(false) {
         replace("packet.getIdentifier()", "packet.getResourceLocation()")
     }
+    
+    replacements.string(current.parsed <= "1.21.8"){
+        replace("AvatarRenderState", "PlayerRenderState")
+    }
 }
 
 configure<net.fabricmc.loom.api.LoomGradleExtensionAPI> {

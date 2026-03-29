@@ -77,7 +77,9 @@ public final class DebugLogger {
 
     public static long remainingSeconds() {
         long until = enabledUntilMillis.get();
-        if (until <= 0) return 0;
+        if (until <= 0) {
+            return 0;
+        }
         long remaining = until - System.currentTimeMillis();
         return Math.max(0, remaining / 1000);
     }
@@ -111,7 +113,9 @@ public final class DebugLogger {
 
     private static void writeLine(String message, Throwable throwable) {
         synchronized (LOCK) {
-            if (activeWriter == null) return;
+            if (activeWriter == null) {
+                return;
+            }
 
             // Check expiry while we hold the lock
             if (!isEnabled()) {

@@ -31,7 +31,7 @@ public class EquipmentRenderColorMixin {
             )
     )
     private <S> void modifyArmorColor(OrderedSubmitNodeCollector collector, Model<? super S> model, S state, PoseStack poseStack, RenderType renderType, int light, int overlay, int color, TextureAtlasSprite sprite, int param9, ModelFeatureRenderer.CrumblingOverlay crumblingOverlay, Operation<Void> original) {
-        var modifiedColor = RenderModifications.applyArmorTransparency(ArmorHiderClient.SCOPE_PROVIDER, color);
+        var modifiedColor = RenderModifications.applyArmorTransparency(ArmorHiderClient.RENDER_CONTEXT, color);
         original.call(collector, model, state, poseStack, renderType, light, overlay, modifiedColor, sprite, param9, crumblingOverlay);
     }
     //?}
@@ -46,7 +46,7 @@ public class EquipmentRenderColorMixin {
     )
     private <S> int modifyArmorColor(EquipmentClientInfo.Layer layer, int i, Operation<Integer> original) {
         int originalColor = original.call(layer, i);
-        return RenderModifications.applyArmorTransparency(ArmorHiderClient.SCOPE_PROVIDER, originalColor);
+        return RenderModifications.applyArmorTransparency(ArmorHiderClient.RENDER_CONTEXT, originalColor);
     }
     *///?}
 }
@@ -76,7 +76,7 @@ public class EquipmentRenderColorMixin {
     )
     private int modifyArmorColor(EquipmentClientInfo.Layer layer, int i, Operation<Integer> original) {
         int originalColor = original.call(layer, i);
-        return RenderModifications.applyArmorTransparency(ArmorHiderClient.SCOPE_PROVIDER, originalColor);
+        return RenderModifications.applyArmorTransparency(ArmorHiderClient.RENDER_CONTEXT, originalColor);
     }
 }
 *///?}

@@ -3,9 +3,7 @@ package de.zannagh.armorhider.client.mixin.cape;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.rendering.RenderDecisions;
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
-import de.zannagh.armorhider.client.scopes.ScopeFactory;
 import de.zannagh.armorhider.util.ItemsUtil;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.SubmitNodeCollector;
@@ -25,22 +23,21 @@ public class ElytraRenderMixin {
             cancellable = true
     )
     private <S extends HumanoidRenderState, M extends EntityModel<S>> void interceptElytraRender(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int i, S humanoidRenderState, float f, float g, CallbackInfo ci) {
-        if (humanoidRenderState instanceof IdentityCarrier carrier
-                && carrier.armorHider$isPlayerFlying()) {
+        if (!(humanoidRenderState instanceof IdentityCarrier carrier)) {
             return;
         }
-        var scopes = ArmorHiderClient.SCOPE_PROVIDER;
-        var scope = ScopeFactory.createItemScope(scopes, ItemsUtil.ELYTRA_ITEM_STACK, EquipmentSlot.CHEST, humanoidRenderState);
-        if (scope != null) {
-            scopes.enterItemRender(scope);
+        if (carrier.isPlayerFlying()) {
+            return;
         }
+        
+        var mod = carrier.createModification(EquipmentSlot.CHEST, ItemsUtil.ELYTRA_ITEM_STACK);
 
-        if (!scopes.hasItemScope() || !RenderDecisions.shouldModifyEquipment(scopes)) {
+        if (mod == null) {
             return;
         }
 
-        if (RenderDecisions.shouldHideEquipment(scopes)) {
-            scopes.exitItemRender();
+        if (mod.shouldHide()) {
+            ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
             ci.cancel();
         }
     }
@@ -50,7 +47,7 @@ public class ElytraRenderMixin {
             at = @At(value = "RETURN")
     )
     private <S extends HumanoidRenderState, M extends EntityModel<S>> void releaseContext(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int i, S humanoidRenderState, float f, float g, CallbackInfo ci) {
-        ArmorHiderClient.SCOPE_PROVIDER.exitItemRender();
+        ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
     }
 }
 //?}
@@ -60,9 +57,7 @@ public class ElytraRenderMixin {
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.rendering.RenderDecisions;
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
-import de.zannagh.armorhider.client.scopes.ScopeFactory;
 import de.zannagh.armorhider.util.ItemsUtil;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -82,22 +77,21 @@ public class ElytraRenderMixin {
             cancellable = true
     )
     private <S extends HumanoidRenderState, M extends EntityModel<S>> void interceptElytraRender(PoseStack poseStack, MultiBufferSource multiBufferSource, int i, S humanoidRenderState, float f, float g, CallbackInfo ci) {
-        if (humanoidRenderState instanceof IdentityCarrier carrier
-                && carrier.armorHider$isPlayerFlying()) {
+        if (!(humanoidRenderState instanceof IdentityCarrier carrier)) {
             return;
         }
-        var scopes = ArmorHiderClient.SCOPE_PROVIDER;
-        var scope = ScopeFactory.createItemScope(scopes, ItemsUtil.ELYTRA_ITEM_STACK, EquipmentSlot.CHEST, humanoidRenderState);
-        if (scope != null) {
-            scopes.enterItemRender(scope);
-        }
-
-        if (!scopes.hasItemScope() || !RenderDecisions.shouldModifyEquipment(scopes)) {
+        if (carrier.isPlayerFlying()) {
             return;
         }
 
-        if (RenderDecisions.shouldHideEquipment(scopes)) {
-            scopes.exitItemRender();
+        var mod = carrier.createModification(EquipmentSlot.CHEST, ItemsUtil.ELYTRA_ITEM_STACK);
+
+        if (mod == null) {
+            return;
+        }
+
+        if (mod.shouldHide()) {
+            ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
             ci.cancel();
         }
     }
@@ -107,7 +101,7 @@ public class ElytraRenderMixin {
             at = @At(value = "RETURN")
     )
     private <S extends HumanoidRenderState, M extends EntityModel<S>> void releaseContext(PoseStack poseStack, MultiBufferSource multiBufferSource, int i, S humanoidRenderState, float f, float g, CallbackInfo ci) {
-        ArmorHiderClient.SCOPE_PROVIDER.exitItemRender();
+        ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
     }
 }
 *///?}
@@ -120,9 +114,8 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.rendering.RenderDecisions;
 import de.zannagh.armorhider.client.rendering.RenderModifications;
-import de.zannagh.armorhider.client.scopes.ScopeFactory;
+import de.zannagh.armorhider.client.scopes.IdentityCarrier;
 import de.zannagh.armorhider.util.ItemsUtil;
 import net.minecraft.client.model.ElytraModel;
 import net.minecraft.client.model.EntityModel;
@@ -147,22 +140,21 @@ public class ElytraRenderMixin<T extends LivingEntity, M extends EntityModel<T>>
             cancellable = true
     )
     private void interceptElytraRender(PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, T entity, float limbSwing, float limbSwingAmount, float partialTick, float ageInTicks, float netHeadYaw, float headPitch, CallbackInfo ci) {
-        if (entity instanceof Player player
-                && (player.isFallFlying() || player.getAbilities().flying)) {
+        if (!(entity instanceof IdentityCarrier carrier)) {
             return;
         }
-        var scopes = ArmorHiderClient.SCOPE_PROVIDER;
-        var scope = ScopeFactory.createItemScope(scopes, ItemsUtil.ELYTRA_ITEM_STACK, EquipmentSlot.CHEST, entity);
-        if (scope != null) {
-            scopes.enterItemRender(scope);
-        }
-
-        if (!scopes.hasItemScope() || !RenderDecisions.shouldModifyEquipment(scopes)) {
+        if (carrier.isPlayerFlying()) {
             return;
         }
 
-        if (RenderDecisions.shouldHideEquipment(scopes)) {
-            scopes.exitItemRender();
+        var mod = carrier.createModification(EquipmentSlot.CHEST, ItemsUtil.ELYTRA_ITEM_STACK);
+
+        if (mod == null) {
+            return;
+        }
+
+        if (mod.shouldHide()) {
+            ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
             ci.cancel();
         }
     }
@@ -172,7 +164,7 @@ public class ElytraRenderMixin<T extends LivingEntity, M extends EntityModel<T>>
             at = @At(value = "RETURN")
     )
     private void releaseContext(PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, T entity, float limbSwing, float limbSwingAmount, float partialTick, float ageInTicks, float netHeadYaw, float headPitch, CallbackInfo ci) {
-        ArmorHiderClient.SCOPE_PROVIDER.exitItemRender();
+        ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
     }
 
     // --- Elytra transparency: render type swap ---
@@ -185,7 +177,7 @@ public class ElytraRenderMixin<T extends LivingEntity, M extends EntityModel<T>>
             )
     )
     private RenderType modifyElytraRenderType(Identifier texture, Operation<RenderType> original) {
-        return RenderModifications.getTranslucentArmorRenderType(ArmorHiderClient.SCOPE_PROVIDER, texture, original.call(texture));
+        return RenderModifications.getTranslucentArmorRenderType(ArmorHiderClient.RENDER_CONTEXT, texture, original.call(texture));
     }
 
     // --- Elytra transparency: color alpha modification ---
@@ -202,7 +194,7 @@ public class ElytraRenderMixin<T extends LivingEntity, M extends EntityModel<T>>
             )
     )
     private void modifyElytraColor(ElytraModel<?> model, PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, Operation<Void> original) {
-        int color = RenderModifications.applyArmorTransparency(ArmorHiderClient.SCOPE_PROVIDER, 0xFFFFFFFF);
+        int color = RenderModifications.applyArmorTransparency(ArmorHiderClient.RENDER_CONTEXT, 0xFFFFFFFF);
         if (color != 0xFFFFFFFF) {
             model.renderToBuffer(poseStack, vertexConsumer, packedLight, packedOverlay, color);
         } else {
@@ -212,17 +204,17 @@ public class ElytraRenderMixin<T extends LivingEntity, M extends EntityModel<T>>
     //?}
 
     //? if < 1.21 {
-    //@WrapOperation(
-    //        method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/world/entity/LivingEntity;FFFFFF)V",
-    //        at = @At(
-    //                value = "INVOKE",
-    //                target = "Lnet/minecraft/client/model/ElytraModel;renderToBuffer(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;IIFFFF)V"
-    //        )
-    //)
-    //private void modifyElytraColor(ElytraModel<?> model, PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, float red, float green, float blue, float alpha, Operation<Void> original) {
-    //    float modifiedAlpha = alpha * RenderModifications.getTransparencyAlpha(ArmorHiderClient.SCOPE_PROVIDER);
-    //    original.call(model, poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, modifiedAlpha);
-    //}
-    //?}
+    /^@WrapOperation(
+            method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/world/entity/LivingEntity;FFFFFF)V",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/model/ElytraModel;renderToBuffer(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;IIFFFF)V"
+            )
+    )
+    private void modifyElytraColor(ElytraModel<?> model, PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, float red, float green, float blue, float alpha, Operation<Void> original) {
+        float modifiedAlpha = alpha * RenderModifications.getTransparencyAlpha(ArmorHiderClient.RENDER_CONTEXT);
+        original.call(model, poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, modifiedAlpha);
+    }
+    ^///?}
 }
 *///?}

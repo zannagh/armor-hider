@@ -14,11 +14,11 @@ public class MixinPlugin implements IMixinConfigPlugin {
     private static final String PACKAGE = "de.zannagh.armorhider.client.mixin";
 
     private static final String[] MIXINS = new String[]{
-            "LivingEntityMixin",
-            "EquipmentSlotHidingMixin",
+            "PlayerMixin",
             "GameRendererMixin",
             // Guarded by //? if >= 1.21.4 in source
             "EntityRenderDispatcherMixin",
+            "LivingEntityMixin",
             "LivingEntityRendererMixin",
             "LivingEntityRenderStateMixin",
             "lang.ClientLanguageMixin",

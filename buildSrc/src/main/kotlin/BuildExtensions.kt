@@ -1,7 +1,10 @@
 import dev.kikugie.stonecutter.build.StonecutterBuildExtension
 import org.gradle.api.Action
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.file.FileCopyDetails
+import org.gradle.language.jvm.tasks.ProcessResources
+import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Jar
 import java.io.Serializable
 
@@ -20,6 +23,8 @@ val Project.mcVersion: String get() = stonecutterBuild.current.version
     .replace("1.pre.", "pre-")
     .replace("2.rc.", "rc-")
 
+val Project.javaVersion : String get() = findProperty("java.version")?.toString() ?: error("No Java version specified")
+
 /** Whether this version uses deobfuscated (unmapped) Minecraft jars. */
 val Project.isDeobf: Boolean get() = mcVersion.startsWith("26.")
 
@@ -36,5 +41,67 @@ class ExpandPropertiesAction(private val props: Map<String, Any>) : Action<FileC
 fun Jar.includeLicense(archivesName: String) {
     from("LICENSE") {
         rename("LICENSE", "LICENSE_$archivesName")
+    }
+}
+
+/**
+ * Registers an `expandResourcesForIdea` task that copies Gradle-processed resources into
+ * IntelliJ's output directories. This is needed because IntelliJ's native "Make" copies raw
+ * resources without Gradle's property expansion, leaving `${'$'}{version}` placeholders unexpanded.
+ *
+ * @param resourceOutputMappings pairs of (processResources task, IDEA output dir path)
+ */
+fun Project.registerExpandResourcesForIdea(
+    vararg resourceOutputMappings: Pair<TaskProvider<ProcessResources>, String>
+): TaskProvider<Task> {
+    val mappings: List<Pair<TaskProvider<ProcessResources>, String>> = resourceOutputMappings.toList()
+    return tasks.register("expandResourcesForIdea") {
+        mappings.forEach { dependsOn(it.first) }
+        val proj = project
+        doLast {
+            for (m in mappings) {
+                val files = (m.first.get() as Task).outputs.files
+                val dir = proj.layout.projectDirectory.dir(m.second)
+                proj.copy {
+                    from(files)
+                    into(dir)
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Patches Fabric Loom's generated IntelliJ run configurations to add `expandResourcesForIdea`
+ * as a Gradle before-launch step. Also wires Loom's `runClient`/`runServer` tasks to depend
+ * on the expand task so Gradle-based runs work too.
+ *
+ * Loom hardcodes only "Make" in its run config template with no API to add custom steps,
+ * so we post-process the generated XML files during `ideaSyncTask`.
+ */
+fun Project.patchLoomIdeRunConfigs(expandTask: TaskProvider<Task>) {
+    tasks.matching { it.name == "runClient" || it.name == "runServer" }.configureEach {
+        dependsOn(expandTask)
+    }
+
+    tasks.matching { it.name == "ideaSyncTask" }.configureEach {
+        doLast {
+            val configDir = rootProject.file(".idea/runConfigurations")
+            if (!configDir.isDirectory) return@doLast
+            val relPath = project.projectDir.toRelativeString(rootProject.projectDir)
+            configDir.listFiles()?.filter {
+                it.extension == "xml" && it.name.contains(project.name)
+            }?.forEach { xmlFile ->
+                var content = xmlFile.readText()
+                if (content.contains("expandResourcesForIdea")) return@forEach
+                val gradleStep = """<option enabled="true" name="Gradle.BeforeRunTask" tasks="expandResourcesForIdea" externalProjectPath="${'$'}PROJECT_DIR${'$'}/$relPath" vmOptions="" scriptParameters="" />"""
+                content = content.replace(
+                    """<option enabled="true" name="Make"/>""",
+                    """<option enabled="true" name="Make"/>
+      $gradleStep"""
+                )
+                xmlFile.writeText(content)
+            }
+        }
     }
 }

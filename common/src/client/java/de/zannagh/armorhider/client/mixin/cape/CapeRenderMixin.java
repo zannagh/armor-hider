@@ -5,10 +5,8 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.rendering.RenderDecisions;
+import de.zannagh.armorhider.client.scopes.ActiveModification;
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
-import de.zannagh.armorhider.client.scopes.ItemRenderScope;
-import de.zannagh.armorhider.client.scopes.ScopeFactory;
 import de.zannagh.armorhider.util.ItemsUtil;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.layers.CapeLayer;
@@ -30,21 +28,14 @@ public class CapeRenderMixin {
             cancellable = true
     )
     private void setupCapeRenderContext(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int light, AvatarRenderState avatarRenderState, float f, float g, CallbackInfo ci) {
-        var scopes = ArmorHiderClient.SCOPE_PROVIDER;
-        var scope = ScopeFactory.createItemScope(scopes, null, EquipmentSlot.CHEST, avatarRenderState);
-        if (scope != null) {
-            scopes.enterItemRender(scope);
-        }
+        var mod = ((IdentityCarrier) avatarRenderState).createModification(EquipmentSlot.CHEST, null);
 
-        // When flying, the elytra is force-shown even if our mod would hide it.
-        // Cancel the cape so both don't render at the same time.
         if (avatarRenderState instanceof IdentityCarrier carrier
-                && carrier.armorHider$isPlayerFlying()
+                && carrier.isPlayerFlying()
                 && ItemsUtil.itemStackContainsElytra(avatarRenderState.chestEquipment)) {
-            var entityScope = scopes.entityScope();
-            if (entityScope != null && entityScope.resolvedPlayerName() != null
-                    && ItemRenderScope.isSlotFullyHidden(entityScope.resolvedPlayerName(), EquipmentSlot.CHEST, avatarRenderState.chestEquipment)) {
-                scopes.exitItemRender();
+            if (mod != null
+                    && ActiveModification.isSlotFullyHidden(mod.playerName(), EquipmentSlot.CHEST, avatarRenderState.chestEquipment)) {
+                ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
                 ci.cancel();
             }
         }
@@ -58,7 +49,8 @@ public class CapeRenderMixin {
             )
     )
     private void moveCapeWhenArmorHidden(PoseStack instance, float x, float y, float z, Operation<Void> original) {
-        if (RenderDecisions.shouldHideEquipment(ArmorHiderClient.SCOPE_PROVIDER)) {
+        var mod = ArmorHiderClient.RENDER_CONTEXT.activeModification();
+        if (mod != null && mod.shouldHide()) {
             // Move cape back to body when armor is hidden (no offset needed)
             original.call(instance, 0F, 0F, 0F);
         } else {
@@ -77,9 +69,9 @@ public class CapeRenderMixin {
     private boolean bypassWingsWhenElytraHidden(CapeLayer instance, ItemStack item, EquipmentClientInfo.LayerType layerType, Operation<Boolean> original) {
         boolean result = original.call(instance, item, layerType);
         if (result) {
-            var entityScope = ArmorHiderClient.SCOPE_PROVIDER.entityScope();
-            if (entityScope != null && entityScope.isPlayerEntity() && entityScope.resolvedPlayerName() != null
-                    && ItemRenderScope.isSlotFullyHidden(entityScope.resolvedPlayerName(), EquipmentSlot.CHEST, item)) {
+            var mod = ArmorHiderClient.RENDER_CONTEXT.activeModification();
+            if (mod != null
+                    && ActiveModification.isSlotFullyHidden(mod.playerName(), EquipmentSlot.CHEST, item)) {
                 return false;
             }
         }
@@ -91,7 +83,7 @@ public class CapeRenderMixin {
             at = @At("RETURN")
     )
     private void releaseCapeContext(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int light, AvatarRenderState avatarRenderState, float f, float g, CallbackInfo ci) {
-        ArmorHiderClient.SCOPE_PROVIDER.exitItemRender();
+        ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
     }
 }
 //?}
@@ -103,10 +95,8 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.rendering.RenderDecisions;
+import de.zannagh.armorhider.client.scopes.ActiveModification;
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
-import de.zannagh.armorhider.client.scopes.ItemRenderScope;
-import de.zannagh.armorhider.client.scopes.ScopeFactory;
 import de.zannagh.armorhider.util.ItemsUtil;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.layers.CapeLayer;
@@ -128,19 +118,14 @@ public class CapeRenderMixin {
             cancellable = true
     )
     private void setupCapeRenderContext(PoseStack poseStack, MultiBufferSource multiBufferSource, int light, PlayerRenderState playerRenderState, float f, float g, CallbackInfo ci) {
-        var scopes = ArmorHiderClient.SCOPE_PROVIDER;
-        var scope = ScopeFactory.createItemScope(scopes, null, EquipmentSlot.CHEST, playerRenderState);
-        if (scope != null) {
-            scopes.enterItemRender(scope);
-        }
+        var mod = ((IdentityCarrier) playerRenderState).createModification(EquipmentSlot.CHEST, null);
 
         if (playerRenderState instanceof IdentityCarrier carrier
-                && carrier.armorHider$isPlayerFlying()
+                && carrier.isPlayerFlying()
                 && ItemsUtil.itemStackContainsElytra(playerRenderState.chestEquipment)) {
-            var entityScope = scopes.entityScope();
-            if (entityScope != null && entityScope.resolvedPlayerName() != null
-                    && ItemRenderScope.isSlotFullyHidden(entityScope.resolvedPlayerName(), EquipmentSlot.CHEST, playerRenderState.chestEquipment)) {
-                scopes.exitItemRender();
+            if (mod != null
+                    && ActiveModification.isSlotFullyHidden(mod.playerName(), EquipmentSlot.CHEST, playerRenderState.chestEquipment)) {
+                ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
                 ci.cancel();
             }
         }
@@ -154,7 +139,8 @@ public class CapeRenderMixin {
             )
     )
     private void moveCapeWhenArmorHidden(PoseStack instance, float x, float y, float z, Operation<Void> original) {
-        if (RenderDecisions.shouldHideEquipment(ArmorHiderClient.SCOPE_PROVIDER)) {
+        var mod = ArmorHiderClient.RENDER_CONTEXT.activeModification();
+        if (mod != null && mod.shouldHide()) {
             original.call(instance, 0F, 0F, 0F);
         } else {
             original.call(instance, x, y, z);
@@ -172,9 +158,9 @@ public class CapeRenderMixin {
     private boolean bypassWingsWhenElytraHidden(CapeLayer instance, ItemStack item, EquipmentClientInfo.LayerType layerType, Operation<Boolean> original) {
         boolean result = original.call(instance, item, layerType);
         if (result) {
-            var entityScope = ArmorHiderClient.SCOPE_PROVIDER.entityScope();
-            if (entityScope != null && entityScope.isPlayerEntity() && entityScope.resolvedPlayerName() != null
-                    && ItemRenderScope.isSlotFullyHidden(entityScope.resolvedPlayerName(), EquipmentSlot.CHEST, item)) {
+            var mod = ArmorHiderClient.RENDER_CONTEXT.activeModification();
+            if (mod != null
+                    && ActiveModification.isSlotFullyHidden(mod.playerName(), EquipmentSlot.CHEST, item)) {
                 return false;
             }
         }
@@ -186,7 +172,7 @@ public class CapeRenderMixin {
             at = @At("RETURN")
     )
     private void releaseCapeContext(PoseStack poseStack, MultiBufferSource multiBufferSource, int light, PlayerRenderState playerRenderState, float f, float g, CallbackInfo ci) {
-        ArmorHiderClient.SCOPE_PROVIDER.exitItemRender();
+        ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
     }
 }
 *///?}
@@ -198,9 +184,8 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.rendering.RenderDecisions;
-import de.zannagh.armorhider.client.scopes.ItemRenderScope;
-import de.zannagh.armorhider.client.scopes.ScopeFactory;
+import de.zannagh.armorhider.client.scopes.ActiveModification;
+import de.zannagh.armorhider.client.scopes.IdentityCarrier;
 import de.zannagh.armorhider.util.ItemsUtil;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -223,18 +208,14 @@ public class CapeRenderMixin {
             cancellable = true
     )
     private void setupCapeRenderContext(PoseStack poseStack, MultiBufferSource bufferSource, int light, AbstractClientPlayer player, float limbSwing, float limbSwingAmount, float partialTick, float ageInTicks, float netHeadYaw, float headPitch, CallbackInfo ci) {
-        var scopes = ArmorHiderClient.SCOPE_PROVIDER;
-        var scope = ScopeFactory.createItemScope(scopes, null, EquipmentSlot.CHEST, player);
-        if (scope != null) {
-            scopes.enterItemRender(scope);
-        }
+        var mod = ((IdentityCarrier) player).createModification(EquipmentSlot.CHEST, null);
 
-        if ((player.isFallFlying() || player.getAbilities().flying)
+        if (player instanceof IdentityCarrier carrier
+                && carrier.isPlayerFlying()
                 && ItemsUtil.itemStackContainsElytra(player.getItemBySlot(EquipmentSlot.CHEST))) {
-            var entityScope = scopes.entityScope();
-            if (entityScope != null && entityScope.resolvedPlayerName() != null
-                    && ItemRenderScope.isSlotFullyHidden(entityScope.resolvedPlayerName(), EquipmentSlot.CHEST, player.getItemBySlot(EquipmentSlot.CHEST))) {
-                scopes.exitItemRender();
+            if (mod != null
+                    && ActiveModification.isSlotFullyHidden(mod.playerName(), EquipmentSlot.CHEST, player.getItemBySlot(EquipmentSlot.CHEST))) {
+                ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
                 ci.cancel();
             }
         }
@@ -250,7 +231,8 @@ public class CapeRenderMixin {
             )
     )
     private void moveCapeWhenArmorHidden(PoseStack instance, float x, float y, float z, Operation<Void> original) {
-        if (RenderDecisions.shouldHideEquipment(ArmorHiderClient.SCOPE_PROVIDER)) {
+        var mod = ArmorHiderClient.RENDER_CONTEXT.activeModification();
+        if (mod != null && mod.shouldHide()) {
             original.call(instance, 0F, 0F, 0F);
         } else {
             original.call(instance, x, y, z);
@@ -267,7 +249,8 @@ public class CapeRenderMixin {
             )
     )
     private void moveCapeWhenArmorHidden(PoseStack instance, float f, float g, float h, Operation<Void> original) {
-        if (RenderDecisions.shouldHideEquipment(ArmorHiderClient.SCOPE_PROVIDER)) {
+        var mod = ArmorHiderClient.RENDER_CONTEXT.activeModification();
+        if (mod != null && mod.shouldHide()) {
             original.call(instance, 0F, 0F, 0F);
         } else {
             original.call(instance, f, g, h);
@@ -285,9 +268,9 @@ public class CapeRenderMixin {
     private boolean bypassElytraCheckWhenHidden(ItemStack instance, Item item, Operation<Boolean> original) {
         boolean result = original.call(instance, item);
         if (result && item == Items.ELYTRA) {
-            var entityScope = ArmorHiderClient.SCOPE_PROVIDER.entityScope();
-            if (entityScope != null && entityScope.isPlayerEntity() && entityScope.resolvedPlayerName() != null
-                    && ItemRenderScope.isSlotFullyHidden(entityScope.resolvedPlayerName(), EquipmentSlot.CHEST, instance)) {
+            var mod = ArmorHiderClient.RENDER_CONTEXT.activeModification();
+            if (mod != null
+                    && ActiveModification.isSlotFullyHidden(mod.playerName(), EquipmentSlot.CHEST, instance)) {
                 return false;
             }
         }
@@ -299,7 +282,7 @@ public class CapeRenderMixin {
             at = @At("RETURN")
     )
     private void releaseCapeContext(PoseStack poseStack, MultiBufferSource bufferSource, int light, AbstractClientPlayer player, float limbSwing, float limbSwingAmount, float partialTick, float ageInTicks, float netHeadYaw, float headPitch, CallbackInfo ci) {
-        ArmorHiderClient.SCOPE_PROVIDER.exitItemRender();
+        ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
     }
 }
 *///?}

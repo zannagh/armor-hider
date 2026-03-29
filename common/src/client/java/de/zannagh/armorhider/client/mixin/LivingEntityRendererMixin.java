@@ -3,6 +3,7 @@ package de.zannagh.armorhider.client.mixin;
 
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
+import de.zannagh.armorhider.client.scopes.IdentityStateCarrier;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
@@ -26,7 +27,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * In 1.21.9+, {@code extractRenderState} and {@code EntityRenderDispatcher.submit} are
  * separate phases. The entity render scope (set by {@code EntityRenderDispatcherMixin}) only
  * starts at {@code submit}, so during extraction {@code isInEntityRender()} is false.
- * This causes {@code EquipmentSlotHidingMixin} to fire during extraction, potentially
+ * This causes {@code PlayerMixin}'s slot hiding to fire during extraction, potentially
  * hiding items from the render state before layers ever see them. We enter the entity render
  * scope at HEAD of extraction to prevent this.
  */
@@ -35,7 +36,7 @@ public class LivingEntityRendererMixin {
 
     /**
      * Enters the entity render scope during {@code extractRenderState} so that
-     * EquipmentSlotHidingMixin does not
+     * {@code PlayerMixin}'s slot hiding does not
      * intercept {@code getItemBySlot} calls made by vanilla during state extraction.
      * <p>
      * In 1.21.4–1.21.8 this is redundant (the scope is already entered by
@@ -48,7 +49,7 @@ public class LivingEntityRendererMixin {
             at = @At("HEAD")
     )
     private void enterEntityRenderDuringExtraction(LivingEntity entity, LivingEntityRenderState state, float partialTick, CallbackInfo ci) {
-        ArmorHiderClient.SCOPE_PROVIDER.enterEntityRender();
+        ArmorHiderClient.RENDER_CONTEXT.enterEntityRender();
     }
 
     /**
@@ -61,18 +62,8 @@ public class LivingEntityRendererMixin {
             at = @At("TAIL")
     )
     private void capturePlayerIdentity(LivingEntity entity, LivingEntityRenderState state, float partialTick, CallbackInfo ci) {
-        if (entity instanceof Player player && state instanceof IdentityCarrier carrier) {
-            String name = player.getDisplayName().getString();
-            carrier.armorHider$setPlayerName(!name.isEmpty() ? name : null);
-            carrier.armorHider$setCustomHeadItem(null);
-            if (state instanceof HumanoidRenderState humanoidState
-                    && humanoidState.wornHeadProfile == null
-                    && humanoidState.wornHeadType == null) {
-                if (!entity.getItemBySlot(EquipmentSlot.HEAD).isEmpty()) {
-                    carrier.armorHider$setCustomHeadItem(entity.getItemBySlot(EquipmentSlot.HEAD).copy());
-                }
-            }
-            carrier.armorHider$setPlayerFlying(player.isFallFlying() || player.getAbilities().flying);
+        if (entity instanceof IdentityCarrier carrier && state instanceof IdentityStateCarrier stateCarrier) {
+            stateCarrier.attachCarrier(carrier);
         }
     }
 }

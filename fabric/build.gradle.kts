@@ -5,7 +5,8 @@ plugins {
 apply(plugin = if (project.isDeobf) "loom-deobfuscated" else "loom-obfuscated")
 
 val sc = project.stonecutterBuild
-val fabricVersion = findProperty("fabric.minecraft_version")!!.toString()
+val fabricVersion = findProperty("fabric.minecraft_version")?.toString()
+    ?: error("No Fabric version mapping for Minecraft ${project.mcVersion}")
 
 stonecutter {
     constants["fabric"] = true
@@ -28,6 +29,7 @@ configure<net.fabricmc.loom.api.LoomGradleExtensionAPI> {
         if (project.isDeobf) {
             vmArg("-Dfabric.gameVersion=${fabricVersion}")
         }
+
     }
 }
 
@@ -52,3 +54,9 @@ tasks.named<ProcessResources>("processClientResources") {
     inputs.properties(expandProps)
     filesMatching("**/*.mixins.json", ExpandPropertiesAction(expandProps))
 }
+
+val expandTask = registerExpandResourcesForIdea(
+    tasks.named<ProcessResources>("processResources") to "out/production/resources",
+    tasks.named<ProcessResources>("processClientResources") to "out/client/resources"
+)
+patchLoomIdeRunConfigs(expandTask)

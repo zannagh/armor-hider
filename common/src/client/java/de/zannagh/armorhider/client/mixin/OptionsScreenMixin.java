@@ -7,12 +7,12 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 
 import net.minecraft.client.Options;
 //? if < 1.21 {
-import de.zannagh.armorhider.client.gui.screens.OldArmorHiderOptionsScreen;
+/^import de.zannagh.armorhider.client.gui.screens.OldArmorHiderOptionsScreen;
 import net.minecraft.client.gui.layouts.GridLayout;
 import net.minecraft.client.gui.layouts.LayoutElement;
 import net.minecraft.client.gui.layouts.SpacerElement;
 import net.minecraft.client.gui.screens.OptionsScreen;
-//?}
+^///?}
 //? if >= 1.21 {
 import de.zannagh.armorhider.client.gui.screens.ArmorHiderOptionsScreen;
 import net.minecraft.client.gui.layouts.GridLayout;

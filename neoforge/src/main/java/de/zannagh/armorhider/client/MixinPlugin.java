@@ -19,11 +19,11 @@ public class MixinPlugin implements IMixinConfigPlugin {
     // incompatible versions, so getMixinClassesWherePresent filters them automatically.
     private static final String[] MIXINS = new String[]{
             // Always present
-            "LivingEntityMixin",
-            "EquipmentSlotHidingMixin",
+            "PlayerMixin",
             "GameRendererMixin",
             // Guarded by //? if >= 1.21.4 in source
             "EntityRenderDispatcherMixin",
+            "LivingEntityMixin",
             "LivingEntityRendererMixin",
             "LivingEntityRenderStateMixin",
             "lang.ClientLanguageMixin",

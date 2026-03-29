@@ -7,6 +7,9 @@ val sc = project.stonecutterBuild
 
 val neoforgeVersion = findProperty("neoforge.version")?.toString()
     ?: error("No NeoForge version mapping for Minecraft ${project.mcVersion}")
+val neoforgeVersionRange = findProperty("neoforge.minecraft_version_range")?.toString() ?: error("No NeoForge version range specified for Minecraft ${project.mcVersion}")
+
+val javaVersion = project.javaVersion
 
 val clientSourceSet = sourceSets.create("client") {
     compileClasspath += sourceSets.main.get().output + sourceSets.main.get().compileClasspath
@@ -25,15 +28,9 @@ stonecutter {
     constants["neoforge"] = true
 }
 
-// IntelliJ's native builder copies resources without Gradle's property expansion,
-// so ${version} placeholders in neoforge.mods.toml stay unexpanded and FML rejects
-// the mod. This task runs processResources then overlays the expanded output into
-// IDEA's output dir, placed as a post-Make before-launch step by ModDevGradle.
-val expandResourcesForIdea by tasks.registering(Copy::class) {
-    dependsOn(tasks.processResources)
-    from(tasks.processResources.map { (it as ProcessResources).destinationDir })
-    into(layout.projectDirectory.dir("out/production/resources"))
-}
+val expandResourcesForIdea = registerExpandResourcesForIdea(
+    tasks.named<ProcessResources>("processResources") to "out/production/resources"
+)
 
 neoForge {
     version = neoforgeVersion
@@ -66,9 +63,9 @@ tasks.jar {
 
 val expandProps = mapOf(
     "version" to project.version,
-    "minecraft_version" to project.prop("neoforge.minecraft_version_range")!!,
+    "minecraft_version" to neoforgeVersionRange,
     "neoforge_version" to neoforgeVersion,
-    "java_version" to project.prop("java.version")!!
+    "java_version" to javaVersion
 )
 
 tasks.processResources {
