@@ -5,7 +5,8 @@ plugins {
 apply(plugin = if (project.isDeobf) "loom-deobfuscated" else "loom-obfuscated")
 
 val sc = project.stonecutterBuild
-val fabricVersion = findProperty("fabric.minecraft_version")!!.toString()
+val fabricVersion = findProperty("fabric.minecraft_version")?.toString()
+    ?: error("No Fabric version mapping for Minecraft ${project.mcVersion}")
 
 stonecutter {
     constants["fabric"] = true

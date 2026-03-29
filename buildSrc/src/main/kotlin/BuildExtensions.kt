@@ -23,6 +23,8 @@ val Project.mcVersion: String get() = stonecutterBuild.current.version
     .replace("1.pre.", "pre-")
     .replace("2.rc.", "rc-")
 
+val Project.javaVersion : String get() = findProperty("java.version")?.toString() ?: error("No Java version specified")
+
 /** Whether this version uses deobfuscated (unmapped) Minecraft jars. */
 val Project.isDeobf: Boolean get() = mcVersion.startsWith("26.")
 

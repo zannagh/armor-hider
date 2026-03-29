@@ -7,6 +7,9 @@ val sc = project.stonecutterBuild
 
 val neoforgeVersion = findProperty("neoforge.version")?.toString()
     ?: error("No NeoForge version mapping for Minecraft ${project.mcVersion}")
+val neoforgeVersionRange = findProperty("neoforge.minecraft_version_range")?.toString() ?: error("No NeoForge version range specified for Minecraft ${project.mcVersion}")
+
+val javaVersion = project.javaVersion
 
 val clientSourceSet = sourceSets.create("client") {
     compileClasspath += sourceSets.main.get().output + sourceSets.main.get().compileClasspath
@@ -60,9 +63,9 @@ tasks.jar {
 
 val expandProps = mapOf(
     "version" to project.version,
-    "minecraft_version" to project.prop("neoforge.minecraft_version_range")!!,
+    "minecraft_version" to neoforgeVersionRange,
     "neoforge_version" to neoforgeVersion,
-    "java_version" to project.prop("java.version")!!
+    "java_version" to javaVersion
 )
 
 tasks.processResources {
