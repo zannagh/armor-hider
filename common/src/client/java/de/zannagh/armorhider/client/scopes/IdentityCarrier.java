@@ -14,11 +14,8 @@ import org.jetbrains.annotations.Nullable;
  */
 public interface IdentityCarrier {
     @Nullable String armorHider$getPlayerName();
-    void armorHider$setPlayerName(@Nullable String name);
     
     @Nullable ItemStack armorHider$customHeadItem();
-    void armorHider$setCustomHeadItem(@Nullable ItemStack item);
     
     boolean armorHider$isPlayerFlying();
-    void armorHider$setPlayerFlying(boolean flying);
 }

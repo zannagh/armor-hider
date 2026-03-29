@@ -3,6 +3,7 @@ package de.zannagh.armorhider.client.mixin;
 
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
+import de.zannagh.armorhider.client.scopes.IdentityStateCarrier;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
@@ -61,18 +62,8 @@ public class LivingEntityRendererMixin {
             at = @At("TAIL")
     )
     private void capturePlayerIdentity(LivingEntity entity, LivingEntityRenderState state, float partialTick, CallbackInfo ci) {
-        if (entity instanceof Player player && state instanceof IdentityCarrier carrier) {
-            String name = player.getDisplayName().getString();
-            carrier.armorHider$setPlayerName(!name.isEmpty() ? name : null);
-            carrier.armorHider$setCustomHeadItem(null);
-            if (state instanceof HumanoidRenderState humanoidState
-                    && humanoidState.wornHeadProfile == null
-                    && humanoidState.wornHeadType == null) {
-                if (!entity.getItemBySlot(EquipmentSlot.HEAD).isEmpty()) {
-                    carrier.armorHider$setCustomHeadItem(entity.getItemBySlot(EquipmentSlot.HEAD).copy());
-                }
-            }
-            carrier.armorHider$setPlayerFlying(player.isFallFlying() || player.getAbilities().flying);
+        if (entity instanceof IdentityCarrier carrier && state instanceof IdentityStateCarrier stateCarrier) {
+            stateCarrier.armorHider$attachIdentityCarrier(carrier);
         }
     }
 }

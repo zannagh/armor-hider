@@ -15,7 +15,6 @@ public class MixinPlugin implements IMixinConfigPlugin {
 
     private static final String[] MIXINS = new String[]{
             "LivingEntityMixin",
-            "EquipmentSlotHidingMixin",
             "GameRendererMixin",
             // Guarded by //? if >= 1.21.4 in source
             "EntityRenderDispatcherMixin",

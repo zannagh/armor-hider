@@ -2,6 +2,7 @@
 package de.zannagh.armorhider.client.mixin;
 
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
+import de.zannagh.armorhider.client.scopes.IdentityStateCarrier;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
@@ -14,45 +15,28 @@ import org.spongepowered.asm.mixin.Unique;
  * submission phase — no global ThreadLocal needed.
  */
 @Mixin(LivingEntityRenderState.class)
-public class LivingEntityRenderStateMixin implements IdentityCarrier {
+public class LivingEntityRenderStateMixin implements IdentityStateCarrier {
 
     @Unique
-    private @Nullable String armorHider$playerName;
+    private @Nullable IdentityCarrier armorHider$identityCarrier;
     
-    @Unique
-    private @Nullable ItemStack armorHider$customHeadItem;
-    
-    @Unique
-    private boolean armorHider$isPlayerFlying;
-
     @Override
     public @Nullable String armorHider$getPlayerName() {
-        return armorHider$playerName;
+        return armorHider$identityCarrier != null ? armorHider$identityCarrier.armorHider$getPlayerName() : null;
     }
 
-    @Override
-    public void armorHider$setPlayerName(@Nullable String name) {
-        armorHider$playerName = name;
+    public void armorHider$attachIdentityCarrier(@Nullable IdentityCarrier carrier) {
+        armorHider$identityCarrier = carrier;
     }
     
     @Override
     public @Nullable ItemStack armorHider$customHeadItem() {
-        return armorHider$customHeadItem;
-    }
-    
-    @Override
-    public void armorHider$setCustomHeadItem(@Nullable ItemStack item) {
-        armorHider$customHeadItem = item;
+        return armorHider$identityCarrier != null ? armorHider$identityCarrier.armorHider$customHeadItem() : null;
     }
     
     @Override
     public boolean armorHider$isPlayerFlying() {
-        return armorHider$isPlayerFlying;
-    }
-
-    @Override
-    public void armorHider$setPlayerFlying(boolean flying) {
-        armorHider$isPlayerFlying = flying;
+        return armorHider$identityCarrier != null && armorHider$identityCarrier.armorHider$isPlayerFlying();
     }
 }
 //?}
