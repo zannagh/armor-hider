@@ -27,7 +27,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * In 1.21.9+, {@code extractRenderState} and {@code EntityRenderDispatcher.submit} are
  * separate phases. The entity render scope (set by {@code EntityRenderDispatcherMixin}) only
  * starts at {@code submit}, so during extraction {@code isInEntityRender()} is false.
- * This causes {@code EquipmentSlotHidingMixin} to fire during extraction, potentially
+ * This causes {@code PlayerMixin}'s slot hiding to fire during extraction, potentially
  * hiding items from the render state before layers ever see them. We enter the entity render
  * scope at HEAD of extraction to prevent this.
  */
@@ -36,7 +36,7 @@ public class LivingEntityRendererMixin {
 
     /**
      * Enters the entity render scope during {@code extractRenderState} so that
-     * EquipmentSlotHidingMixin does not
+     * {@code PlayerMixin}'s slot hiding does not
      * intercept {@code getItemBySlot} calls made by vanilla during state extraction.
      * <p>
      * In 1.21.4–1.21.8 this is redundant (the scope is already entered by

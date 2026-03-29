@@ -20,7 +20,7 @@ import net.minecraft.client.renderer.state.level.CameraRenderState;
 //import net.minecraft.client.renderer.state.CameraRenderState;
 
 // Sets a flag around the entire entity render cycle (extractRenderState + layer rendering)
-// so that EquipmentSlotHidingMixin can return real items during rendering. This ensures
+// so that PlayerMixin's slot hiding returns real items during rendering. This ensures
 // renderArmorPiece is called for hidden armor, allowing mods like Essential to detect
 // render suppression at that level.
 @Mixin(EntityRenderDispatcher.class)
@@ -57,7 +57,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 // Sets a flag around the entire entity render cycle (extractRenderState + layer rendering)
-// so that EquipmentSlotHidingMixin can return real items during rendering. This ensures
+// so that PlayerMixin's slot hiding returns real items during rendering. This ensures
 // renderArmorPiece is called for hidden armor, allowing mods like Essential to detect
 // render suppression at that level.
 @Mixin(EntityRenderDispatcher.class)

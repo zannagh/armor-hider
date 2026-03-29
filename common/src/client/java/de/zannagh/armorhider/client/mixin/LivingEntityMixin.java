@@ -24,7 +24,8 @@ public class LivingEntityMixin {
     private void triggerCombat(DamageSource damageSource, CallbackInfo ci) {
         if ((Object) this instanceof Player player) {
             ClientCombatManager.handleCombat(ClientCombatManager::shouldLogCombatForPlayer, damageSource, player);
+        } else {
+            ClientCombatManager.handleCombat(ClientCombatManager::shouldLogCombatForPlayer, damageSource, null);
         }
-        ClientCombatManager.handleCombat(ClientCombatManager::shouldLogCombatForPlayer, damageSource, null);
     }
 }

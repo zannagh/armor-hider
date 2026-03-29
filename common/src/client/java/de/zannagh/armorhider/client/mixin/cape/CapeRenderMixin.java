@@ -33,7 +33,7 @@ public class CapeRenderMixin {
         if (avatarRenderState instanceof IdentityCarrier carrier
                 && carrier.isPlayerFlying()
                 && ItemsUtil.itemStackContainsElytra(avatarRenderState.chestEquipment)) {
-            if (mod != null && mod.playerName() != null
+            if (mod != null
                     && ActiveModification.isSlotFullyHidden(mod.playerName(), EquipmentSlot.CHEST, avatarRenderState.chestEquipment)) {
                 ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
                 ci.cancel();
@@ -70,7 +70,7 @@ public class CapeRenderMixin {
         boolean result = original.call(instance, item, layerType);
         if (result) {
             var mod = ArmorHiderClient.RENDER_CONTEXT.activeModification();
-            if (mod != null && mod.playerName() != null
+            if (mod != null
                     && ActiveModification.isSlotFullyHidden(mod.playerName(), EquipmentSlot.CHEST, item)) {
                 return false;
             }
@@ -123,7 +123,7 @@ public class CapeRenderMixin {
         if (playerRenderState instanceof IdentityCarrier carrier
                 && carrier.isPlayerFlying()
                 && ItemsUtil.itemStackContainsElytra(playerRenderState.chestEquipment)) {
-            if (mod != null && mod.playerName() != null
+            if (mod != null
                     && ActiveModification.isSlotFullyHidden(mod.playerName(), EquipmentSlot.CHEST, playerRenderState.chestEquipment)) {
                 ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
                 ci.cancel();
@@ -159,7 +159,7 @@ public class CapeRenderMixin {
         boolean result = original.call(instance, item, layerType);
         if (result) {
             var mod = ArmorHiderClient.RENDER_CONTEXT.activeModification();
-            if (mod != null && mod.playerName() != null
+            if (mod != null
                     && ActiveModification.isSlotFullyHidden(mod.playerName(), EquipmentSlot.CHEST, item)) {
                 return false;
             }
@@ -213,7 +213,7 @@ public class CapeRenderMixin {
         if (player instanceof IdentityCarrier carrier
                 && carrier.isPlayerFlying()
                 && ItemsUtil.itemStackContainsElytra(player.getItemBySlot(EquipmentSlot.CHEST))) {
-            if (mod != null && mod.playerName() != null
+            if (mod != null
                     && ActiveModification.isSlotFullyHidden(mod.playerName(), EquipmentSlot.CHEST, player.getItemBySlot(EquipmentSlot.CHEST))) {
                 ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
                 ci.cancel();
@@ -269,7 +269,7 @@ public class CapeRenderMixin {
         boolean result = original.call(instance, item);
         if (result && item == Items.ELYTRA) {
             var mod = ArmorHiderClient.RENDER_CONTEXT.activeModification();
-            if (mod != null && mod.playerName() != null
+            if (mod != null
                     && ActiveModification.isSlotFullyHidden(mod.playerName(), EquipmentSlot.CHEST, instance)) {
                 return false;
             }

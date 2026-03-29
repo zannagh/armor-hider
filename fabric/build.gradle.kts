@@ -29,6 +29,7 @@ configure<net.fabricmc.loom.api.LoomGradleExtensionAPI> {
         if (project.isDeobf) {
             vmArg("-Dfabric.gameVersion=${fabricVersion}")
         }
+
     }
 }
 

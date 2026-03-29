@@ -37,8 +37,12 @@ public record ActiveModification(
      * </ul>
      */
     public static @Nullable ActiveModification create(@Nullable String playerName, @NotNull EquipmentSlot slot, @Nullable ItemStack item) {
-        if (playerName == null) return null;
-        if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.isArmorHiderDisabled()) return null;
+        if (playerName == null) {
+            return null;
+        }
+        if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.isArmorHiderDisabled()) {
+            return null;
+        }
 
         PlayerConfig config = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getConfigForPlayer(playerName);
 
@@ -78,7 +82,7 @@ public record ActiveModification(
 
     /**
      * Checks if a slot is fully hidden for a player, without needing a render context.
-     * Used by {@code EquipmentSlotHidingMixin} and {@code CapeRenderMixin}.
+     * Used by {@code PlayerMixin} and {@code CapeRenderMixin}.
      */
     public static boolean isSlotFullyHidden(@NotNull String playerName, @NotNull EquipmentSlot slot, @NotNull ItemStack item) {
         var mod = create(playerName, slot, item);

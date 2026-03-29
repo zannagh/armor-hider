@@ -69,13 +69,16 @@ public class ItemInHandLayerMixin {
             return;
         }
 
+        if (!(humanoidState instanceof IdentityCarrier carrier)) {
+            return;
+        }
         var ctx = ArmorHiderClient.RENDER_CONTEXT;
         //? if >= 1.21.11
-        var mod = ((IdentityCarrier) humanoidState).createModification(EquipmentSlot.OFFHAND, itemStack);
+        var mod = carrier.createModification(EquipmentSlot.OFFHAND, itemStack);
         //? if >= 1.21.4 && < 1.21.11
-        //var mod = ((IdentityCarrier) humanoidState).createModification(EquipmentSlot.OFFHAND, null);
+        //var mod = carrier.createModification(EquipmentSlot.OFFHAND, null);
         //? if < 1.21.4
-        //var mod = ((IdentityCarrier) humanoidState).createModification(EquipmentSlot.OFFHAND, itemState);
+        //var mod = carrier.createModification(EquipmentSlot.OFFHAND, itemState);
         
         if (mod != null && mod.shouldHide()) {
             ctx.clearActiveModification();

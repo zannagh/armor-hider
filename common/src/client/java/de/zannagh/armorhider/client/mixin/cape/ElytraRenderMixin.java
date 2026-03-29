@@ -30,17 +30,14 @@ public class ElytraRenderMixin {
             return;
         }
         
-        var ctx = ArmorHiderClient.RENDER_CONTEXT;
         var mod = carrier.createModification(EquipmentSlot.CHEST, ItemsUtil.ELYTRA_ITEM_STACK);
 
         if (mod == null) {
             return;
         }
-        
-        ctx.setActiveModification(mod);
-        
+
         if (mod.shouldHide()) {
-            ctx.clearActiveModification();
+            ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
             ci.cancel();
         }
     }

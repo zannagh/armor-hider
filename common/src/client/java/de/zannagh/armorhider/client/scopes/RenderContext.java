@@ -10,8 +10,8 @@ import org.jetbrains.annotations.Nullable;
  * <p>
  * Only three pieces of state:
  * <ul>
- *   <li><b>inLevelRender</b> — true during 3D world rendering (for {@code EquipmentSlotHidingMixin})</li>
- *   <li><b>inEntityRender</b> — true during an individual entity's render (for {@code EquipmentSlotHidingMixin})</li>
+ *   <li><b>inLevelRender</b> — true during 3D world rendering (for {@code PlayerMixin})</li>
+ *   <li><b>inEntityRender</b> — true during an individual entity's render (for {@code PlayerMixin})</li>
  *   <li><b>activeModification</b> — the current equipment modification being applied (for deep render interceptors)</li>
  * </ul>
  * Layer mixins resolve identity directly from the entity / render state via {@link IdentityCarrier},
@@ -84,8 +84,10 @@ public final class RenderContext {
     }
 
     public void clearActiveModification() {
-        activeModification.remove();
-        DebugTracer.scopeExitItemRender();
+        if (activeModification.get() != null) {
+            activeModification.remove();
+            DebugTracer.scopeExitItemRender();
+        }
     }
 
     public @Nullable ActiveModification activeModification() {
