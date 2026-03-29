@@ -56,17 +56,18 @@ tasks.named<ProcessResources>("processClientResources") {
 // IntelliJ's native builder copies resources without Gradle's property expansion,
 // so ${version} placeholders in fabric.mod.json and mixin JSONs stay unexpanded.
 // These tasks overlay the expanded output into IDEA's output dirs.
-val processClientResources = tasks.named<ProcessResources>("processClientResources")
+val mainProcessResources = tasks.named<ProcessResources>("processResources")
+val clientProcessResources = tasks.named<ProcessResources>("processClientResources")
 
 val expandResourcesForIdea by tasks.registering {
-    dependsOn(tasks.processResources, processClientResources)
+    dependsOn(mainProcessResources, clientProcessResources)
     doLast {
         copy {
-            from(tasks.processResources.map { (it as ProcessResources).destinationDir })
+            from(mainProcessResources.get().outputs)
             into(layout.projectDirectory.dir("out/production/resources"))
         }
         copy {
-            from(processClientResources.map { it.destinationDir })
+            from(clientProcessResources.get().outputs)
             into(layout.projectDirectory.dir("out/client/resources"))
         }
     }

@@ -29,9 +29,10 @@ stonecutter {
 // so ${version} placeholders in neoforge.mods.toml stay unexpanded and FML rejects
 // the mod. This task runs processResources then overlays the expanded output into
 // IDEA's output dir, placed as a post-Make before-launch step by ModDevGradle.
+val mainProcessResources = tasks.named<ProcessResources>("processResources")
 val expandResourcesForIdea by tasks.registering(Copy::class) {
-    dependsOn(tasks.processResources)
-    from(tasks.processResources.map { (it as ProcessResources).destinationDir })
+    dependsOn(mainProcessResources)
+    from(mainProcessResources.get().outputs)
     into(layout.projectDirectory.dir("out/production/resources"))
 }
 
