@@ -71,8 +71,12 @@ public class ArmorFeatureRenderMixin {
     private void captureContext(PoseStack poseStack, MultiBufferSource multiBufferSource, ItemStack itemStack, EquipmentSlot equipmentSlot, int i, HumanoidModel<?> model, CallbackInfo ci) {
         var ctx = ArmorHiderClient.RENDER_CONTEXT;
         String playerName = ctx.currentPlayerName();
-        if (playerName == null) return;
-        if (itemStack.is(Items.AIR)) return;
+        if (playerName == null) {
+            return;
+        }
+        if (itemStack.is(Items.AIR)) {
+            return;
+        }
         var mod = ActiveModification.create(playerName, equipmentSlot, itemStack);
         if (mod != null) {
             ctx.setActiveModification(mod);

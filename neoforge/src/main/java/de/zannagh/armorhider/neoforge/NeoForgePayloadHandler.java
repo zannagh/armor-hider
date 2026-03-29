@@ -29,7 +29,9 @@ final class NeoForgePayloadHandler {
             PayloadRegistrar registrar, PayloadRegistry.PayloadEntry<T> entry) {
         registrar.playToServer(entry.type(), entry.codec(), (payload, ctx) -> {
             var handler = PayloadRegistry.getC2SHandler(payload.type().id());
-            if (handler == null) return;
+            if (handler == null) {
+                return;
+            }
 
             ServerPlayer player = (ServerPlayer) ctx.player();
             var serverCtx = new ServerPayloadContext(player, player.level().getServer());

@@ -231,7 +231,9 @@ public class EquipmentRenderMixin {
         var ctx = ArmorHiderClient.RENDER_CONTEXT;
         var mod = ctx.activeModification();
         if (mod != null) {
-            if (mod.shouldDisableGlint() || mod.shouldHide()) return false;
+            if (mod.shouldDisableGlint() || mod.shouldHide()) {
+                return false;
+            }
         }
         return original;
     }

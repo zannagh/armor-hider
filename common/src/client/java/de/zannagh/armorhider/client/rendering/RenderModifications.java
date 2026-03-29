@@ -43,7 +43,9 @@ public final class RenderModifications {
     //? if < 1.21.4
     //public static RenderType getSkullRenderLayer(@NotNull RenderContext ctx, Identifier texture, RenderType originalLayer) {
         var mod = ctx.activeModification();
-        if (mod == null) return originalLayer;
+        if (mod == null) {
+            return originalLayer;
+        }
         double transparency = mod.transparency();
         if (transparency < 1.0 && transparency >= 0) {
             return RenderTypeResolver.translucentEntity(texture);
@@ -58,7 +60,9 @@ public final class RenderModifications {
     //? if < 1.21.4
     //public static RenderType getTranslucentArmorRenderType(@NotNull RenderContext ctx, Identifier texture, RenderType originalLayer) {
         var mod = ctx.activeModification();
-        if (mod == null) return originalLayer;
+        if (mod == null) {
+            return originalLayer;
+        }
         double transparency = mod.transparency();
         if (transparency >= 1.0 || transparency <= 0) {
             return originalLayer;
@@ -69,7 +73,9 @@ public final class RenderModifications {
     //? if >= 1.21.4 {
     public static RenderType getTrimRenderLayer(@NotNull RenderContext ctx, boolean decal, RenderType originalLayer) {
         var mod = ctx.activeModification();
-        if (mod == null) return originalLayer;
+        if (mod == null) {
+            return originalLayer;
+        }
         double transparency = mod.transparency();
         if (transparency >= 1.0 || transparency <= 0) {
             return originalLayer;
@@ -81,7 +87,9 @@ public final class RenderModifications {
     //? if < 1.21.4 {
     /*public static RenderType getTrimRenderLayer(@NotNull RenderContext ctx, boolean decal, RenderType originalLayer) {
         var mod = ctx.activeModification();
-        if (mod == null) return originalLayer;
+        if (mod == null) {
+            return originalLayer;
+        }
         double transparency = mod.transparency();
         if (transparency >= 1.0 || transparency <= 0) {
             return originalLayer;
@@ -92,7 +100,9 @@ public final class RenderModifications {
 
     public static RenderType getTranslucentItemRenderType(@NotNull RenderContext ctx, RenderType originalLayer) {
         var mod = ctx.activeModification();
-        if (mod == null) return originalLayer;
+        if (mod == null) {
+            return originalLayer;
+        }
         double transparency = mod.transparency();
         if (transparency >= 1.0 || transparency <= 0) {
             return originalLayer;
@@ -107,21 +117,27 @@ public final class RenderModifications {
 
     public static int applyArmorTransparency(@NotNull RenderContext ctx, int originalColor) {
         var mod = ctx.activeModification();
-        if (mod == null) return originalColor;
+        if (mod == null) {
+            return originalColor;
+        }
         int alpha = (int) (mod.transparency() * 255);
         return ColorMath.withAlpha(originalColor, alpha);
     }
 
     public static int applyTransparencyFromWhite(@NotNull RenderContext ctx, int original) {
         var mod = ctx.activeModification();
-        if (mod == null) return original;
+        if (mod == null) {
+            return original;
+        }
         int alpha = (int) (mod.transparency() * 255);
         return ColorMath.whiteWithAlpha(alpha);
     }
 
     public static float getTransparencyAlpha(@NotNull RenderContext ctx) {
         var mod = ctx.activeModification();
-        if (mod == null) return 1.0f;
+        if (mod == null) {
+            return 1.0f;
+        }
         return (float) mod.transparency();
     }
 
@@ -129,7 +145,9 @@ public final class RenderModifications {
 
     public static int modifyRenderPriority(@NotNull RenderContext ctx, int originalPriority) {
         var mod = ctx.activeModification();
-        if (mod == null) return originalPriority;
+        if (mod == null) {
+            return originalPriority;
+        }
         if (mod.item().is(Items.ELYTRA)) {
             return ELYTRA_RENDER_PRIORITY;
         }
