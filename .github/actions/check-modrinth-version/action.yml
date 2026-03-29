@@ -44,7 +44,7 @@ runs:
         # Extract semver and prerelease number from input version
         # Format: X.Y.Z-pre.N or X.Y.Z-preview.N
         SEMVER=$(echo "$MOD_VERSION" | grep -oE '^[0-9]+\.[0-9]+\.[0-9]+' || echo "")
-        PRE_NUM=$(echo "$MOD_VERSION" | grep -oE '(pre|preview)\.[0-9]+' | grep -oE '[0-9]+$' || echo "")
+        PRE_NUM=$(echo "$MOD_VERSION" | grep -oE '(pre|preview|p)\.[0-9]+' | grep -oE '[0-9]+$' || echo "")
 
         echo "Parsed semver: $SEMVER"
         echo "Parsed prerelease number: $PRE_NUM"

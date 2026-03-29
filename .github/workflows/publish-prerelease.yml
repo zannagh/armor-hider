@@ -46,8 +46,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          # Get the most recent release (including prereleases)
-          LATEST=$(gh api repos/${{ github.repository }}/releases?per_page=1 --jq '.[0]')
+          # Get the most recent non-draft release (including prereleases)
+          LATEST=$(gh api repos/${{ github.repository }}/releases?per_page=10 --jq 'map(select(.draft | not))[0]')
 
           if [[ -z "$LATEST" || "$LATEST" == "null" ]]; then
             echo "No releases found"
@@ -98,7 +98,7 @@ jobs:
         with:
           project-id: ${{ env.MODRINTH_PROJECT_ID }}
           mod-version: ${{ needs.find-prerelease.outputs.mod_version }}
-          fail-on-regression: 'false'
+          fail-on-regression: 'true'
 
   build:
     name: Build
