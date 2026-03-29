@@ -52,7 +52,9 @@ runs:
         EXISTS=false
         HIGHEST_PRERELEASE=0
         IS_REGRESSION=false
+        # Generate all suffix variants: -pre. / -preview. / -p. (compact format)
         MOD_VERSION_PREVIEW=$(echo "$MOD_VERSION" | sed 's/-pre\./-preview./')
+        MOD_VERSION_SHORT=$(echo "$MOD_VERSION" | sed 's/-pre\./-p./')
 
         while IFS= read -r existing; do
           [[ -z "$existing" ]] && continue
@@ -60,7 +62,8 @@ runs:
           # Check for exact match by checking if existing version ends with our mod version
           # This avoids fragile prefix-stripping that breaks with grouped display versions
           if [[ "$existing" == *"-${MOD_VERSION}" ]] || \
-             [[ "$existing" == *"-${MOD_VERSION_PREVIEW}" ]]; then
+             [[ "$existing" == *"-${MOD_VERSION_PREVIEW}" ]] || \
+             [[ "$existing" == *"-${MOD_VERSION_SHORT}" ]]; then
             EXISTS=true
             echo "Found exact matching version: $existing"
           fi
@@ -68,7 +71,7 @@ runs:
           # Track highest prerelease number for same semver
           # Check if existing version contains our semver (e.g., -0.7.10- or -0.7.10 at end)
           if [[ -n "$SEMVER" ]] && echo "$existing" | grep -qE "\-${SEMVER}(\-|$)"; then
-            EXISTING_PRE=$(echo "$existing" | grep -oE '(pre|preview)\.[0-9]+' | tail -1 | grep -oE '[0-9]+$' || echo "0")
+            EXISTING_PRE=$(echo "$existing" | grep -oE '(pre|preview|p)\.[0-9]+' | tail -1 | grep -oE '[0-9]+$' || echo "0")
             if [[ -n "$EXISTING_PRE" && "$EXISTING_PRE" -gt "$HIGHEST_PRERELEASE" ]]; then
               HIGHEST_PRERELEASE="$EXISTING_PRE"
             fi
