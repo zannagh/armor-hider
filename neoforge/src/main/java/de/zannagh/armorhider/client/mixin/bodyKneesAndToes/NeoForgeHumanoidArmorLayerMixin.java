@@ -7,7 +7,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.rendering.RenderModifications;
-import de.zannagh.armorhider.client.scopes.ActiveModification;
+import de.zannagh.armorhider.client.scopes.IdentityCarrier;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.Model;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -48,19 +48,18 @@ public class NeoForgeHumanoidArmorLayerMixin<T extends LivingEntity, M extends H
             cancellable = true
     )
     private void onRenderArmorPiece(PoseStack poseStack, MultiBufferSource bufferSource, T entity, EquipmentSlot slot, int packedLight, A armorModel, float limbSwing, float limbSwingAmount, float partialTick, float ageInTicks, float netHeadYaw, float headPitch, CallbackInfo ci) {
+        if (!(entity instanceof IdentityCarrier carrier)) {
+            return;
+        }
         ItemStack itemStack = entity.getItemBySlot(slot);
         if (itemStack.is(Items.AIR)) {
             return;
         }
 
-        var ctx = ArmorHiderClient.RENDER_CONTEXT;
-        var mod = ActiveModification.forCarrier(entity, slot, itemStack);
-        if (mod != null) {
-            ctx.setActiveModification(mod);
-            if (mod.shouldHide()) {
-                ctx.clearActiveModification();
-                ci.cancel();
-            }
+        var mod = carrier.createModification(slot, itemStack);
+        if (mod != null && mod.shouldHide()) {
+            ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
+            ci.cancel();
         }
     }
 

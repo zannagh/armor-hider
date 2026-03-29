@@ -2,7 +2,7 @@ package de.zannagh.armorhider.client.mixin.hand;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.scopes.ActiveModification;
+import de.zannagh.armorhider.client.scopes.IdentityCarrier;
 import net.minecraft.client.renderer.entity.layers.ItemInHandLayer;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.HumanoidArm;
@@ -71,13 +71,12 @@ public class ItemInHandLayerMixin {
 
         var ctx = ArmorHiderClient.RENDER_CONTEXT;
         //? if >= 1.21.11
-        var mod = ActiveModification.forCarrier(humanoidState, EquipmentSlot.OFFHAND, itemStack);
+        var mod = ((IdentityCarrier) humanoidState).createModification(EquipmentSlot.OFFHAND, itemStack);
         //? if >= 1.21.4 && < 1.21.11
-        //var mod = ActiveModification.forCarrier(humanoidState, EquipmentSlot.OFFHAND, null);
+        //var mod = ((IdentityCarrier) humanoidState).createModification(EquipmentSlot.OFFHAND, null);
         //? if < 1.21.4
-        //var mod = ActiveModification.forCarrier(humanoidState, EquipmentSlot.OFFHAND, itemState);
-        if (mod != null) { ctx.setActiveModification(mod); }
-
+        //var mod = ((IdentityCarrier) humanoidState).createModification(EquipmentSlot.OFFHAND, itemState);
+        
         if (mod != null && mod.shouldHide()) {
             ctx.clearActiveModification();
             ci.cancel();

@@ -1,21 +1,39 @@
 package de.zannagh.armorhider.client.scopes;
 
+import de.zannagh.armorhider.ArmorHider;
+import de.zannagh.armorhider.client.ArmorHiderClient;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Duck interface injected onto {@code LivingEntityRenderState} via mixin.
- * Carries the player identity captured during {@code extractRenderState} (where the actual
- * entity is still available) through to the submission/rendering phase (where only the
- * render state remains).
+ * Duck interface injected onto {@code Player} (all versions) and
+ * {@code LivingEntityRenderState} (>= 1.21.4, via {@link IdentityStateCarrier}).
  * <p>
- * This replaces the previous ThreadLocal hint approach which suffered from cross-entity
- * contamination when multiple players were extracted before their render states were submitted.
+ * Carries player identity and produces {@link ActiveModification} instances
+ * for the rendering pipeline. Layer mixins call {@link #createModification}
+ * to get the pre-computed modification, then store it in {@code RenderContext}
+ * for downstream render interceptors.
  */
 public interface IdentityCarrier {
-    @Nullable String armorHider$getPlayerName();
-    
-    @Nullable ItemStack armorHider$customHeadItem();
-    
-    boolean armorHider$isPlayerFlying();
+    @Nullable String playerName();
+
+    @Nullable ItemStack customHeadItem();
+
+    boolean isPlayerFlying();
+
+    /**
+     * Creates a rendering modification for the given equipment slot and item.
+     * Returns {@code null} when no modification is needed.
+     * Also sets the active context if the modification is not null via {@link RenderContext#setActiveModification(ActiveModification)} 
+     */
+    default @Nullable ActiveModification createModification(@NotNull EquipmentSlot slot, @Nullable ItemStack item) {
+        
+        var mod = ActiveModification.create(playerName(), slot, item);
+        if (mod != null) {
+            ArmorHiderClient.RENDER_CONTEXT.setActiveModification(mod);
+        }
+        return mod;
+    }
 }

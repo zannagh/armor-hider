@@ -5,6 +5,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.scopes.ActiveModification;
+import de.zannagh.armorhider.client.scopes.IdentityCarrier;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.ItemInHandRenderer;
 import net.minecraft.world.InteractionHand;
@@ -42,19 +43,18 @@ public class OffHandRenderMixin {
     private void onRenderItem(AbstractClientPlayer abstractClientPlayer, float f, float g, InteractionHand interactionHand, float h, ItemStack itemStack, float i, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int j, CallbackInfo ci){
     //? if < 1.21.9
     //private void onRenderItem(AbstractClientPlayer abstractClientPlayer, float f, float g, InteractionHand interactionHand, float h, ItemStack itemStack, float i, PoseStack poseStack, MultiBufferSource multiBufferSource, int j, CallbackInfo ci){
+        
+        if (!(abstractClientPlayer instanceof IdentityCarrier carrier)) {
+            return;
+        }
+        
         if (itemStack.is(Items.AIR)) {
             return;
         }
         if (interactionHand == InteractionHand.MAIN_HAND){
             return;
         }
-        //? if >= 1.21.9
-        String name = abstractClientPlayer.getGameProfile().name();
-        //? if < 1.21.9
-        //String name = abstractClientPlayer.getGameProfile().getName();
-        var ctx = ArmorHiderClient.RENDER_CONTEXT;
-        var mod = ActiveModification.create(name, EquipmentSlot.OFFHAND, itemStack);
-        if (mod != null) { ctx.setActiveModification(mod); }
+        carrier.createModification(EquipmentSlot.OFFHAND, itemStack);
     }
 
     @WrapOperation(

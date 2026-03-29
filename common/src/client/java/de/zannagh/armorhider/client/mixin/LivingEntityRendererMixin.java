@@ -63,7 +63,7 @@ public class LivingEntityRendererMixin {
     )
     private void capturePlayerIdentity(LivingEntity entity, LivingEntityRenderState state, float partialTick, CallbackInfo ci) {
         if (entity instanceof IdentityCarrier carrier && state instanceof IdentityStateCarrier stateCarrier) {
-            stateCarrier.armorHider$attachIdentityCarrier(carrier);
+            stateCarrier.attachCarrier(carrier);
         }
     }
 }

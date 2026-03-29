@@ -28,20 +28,14 @@ public class CapeRenderMixin {
             cancellable = true
     )
     private void setupCapeRenderContext(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int light, AvatarRenderState avatarRenderState, float f, float g, CallbackInfo ci) {
-        var ctx = ArmorHiderClient.RENDER_CONTEXT;
-        var mod = ActiveModification.forCarrier(avatarRenderState, EquipmentSlot.CHEST, null);
-        if (mod != null) {
-            ctx.setActiveModification(mod);
-        }
+        var mod = ((IdentityCarrier) avatarRenderState).createModification(EquipmentSlot.CHEST, null);
 
-        // When flying, the elytra is force-shown even if our mod would hide it.
-        // Cancel the cape so both don't render at the same time.
         if (avatarRenderState instanceof IdentityCarrier carrier
-                && carrier.armorHider$isPlayerFlying()
+                && carrier.isPlayerFlying()
                 && ItemsUtil.itemStackContainsElytra(avatarRenderState.chestEquipment)) {
             if (mod != null && mod.playerName() != null
                     && ActiveModification.isSlotFullyHidden(mod.playerName(), EquipmentSlot.CHEST, avatarRenderState.chestEquipment)) {
-                ctx.clearActiveModification();
+                ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
                 ci.cancel();
             }
         }
@@ -124,18 +118,14 @@ public class CapeRenderMixin {
             cancellable = true
     )
     private void setupCapeRenderContext(PoseStack poseStack, MultiBufferSource multiBufferSource, int light, PlayerRenderState playerRenderState, float f, float g, CallbackInfo ci) {
-        var ctx = ArmorHiderClient.RENDER_CONTEXT;
-        var mod = ActiveModification.forCarrier(playerRenderState, EquipmentSlot.CHEST, null);
-        if (mod != null) {
-            ctx.setActiveModification(mod);
-        }
+        var mod = ((IdentityCarrier) playerRenderState).createModification(EquipmentSlot.CHEST, null);
 
         if (playerRenderState instanceof IdentityCarrier carrier
-                && carrier.armorHider$isPlayerFlying()
+                && carrier.isPlayerFlying()
                 && ItemsUtil.itemStackContainsElytra(playerRenderState.chestEquipment)) {
             if (mod != null && mod.playerName() != null
                     && ActiveModification.isSlotFullyHidden(mod.playerName(), EquipmentSlot.CHEST, playerRenderState.chestEquipment)) {
-                ctx.clearActiveModification();
+                ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
                 ci.cancel();
             }
         }
@@ -195,6 +185,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.scopes.ActiveModification;
+import de.zannagh.armorhider.client.scopes.IdentityCarrier;
 import de.zannagh.armorhider.util.ItemsUtil;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -217,18 +208,14 @@ public class CapeRenderMixin {
             cancellable = true
     )
     private void setupCapeRenderContext(PoseStack poseStack, MultiBufferSource bufferSource, int light, AbstractClientPlayer player, float limbSwing, float limbSwingAmount, float partialTick, float ageInTicks, float netHeadYaw, float headPitch, CallbackInfo ci) {
-        var ctx = ArmorHiderClient.RENDER_CONTEXT;
-        var mod = ActiveModification.forCarrier(player, EquipmentSlot.CHEST, null);
-        if (mod != null) {
-            ctx.setActiveModification(mod);
-        }
+        var mod = ((IdentityCarrier) player).createModification(EquipmentSlot.CHEST, null);
 
-        if ((player.isFallFlying() || player.getAbilities().flying)
+        if (player instanceof IdentityCarrier carrier
+                && carrier.isPlayerFlying()
                 && ItemsUtil.itemStackContainsElytra(player.getItemBySlot(EquipmentSlot.CHEST))) {
-            String playerName = player.getName().getString();
-            if (playerName != null
-                    && ActiveModification.isSlotFullyHidden(playerName, EquipmentSlot.CHEST, player.getItemBySlot(EquipmentSlot.CHEST))) {
-                ctx.clearActiveModification();
+            if (mod != null && mod.playerName() != null
+                    && ActiveModification.isSlotFullyHidden(mod.playerName(), EquipmentSlot.CHEST, player.getItemBySlot(EquipmentSlot.CHEST))) {
+                ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
                 ci.cancel();
             }
         }

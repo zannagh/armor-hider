@@ -55,6 +55,7 @@ public class ItemRenderStateMixin {
     //? if 1.21.9 || 1.21.10
     //private void wrapSubmitItem(SubmitNodeCollector instance, PoseStack poseStack, ItemDisplayContext itemDisplayContext, int light, int overlay, int color, int[] tintLayers, List<BakedQuad> quads, RenderType renderType, ItemStackRenderState.FoilType foilType, Operation<Void> original) {
         var ctx = ArmorHiderClient.RENDER_CONTEXT;
+        
         boolean shouldInterceptOffHandRender = ctx.hasActiveModification(EquipmentSlot.OFFHAND);
         boolean shouldInterceptCustomHeadRender = ctx.hasActiveModification(EquipmentSlot.HEAD);
         if (shouldInterceptOffHandRender || shouldInterceptCustomHeadRender) {

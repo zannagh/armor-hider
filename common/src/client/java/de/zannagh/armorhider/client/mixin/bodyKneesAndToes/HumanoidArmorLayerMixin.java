@@ -8,7 +8,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.rendering.RenderModifications;
-import de.zannagh.armorhider.client.scopes.ActiveModification;
+import de.zannagh.armorhider.client.scopes.IdentityCarrier;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -33,19 +33,17 @@ public class HumanoidArmorLayerMixin<T extends LivingEntity, M extends HumanoidM
             cancellable = true
     )
     private void onRenderArmorPiece(PoseStack poseStack, MultiBufferSource bufferSource, T entity, EquipmentSlot slot, int packedLight, A armorModel, CallbackInfo ci) {
+        if (!(entity instanceof IdentityCarrier carrier)) {
+            return;
+        }
         ItemStack itemStack = entity.getItemBySlot(slot);
         if (itemStack.is(Items.AIR)) {
             return;
         }
 
-        var ctx = ArmorHiderClient.RENDER_CONTEXT;
-        var mod = ActiveModification.forCarrier(entity, slot, itemStack);
-        if (mod != null) {
-            ctx.setActiveModification(mod);
-        }
-
+        var mod = carrier.createModification(slot, itemStack);
         if (mod != null && mod.shouldHide()) {
-            ctx.clearActiveModification();
+            ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
             ci.cancel();
         }
     }
@@ -132,7 +130,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.rendering.RenderModifications;
-import de.zannagh.armorhider.client.scopes.ActiveModification;
+import de.zannagh.armorhider.client.scopes.IdentityCarrier;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -155,16 +153,13 @@ public class HumanoidArmorLayerMixin<T extends LivingEntity, M extends HumanoidM
             at = @At("HEAD")
     )
     private void onRenderArmorPiece(PoseStack poseStack, MultiBufferSource bufferSource, T entity, EquipmentSlot slot, int packedLight, A armorModel, CallbackInfo ci) {
+        if (!(entity instanceof IdentityCarrier carrier)) {
+            return;
+        }
         if (entity.getItemBySlot(slot).is(Items.AIR)) {
             return;
         }
-
-        var itemStack = entity.getItemBySlot(slot);
-        var ctx = ArmorHiderClient.RENDER_CONTEXT;
-        var mod = ActiveModification.forCarrier(entity, slot, itemStack);
-        if (mod != null) {
-            ctx.setActiveModification(mod);
-        }
+        carrier.createModification(slot, entity.getItemBySlot(slot));
     }
 
     @Inject(

@@ -2,6 +2,7 @@ package de.zannagh.armorhider.client.mixin.hand;
 
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.scopes.ActiveModification;
+import de.zannagh.armorhider.client.scopes.IdentityCarrier;
 import net.minecraft.client.renderer.entity.ItemEntityRenderer;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -30,19 +31,20 @@ public class ItemEntityRendererMixin {
     /*@Inject(method = "render(Lnet/minecraft/world/entity/item/ItemEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V", at = @At("HEAD"))
     private static void triggerRender(ItemEntity itemEntity, float f, float g, PoseStack poseStack, MultiBufferSource multiBufferSource, int i, CallbackInfo ci) {
     *///?}
-        if (itemEntity.getOwner() instanceof Player player) {
-            var slot = player.getEquipmentSlotForItem(itemEntity.getItem());
-            if (slot != EquipmentSlot.OFFHAND) {
-                return;
-            }
-            //? if >= 1.21.9
-            String name = player.getGameProfile().name();
-            //? if < 1.21.9
-            //String name = player.getGameProfile().getName();
-            var ctx = ArmorHiderClient.RENDER_CONTEXT;
-            var mod = ActiveModification.create(name, EquipmentSlot.OFFHAND, itemEntity.getItem());
-            if (mod != null) { ctx.setActiveModification(mod); }
+        if (!(itemEntity.getOwner() instanceof IdentityCarrier carrier)
+         || !(itemEntity.getOwner() instanceof Player player)) {
+            return;
         }
+        var slot = player.getEquipmentSlotForItem(itemEntity.getItem());
+        if (slot != EquipmentSlot.OFFHAND) {
+            return;
+        }
+        //? if >= 1.21.9
+        String name = player.getGameProfile().name();
+        //? if < 1.21.9
+        //String name = player.getGameProfile().getName();
+        
+        carrier.createModification(slot, itemEntity.getItem());
     }
 
     // For < 1.21.4, exit the item scope at render() RETURN (same method as entry).

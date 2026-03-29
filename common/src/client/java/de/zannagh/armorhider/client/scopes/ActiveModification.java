@@ -27,19 +27,6 @@ public record ActiveModification(
 ) {
 
     /**
-     * Creates a modification from any object that may implement {@link IdentityCarrier}
-     * (e.g. {@code LivingEntity} on < 1.21.4, {@code LivingEntityRenderState} on >= 1.21.4).
-     *
-     * @return the modification, or {@code null} if no modification should be applied
-     */
-    public static @Nullable ActiveModification forCarrier(@Nullable Object carrier, @NotNull EquipmentSlot slot, @Nullable ItemStack item) {
-        if (carrier instanceof IdentityCarrier ic) {
-            return create(ic.armorHider$getPlayerName(), slot, item);
-        }
-        return null;
-    }
-
-    /**
      * Core factory. Returns {@code null} when no modification is needed:
      * <ul>
      *   <li>Player name is null (not a player entity)</li>

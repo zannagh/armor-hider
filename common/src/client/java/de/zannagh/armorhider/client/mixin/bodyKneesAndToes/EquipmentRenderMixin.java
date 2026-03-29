@@ -7,7 +7,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.rendering.RenderModifications;
-import de.zannagh.armorhider.client.scopes.ActiveModification;
+import de.zannagh.armorhider.client.scopes.IdentityCarrier;
 import net.minecraft.client.model.Model;
 import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.SubmitNodeCollector;
@@ -61,22 +61,19 @@ public class EquipmentRenderMixin {
             return;
         }
 
-        if (!(object instanceof HumanoidRenderState) || (object instanceof ArmorStandRenderState)) {
+        if (!(object instanceof IdentityCarrier carrier)) {
             return;
         }
 
-        var ctx = ArmorHiderClient.RENDER_CONTEXT;
         var slot = equippable.slot();
-        var mod = ActiveModification.forCarrier(object, slot, itemStack);
-        if (mod != null) {
-            ctx.setActiveModification(mod);
-        }
+        var mod = carrier.createModification(slot, itemStack);
 
         if (mod == null) {
             return;
         }
 
         if (mod.shouldHide() && ci != null) {
+            ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
             ci.cancel();
         }
     }
@@ -103,7 +100,9 @@ public class EquipmentRenderMixin {
         var ctx = ArmorHiderClient.RENDER_CONTEXT;
         var mod = ctx.activeModification();
         if (mod != null) {
-            if (mod.shouldDisableGlint() || mod.shouldHide()) return false;
+            if (mod.shouldDisableGlint() || mod.shouldHide()) {
+                return false;
+            }
         }
         return original;
     }

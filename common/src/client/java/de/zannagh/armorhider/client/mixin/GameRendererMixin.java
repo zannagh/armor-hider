@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
  * Sets scope flags around GameRenderer.renderLevel()
- * so that {@link LivingEntityMixin} can distinguish level rendering
+ * so that {@link PlayerMixin} can distinguish level rendering
  * (3D world) from HUD/GUI rendering and game logic.
  * <p>
  * The level-render scope covers only renderLevel() (3D world rendering).

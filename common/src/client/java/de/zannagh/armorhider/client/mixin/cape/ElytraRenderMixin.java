@@ -3,7 +3,6 @@ package de.zannagh.armorhider.client.mixin.cape;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.scopes.ActiveModification;
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
 import de.zannagh.armorhider.util.ItemsUtil;
 import net.minecraft.client.model.EntityModel;
@@ -24,20 +23,22 @@ public class ElytraRenderMixin {
             cancellable = true
     )
     private <S extends HumanoidRenderState, M extends EntityModel<S>> void interceptElytraRender(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int i, S humanoidRenderState, float f, float g, CallbackInfo ci) {
-        if (humanoidRenderState instanceof IdentityCarrier carrier
-                && carrier.armorHider$isPlayerFlying()) {
+        if (!(humanoidRenderState instanceof IdentityCarrier carrier)) {
             return;
         }
-        var ctx = ArmorHiderClient.RENDER_CONTEXT;
-        var mod = ActiveModification.forCarrier(humanoidRenderState, EquipmentSlot.CHEST, ItemsUtil.ELYTRA_ITEM_STACK);
-        if (mod != null) {
-            ctx.setActiveModification(mod);
+        if (carrier.isPlayerFlying()) {
+            return;
         }
+        
+        var ctx = ArmorHiderClient.RENDER_CONTEXT;
+        var mod = carrier.createModification(EquipmentSlot.CHEST, ItemsUtil.ELYTRA_ITEM_STACK);
 
         if (mod == null) {
             return;
         }
-
+        
+        ctx.setActiveModification(mod);
+        
         if (mod.shouldHide()) {
             ctx.clearActiveModification();
             ci.cancel();
@@ -59,7 +60,6 @@ public class ElytraRenderMixin {
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.scopes.ActiveModification;
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
 import de.zannagh.armorhider.util.ItemsUtil;
 import net.minecraft.client.model.EntityModel;
@@ -80,22 +80,21 @@ public class ElytraRenderMixin {
             cancellable = true
     )
     private <S extends HumanoidRenderState, M extends EntityModel<S>> void interceptElytraRender(PoseStack poseStack, MultiBufferSource multiBufferSource, int i, S humanoidRenderState, float f, float g, CallbackInfo ci) {
-        if (humanoidRenderState instanceof IdentityCarrier carrier
-                && carrier.armorHider$isPlayerFlying()) {
+        if (!(humanoidRenderState instanceof IdentityCarrier carrier)) {
             return;
         }
-        var ctx = ArmorHiderClient.RENDER_CONTEXT;
-        var mod = ActiveModification.forCarrier(humanoidRenderState, EquipmentSlot.CHEST, ItemsUtil.ELYTRA_ITEM_STACK);
-        if (mod != null) {
-            ctx.setActiveModification(mod);
+        if (carrier.isPlayerFlying()) {
+            return;
         }
+
+        var mod = carrier.createModification(EquipmentSlot.CHEST, ItemsUtil.ELYTRA_ITEM_STACK);
 
         if (mod == null) {
             return;
         }
 
         if (mod.shouldHide()) {
-            ctx.clearActiveModification();
+            ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
             ci.cancel();
         }
     }
@@ -119,7 +118,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.rendering.RenderModifications;
-import de.zannagh.armorhider.client.scopes.ActiveModification;
+import de.zannagh.armorhider.client.scopes.IdentityCarrier;
 import de.zannagh.armorhider.util.ItemsUtil;
 import net.minecraft.client.model.ElytraModel;
 import net.minecraft.client.model.EntityModel;
@@ -144,22 +143,21 @@ public class ElytraRenderMixin<T extends LivingEntity, M extends EntityModel<T>>
             cancellable = true
     )
     private void interceptElytraRender(PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, T entity, float limbSwing, float limbSwingAmount, float partialTick, float ageInTicks, float netHeadYaw, float headPitch, CallbackInfo ci) {
-        if (entity instanceof Player player
-                && (player.isFallFlying() || player.getAbilities().flying)) {
+        if (!(entity instanceof IdentityCarrier carrier)) {
             return;
         }
-        var ctx = ArmorHiderClient.RENDER_CONTEXT;
-        var mod = ActiveModification.forCarrier(entity, EquipmentSlot.CHEST, ItemsUtil.ELYTRA_ITEM_STACK);
-        if (mod != null) {
-            ctx.setActiveModification(mod);
+        if (carrier.isPlayerFlying()) {
+            return;
         }
+
+        var mod = carrier.createModification(EquipmentSlot.CHEST, ItemsUtil.ELYTRA_ITEM_STACK);
 
         if (mod == null) {
             return;
         }
 
         if (mod.shouldHide()) {
-            ctx.clearActiveModification();
+            ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
             ci.cancel();
         }
     }
