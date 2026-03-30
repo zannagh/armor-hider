@@ -106,16 +106,13 @@ public class OptionElementFactory {
      * @param widget The widget to add.
      */
     public final void addElementAsWidget(AbstractWidget widget) {
-        //? if >= 1.21.9 {
+        //? if >= 1.21 {
         if (body == null) {
             return;
         }
         body.addSmall(widget, null);
         return;
         //?}
-        // In 1.20.x, arbitrary widgets cannot be added to OptionsList - they need to be added directly to the screen
-        //? if <= 1.21.1 && >= 1.21
-        // body.addSmall(widget, null);
     }
 
     //? if < 1.21 {
@@ -148,8 +145,8 @@ public class OptionElementFactory {
         addElementAsWidget(createSliderWithToggle(slider, toggle, gameOptions, width));
         //?}
         //? if < 1.21.9 && >= 1.21 {
-        // addElementAsWidget(createSliderWithToggle(slider, toggle, gameOptions, RenderUtilities.getRowWidth(body)));
-        //?}
+         /*addElementAsWidget(createSliderWithToggle(slider, toggle, gameOptions, RenderUtilities.getRowWidth(body)));
+        *///?}
         //? if < 1.21 {
         /*addSimpleOptionAsWidget(slider);
         addSimpleOptionAsWidget(toggle);

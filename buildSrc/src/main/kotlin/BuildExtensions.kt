@@ -93,7 +93,11 @@ fun Project.patchLoomIdeRunConfigs(expandTask: TaskProvider<Task>) {
                 it.extension == "xml" && it.name.contains(project.name)
             }?.forEach { xmlFile ->
                 var content = xmlFile.readText()
-                if (content.contains("expandResourcesForIdea")) return@forEach
+                content = allowParallelRun(content)
+                if (content.contains("expandResourcesForIdea")) {
+                    xmlFile.writeText(content)
+                    return@forEach
+                }
                 val gradleStep = """<option enabled="true" name="Gradle.BeforeRunTask" tasks="expandResourcesForIdea" externalProjectPath="${'$'}PROJECT_DIR${'$'}/$relPath" vmOptions="" scriptParameters="" />"""
                 content = content.replace(
                     """<option enabled="true" name="Make"/>""",
@@ -104,4 +108,29 @@ fun Project.patchLoomIdeRunConfigs(expandTask: TaskProvider<Task>) {
             }
         }
     }
+}
+
+/**
+ * Patches generated IntelliJ run configurations to allow multiple instances to run in parallel.
+ * Hooks into `ideaSyncTask` to post-process XML files after they are generated.
+ */
+fun Project.patchIdeRunConfigsAllowParallel() {
+    tasks.matching { it.name == "ideaSyncTask" }.configureEach {
+        doLast {
+            val configDir = rootProject.file(".idea/runConfigurations")
+            if (!configDir.isDirectory) return@doLast
+            configDir.listFiles()?.filter {
+                it.extension == "xml" && it.name.contains(project.name)
+            }?.forEach { xmlFile ->
+                val content = xmlFile.readText()
+                val patched = allowParallelRun(content)
+                if (patched != content) xmlFile.writeText(patched)
+            }
+        }
+    }
+}
+
+private fun allowParallelRun(content: String): String {
+    if (content.contains("allow-running-in-parallel")) return content
+    return content.replace("<configuration ", "<configuration allow-running-in-parallel=\"true\" ")
 }

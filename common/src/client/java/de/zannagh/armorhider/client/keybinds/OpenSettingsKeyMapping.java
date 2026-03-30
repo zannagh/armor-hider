@@ -25,11 +25,11 @@ public class OpenSettingsKeyMapping extends CustomKeyMapping {
         Minecraft.getInstance().setScreenAndShow(new SkinCustomizationScreen(Minecraft.getInstance().screen, Minecraft.getInstance().options));
         //? }
         //? if < 1.21.9 && > 1.20.1 {
-        /*
-        assert Minecraft.getInstance().screen != null;
+        
+        /*assert Minecraft.getInstance().screen != null;
         Minecraft.getInstance().setScreen(new SkinCustomizationScreen(Minecraft.getInstance().screen, Minecraft.getInstance().options));
-         */
-        //?}
+         
+        *///?}
         //? if <= 1.20.1 {
         
         /*assert Minecraft.getInstance().screen != null;

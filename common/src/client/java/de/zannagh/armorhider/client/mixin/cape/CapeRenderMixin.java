@@ -100,7 +100,7 @@ import de.zannagh.armorhider.client.scopes.IdentityCarrier;
 import de.zannagh.armorhider.util.ItemsUtil;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.layers.CapeLayer;
-import net.minecraft.client.renderer.entity.state.PlayerRenderState;
+import net.minecraft.client.renderer.entity.state.AvatarRenderState;
 import net.minecraft.client.resources.model.EquipmentClientInfo;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
@@ -113,11 +113,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class CapeRenderMixin {
 
     @Inject(
-            method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/renderer/entity/state/PlayerRenderState;FF)V",
+            method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/renderer/entity/state/AvatarRenderState;FF)V",
             at = @At("HEAD"),
             cancellable = true
     )
-    private void setupCapeRenderContext(PoseStack poseStack, MultiBufferSource multiBufferSource, int light, PlayerRenderState playerRenderState, float f, float g, CallbackInfo ci) {
+    private void setupCapeRenderContext(PoseStack poseStack, MultiBufferSource multiBufferSource, int light, AvatarRenderState playerRenderState, float f, float g, CallbackInfo ci) {
         var mod = ((IdentityCarrier) playerRenderState).createModification(EquipmentSlot.CHEST, null);
 
         if (playerRenderState instanceof IdentityCarrier carrier
@@ -132,7 +132,7 @@ public class CapeRenderMixin {
     }
 
     @WrapOperation(
-            method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/renderer/entity/state/PlayerRenderState;FF)V",
+            method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/renderer/entity/state/AvatarRenderState;FF)V",
             at = @At(
                     value = "INVOKE",
                     target = "Lcom/mojang/blaze3d/vertex/PoseStack;translate(FFF)V"
@@ -148,7 +148,7 @@ public class CapeRenderMixin {
     }
 
     @WrapOperation(
-            method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/renderer/entity/state/PlayerRenderState;FF)V",
+            method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/renderer/entity/state/AvatarRenderState;FF)V",
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/client/renderer/entity/layers/CapeLayer;hasLayer(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/client/resources/model/EquipmentClientInfo$LayerType;)Z",
@@ -168,10 +168,10 @@ public class CapeRenderMixin {
     }
 
     @Inject(
-            method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/renderer/entity/state/PlayerRenderState;FF)V",
+            method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/renderer/entity/state/AvatarRenderState;FF)V",
             at = @At("RETURN")
     )
-    private void releaseCapeContext(PoseStack poseStack, MultiBufferSource multiBufferSource, int light, PlayerRenderState playerRenderState, float f, float g, CallbackInfo ci) {
+    private void releaseCapeContext(PoseStack poseStack, MultiBufferSource multiBufferSource, int light, AvatarRenderState playerRenderState, float f, float g, CallbackInfo ci) {
         ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
     }
 }

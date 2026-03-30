@@ -31,6 +31,10 @@ stonecutter {
 val expandResourcesForIdea = registerExpandResourcesForIdea(
     tasks.named<ProcessResources>("processResources") to "out/production/resources"
 )
+// Ensure Gradle fully compiles before IntelliJ runs — IntelliJ's "Make" doesn't trigger
+// Stonecutter generation, so without this, generated sources can be stale.
+expandResourcesForIdea.configure { dependsOn(tasks.classes, tasks.named("clientClasses")) }
+patchIdeRunConfigsAllowParallel()
 
 neoForge {
     version = neoforgeVersion

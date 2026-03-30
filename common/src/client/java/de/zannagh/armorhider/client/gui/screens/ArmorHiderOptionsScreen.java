@@ -196,19 +196,37 @@ public class ArmorHiderOptionsScreen extends OptionsSubScreen {
         } else {
             advancedKeyString = advancedKey.getString();
         }
-        optionListWidget.addBig(
-                OptionInstance.createBoolean(
-                        advancedKeyString,
-                        new NarratedTooltipFactory<>(
-                                Component.translatable("armorhider.options.regular.tooltip"), 
-                                Component.translatable("armorhider.options.regular.tooltip")),
-                        (text, value) -> Component.literal(""),
-                        false,
-                        value -> {
-                            Minecraft.getInstance().setScreen(
-                                    new AdvancedArmorHiderSettingsScreen(this, this.options, this.title));
-                        }
-                ));
+        if (playerWidget != null) {
+            optionListWidget.addBig(
+                    OptionInstance.createBoolean(
+                            advancedKeyString,
+                            new NarratedTooltipFactory<>(
+                                    Component.translatable("armorhider.options.regular.tooltip"),
+                                    Component.translatable("armorhider.options.regular.tooltip")),
+                            (text, value) -> Component.literal(""),
+                            false,
+                            value -> {
+                                Minecraft.getInstance().setScreen(
+                                        new AdvancedArmorHiderSettingsScreen(this, this.options, this.title));
+                            }
+                    ));
+        }
+        else {
+            optionListWidget.addSmall(
+                    OptionInstance.createBoolean(
+                            advancedKeyString,
+                            new NarratedTooltipFactory<>(
+                                    Component.translatable("armorhider.options.regular.tooltip"),
+                                    Component.translatable("armorhider.options.regular.tooltip")),
+                            (text, value) -> Component.literal(""),
+                            false,
+                            value -> {
+                                Minecraft.getInstance().setScreen(
+                                        new AdvancedArmorHiderSettingsScreen(this, this.options, this.title));
+                            }
+                    ), null);
+        }
+        
 
         // Advanced settings button is added separately since OptionsList can't hold arbitrary widgets in 1.20.x
     }

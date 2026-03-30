@@ -29,7 +29,6 @@ configure<net.fabricmc.loom.api.LoomGradleExtensionAPI> {
         if (project.isDeobf) {
             vmArg("-Dfabric.gameVersion=${fabricVersion}")
         }
-
     }
 }
 
@@ -59,4 +58,7 @@ val expandTask = registerExpandResourcesForIdea(
     tasks.named<ProcessResources>("processResources") to "out/production/resources",
     tasks.named<ProcessResources>("processClientResources") to "out/client/resources"
 )
+// Ensure Gradle fully compiles before IntelliJ runs — IntelliJ's "Make" doesn't trigger
+// Stonecutter generation, so without this, generated sources can be stale.
+expandTask.configure { dependsOn(tasks.classes, tasks.named("clientClasses")) }
 patchLoomIdeRunConfigs(expandTask)
