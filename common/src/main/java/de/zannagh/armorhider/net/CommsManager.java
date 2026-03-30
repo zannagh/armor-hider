@@ -24,6 +24,7 @@ public final class CommsManager {
             }
             var currentConfig = runtime.getStore().getConfig();
             sendToClient(player, currentConfig);
+            sendToClient(player, new PermissionPacket(ServerUtil.getPermissionLevelForPlayer(player, server)));
         });
 
         ServerConnectionEvents.registerJoin((player, server) -> {

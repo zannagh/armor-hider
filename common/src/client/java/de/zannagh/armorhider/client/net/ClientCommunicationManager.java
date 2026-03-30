@@ -3,6 +3,8 @@ package de.zannagh.armorhider.client.net;
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.combat.CombatManager;
+import de.zannagh.armorhider.log.DebugLogger;
+import de.zannagh.armorhider.log.DebugTracer;
 import de.zannagh.armorhider.net.packets.CombatLogNotificationPacket;
 import de.zannagh.armorhider.net.packets.PermissionPacket;
 import de.zannagh.armorhider.server.ServerConfiguration;
@@ -67,14 +69,14 @@ public final class ClientCommunicationManager {
                     boolean isSinglePlayer = client.isSingleplayer();
                     // Conservative initial value; upgraded by handlePermissionPacketReceived
                     // once the server's PermissionPacket arrives (permission level >= 3).
-                    ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin = isSinglePlayer || isLanServer;
+                    ArmorHiderClient.permissionLevel = isSinglePlayer || isLanServer ? 4 : 3;
                 } catch (Exception ignored) {
                     ArmorHider.LOGGER.error("Failed to set permissions for player {}.", playerName);
                 }
             }
 
             if (!ArmorHiderClient.isClientConnectedToServer()) {
-                ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin = client.isSingleplayer();
+                ArmorHiderClient.permissionLevel = 4; // local -> admin
             }
 
             ClientPacketSender.sendToServer(currentConfig);
@@ -82,14 +84,15 @@ public final class ClientCommunicationManager {
     }
 
     private static void handleServerConfigReceived(ServerConfiguration ctx) {
-        ArmorHider.LOGGER.info("Armor Hider received configuration from server.");
+        DebugLogger.log("Armor Hider received configuration from server.");
         ArmorHiderClient.CLIENT_CONFIG_MANAGER.setServerConfig(ctx);
-        ArmorHider.LOGGER.info("Armor Hider successfully set configuration from server.");
+        DebugLogger.log("Armor Hider successfully set configuration from server.");
     }
 
     private static void handlePermissionPacketReceived(PermissionPacket ctx) {
+        DebugLogger.log("Received permission packet from server: {}", ctx.permissionLevel);
         if (ctx.permissionLevel >= 3) {
-            ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin = true;
+            ArmorHiderClient.permissionLevel = ctx.permissionLevel;
         }
     }
 

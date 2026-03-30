@@ -117,14 +117,14 @@ public class AdvancedArmorHiderSettingsScreen extends OptionsSubScreen {
         //var forceOnOffBuilder = CycleButton.booleanBuilder(onText, offText).withInitialValue(forceServerOffDefaultSetting);
 
         var cyclingWidget = cyclingWidgetBuilder.withTooltip(newValue -> {
-            if (!ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin) {
+            if (ArmorHiderClient.permissionLevel < 3) {
                 return Tooltip.create(Component.translatable("armorhider.options.combat_detection_server.tooltip.disabled"));
             }
             return Tooltip.create(Component.translatable("armorhider.options.combat_detection_server.tooltip"));
         }).create(
                 combatDetectionServerText,
                 (widget, newValue) -> {
-                    if (!ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin) {
+                    if (ArmorHiderClient.permissionLevel < 3) {
                         widget.setValue(combatDetectionDefaultSetting);
                         return;
                     }
@@ -133,14 +133,14 @@ public class AdvancedArmorHiderSettingsScreen extends OptionsSubScreen {
         );
 
         var armorHiderOffWidget = forceOnOffBuilder.withTooltip(newValue -> {
-            if (!ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin) {
+            if (ArmorHiderClient.permissionLevel < 3) {
                 return Tooltip.create(Component.translatable("armorhider.options.force_armor_hider_off.tooltip.disabled"));
             }
             return Tooltip.create(Component.translatable("armorhider.options.force_armor_hider_off.tooltip"));
         }).create(
                 forceArmorHiderOffText,
                 (widget, newValue) -> {
-                    if (!ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin) {
+                    if (ArmorHiderClient.permissionLevel < 3) {
                         widget.setValue(forceServerOffDefaultSetting);
                         return;
                     }
@@ -148,8 +148,8 @@ public class AdvancedArmorHiderSettingsScreen extends OptionsSubScreen {
                 }
         );
 
-        armorHiderOffWidget.active = ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin;
-        cyclingWidget.active = ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin;
+        armorHiderOffWidget.active = ArmorHiderClient.permissionLevel >= 3;
+        cyclingWidget.active = ArmorHiderClient.permissionLevel >= 3;
     
         cyclingWidget.setSize(RenderUtilities.getRowWidth(list), 20);
         armorHiderOffWidget.setSize(RenderUtilities.getRowWidth(list), 20);
@@ -277,7 +277,7 @@ public class AdvancedArmorHiderSettingsScreen extends OptionsSubScreen {
     }
 
     private void setServerCombatDetection(boolean enabled) {
-        if (!ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin) {
+        if (ArmorHiderClient.permissionLevel < 3) {
             if (combatDetectionServerOption != null) {
                 combatDetectionServerOption.set(combatDetectionDefaultSetting);
             }
@@ -287,7 +287,7 @@ public class AdvancedArmorHiderSettingsScreen extends OptionsSubScreen {
     }
 
     private void setForceArmorHiderOff(boolean enabled) {
-        if (!ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin) {
+        if (ArmorHiderClient.permissionLevel < 3) {
             if (forceOffOption != null) {
                 forceOffOption.set(forceServerOffDefaultSetting);
             }
