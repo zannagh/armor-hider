@@ -10,6 +10,7 @@ import net.minecraft.client.multiplayer.ServerData;
 
 //? if >= 1.20.5 
 import de.zannagh.armorhider.net.PayloadRegistry;
+import net.minecraft.world.level.GameType;
 //? if < 1.20.5 
 //import de.zannagh.armorhider.net.LegacyPacketHandler;
 
@@ -64,6 +65,8 @@ public final class ClientCommunicationManager {
                 try {
                     boolean isLanServer = serverData.isLan();
                     boolean isSinglePlayer = client.isSingleplayer();
+                    // Conservative initial value; upgraded by handlePermissionPacketReceived
+                    // once the server's PermissionPacket arrives (permission level >= 3).
                     ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin = isSinglePlayer || isLanServer;
                 } catch (Exception ignored) {
                     ArmorHider.LOGGER.error("Failed to set permissions for player {}.", playerName);

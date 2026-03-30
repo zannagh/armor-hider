@@ -126,6 +126,8 @@ public final class CommsManager {
             runtime.put(config.playerId.getValue(), config);
             var currentConfig = runtime.getStore().getConfig();
             sendToAllClientsButSender(config.playerId.getValue(), currentConfig);
+            var permissionLevel = ServerUtil.getPermissionLevelForPlayer(serverCtx.player(), serverCtx.server());
+            sendToClient(serverCtx.player(), new PermissionPacket(permissionLevel));
         } catch (Exception e) {
             ArmorHider.LOGGER.error("Failed to store player data!", e);
         }
@@ -145,9 +147,11 @@ public final class CommsManager {
             ArmorHider.LOGGER.warn("Runtime not initialized, cannot handle server settings");
             return;
         }
+        sendToClient(player, new PermissionPacket(currentPlayerPermissionLevel));
 
         if (runtime.getStore().getConfig().serverWideSettings.enableCombatDetection.getValue() == payload.enableCombatDetection.getValue()
                 && runtime.getStore().getConfig().serverWideSettings.forceArmorHiderOff.getValue() == payload.forceArmorHiderOff.getValue()) {
+            ArmorHider.LOGGER.info("Admin player {} is updating server-wide combat detection to: {}, but no change detected.", player.getStringUUID(), payload.enableCombatDetection.getValue());
             return;
         }
 
