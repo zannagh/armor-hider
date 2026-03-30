@@ -17,7 +17,7 @@ import org.spongepowered.asm.mixin.Unique;
  * captured during {@code extractRenderState} travels with the render state object to the
  * submission phase — no global ThreadLocal needed.
  * <p>
- * Targets {@code AvatarRenderState} (remapped to {@code AvatarRenderState} in 1.21.4–1.21.8
+ * Targets {@code AvatarRenderState} in 1.21.4–1.21.8
  * by Stonecutter) so that only player render states carry identity — non-player entities
  * are filtered via {@code instanceof IdentityCarrier} in the rendering mixins.
  */
