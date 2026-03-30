@@ -31,12 +31,10 @@ public class ServerConfigStore implements ConfigurationProvider<ServerConfigurat
 
     public void setServerCombatDetection(Boolean enabled) {
         configurationProvider.getValue().serverWideSettings.enableCombatDetection.setValue(enabled);
-        configurationProvider.saveCurrent();
     }
 
     public void setGlobalOverride(Boolean enabled) {
         configurationProvider.getValue().serverWideSettings.forceArmorHiderOff.setValue(enabled);
-        configurationProvider.saveCurrent();
     }
 
     @Override

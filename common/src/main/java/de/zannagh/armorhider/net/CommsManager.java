@@ -154,6 +154,7 @@ public final class CommsManager {
         ArmorHider.LOGGER.info("Admin player {} is updating server-wide combat detection to: {}", player.getStringUUID(), payload.enableCombatDetection.getValue());
         runtime.getStore().setServerCombatDetection(payload.enableCombatDetection.getValue());
         runtime.getStore().setGlobalOverride(payload.forceArmorHiderOff.getValue());
+        runtime.getStore().saveCurrent();
         sendToAllClientsButSender(player.getUUID(), runtime.getStore().getConfig());
     }
 
