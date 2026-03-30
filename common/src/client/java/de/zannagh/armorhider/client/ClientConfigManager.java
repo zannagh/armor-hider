@@ -68,7 +68,7 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
     }
 
     public void setAndSendServerConfig(boolean combatDetection, boolean forceArmorHiderOff) {
-        if (!ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin) {
+        if (ArmorHiderClient.permissionLevel < 3) {
             return;
         }
         if (serverConfiguration == null) {
@@ -80,7 +80,7 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
     }
 
     public void setAndSendServerCombatDetection(boolean combatDetection) {
-        if (!ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin) {
+        if (ArmorHiderClient.permissionLevel < 3) {
             return;
         }
         if (serverConfiguration == null) {
@@ -91,7 +91,7 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
     }
 
     public void setAndSendServerWideSettings(ServerWideSettings serverWideSettings) {
-        if (!ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin) {
+        if (ArmorHiderClient.permissionLevel < 3) {
             ArmorHider.LOGGER.info("Player is no admin, suppressing update...");
             return;
         }

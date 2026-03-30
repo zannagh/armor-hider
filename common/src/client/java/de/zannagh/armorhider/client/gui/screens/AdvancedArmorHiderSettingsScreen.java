@@ -162,7 +162,7 @@ public class AdvancedArmorHiderSettingsScreen extends OptionsSubScreen {
         /*// For < 1.21.9, use OptionInstance approach since addElementAsWidget doesn't work for arbitrary widgets
         combatDetectionServerOption = optionElementFactory.buildBooleanOption(
                 combatDetectionServerText,
-                ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin
+                ArmorHiderClient.permissionLevel >= 3
                         ? Component.translatable("armorhider.options.combat_detection_server.tooltip")
                         : Component.translatable("armorhider.options.combat_detection_server.tooltip.disabled"),
                 null,
@@ -172,7 +172,7 @@ public class AdvancedArmorHiderSettingsScreen extends OptionsSubScreen {
 
         forceOffOption = optionElementFactory.buildBooleanOption(
                 forceArmorHiderOffText,
-                ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin
+                ArmorHiderClient.permissionLevel >= 3
                         ? Component.translatable("armorhider.options.force_armor_hider_off.tooltip")
                         : Component.translatable("armorhider.options.force_armor_hider_off.tooltip.disabled"),
                 null,
@@ -185,9 +185,9 @@ public class AdvancedArmorHiderSettingsScreen extends OptionsSubScreen {
             //?if >= 1.21 {
             
             var btn = combatDetectionServerOption.createButton(options, 0, 0, UiConstants.BIG_BUTTON_WIDTH);
-            btn.active = ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin;
+            btn.active = ArmorHiderClient.permissionLevel >= 3;
             var btn2 = forceOffOption.createButton(options, 0, 0, UiConstants.BIG_BUTTON_WIDTH);
-            btn2.active = ArmorHiderClient.isCurrentPlayerSinglePlayerHostOrAdmin;
+            btn2.active = ArmorHiderClient.permissionLevel >= 3;
             list.addSmall(btn, null);
             list.addSmall(btn2, null);
              //? }
