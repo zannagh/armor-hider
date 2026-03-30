@@ -152,11 +152,20 @@ public final class CommsManager {
 
         if (runtime.getStore().getConfig().serverWideSettings.enableCombatDetection.getValue() == payload.enableCombatDetection.getValue()
                 && runtime.getStore().getConfig().serverWideSettings.forceArmorHiderOff.getValue() == payload.forceArmorHiderOff.getValue()) {
-            ArmorHider.LOGGER.info("Admin player {} is updating server-wide combat detection to: {}, but no change detected.", player.getStringUUID(), payload.enableCombatDetection.getValue());
+            ArmorHider.LOGGER.debug(
+                    "Admin player {} attempted to update server-wide settings (combatDetection={}, forceArmorHiderOff={}), but no change detected.",
+                    player.getStringUUID(),
+                    payload.enableCombatDetection.getValue(),
+                    payload.forceArmorHiderOff.getValue()
+            );
             return;
         }
 
-        ArmorHider.LOGGER.info("Admin player {} is updating server-wide combat detection to: {}", player.getStringUUID(), payload.enableCombatDetection.getValue());
+        ArmorHider.LOGGER.debug("Admin player {} is updating server-wide settings (combatDetection={}, forceArmorHiderOff={}).",
+                player.getStringUUID(),
+                payload.enableCombatDetection.getValue(),
+                payload.forceArmorHiderOff.getValue()
+        );
         runtime.getStore().setServerCombatDetection(payload.enableCombatDetection.getValue());
         runtime.getStore().setGlobalOverride(payload.forceArmorHiderOff.getValue());
         runtime.getStore().saveCurrent();

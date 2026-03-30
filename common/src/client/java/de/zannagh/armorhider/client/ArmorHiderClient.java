@@ -14,7 +14,7 @@ import oshi.util.tuples.Pair;
 
 public class ArmorHiderClient {
 
-    public static int permissionLevel = 3; // Default to Mod.
+    public static int permissionLevel = 0; // Default to lowest.
     public static ClientConfigManager CLIENT_CONFIG_MANAGER = new ClientConfigManager();
     public static RenderContext RENDER_CONTEXT = new RenderContext();
 

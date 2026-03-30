@@ -4,7 +4,6 @@ import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.combat.CombatManager;
 import de.zannagh.armorhider.log.DebugLogger;
-import de.zannagh.armorhider.log.DebugTracer;
 import de.zannagh.armorhider.net.packets.CombatLogNotificationPacket;
 import de.zannagh.armorhider.net.packets.PermissionPacket;
 import de.zannagh.armorhider.server.ServerConfiguration;
@@ -12,7 +11,6 @@ import net.minecraft.client.multiplayer.ServerData;
 
 //? if >= 1.20.5 
 import de.zannagh.armorhider.net.PayloadRegistry;
-import net.minecraft.world.level.GameType;
 //? if < 1.20.5 
 //import de.zannagh.armorhider.net.LegacyPacketHandler;
 
@@ -65,11 +63,10 @@ public final class ClientCommunicationManager {
             ServerData serverData = client.getCurrentServer();
             if (serverData != null) {
                 try {
-                    boolean isLanServer = serverData.isLan();
                     boolean isSinglePlayer = client.isSingleplayer();
-                    // Conservative initial value; upgraded by handlePermissionPacketReceived
-                    // once the server's PermissionPacket arrives (permission level >= 3).
-                    ArmorHiderClient.permissionLevel = isSinglePlayer || isLanServer ? 4 : 3;
+                    if (isSinglePlayer) {
+                        ArmorHiderClient.permissionLevel = 4;
+                    } 
                 } catch (Exception ignored) {
                     ArmorHider.LOGGER.error("Failed to set permissions for player {}.", playerName);
                 }
@@ -91,9 +88,8 @@ public final class ClientCommunicationManager {
 
     private static void handlePermissionPacketReceived(PermissionPacket ctx) {
         DebugLogger.log("Received permission packet from server: {}", ctx.permissionLevel);
-        if (ctx.permissionLevel >= 3) {
-            ArmorHiderClient.permissionLevel = ctx.permissionLevel;
-        }
+        ArmorHiderClient.permissionLevel = ctx.permissionLevel;
+        
     }
 
     private static void handleCombatLogNotificationReceived(CombatLogNotificationPacket ctx) {
