@@ -1,5 +1,6 @@
 package de.zannagh.armorhider.client.gui.elements;
 
+import de.zannagh.armorhider.client.gui.UiConstants;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 //? if > 1.21.8
@@ -11,6 +12,7 @@ import org.jspecify.annotations.NonNull;
 //import net.minecraft.client.gui.GuiGraphics;
 //? if >= 26.1-1.pre.1
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A compound widget that places a primary widget (e.g. slider) at ~80% width
@@ -19,25 +21,53 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 public class CompoundOptionWidget extends AbstractWidget {
     private final AbstractWidget primary;
     private final AbstractWidget secondary;
-    private static final int GAP = 4;
+    private final AbstractWidget tertiary;
+    @Nullable private final AbstractWidget additional;
+    private static final int GAP = UiConstants.DEFAULT_BUTTON_SPACING / 2;
 
-    public CompoundOptionWidget(AbstractWidget primary, AbstractWidget secondary, int width, int height) {
+    public CompoundOptionWidget(AbstractWidget primary, AbstractWidget secondary, AbstractWidget tertiary, @Nullable AbstractWidget additional, int width, int height) {
         super(0, 0, width, height, Component.empty());
         this.primary = primary;
         this.secondary = secondary;
+        this.tertiary = tertiary;
+        this.additional = additional;
     }
 
     private void updateLayout() {
-        int secondaryWidth = this.width - (int) (this.width * 0.6) - GAP;
-        int primaryWidth = (int) (this.width * 0.6);
-
+        int additionalElementWidth = getAdditionalElementWidth(this.width);
+        int primaryWidth = getPrimaryWidth(this.width);
+        
+        int firstElementX = this.getX() + this.width - additionalElementWidth * 3 - GAP * 2;
+        int secondElementX = this.getX() + this.width - additionalElementWidth * 2 - GAP;
+        int thirdElementX = this.getX() + this.width - additionalElementWidth;
+        
         primary.setX(this.getX());
         primary.setY(this.getY());
         primary.setWidth(primaryWidth);
 
-        secondary.setX(this.getX() + primaryWidth + GAP);
+        secondary.setX(firstElementX);
         secondary.setY(this.getY());
-        secondary.setWidth(secondaryWidth);
+        secondary.setWidth(additionalElementWidth);
+        tertiary.setY(this.getY());
+        tertiary.setWidth(additionalElementWidth);
+        tertiary.setX(thirdElementX);
+        
+        if (additional != null) {
+            additional.setX(secondElementX);
+            additional.setY(this.getY());
+            additional.setWidth(additionalElementWidth);
+        }
+    }
+    
+    private static final double SMALL_ELEMENT_WIDTH_PERCENT = 0.1;
+    
+    public static int getPrimaryWidth(int width) {
+        int smallElements = 3; // Currently 3 buttons next to the sliders.
+        return (int) (width * (1 - smallElements * SMALL_ELEMENT_WIDTH_PERCENT)) - GAP;
+    }
+    
+    public static int getAdditionalElementWidth(int width) {
+        return (int) (width * SMALL_ELEMENT_WIDTH_PERCENT) - GAP;
     }
 
     @Override
@@ -46,14 +76,23 @@ public class CompoundOptionWidget extends AbstractWidget {
         updateLayout();
         primary.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
         secondary.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
+        tertiary.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
+        
+        if (additional != null) {
+            additional.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
+        }
     }
     //?}
     //? if > 1.20.1 && < 26.1-1.pre.1 {
-    
     /*protected void renderWidget(@NonNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         updateLayout();
         primary.render(guiGraphics, mouseX, mouseY, partialTick);
         secondary.render(guiGraphics, mouseX, mouseY, partialTick);
+        tertiary.render(guiGraphics, mouseX, mouseY, partialTick);
+        
+        if (additional != null) {
+            additional.render(guiGraphics, mouseX, mouseY, partialTick);
+        }
     }
     *///?}
     //? if <= 1.20.1 {
@@ -61,8 +100,12 @@ public class CompoundOptionWidget extends AbstractWidget {
         updateLayout();
         primary.render(guiGraphics, mouseX, mouseY, partialTick);
         secondary.render(guiGraphics, mouseX, mouseY, partialTick);
+        tertiary.render(guiGraphics, mouseX, mouseY, partialTick);
+        
+        if (additional != null) {
+            additional.render(guiGraphics, mouseX, mouseY, partialTick);
+        }
     }
-    
     *///?}
 
     @Override
@@ -74,14 +117,34 @@ public class CompoundOptionWidget extends AbstractWidget {
         if (primary.mouseClicked(event, doubleClick)) {
             return true;
         }
-        return secondary.mouseClicked(event, doubleClick);
+        if (secondary.mouseClicked(event, doubleClick)) {
+            return true;
+        }
+        if (tertiary.mouseClicked(event, doubleClick)) {
+            return true;
+        }
+        if (additional != null && additional.mouseClicked(event, doubleClick)) {
+            return true;
+        }
+        
+        return false;
         //? }
         //? if <= 1.21.8 {
         
         /*if (primary.mouseClicked(d, e, i)) {
             return true;
         }
-        return secondary.mouseClicked(d, e, i);
+        if (secondary.mouseClicked(d, e, i)) {
+            return true;
+        }
+        if (tertiary.mouseClicked(d, e, i)) {
+            return true;
+        }
+        if (additional != null && additional.mouseClicked(d, e, i)) {
+            return true;
+        }
+        
+        return false;
          
         *///?}
     }
@@ -95,14 +158,31 @@ public class CompoundOptionWidget extends AbstractWidget {
         if (primary.mouseReleased(event)) {
             return true;
         }
-        return secondary.mouseReleased(event);
+        if (secondary.mouseReleased(event)) {
+            return true;
+        }
+        if (additional != null && additional.mouseReleased(event)) {
+            return true;
+        }
+        if (tertiary.mouseReleased(event)) {
+            return true;
+        }
+        return false;
         //?}
         //? if <= 1.21.8 {
         
         /*if (primary.mouseReleased(d, e, i)) {
             return true;
         }
-        return secondary.mouseReleased(d, e, i);
+        
+        if (secondary.mouseReleased(d, e, i)) {
+            return true;
+        }
+        
+        if (additional != null && additional.mouseReleased(d, e, i)) {
+            return true;
+        }
+        return tertiary.mouseReleased(d, e, i);
          
         *///?}
     }
@@ -116,14 +196,26 @@ public class CompoundOptionWidget extends AbstractWidget {
         if (primary.mouseDragged(event, dx, dy)) {
             return true;
         }
-        return secondary.mouseDragged(event, dx, dy);
+        if (secondary.mouseDragged(event, dx, dy)) {
+            return true;
+        }
+        if (additional != null && additional.mouseDragged(event, dx, dy)) {
+            return true;
+        }
+        return tertiary.mouseDragged(event, dx, dy);
         //? }
         //? if <= 1.21.8 {
         
         /*if (primary.mouseDragged(d, e, i, f, g)) {
             return true;
         }
-        return secondary.mouseDragged(d, e, i, f, g);
+        if (secondary.mouseDragged(d, e, i, f, g)) {
+            return true;
+        }
+        if (additional != null && additional.mouseDragged(d, e, i, f, g)) {
+            return true;
+        }
+        return tertiary.mouseDragged(d, e, i, f, g);
         *///?}
     }
 

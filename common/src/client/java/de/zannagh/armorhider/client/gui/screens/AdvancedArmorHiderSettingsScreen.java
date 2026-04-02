@@ -1,92 +1,63 @@
 package de.zannagh.armorhider.client.gui.screens;
 
 import de.zannagh.armorhider.ArmorHider;
-import de.zannagh.armorhider.client.gui.*;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.gui.elements.OptionElementFactory;
+import de.zannagh.armorhider.client.gui.elements.WidgetList;
 import de.zannagh.armorhider.log.DebugLogger;
-import de.zannagh.armorhider.client.rendering.RenderUtilities;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.OptionInstance;
 import net.minecraft.client.Options;
 import net.minecraft.client.gui.components.*;
-//? if >= 1.21 {
-import net.minecraft.client.gui.screens.options.OptionsSubScreen;
-//? }
-//? if < 1.21
-//import net.minecraft.client.gui.screens.OptionsSubScreen;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 
-public class AdvancedArmorHiderSettingsScreen extends OptionsSubScreen {
+public class AdvancedArmorHiderSettingsScreen extends Screen {
 
+    private final Screen parent;
+    private final Options gameOptions;
     private boolean hasUsedFallbackWhereServerDidntTranspondSettings = false;
-
     private boolean serverSettingsChanged;
-
     private boolean newServerCombatDetection;
-
     private boolean setForceArmorHiderOff;
-
     private boolean localSettingsChanged;
-
     private boolean setDisableOthers;
-
     private boolean setUseLocalSettingsForOthersWhenUnknown;
-
     private boolean setDisableLocal;
-    
     private boolean forceServerOffDefaultSetting;
-    
     private boolean combatDetectionDefaultSetting;
-    
     private OptionInstance<Boolean> forceOffOption;
-    
     private OptionInstance<Boolean> combatDetectionServerOption;
-
     private Button debugButton;
 
-    //? if < 1.21
-    //protected OptionsList list;
-
-    public AdvancedArmorHiderSettingsScreen(net.minecraft.client.gui.screens.Screen parent, Options gameOptions, Component title) {
-        super(parent, gameOptions, title);
+    public AdvancedArmorHiderSettingsScreen(Screen parent, Options gameOptions, Component title) {
+        super(title);
+        this.parent = parent;
+        this.gameOptions = gameOptions;
     }
 
-    //? if >= 1.21 {
     @Override
-    protected void addOptions() {
-        addOptionsContent();
-    }
-    //?}
-
-    //? if < 1.21 {
-    /*@Override
     protected void init() {
-        this.list = new OptionsList(this.minecraft, this.width, this.height, 32, this.height - 32, 25);
-        addOptionsContent();
-        this.addWidget(this.list);
-        this.addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, button ->
-                this.onClose()
-        ).bounds(this.width / 2 - 100, this.height - 27, 200, 25).build());
+        int topMargin = 32;
+        int bottomMargin = 32;
+        int itemHeight = 25;
+
+        var list = new WidgetList(this.minecraft, this.width, this.height - topMargin - bottomMargin, topMargin, itemHeight);
+        int rowWidth = list.getRowWidth();
+
+        OptionElementFactory factory = new OptionElementFactory(list::addWidget, gameOptions, rowWidth);
+
+        addOptionsContent(factory, rowWidth);
+        addRenderableWidget(list);
+
+        addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, btn -> onClose())
+                .bounds(this.width / 2 - 100, this.height - 27, 200, 20).build());
     }
 
-    @Override
-    public void render(net.minecraft.client.gui.GuiGraphics graphics, int mouseX, int mouseY, float delta) {
-        this.renderBackground(graphics);
-        this.list.render(graphics, mouseX, mouseY, delta);
-        graphics.drawCenteredString(net.minecraft.client.Minecraft.getInstance().font, this.title, this.width / 2, 5, 16777215);
-        super.render(graphics, mouseX, mouseY, delta);
-    }
-    *///?}
+    private void addOptionsContent(OptionElementFactory factory, int rowWidth) {
+        factory.addTextWidget(Component.translatable("armorhider.options.admin.title"));
 
-    private void addOptionsContent() {
-        OptionElementFactory optionElementFactory = new OptionElementFactory(this, list, options);
-        
-        //? if >= 1.21.9
-        var adminCategory = new MultiLineTextWidget(RenderUtilities.getRowWidth(list), 20, Component.translatable("armorhider.options.admin.title"), this.getFont());
-        //? if < 1.21.9
-        //var adminCategory = new MultiLineTextWidget(RenderUtilities.getRowWidth(list), 20, Component.translatable("armorhider.options.admin.title"), net.minecraft.client.Minecraft.getInstance().font);
-        optionElementFactory.addElementAsWidget(adminCategory);
         var serverConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getServerConfig();
         combatDetectionDefaultSetting = serverConfig != null
                 && serverConfig.serverWideSettings != null
@@ -150,17 +121,13 @@ public class AdvancedArmorHiderSettingsScreen extends OptionsSubScreen {
 
         armorHiderOffWidget.active = ArmorHiderClient.permissionLevel >= 3;
         cyclingWidget.active = ArmorHiderClient.permissionLevel >= 3;
-    
-        cyclingWidget.setSize(RenderUtilities.getRowWidth(list), 20);
-        armorHiderOffWidget.setSize(RenderUtilities.getRowWidth(list), 20);
 
-        optionElementFactory.addElementAsWidget(cyclingWidget);
-        optionElementFactory.addElementAsWidget(armorHiderOffWidget);
+        factory.addElementAsWidget(cyclingWidget);
+        factory.addElementAsWidget(armorHiderOffWidget);
         //?}
 
         //? if < 1.21.9 {
-        /*// For < 1.21.9, use OptionInstance approach since addElementAsWidget doesn't work for arbitrary widgets
-        combatDetectionServerOption = optionElementFactory.buildBooleanOption(
+        /*combatDetectionServerOption = factory.buildBooleanOption(
                 combatDetectionServerText,
                 ArmorHiderClient.permissionLevel >= 3
                         ? Component.translatable("armorhider.options.combat_detection_server.tooltip")
@@ -170,7 +137,7 @@ public class AdvancedArmorHiderSettingsScreen extends OptionsSubScreen {
                 this::setServerCombatDetection
         );
 
-        forceOffOption = optionElementFactory.buildBooleanOption(
+        forceOffOption = factory.buildBooleanOption(
                 forceArmorHiderOffText,
                 ArmorHiderClient.permissionLevel >= 3
                         ? Component.translatable("armorhider.options.force_armor_hider_off.tooltip")
@@ -180,32 +147,18 @@ public class AdvancedArmorHiderSettingsScreen extends OptionsSubScreen {
                 this::setForceArmorHiderOff
         );
 
-        if (list != null) {
-            // This is required to disable the buttons when not in game.
-            //?if >= 1.21 {
-            
-            var btn = combatDetectionServerOption.createButton(options, 0, 0, UiConstants.BIG_BUTTON_WIDTH);
-            btn.active = ArmorHiderClient.permissionLevel >= 3;
-            var btn2 = forceOffOption.createButton(options, 0, 0, UiConstants.BIG_BUTTON_WIDTH);
-            btn2.active = ArmorHiderClient.permissionLevel >= 3;
-            list.addSmall(btn, null);
-            list.addSmall(btn2, null);
-             //? }
-            //? if < 1.21 {
-            /^list.addBig(combatDetectionServerOption);
-            list.addBig(forceOffOption);
-            ^///?}
-        }
-        
+        var combatBtn = combatDetectionServerOption.createButton(gameOptions, 0, 0, rowWidth);
+        combatBtn.active = ArmorHiderClient.permissionLevel >= 3;
+        factory.addElementAsWidget(combatBtn);
+
+        var forceOffBtn = forceOffOption.createButton(gameOptions, 0, 0, rowWidth);
+        forceOffBtn.active = ArmorHiderClient.permissionLevel >= 3;
+        factory.addElementAsWidget(forceOffBtn);
         *///?}
 
-        //? if >= 1.21.9
-        var regularCategory = new MultiLineTextWidget(RenderUtilities.getRowWidth(list), 20, Component.translatable("armorhider.options.regular.title"), this.getFont());
-        //? if < 1.21.9
-        //var regularCategory = new MultiLineTextWidget(RenderUtilities.getRowWidth(list), 20, Component.translatable("armorhider.options.regular.title"), net.minecraft.client.Minecraft.getInstance().font);
-        optionElementFactory.addElementAsWidget(regularCategory);
+        factory.addTextWidget(Component.translatable("armorhider.options.regular.title"));
 
-        var settingsToUse = optionElementFactory.buildBooleanOption(
+        var settingsToUse = factory.buildBooleanOption(
                 Component.translatable("armorhider.options.use_settings_for_unknown.title"),
                 Component.translatable("armorhider.options.use_settings_for_unknown.tooltip"),
                 Component.translatable("armorhider.options.use_settings_for_unknown.tooltip_narration"),
@@ -213,7 +166,7 @@ public class AdvancedArmorHiderSettingsScreen extends OptionsSubScreen {
                 this::setUseLocalSettingsForOthersWhenUnknown
         );
 
-        var globalToggle = optionElementFactory.buildBooleanOption(
+        var globalToggle = factory.buildBooleanOption(
                 Component.translatable("armorhider.options.disable_local.title"),
                 Component.translatable("armorhider.options.disable_local.tooltip"),
                 Component.translatable("armorhider.options.disable_local.tooltip_narration"),
@@ -221,7 +174,7 @@ public class AdvancedArmorHiderSettingsScreen extends OptionsSubScreen {
                 this::setDisableLocal
         );
 
-        var otherToggle = optionElementFactory.buildBooleanOption(
+        var otherToggle = factory.buildBooleanOption(
                 Component.translatable("armorhider.options.disable_others.title"),
                 Component.translatable("armorhider.options.disable_others.tooltip"),
                 Component.translatable("armorhider.options.disable_others.tooltip_narration"),
@@ -229,15 +182,11 @@ public class AdvancedArmorHiderSettingsScreen extends OptionsSubScreen {
                 this::setDisableOthers
         );
 
-        optionElementFactory.addSimpleOptionAsWidget(settingsToUse);
-        optionElementFactory.addSimpleOptionAsWidget(globalToggle);
-        optionElementFactory.addSimpleOptionAsWidget(otherToggle);
+        factory.addSimpleOptionAsWidget(settingsToUse);
+        factory.addSimpleOptionAsWidget(globalToggle);
+        factory.addSimpleOptionAsWidget(otherToggle);
 
-        //? if >= 1.21.9
-        var debugCategory = new MultiLineTextWidget(RenderUtilities.getRowWidth(list), 20, Component.translatable("armorhider.options.debug.title"), this.getFont());
-        //? if < 1.21.9
-        //var debugCategory = new MultiLineTextWidget(RenderUtilities.getRowWidth(list), 20, Component.translatable("armorhider.options.debug.title"), net.minecraft.client.Minecraft.getInstance().font);
-        optionElementFactory.addElementAsWidget(debugCategory);
+        factory.addTextWidget(Component.translatable("armorhider.options.debug.title"));
 
         debugButton = Button.builder(
                 getDebugButtonText(),
@@ -250,9 +199,8 @@ public class AdvancedArmorHiderSettingsScreen extends OptionsSubScreen {
                     btn.setMessage(getDebugButtonText());
                 })
                 .tooltip(Tooltip.create(Component.translatable("armorhider.options.debug.tooltip")))
-                .width(RenderUtilities.getRowWidth(list))
                 .build();
-        optionElementFactory.addElementAsWidget(debugButton);
+        factory.addElementAsWidget(debugButton);
     }
 
     @Override
@@ -267,11 +215,12 @@ public class AdvancedArmorHiderSettingsScreen extends OptionsSubScreen {
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().usePlayerSettingsWhenUndeterminable.setValue(setUseLocalSettingsForOthersWhenUnknown);
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.saveCurrent();
         }
-        super.onClose();
+        if (this.minecraft != null) {
+            this.minecraft.setScreen(this.parent);
+        }
     }
 
     private boolean getFallbackDefault(boolean valueToReturn) {
-        // Server didn't have the mod, using default value
         hasUsedFallbackWhereServerDidntTranspondSettings = true;
         return valueToReturn;
     }
@@ -310,6 +259,18 @@ public class AdvancedArmorHiderSettingsScreen extends OptionsSubScreen {
         setDisableLocal = enabled;
         localSettingsChanged = true;
     }
+
+    //? if < 1.21.4 {
+    /*@Override
+    public void render(net.minecraft.client.gui.GuiGraphics context, int mouseX, int mouseY, float delta) {
+        //? if >= 1.21
+        //this.renderBackground(context, mouseX, mouseY, delta);
+        //? if < 1.21 {
+        /^this.renderBackground(context);
+        ^///?}
+        super.render(context, mouseX, mouseY, delta);
+    }
+    *///?}
 
     @Override
     public void tick() {

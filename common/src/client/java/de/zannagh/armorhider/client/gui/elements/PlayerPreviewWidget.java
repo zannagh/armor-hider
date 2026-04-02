@@ -34,7 +34,7 @@ public class PlayerPreviewWidget extends AbstractWidget {
         int margin = 10;
         int previewSize = this.width - margin * 2;
         int previewX = this.getX() + this.width / 2;
-        int previewY = this.getY() + margin + previewSize;
+        int previewY = this.getY() + margin / 2 + previewSize;
 
         int panelLeft = previewX - previewSize / 2 - 10;
         int panelTop = previewY - previewSize;
@@ -68,8 +68,6 @@ public class PlayerPreviewWidget extends AbstractWidget {
                 (float) mouseY,
                 player
         );
-
-        context.disableScissor();
     }
 
     @Override

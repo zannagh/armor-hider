@@ -1,144 +1,136 @@
 package de.zannagh.armorhider.client.gui.elements;
 
-import de.zannagh.armorhider.client.gui.screens.*;
-import de.zannagh.armorhider.client.gui.elements.CompoundOptionWidget;
-import de.zannagh.armorhider.client.rendering.RenderUtilities;
+import de.zannagh.armorhider.ArmorHider;
+import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.client.gui.UiConstants;
+import de.zannagh.armorhider.client.gui.screens.InjectableScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.OptionInstance;
 import net.minecraft.client.Options;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.MultiLineTextWidget;
-import net.minecraft.client.gui.components.OptionsList;
-import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.world.entity.EquipmentSlot;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-//? if >= 1.21 && < 1.21.9
-//import de.zannagh.armorhider.client.gui.screens.ArmorHiderOptionsScreen;
 public class OptionElementFactory {
-    private final Screen screen;
-    private final OptionsList body;
     private final Options gameOptions;
-    private boolean renderOptionsFullWidth = true;
+    private final Consumer<AbstractWidget> widgetAdder;
+    private final int rowWidth;
 
-    public OptionElementFactory(Screen screen, @Nullable OptionsList body, @Nullable Options gameOptions) {
-        this.screen = screen;
-        this.body = body;
+    public OptionElementFactory(Consumer<AbstractWidget> widgetAdder, Options gameOptions, int rowWidth) {
+        this.widgetAdder = widgetAdder;
         this.gameOptions = gameOptions;
+        this.rowWidth = rowWidth;
     }
 
-    public static AbstractWidget simpleOptionToGameOptionWidget(OptionInstance<?> simpleOption, Options options, @Nullable OptionsList body, boolean fullWidth) {
-        int rowWidth = RenderUtilities.getRowWidth(body);
-        int rowLeft = RenderUtilities.getRowLeft(body);
-        int y = RenderUtilities.getNextY(body);
-        int width = fullWidth ? rowWidth : rowWidth / 2;
-        return simpleOption.createButton(options, rowLeft, y, width);
+    public int getRowWidth() {
+        return rowWidth;
     }
 
-    public OptionElementFactory withHalfWidthRendering() {
-        renderOptionsFullWidth = false;
-        return this;
+    public void addElementAsWidget(AbstractWidget widget) {
+        widgetAdder.accept(widget);
     }
-
-    public <T> void addOptionWithWidget(OptionInstance<T> option, AbstractWidget widget) {
-        if (body != null) {
-            if (Minecraft.getInstance().player == null || widget == null) {
-                body.addBig(option);
-            }
-            else {
-                //? if >= 1.21
-                body.addSmall(option.createButton(gameOptions), widget);
-                //? if < 1.21
-                //body.addBig(option);
-            }
-        }
-    }
-
-    //? if >= 1.21 {
-    public <T> void addOptionWithWidget(AbstractWidget option, AbstractWidget widget) {
-        if (body != null) {
-            if (Minecraft.getInstance().player == null || widget == null) {
-                body.addSmall(option, null);
-            }
-            else {
-                body.addSmall(option, widget);
-            }
-        }
-    }
-    //?}
 
     public <T> void addSimpleOptionAsWidget(OptionInstance<T> option) {
-        //? if >= 1.21.9
-        addElementAsWidget(simpleOptionToGameOptionWidget(option, gameOptions, body, renderOptionsFullWidth));
-        //? if >= 1.21 && < 1.21.9 {
-        /*// In 1.21.x (< 1.21.9), add OptionInstance directly to the list
-        if (body != null) {
-            if (Minecraft.getInstance().player != null && screen instanceof ArmorHiderOptionsScreen) {
-                body.addSmall(option);
+        widgetAdder.accept(option.createButton(gameOptions, 0, 0, rowWidth));
+    }
+
+    public void addTextWidget(Component text) {
+        var textWidget = new MultiLineTextWidget(text, Minecraft.getInstance().font).setCentered(true);
+        widgetAdder.accept(textWidget);
+    }
+
+    public static AbstractWidget createSliderWithToggleForSlot(EquipmentSlot slot,
+                                                               OptionInstance<Double> slider,
+                                                               Options options,
+                                                               boolean initial,
+                                                               @Nullable Boolean secondInitial,
+                                                               Consumer<Boolean> glintConsumer,
+                                                               @Nullable Consumer<Boolean> additionalAffectConsumer,
+                                                               int width) {
+        int sliderWidth = CompoundOptionWidget.getPrimaryWidth(width);
+        int buttonWidth = CompoundOptionWidget.getAdditionalElementWidth(width);
+        Component disableGlint = Component.literal("Disable glint on slot");
+        Component enableGlint = Component.literal("Enable glint on slot");
+        Component initialGlintMessage = Component.literal("Initial glint message");
+        if (!initial) {
+            initialGlintMessage = enableGlint;
+        }
+        else {
+            initialGlintMessage = disableGlint;
+        }
+        
+        AbstractWidget sliderWidget = slider.createButton(options, 0, 0, sliderWidth);
+        GlintSlotOnOffButton toggleGlintButton = new GlintSlotOnOffButton(
+                initial,
+                slot, 
+                0, 
+                0, 
+                buttonWidth, 
+                UiConstants.DEFAULT_BUTTON_HEIGHT,
+                initialGlintMessage, 
+                onPress -> {
+                if (onPress instanceof GlintSlotOnOffButton btn) {
+                    var newValue = btn.toggle();
+                    glintConsumer.accept(newValue);
+                    if (!newValue) {
+                        btn.setTooltipAndMessage(enableGlint);
+                    }
+                    else {
+                        btn.setTooltipAndMessage(disableGlint);
+                    }
+                }
+        }, (component) -> Component.literal(""));
+        ExtendedSlotIconButton button = new ExtendedSlotIconButton(slot, 0, 0, buttonWidth, UiConstants.DEFAULT_BUTTON_HEIGHT, Component.empty(), onPress -> {
+            if (!(Minecraft.getInstance().screen instanceof InjectableScreen scr)) {
+                return;
+            }
+            scr.addWidget(new CustomInterceptionsWidget(slot, 0, 0, width, 0, Component.empty()));
+        }, (component) -> {
+            return Component.literal("");
+        });
+        AffectOtherItemsButton affectOtherItemsButton = null;
+        
+        if (secondInitial != null && additionalAffectConsumer != null) {
+            Component disableAffectOtherItemText = Component.literal("Disable affecting other items");
+            Component affectOtherItemText = Component.literal("Enable affecting other items (skulls/elytras)");
+            Component initialMessage;
+            if (secondInitial) {
+                initialMessage = disableAffectOtherItemText;
             }
             else {
-                
-                body.addBig(option);
+                initialMessage = affectOtherItemText;
             }
+            affectOtherItemsButton = new AffectOtherItemsButton(secondInitial,
+                    slot, 
+                    0,
+                    0,
+                    buttonWidth,
+                    UiConstants.DEFAULT_BUTTON_HEIGHT,
+                    initialMessage, 
+                    onPress -> {
+                        if (onPress instanceof AffectOtherItemsButton btn) {
+                            boolean result = btn.toggle();
+                            additionalAffectConsumer.accept(result);
+                            if (result) {
+                                btn.setTooltipAndMessage(disableAffectOtherItemText);
+                            }
+                            else {
+                                btn.setTooltipAndMessage(affectOtherItemText);
+                            }
+                        }
+                    }, (component) -> {
+                        return Component.literal("");
+            });
         }
-        *///?}
-        //? if < 1.21 {
-        /*// In 1.20.x, add OptionInstance directly to the list using addBig
-        if (body != null) {
-            body.addBig(option);
-        }
-        *///?}
-    }
-
-    public void addTextAsWidget(MutableComponent text) {
-        //? if >= 1.21 {
-        addElementAsWidget(buildTextWidget(text));
-        //?}
-        // In 1.20.x, text widgets aren't added to the options list - they could be rendered separately or skipped
-    }
-
-    /**
-     * Adds an option element as a widget to the screen.
-     * In 1.20.x, this is a no-op.
-     * @param widget The widget to add.
-     */
-    public final void addElementAsWidget(AbstractWidget widget) {
-        //? if >= 1.21 {
-        if (body == null) {
-            return;
-        }
-        body.addSmall(widget, null);
-        return;
-        //?}
-    }
-
-    //? if < 1.21 {
-    /*public void addButtonAsWidget(Component text, Button.OnPress onPress) {
-        // No-op: In 1.20.x, buttons are added directly to the screen via addRenderableWidget
-    }
-    *///?}
-
-    private AbstractWidget buildTextWidget(MutableComponent text) {
-        //? if >= 1.21.9
-        return new MultiLineTextWidget(text, screen.getFont()).setCentered(true);
-        //? if >= 1.21 && < 1.21.9 {
-        /*return new MultiLineTextWidget(text, net.minecraft.client.Minecraft.getInstance().font).setCentered(true);
-        *///?}
-        //? if < 1.21 {
-        /*return new MultiLineTextWidget(text, net.minecraft.client.Minecraft.getInstance().font).setCentered(true);
-        *///?}
-    }
-
-    public static AbstractWidget createSliderWithToggle(OptionInstance<Double> slider, OptionInstance<Boolean> toggle, Options options, int width) {
-        AbstractWidget sliderWidget = slider.createButton(options, 0, 0, (int) (width * 0.6));
-        AbstractWidget toggleWidget = toggle.createButton(options, 0, 0, width - (int) (width * 0.6) - 4);
-        return new CompoundOptionWidget(sliderWidget, toggleWidget, width, 20);
+        return new CompoundOptionWidget(sliderWidget, button, toggleGlintButton, affectOtherItemsButton, width, 20);
     }
 
     public OptionInstance<Double> buildDoubleOption(String key,
@@ -168,7 +160,6 @@ public class OptionElementFactory {
                                                       @Nullable MutableComponent narration,
                                                       Boolean defaultValue,
                                                       Consumer<Boolean> setter) {
-        // Extract the translation key from TranslatableContents, or fall back to getString()
         String booleanKey;
         if (key.getContents() instanceof net.minecraft.network.chat.contents.TranslatableContents translatableContents) {
             booleanKey = translatableContents.getKey();

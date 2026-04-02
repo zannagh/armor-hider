@@ -17,13 +17,10 @@ public class OpenSettingsKeyMapping extends CustomKeyMapping {
 
     @Override
     public void onKeyDown() {
+        return;
+        /*if (Minecraft.getInstance().screen == null) {
+        return;
     }
-
-    @Override
-    public void onKeyUp() {
-        if (Minecraft.getInstance().screen == null) {
-            return;
-        }
         //? if >= 1.21.9 {
         Minecraft.getInstance().setScreenAndShow(new ArmorHiderOptionsScreen(Minecraft.getInstance().screen, Minecraft.getInstance().options));
         //? }
@@ -33,5 +30,12 @@ public class OpenSettingsKeyMapping extends CustomKeyMapping {
         //? if <= 1.20.1 {
         //Minecraft.getInstance().setScreen(new ArmorHiderOptionsScreen(Minecraft.getInstance().screen, Minecraft.getInstance().options));
         //?}
+        
+         */
+    }
+
+    @Override
+    public void onKeyUp() {
+        
     }
 }
