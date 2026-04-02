@@ -1,23 +1,9 @@
-//? if < 1.21.9 {
-/*package de.zannagh.armorhider.client.mixin;
+package de.zannagh.armorhider.client.mixin;
 
-
+import de.zannagh.armorhider.client.gui.screens.ArmorHiderOptionsScreen;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-
 import net.minecraft.client.Options;
-//? if < 1.21 {
-/^import de.zannagh.armorhider.client.gui.screens.OldArmorHiderOptionsScreen;
-import net.minecraft.client.gui.layouts.GridLayout;
-import net.minecraft.client.gui.layouts.LayoutElement;
-import net.minecraft.client.gui.layouts.SpacerElement;
-import net.minecraft.client.gui.screens.OptionsScreen;
-^///?}
-//? if >= 1.21 {
-import de.zannagh.armorhider.client.gui.screens.ArmorHiderOptionsScreen;
-import net.minecraft.client.gui.layouts.GridLayout;
-import net.minecraft.client.gui.screens.options.OptionsScreen;
-//?}
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.Component;
@@ -26,6 +12,19 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 
+//region Conditional Imports
+//? if < 1.21 {
+/*
+import net.minecraft.client.gui.layouts.GridLayout;
+import net.minecraft.client.gui.layouts.LayoutElement;
+import net.minecraft.client.gui.layouts.SpacerElement;
+import net.minecraft.client.gui.screens.OptionsScreen;
+*/
+//?} else {
+import net.minecraft.client.gui.layouts.GridLayout;
+import net.minecraft.client.gui.screens.options.OptionsScreen;
+//?}
+//endregion
 
 @Mixin(OptionsScreen.class)
 public abstract class OptionsScreenMixin extends Screen {
@@ -39,8 +38,8 @@ public abstract class OptionsScreenMixin extends Screen {
     }
     
     //? if < 1.21 {
-    
-    /^@WrapOperation(
+    /*
+    @WrapOperation(
             method = "init",
             at = @At(
                     value = "INVOKE",
@@ -55,14 +54,14 @@ public abstract class OptionsScreenMixin extends Screen {
                 Component.translatable("armorhider.options.mod_title"),
                 button ->
                         //? if < 1.21
-                        //this.minecraft.setScreen(new OldArmorHiderOptionsScreen(this, this.options))
+                        //this.minecraft.setScreen(new ArmorHiderOptionsScreen(this, this.options))
                 //? if >= 1.21
                 this.minecraft.setScreen(new ArmorHiderOptionsScreen(this, this.options))
         ).width(200).build();
         instance.addChild(settingsButton, 2, instance.newCellSettings().paddingTop(6));
         return layoutElement;
     }
-     ^///?}
+    *///?}
     
     //? if >= 1.21{
     @WrapOperation(
@@ -86,4 +85,3 @@ public abstract class OptionsScreenMixin extends Screen {
     }
     //?}
 }
-*///?}

@@ -46,18 +46,21 @@ public class OptionElementFactory {
         return this;
     }
 
-    //? if >= 1.21 && < 1.21.9 {
-    /*public <T> void addOptionWithWidget(OptionInstance<T> option, AbstractWidget widget) {
+    public <T> void addOptionWithWidget(OptionInstance<T> option, AbstractWidget widget) {
         if (body != null) {
             if (Minecraft.getInstance().player == null || widget == null) {
                 body.addBig(option);
             }
             else {
+                //? if >= 1.21
                 body.addSmall(option.createButton(gameOptions), widget);
+                //? if < 1.21
+                //body.addBig(option);
             }
         }
     }
 
+    //? if >= 1.21 {
     public <T> void addOptionWithWidget(AbstractWidget option, AbstractWidget widget) {
         if (body != null) {
             if (Minecraft.getInstance().player == null || widget == null) {
@@ -68,7 +71,7 @@ public class OptionElementFactory {
             }
         }
     }
-    *///?}
+    //?}
 
     public <T> void addSimpleOptionAsWidget(OptionInstance<T> option) {
         //? if >= 1.21.9
@@ -136,21 +139,6 @@ public class OptionElementFactory {
         AbstractWidget sliderWidget = slider.createButton(options, 0, 0, (int) (width * 0.6));
         AbstractWidget toggleWidget = toggle.createButton(options, 0, 0, width - (int) (width * 0.6) - 4);
         return new CompoundOptionWidget(sliderWidget, toggleWidget, width, 20);
-    }
-
-    public void addSliderWithToggle(OptionInstance<Double> slider, OptionInstance<Boolean> toggle) {
-        //? if >= 1.21.9 {
-        int rowWidth = RenderUtilities.getRowWidth(body);
-        int width = renderOptionsFullWidth ? rowWidth : rowWidth / 2;
-        addElementAsWidget(createSliderWithToggle(slider, toggle, gameOptions, width));
-        //?}
-        //? if < 1.21.9 && >= 1.21 {
-         /*addElementAsWidget(createSliderWithToggle(slider, toggle, gameOptions, RenderUtilities.getRowWidth(body)));
-        *///?}
-        //? if < 1.21 {
-        /*addSimpleOptionAsWidget(slider);
-        addSimpleOptionAsWidget(toggle);
-        *///?}
     }
 
     public OptionInstance<Double> buildDoubleOption(String key,

@@ -20,6 +20,14 @@ stonecutter {
     replacements.string(current.parsed <= "1.21.8"){
         replace("AvatarRenderState", "PlayerRenderState")
     }
+    
+    replacements.string(current.parsed <= "26.1-1.pre.1") {
+        replace("net.minecraft.client.gui.GuiGraphicsExtractor","net.minecraft.client.gui.GuiGraphics")
+    }
+    
+    replacements.string(current.parsed < "1.21") {
+        replace("net.minecraft.client.gui.screens.options.OptionsSubScreen", "net.minecraft.client.gui.screens.OptionsSubScreen")
+    }
 }
 
 configure<net.fabricmc.loom.api.LoomGradleExtensionAPI> {

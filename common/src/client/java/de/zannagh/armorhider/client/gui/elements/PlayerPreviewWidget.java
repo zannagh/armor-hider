@@ -1,13 +1,17 @@
-//? if >= 1.21.4 && < 1.21.9 {
-/*package de.zannagh.armorhider.client.gui.elements;
+//? if >= 1.21.4 {
+package de.zannagh.armorhider.client.gui.elements;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
+
+//? if < 26.1-1.pre.1
+//import net.minecraft.client.gui.GuiGraphics;
+//? if >= 26.1-1.pre.1
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 import java.awt.*;
 
@@ -16,9 +20,12 @@ public class PlayerPreviewWidget extends AbstractWidget {
     public PlayerPreviewWidget(int x, int y, int width, int height) {
         super(x, y, width, height, Component.empty());
     }
-
+    
     @Override
-    public void renderWidget(GuiGraphics context, int mouseX, int mouseY, float delta) {
+    //? if >= 26.1-1.pre.1
+    protected void extractWidgetRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY, float a) {
+    //? if < 26.1-1.pre.1
+    //public void renderWidget(GuiGraphics context, int mouseX, int mouseY, float delta) {
         LocalPlayer player = Minecraft.getInstance().player;
         if (player == null) {
             return;
@@ -43,17 +50,26 @@ public class PlayerPreviewWidget extends AbstractWidget {
         context.fill(panelLeft, panelBottom - 1, panelRight, panelBottom, borderColor);
         context.fill(panelLeft, panelTop, panelLeft + 1, panelBottom, borderColor);
         context.fill(panelRight - 1, panelTop, panelRight, panelBottom, borderColor);
-
+        
         int entitySize = (int) Math.round(previewSize * 0.35);
-        InventoryScreen.renderEntityInInventoryFollowsMouse(
+
+        //? if < 26.1-1.pre.1
+        //InventoryScreen.renderEntityInInventoryFollowsMouse(
+        //? if >= 26.1-1.pre.1
+        InventoryScreen.extractEntityInInventoryFollowsMouse(
                 context,
-                panelLeft, panelTop,
-                panelRight, panelBottom,
+                panelLeft,
+                panelTop - margin,
+                panelRight,
+                panelBottom,
                 entitySize,
-                0.0625F,
-                (float) mouseX, (float) mouseY,
+                0.25f,
+                (float) mouseX,
+                (float) mouseY,
                 player
         );
+
+        context.disableScissor();
     }
 
     @Override
@@ -61,7 +77,7 @@ public class PlayerPreviewWidget extends AbstractWidget {
         // No narration needed
     }
 }
-*///?}
+//?}
 
 //? if < 1.21.4 {
 /*package de.zannagh.armorhider.client.gui.elements;

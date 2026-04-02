@@ -1,8 +1,4 @@
-// The options screen for 1.21 - 1.21.8, not used in >= 1.21.9 or 1.20.x
-
-//? if >= 1.21 && < 1.21.9 {
-
-/*package de.zannagh.armorhider.client.gui.screens;
+package de.zannagh.armorhider.client.gui.screens;
 
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.client.ArmorHiderClient;
@@ -10,27 +6,32 @@ import de.zannagh.armorhider.client.gui.elements.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.OptionInstance;
 import net.minecraft.client.Options;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.OptionsList;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.gui.screens.options.OptionsSubScreen;
 import net.minecraft.network.chat.Component;
+import org.jspecify.annotations.NonNull;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.screens.options.OptionsSubScreen;
 
 public class ArmorHiderOptionsScreen extends OptionsSubScreen {
     private final Screen parent;
     private boolean hasUsedFallbackWhereServerDidntTranspondSettings = false;
-
     private boolean settingsChanged;
     private boolean serverSettingsChanged;
     private boolean newServerCombatDetection;
+    //? if < 1.21
+    //private OptionsList list;
 
     public ArmorHiderOptionsScreen(Screen parent, Options gameOptions) {
-        super(parent, gameOptions, Component.translatable("armorhider.options.regular.title"));
+        super(parent, gameOptions, Component.translatable("armorhider.options.mod_title"));
         this.parent = parent;
     }
 
     @Override
+    //? if < 1.21
+    // protected void init() {
+    //? if >= 1.21
     protected void addOptions() {
         boolean hasPlayer = Minecraft.getInstance().player != null;
 
@@ -38,10 +39,20 @@ public class ArmorHiderOptionsScreen extends OptionsSubScreen {
         int bottomMargin = 32;
         int optionItemHeight = 25;
         int previewMargin = 20;
+        int listWidth = (this.width * 3) / 5;
 
+        //? if < 1.21 {
+        /*list = new OptionsList(
+                this.minecraft,
+                listWidth,
+                this.height,
+                topMargin,
+                this.height - bottomMargin,
+                optionItemHeight
+        );
+        *///?}
         
         if (hasPlayer) {
-            int listWidth = (this.width * 3) / 5;
             int previewWidth = (this.width * 2) / 5 - previewMargin;
             int previewHeight = this.height - topMargin - bottomMargin - previewMargin * 2;
             int previewX = listWidth + previewMargin / 2;
@@ -61,11 +72,39 @@ public class ArmorHiderOptionsScreen extends OptionsSubScreen {
     }
 
     @Override
-    public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
-        //? if < 1.21.4
-        //this.renderBackground(context, mouseX, mouseY, delta);
-        super.render(context, mouseX, mouseY, delta);
+    //? if >= 26.1-1.pre.1 {
+    public void extractRenderState(final @NonNull GuiGraphicsExtractor graphics, final int mouseX, final int mouseY, final float a) {
+        super.extractRenderState(graphics, mouseX, mouseY, a);
     }
+    //?}
+    
+    //? if < 26.1-1.pre.1 {
+    /*public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
+        //? if < 1.21.4 && >= 1.21
+        //this.renderBackground(context, mouseX, mouseY, delta);
+        //? if < 1.21 {
+        /^this.renderBackground(context);
+        if (list != null) {
+            list.render(context, mouseX, mouseY, delta);
+        }
+        ^///?}
+        super.render(context, mouseX, mouseY, delta);
+        
+        //? if < 1.21 {
+        int titleX;
+        /^if (Minecraft.getInstance().player != null) {
+        // Center within the left column (options list area which is 3/5 of screen width)
+        int listWidth = (this.width * 3) / 5;
+        titleX = listWidth / 2;
+        } else {
+            // Center across entire screen
+            titleX = this.width / 2;
+        }
+
+        context.drawCenteredString(this.font, this.title, titleX, 15, 0xFFFFFF);
+        ^///?}
+    }
+    *///?}
 
     private void addCustomOptionsToOptionListWidget(OptionsList optionListWidget, AbstractWidget playerWidget) {
         OptionElementFactory optionElementFactory = new OptionElementFactory(
@@ -90,8 +129,14 @@ public class ArmorHiderOptionsScreen extends OptionsSubScreen {
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().helmetGlint.getValue(),
             this::setDisableHelmetGlint
         );
+        //? if >= 1.21 {
         var compoundHelmet = OptionElementFactory.createSliderWithToggle(helmetOption, disableHelmetGlint, options, rowWidth);
         optionElementFactory.addOptionWithWidget(compoundHelmet, playerWidget);
+        //?}
+        //? if < 1.21 {
+        /*optionElementFactory.addSimpleOptionAsWidget(helmetOption);
+        optionElementFactory.addSimpleOptionAsWidget(disableHelmetGlint);
+        *///?}
 
         var skullOrHatOption = optionElementFactory.buildBooleanOption(
             Component.translatable("armorhider.options.helmet_affection.title"),
@@ -118,8 +163,14 @@ public class ArmorHiderOptionsScreen extends OptionsSubScreen {
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().chestGlint.getValue(),
             this::setDisableChestGlint
         );
+        //? if >= 1.21 {
         var compoundChest = OptionElementFactory.createSliderWithToggle(chestOption, disableChestGlint, options, rowWidth);
         optionElementFactory.addElementAsWidget(compoundChest);
+        //?}
+        //? if < 1.21 {
+        /*optionElementFactory.addSimpleOptionAsWidget(chestOption);
+        optionElementFactory.addSimpleOptionAsWidget(disableChestGlint);
+        *///?}
 
         var elytraOption = optionElementFactory.buildBooleanOption(
             Component.translatable("armorhider.options.elytra_affection.title"),
@@ -147,8 +198,14 @@ public class ArmorHiderOptionsScreen extends OptionsSubScreen {
             this::setDisableLegsGlint
         );
         
+        //? if >= 1.21 {
         var compoundLegs = OptionElementFactory.createSliderWithToggle(legsOption, disableLegsGlint, options, rowWidth);
         optionElementFactory.addElementAsWidget(compoundLegs);
+        //?}
+        //? if < 1.21 {
+        /*optionElementFactory.addSimpleOptionAsWidget(legsOption);
+        optionElementFactory.addSimpleOptionAsWidget(disableLegsGlint);
+        *///?}
 
         var bootsOption = optionElementFactory.buildDoubleOption(
             "armorhider.boots.transparency",
@@ -166,8 +223,14 @@ public class ArmorHiderOptionsScreen extends OptionsSubScreen {
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().bootsGlint.getValue(),
             this::setDisableBootsGlint
         );
+        //? if >= 1.21 {
         var compoundBoots = OptionElementFactory.createSliderWithToggle(bootsOption, disableBootsGlint, options, rowWidth);
         optionElementFactory.addElementAsWidget(compoundBoots);
+        //?}
+        //? if < 1.21 {
+        /*optionElementFactory.addSimpleOptionAsWidget(bootsOption);
+        optionElementFactory.addSimpleOptionAsWidget(disableBootsGlint);
+        *///?}
 
         var offhandOption = optionElementFactory.buildDoubleOption(
                 "armorhider.offhand.transparency",
@@ -318,4 +381,3 @@ public class ArmorHiderOptionsScreen extends OptionsSubScreen {
         serverSettingsChanged = true;
     }
 }
-*///?}
