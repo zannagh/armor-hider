@@ -257,8 +257,6 @@ public class ArmorHiderOptionsScreen extends Screen implements InjectableScreen 
 
     @Override
     public void removeWidget(AbstractWidget widget) {
-        if (widget instanceof GuiEventListener listener) {
-            this.removeWidget(listener);
-        }
+        this.removeWidget((GuiEventListener) widget);
     }
 }

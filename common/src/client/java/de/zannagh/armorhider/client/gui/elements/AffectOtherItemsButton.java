@@ -1,9 +1,9 @@
 package de.zannagh.armorhider.client.gui.elements;
 
-import de.zannagh.armorhider.client.ArmorHiderClient;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.Nullable;
@@ -11,10 +11,21 @@ import org.jetbrains.annotations.Nullable;
 import java.util.function.Function;
 
 public class AffectOtherItemsButton extends LayeredButton {
-    //? if >= 1.21 {
-    @Nullable private final ItemStack slotSprite;
+    @Nullable private final Item slotItem;
+    @Nullable private ItemStack cachedSlotStack;
+
     @Override
-    protected ItemStack midLayer() { return slotSprite; }
+    protected @Nullable ItemStack midLayer() {
+        if (slotItem == null) return null;
+        if (cachedSlotStack == null) {
+            try {
+                cachedSlotStack = new ItemStack(slotItem);
+            } catch (Exception ignored) {}
+        }
+        return cachedSlotStack;
+    }
+
+    //? if >= 1.21 {
     @Override
     protected Function<Boolean, @Nullable Identifier> spriteForeground() {
         return this::spriteForeground;
@@ -25,19 +36,15 @@ public class AffectOtherItemsButton extends LayeredButton {
 
     public AffectOtherItemsButton(boolean initial, EquipmentSlot slot, int x, int y, int width, int height, Component message, OnPress onPress, CreateNarration createNarration) {
         super(slot, x, y, width, height, message, onPress, createNarration);
-        //? if >= 1.21 {
         if (slot == EquipmentSlot.HEAD) {
-            slotSprite = new ItemStack(Items.SKELETON_SKULL);
-            isEnabled = initial;
+            slotItem = Items.SKELETON_SKULL;
         }
         else if (slot == EquipmentSlot.CHEST) {
-            slotSprite = new ItemStack(Items.ELYTRA);
-            isEnabled = initial;
+            slotItem = Items.ELYTRA;
         }
         else {
-            slotSprite = null;
+            slotItem = null;
         }
-        //?}
         super.setEnabled(initial);
     }
 }

@@ -21,9 +21,9 @@ import java.util.function.Function;
 
 public abstract class LayeredButton extends Button {
     protected boolean isEnabled = true;
+    @Nullable protected ItemStack midLayer() { return null; }
     //? if >= 1.21 {
     protected Identifier spriteBg() {  return this.isHoveredOrFocused() ? Identifier.withDefaultNamespace("widget/button_highlighted") : Identifier.withDefaultNamespace("widget/button"); }
-    @Nullable protected ItemStack midLayer() { return null; }
     protected abstract Function<Boolean, @Nullable Identifier> spriteForeground();
     //?}
     
@@ -116,6 +116,21 @@ public abstract class LayeredButton extends Button {
             guiGraphics.blitSprite(identifier, this.getX(), this.getY(), this.width, this.height);
         }
         if (midLayer() instanceof ItemStack itemStack) {
+            guiGraphics.renderItem(itemStack, this.getX() + 4, this.getY() + 2);
+        }
+    }
+    *///?}
+
+    //? if < 1.21 {
+    /*
+    @Override
+    public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        Component savedMsg = this.getMessage();
+        super.setMessage(Component.empty());
+        super.renderWidget(guiGraphics, mouseX, mouseY, partialTick);
+        super.setMessage(savedMsg);
+        var itemStack = midLayer();
+        if (itemStack != null) {
             guiGraphics.renderItem(itemStack, this.getX() + 4, this.getY() + 2);
         }
     }
