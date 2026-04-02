@@ -1,12 +1,10 @@
 package de.zannagh.armorhider.client.gui.elements;
 
 import de.zannagh.armorhider.ArmorHider;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
-import net.minecraft.client.gui.narration.NarratedElementType;
-import net.minecraft.client.gui.narration.NarrationElementOutput;
-import net.minecraft.client.gui.narration.NarrationThunk;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -22,6 +20,8 @@ import java.util.function.Function;
 public abstract class LayeredButton extends Button {
     protected boolean isEnabled = true;
     @Nullable protected ItemStack midLayer() { return null; }
+    /** Text-based status overlay for versions without blitSprite (1.20.x). */
+    @Nullable protected Component statusOverlay() { return null; }
     //? if >= 1.21 {
     protected Identifier spriteBg() {  return this.isHoveredOrFocused() ? Identifier.withDefaultNamespace("widget/button_highlighted") : Identifier.withDefaultNamespace("widget/button"); }
     protected abstract Function<Boolean, @Nullable Identifier> spriteForeground();
@@ -132,6 +132,13 @@ public abstract class LayeredButton extends Button {
         var itemStack = midLayer();
         if (itemStack != null) {
             guiGraphics.renderItem(itemStack, this.getX() + 4, this.getY() + 2);
+        }
+        var overlay = statusOverlay();
+        if (overlay != null) {
+            var font = Minecraft.getInstance().font;
+            int textX = this.getX() + (this.width - font.width(overlay)) / 2;
+            int textY = this.getY() + (this.height - 8) / 2;
+            guiGraphics.drawString(font, overlay, textX, textY, 0xFFFFFF);
         }
     }
     *///?}

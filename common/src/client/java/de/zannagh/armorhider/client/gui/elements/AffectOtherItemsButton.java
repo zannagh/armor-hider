@@ -1,5 +1,6 @@
 package de.zannagh.armorhider.client.gui.elements;
 
+import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -23,6 +24,11 @@ public class AffectOtherItemsButton extends LayeredButton {
             } catch (Exception ignored) {}
         }
         return cachedSlotStack;
+    }
+
+    @Override
+    protected @Nullable Component statusOverlay() {
+        return isEnabled ? Component.literal("✓").withStyle(ChatFormatting.GREEN) : Component.literal("✗").withStyle(ChatFormatting.RED);
     }
 
     //? if >= 1.21 {

@@ -10,7 +10,12 @@ import java.util.function.Function;
 public class ExtendedSlotIconButton extends LayeredButton {
     //? if >= 1.21
     protected Function<Boolean, @Nullable Identifier> spriteForeground() { return (bln) -> Identifier.withDefaultNamespace("statistics/item_dropped"); }
-    
+
+    @Override
+    protected @Nullable Component statusOverlay() {
+        return Component.literal("…");
+    }
+
     private final EquipmentSlot slot;
 
     public ExtendedSlotIconButton(EquipmentSlot slot, int x, int y, int width, int height, Component message, OnPress onPress, CreateNarration createNarration) {
