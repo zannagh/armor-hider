@@ -1,6 +1,5 @@
 package de.zannagh.armorhider.client.gui.elements;
 
-import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -27,8 +26,8 @@ public class GlintSlotOnOffButton extends LayeredButton {
     }
 
     @Override
-    protected @Nullable Component statusOverlay() {
-        return isEnabled ? Component.literal("✦").withStyle(ChatFormatting.YELLOW) : null;
+    protected int statusBorderColor() {
+        return isEnabled ? 0xCCFFFF00 : 0; // semi-transparent yellow border when glint on
     }
 
     //? if >= 1.21 {

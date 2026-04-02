@@ -38,6 +38,13 @@ public class WidgetList extends ContainerObjectSelectionList<WidgetList.WidgetEn
         return Math.min(contentWidth - 20, 310);
     }
 
+    //? if < 1.21 {
+    /*@Override
+    protected int getScrollbarPosition() {
+        return (this.width + this.getRowWidth()) / 2 + 4;
+    }
+    *///?}
+
     public static class WidgetEntry extends ContainerObjectSelectionList.Entry<WidgetEntry> {
         private final AbstractWidget widget;
 
