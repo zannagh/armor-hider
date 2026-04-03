@@ -108,14 +108,6 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
         return CURRENT;
     }
 
-    /**
-     * Returns the local player's exclusion item configuration.
-     * Exclusions are stored as part of PlayerConfig and synced with the server.
-     */
-    public ExclusionItemConfiguration getExclusionItemConfig() {
-        return CURRENT.getExclusionItems();
-    }
-
     public void setValue(PlayerConfig cfg) {
         CURRENT = cfg;
         saveCurrent();
@@ -184,6 +176,10 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
         }
 
         return PlayerConfig.defaults(playerId, playerName);
+    }
+    
+    public PlayerConfig local() {
+        return CURRENT;
     }
 
     public boolean isArmorHiderDisabled() {

@@ -2,14 +2,11 @@ package de.zannagh.armorhider.client.gui.screens;
 
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.gui.elements.WidgetList;
 import de.zannagh.armorhider.configuration.ExclusionItemConfiguration;
 import de.zannagh.armorhider.configuration.ExclusionItemInfo;
 import net.minecraft.client.Options;
-import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.Item;
@@ -42,7 +39,7 @@ public class ItemExclusionScreen extends ArmorHiderConfigurationScreen {
     
     @Override
     protected void addOptions() {
-        ExclusionItemConfiguration exclusionConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getExclusionItemConfig();
+        ExclusionItemConfiguration exclusionConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER.local().exclusionItems;
         Map<String, ExclusionItemInfo> slotItems = exclusionConfig.getItemsForSlot(slot);
 
         for (Map.Entry<String, ExclusionItemInfo> entry : slotItems.entrySet()) {

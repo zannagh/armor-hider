@@ -69,7 +69,7 @@ public record ActiveModification(
         }
         
         // Auto-discover new equippable items and add them to the exclusion list
-        var exclusionConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getExclusionItemConfig();
+        var exclusionConfig = config.getExclusionItems();
         exclusionConfig.discoverItem(resolvedSlot, resolvedItem.getItem(), resolvedItem.getHoverName().getString());
 
         if (exclusionConfig.shouldArmorHiderIgnore(resolvedSlot, resolvedItem.getItem())) {
