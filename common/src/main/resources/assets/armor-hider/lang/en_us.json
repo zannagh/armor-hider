@@ -57,5 +57,17 @@
   "armorhider.options.debug.title": "Debug",
   "armorhider.options.debug.enable": "Enable Debug Logging (5 min)",
   "armorhider.options.debug.enabled": "Debug: %s remaining (click to stop)",
-  "armorhider.options.debug.tooltip": "Enables detailed debug logging for 5 minutes to help diagnose rendering issues. Log messages are prefixed with [ArmorHider DEBUG] in the game log."
+  "armorhider.options.debug.tooltip": "Enables detailed debug logging for 5 minutes to help diagnose rendering issues. Log messages are prefixed with [ArmorHider DEBUG] in the game log.",
+  "armorhider.options.item_exclusion.title": "Item Exclusions - %s",
+  "armorhider.options.item_exclusion.button_tooltip": "Configure which items the mod should handle",
+  "armorhider.options.item_exclusion.handled": "Handled",
+  "armorhider.options.item_exclusion.ignored": "Ignored",
+  "armorhider.options.item_exclusion.handled.tooltip": "Armor Hider will modify the rendering of %s (apply transparency/hide).",
+  "armorhider.options.item_exclusion.ignored.tooltip": "Armor Hider will ignore %s — it will always render normally.",
+  "armorhider.slot.head": "Head",
+  "armorhider.slot.chest": "Chest",
+  "armorhider.slot.legs": "Legs",
+  "armorhider.slot.feet": "Feet",
+  "armorhider.slot.offhand": "Offhand",
+  "armorhider.slot.mainhand": "Mainhand"
 }

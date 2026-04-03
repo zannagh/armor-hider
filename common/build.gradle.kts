@@ -28,6 +28,10 @@ stonecutter {
     replacements.string(current.parsed < "1.21") {
         replace("net.minecraft.client.gui.screens.options.OptionsSubScreen", "net.minecraft.client.gui.screens.OptionsSubScreen")
     }
+    
+    replacements.string(current.parsed < "1.21.9") {
+        replace(".setScreenAndShow(", ".setScreen(")
+    }
 }
 
 configure<net.fabricmc.loom.api.LoomGradleExtensionAPI> {

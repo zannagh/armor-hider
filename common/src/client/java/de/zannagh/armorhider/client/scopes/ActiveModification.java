@@ -67,6 +67,14 @@ public record ActiveModification(
                 && !config.opacityAffectingElytra.getValue()) {
             return null;
         }
+        
+        // Auto-discover new equippable items and add them to the exclusion list
+        var exclusionConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getExclusionItemConfig();
+        exclusionConfig.discoverItem(resolvedSlot, resolvedItem.getItem(), resolvedItem.getHoverName().getString());
+
+        if (exclusionConfig.shouldArmorHiderIgnore(resolvedSlot, resolvedItem.getItem())) {
+            return null;
+        }
 
         double transparency = getTransparencyForSlot(config, resolvedSlot);
         transparency = CombatManager.transformTransparencyBasedOnCombat(playerName, transparency);

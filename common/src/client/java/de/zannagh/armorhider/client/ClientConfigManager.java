@@ -3,6 +3,7 @@ package de.zannagh.armorhider.client;
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.configuration.ConfigurationProvider;
 import de.zannagh.armorhider.client.net.*;
+import de.zannagh.armorhider.configuration.ExclusionItemConfiguration;
 import de.zannagh.armorhider.net.packets.PlayerConfig;
 import de.zannagh.armorhider.server.ServerConfiguration;
 import de.zannagh.armorhider.net.packets.ServerWideSettings;
@@ -107,6 +108,14 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
         return CURRENT;
     }
 
+    /**
+     * Returns the local player's exclusion item configuration.
+     * Exclusions are stored as part of PlayerConfig and synced with the server.
+     */
+    public ExclusionItemConfiguration getExclusionItemConfig() {
+        return CURRENT.getExclusionItems();
+    }
+
     public void setValue(PlayerConfig cfg) {
         CURRENT = cfg;
         saveCurrent();
@@ -176,7 +185,7 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
 
         return PlayerConfig.defaults(playerId, playerName);
     }
-    
+
     public boolean isArmorHiderDisabled() {
         if (getValue().disableArmorHider.getValue()) {
             return true;

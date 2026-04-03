@@ -10,72 +10,54 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.EquipmentSlot;
+import org.jetbrains.annotations.Nullable;
 
-public class ArmorHiderOptionsScreen extends Screen implements InjectableScreen {
-    private final Screen parent;
+public class ArmorHiderOptionsScreen extends ArmorHiderConfigurationScreen {
     private final Options gameOptions;
-    private boolean settingsChanged;
 
-    public ArmorHiderOptionsScreen(Screen parent, Options gameOptions) {
-        super(Component.translatable("armorhider.options.mod_title"));
-        this.parent = parent;
+    public ArmorHiderOptionsScreen(@Nullable Screen parent, Options gameOptions) {
+        super(parent, gameOptions, Component.translatable("armorhider.options.mod_title"));
         this.gameOptions = gameOptions;
     }
 
     @Override
     protected void init() {
-        boolean hasPlayer = Minecraft.getInstance().player != null;
+        int listWidth = super.isPlayerInGame() ? (this.width * 3) / 5 : this.width;
+        super.initWidgetList(listWidth);
+        super.init();
 
-        ArmorHider.LOGGER.info("Init options screen.");
-        int topMargin = 32;
-        int bottomMargin = 32;
-        int itemHeight = 25;
-        int previewMargin = 20;
-        int listWidth = hasPlayer ? (this.width * 3) / 5 : this.width;
-
-        var list = new WidgetList(this.minecraft, listWidth, this.height - topMargin - bottomMargin, topMargin, itemHeight);
-        int rowWidth = list.getRowWidth();
-
-        OptionElementFactory factory = new OptionElementFactory(list::addWidget, gameOptions, rowWidth);
-
-        addOptions(factory, rowWidth);
-        addRenderableWidget(list);
-
-        if (hasPlayer) {
+        if (super.isPlayerInGame()) {
             int previewWidth = (this.width * 2) / 5 - previewMargin;
             int previewHeight = this.height - topMargin - bottomMargin - previewMargin * 2;
             int previewX = listWidth + previewMargin / 2;
             int previewY = topMargin + previewMargin / 2;
             addRenderableWidget(new PlayerPreviewWidget(previewX, previewY, previewWidth, previewHeight));
         }
-
-        addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, btn -> onClose())
-                .bounds(this.width / 2 - 100, this.height - 27, 200, 20).build());
     }
 
-    private void addOptions(OptionElementFactory factory, int rowWidth) {
-        
+    @Override
+    protected void addOptions() {
+        var config = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue();
+
         var helmetOption = factory.buildDoubleOption(
                 "armorhider.helmet.transparency",
                 Component.translatable("armorhider.options.helmet.tooltip"),
                 Component.translatable("armorhider.options.helmet.tooltip_narration"),
                 currentValue -> Component.translatable("armorhider.options.helmet.button_text",
                         String.format("%.0f%%", currentValue * 100)),
-                ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().helmetOpacity.getValue(),
-                this::setHelmetTransparency
+                config.helmetOpacity.getValue(),
+                val -> setSetting(val, config.helmetOpacity::setValue)
         );
-        factory.addElementAsWidget(OptionElementFactory.createSliderWithToggleForSlot(
+        factory.addSliderWithToggles(
                 EquipmentSlot.HEAD,
                 helmetOption,
                 gameOptions,
-                ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().helmetGlint.getValue(),
-                ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().opacityAffectingHatOrSkull.getValue(),
-                this::setDisableHelmetGlint,
-                this::setOpacityAffectingHatOrSkull,
-                rowWidth));
+                config.helmetGlint.getValue(),
+                config.opacityAffectingHatOrSkull.getValue(),
+                val -> setSetting(val, config.helmetGlint::setValue),
+                val -> setSetting(val, config.opacityAffectingHatOrSkull::setValue));
 
         var chestOption = factory.buildDoubleOption(
                 "armorhider.chestplate.transparency",
@@ -83,16 +65,15 @@ public class ArmorHiderOptionsScreen extends Screen implements InjectableScreen 
                 Component.translatable("armorhider.options.chestplate.tooltip_narration"),
                 currentValue -> Component.translatable("armorhider.options.chestplate.button_text",
                         String.format("%.0f%%", currentValue * 100)),
-                ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().chestOpacity.getValue(),
-                this::setChestTransparency);
-        factory.addElementAsWidget(OptionElementFactory.createSliderWithToggleForSlot(EquipmentSlot.CHEST,
+                config.chestOpacity.getValue(),
+                val -> setSetting(val, config.chestOpacity::setValue));
+        factory.addSliderWithToggles(EquipmentSlot.CHEST,
                 chestOption,
                 gameOptions,
-                ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().chestGlint.getValue(),
-                ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().opacityAffectingElytra.getValue(),
-                this::setDisableChestGlint,
-                this::setOpacityAffectingElytra,
-                rowWidth));
+                config.chestGlint.getValue(),
+                config.opacityAffectingElytra.getValue(),
+                val -> setSetting(val, config.chestGlint::setValue),
+                val -> setSetting(val, config.opacityAffectingElytra::setValue));
 
         var legsOption = factory.buildDoubleOption(
                 "armorhider.legs.transparency",
@@ -100,17 +81,16 @@ public class ArmorHiderOptionsScreen extends Screen implements InjectableScreen 
                 Component.translatable("armorhider.options.leggings.tooltip_narration"),
                 currentValue -> Component.translatable("armorhider.options.leggings.button_text",
                         String.format("%.0f%%", currentValue * 100)),
-                ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().legsOpacity.getValue(),
-                this::setLegsTransparency
+                config.legsOpacity.getValue(),
+                val -> setSetting(val, config.legsOpacity::setValue)
         );
-        factory.addElementAsWidget(OptionElementFactory.createSliderWithToggleForSlot(EquipmentSlot.LEGS,
+        factory.addSliderWithToggles(EquipmentSlot.LEGS,
                 legsOption,
                 gameOptions,
-                ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().legsGlint.getValue(),
+                config.legsGlint.getValue(),
                 null,
-                this::setDisableLegsGlint, 
-                null,
-                rowWidth));
+                val -> setSetting(val, config.legsGlint::setValue),
+                null);
 
         var bootsOption = factory.buildDoubleOption(
                 "armorhider.boots.transparency",
@@ -118,16 +98,15 @@ public class ArmorHiderOptionsScreen extends Screen implements InjectableScreen 
                 Component.translatable("armorhider.options.boots.tooltip_narration"),
                 currentValue -> Component.translatable("armorhider.options.boots.button_text",
                         String.format("%.0f%%", currentValue * 100)),
-                ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().bootsOpacity.getValue(),
-                this::setBootsTransparency);
-        factory.addElementAsWidget(OptionElementFactory.createSliderWithToggleForSlot(EquipmentSlot.FEET,
+                config.bootsOpacity.getValue(),
+                val -> setSetting(val, config.bootsOpacity::setValue));
+        factory.addSliderWithToggles(EquipmentSlot.FEET,
                 bootsOption,
                 gameOptions,
-                ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().bootsGlint.getValue(),
+                config.bootsGlint.getValue(),
                 null,
-                this::setDisableBootsGlint,
-                null,
-                rowWidth));
+                val -> setSetting(val, config.bootsGlint::setValue),
+                null);
 
         var offhandOption = factory.buildDoubleOption(
                 "armorhider.offhand.transparency",
@@ -135,17 +114,20 @@ public class ArmorHiderOptionsScreen extends Screen implements InjectableScreen 
                 Component.translatable("armorhider.options.offhand.tooltip_narration"),
                 currentValue -> Component.translatable("armorhider.options.offhand.button_text",
                         String.format("%.0f%%", currentValue * 100)),
-                ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().offHandOpacity.getValue(),
-                this::setOffhandTransparency
+                config.offHandOpacity.getValue(),
+                val -> setSetting(val, config.offHandOpacity::setValue)
         );
-        factory.addSimpleOptionAsWidget(offhandOption);
+        factory.addSliderWithToggles(EquipmentSlot.OFFHAND,
+                offhandOption,
+                gameOptions,
+                null, null, null, null);
 
         var enableCombatDetection = factory.buildBooleanOption(
                 Component.translatable("armorhider.options.combat_detection.title"),
                 Component.translatable("armorhider.options.combat_detection.tooltip"),
                 Component.translatable("armorhider.options.combat_detection.tooltip_narration"),
-                ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().enableCombatDetection.getValue(),
-                this::setCombatDetection
+                config.enableCombatDetection.getValue(),
+                val -> setSetting(val, config.enableCombatDetection::setValue)
         );
         factory.addSimpleOptionAsWidget(enableCombatDetection);
 
@@ -161,74 +143,9 @@ public class ArmorHiderOptionsScreen extends Screen implements InjectableScreen 
     }
 
     @Override
-    public void onClose() {
-        if (settingsChanged) {
-            ArmorHider.LOGGER.info("Updating current player settings...");
-            ArmorHiderClient.CLIENT_CONFIG_MANAGER.saveCurrent();
-        }
-        if (this.minecraft != null) {
-            this.minecraft.setScreen(this.parent);
-        }
-    }
-
-    private void setOpacityAffectingHatOrSkull(Boolean value) {
-        ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().opacityAffectingHatOrSkull.setValue(value);
-        settingsChanged = true;
-    }
-
-    private void setOpacityAffectingElytra(Boolean value) {
-        ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().opacityAffectingElytra.setValue(value);
-        settingsChanged = true;
-    }
-
-    private void setHelmetTransparency(double value) {
-        ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().helmetOpacity.setValue(value);
-        settingsChanged = true;
-    }
-
-    private void setChestTransparency(double value) {
-        ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().chestOpacity.setValue(value);
-        settingsChanged = true;
-    }
-
-    private void setLegsTransparency(double value) {
-        ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().legsOpacity.setValue(value);
-        settingsChanged = true;
-    }
-
-    private void setBootsTransparency(double value) {
-        ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().bootsOpacity.setValue(value);
-        settingsChanged = true;
-    }
-
-    private void setOffhandTransparency(double value) {
-        ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().offHandOpacity.setValue(value);
-        settingsChanged = true;
-    }
-
-    private void setCombatDetection(boolean enabled) {
-        ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().enableCombatDetection.setValue(enabled);
-        settingsChanged = true;
-    }
-
-    private void setDisableHelmetGlint(boolean value) {
-        ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().helmetGlint.setValue(value);
-        settingsChanged = true;
-    }
-
-    private void setDisableChestGlint(boolean value) {
-        ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().chestGlint.setValue(value);
-        settingsChanged = true;
-    }
-
-    private void setDisableLegsGlint(boolean value) {
-        ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().legsGlint.setValue(value);
-        settingsChanged = true;
-    }
-
-    private void setDisableBootsGlint(boolean value) {
-        ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().bootsGlint.setValue(value);
-        settingsChanged = true;
+    protected void saveSettingsOnClose() {
+        ArmorHider.LOGGER.info("Updating current player settings...");
+        ArmorHiderClient.CLIENT_CONFIG_MANAGER.saveCurrent();
     }
 
     @Override
@@ -237,7 +154,7 @@ public class ArmorHiderOptionsScreen extends Screen implements InjectableScreen 
     }
 
     @Override
-    public void removeWidget(AbstractWidget widget) {
+    void removeWidget(AbstractWidget widget) {
         this.removeWidget((GuiEventListener) widget);
     }
 }

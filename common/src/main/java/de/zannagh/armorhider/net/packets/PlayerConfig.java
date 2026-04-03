@@ -4,6 +4,7 @@ import com.google.gson.annotations.SerializedName;
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.configuration.*;
 import de.zannagh.armorhider.configuration.items.*;
+import com.google.gson.annotations.Expose;
 //? if >= 1.20.5 {
 import de.zannagh.armorhider.net.CompressedJsonCodec;
 import io.netty.buffer.ByteBuf;
@@ -80,9 +81,13 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
     public OffHandOpacity offHandOpacity;
     
     public PlayerUuid playerId;
-    
+
     /** The name of the player, derived from the display name. */
     public PlayerName playerName;
+
+    /** Per-item exclusion configuration. Null-safe via {@link #getExclusionItems()}. */
+    @SerializedName(value = "exclusionItems")
+    public ExclusionItemConfiguration exclusionItems;
     
     private transient boolean hasChangedFromSerializedContent;
     
@@ -110,6 +115,18 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         chestGlint = new EnableGlint();
         legsGlint = new EnableGlint();
         bootsGlint = new EnableGlint();
+        exclusionItems = ExclusionItemConfiguration.defaults();
+    }
+
+    /**
+     * Returns the exclusion item configuration, initializing with defaults if null
+     * (for backwards compatibility with configs saved before this field existed).
+     */
+    public ExclusionItemConfiguration getExclusionItems() {
+        if (exclusionItems == null) {
+            exclusionItems = ExclusionItemConfiguration.defaults();
+        }
+        return exclusionItems;
     }
 
     public static PlayerConfig deserialize(Reader reader) {
@@ -157,6 +174,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         newConfig.chestGlint.setValue(this.chestGlint.getValue());
         newConfig.legsGlint.setValue(this.legsGlint.getValue());
         newConfig.bootsGlint.setValue(this.bootsGlint.getValue());
+        newConfig.exclusionItems = this.getExclusionItems();
         return newConfig;
     }
 }

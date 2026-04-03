@@ -1,7 +1,7 @@
 package de.zannagh.armorhider.client.gui.elements;
 
 import de.zannagh.armorhider.client.gui.UiConstants;
-import de.zannagh.armorhider.client.gui.screens.InjectableScreen;
+import de.zannagh.armorhider.client.gui.screens.ItemExclusionScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.OptionInstance;
 import net.minecraft.client.Options;
@@ -42,63 +42,84 @@ public class OptionElementFactory {
         var textWidget = new MultiLineTextWidget(text, Minecraft.getInstance().font).setCentered(true);
         widgetAdder.accept(textWidget);
     }
+    
+    public void addSliderWithToggles(EquipmentSlot slot,
+                                     OptionInstance<Double> slider,
+                                     Options options,
+                                     @Nullable Boolean initialGlint,
+                                     @Nullable Boolean initialOtherAffect,
+                                     @Nullable Consumer<Boolean> glintConsumer,
+                                     @Nullable Consumer<Boolean> additionalAffectConsumer){
+        var widget = createSliderWithToggleForSlot(slot, slider, options, initialGlint, initialOtherAffect, glintConsumer, additionalAffectConsumer);
+        addElementAsWidget(widget);
+    }
 
-    public static AbstractWidget createSliderWithToggleForSlot(EquipmentSlot slot,
-                                                               OptionInstance<Double> slider,
-                                                               Options options,
-                                                               boolean initial,
-                                                               @Nullable Boolean secondInitial,
-                                                               Consumer<Boolean> glintConsumer,
-                                                               @Nullable Consumer<Boolean> additionalAffectConsumer,
-                                                               int width) {
-        int sliderWidth = CompoundOptionWidget.getPrimaryWidth(width);
-        int buttonWidth = CompoundOptionWidget.getAdditionalElementWidth(width);
-        Component disableGlint = Component.literal("Disable glint on slot");
-        Component enableGlint = Component.literal("Enable glint on slot");
-        Component initialGlintMessage = initial ? disableGlint : enableGlint;
+    public AbstractWidget createSliderWithToggleForSlot(EquipmentSlot slot,
+                                                       OptionInstance<Double> slider,
+                                                       Options options,
+                                                       @Nullable Boolean initialGlint,
+                                                       @Nullable Boolean initialOtherAffect,
+                                                       @Nullable Consumer<Boolean> glintConsumer,
+                                                       @Nullable Consumer<Boolean> additionalAffectConsumer) {
+        int sliderWidth = CompoundOptionWidget.getPrimaryWidth(rowWidth);
+        int buttonWidth = CompoundOptionWidget.getAdditionalElementWidth(rowWidth);
         
+        // Always have a slider + the extended slot button.
         AbstractWidget sliderWidget = slider.createButton(options, 0, 0, sliderWidth);
-        GlintSlotOnOffButton toggleGlintButton = new GlintSlotOnOffButton(
-                initial,
-                slot, 
-                0, 
-                0, 
-                buttonWidth, 
-                UiConstants.DEFAULT_BUTTON_HEIGHT,
-                initialGlintMessage, 
-                onPress -> {
-                if (onPress instanceof GlintSlotOnOffButton btn) {
-                    var newValue = btn.toggle();
-                    glintConsumer.accept(newValue);
-                    if (!newValue) {
-                        btn.setTooltipAndMessage(enableGlint);
-                    }
-                    else {
-                        btn.setTooltipAndMessage(disableGlint);
-                    }
-                }
-        }, (component) -> Component.empty());
-        ExtendedSlotIconButton button = new ExtendedSlotIconButton(slot, 0, 0, buttonWidth, UiConstants.DEFAULT_BUTTON_HEIGHT, Component.empty(), onPress -> {
-            if (!(Minecraft.getInstance().screen instanceof InjectableScreen scr)) {
+        ExtendedSlotIconButton button = new ExtendedSlotIconButton(slot, 0, 0, buttonWidth, UiConstants.DEFAULT_BUTTON_HEIGHT,
+                Component.translatable("armorhider.options.item_exclusion.button_tooltip"), onPress -> {
+            var mc = Minecraft.getInstance();
+            var currentScreen = mc.screen;
+            if (currentScreen == null) {
                 return;
             }
-            scr.addWidget(new CustomInterceptionsWidget(slot, 0, 0, width, 0, Component.empty()));
+            mc.setScreenAndShow(new ItemExclusionScreen(currentScreen, options, slot));
         }, (component) -> {
             return Component.empty();
         });
+        
+        GlintSlotOnOffButton toggleGlintButton = null;
+        if (initialGlint != null && glintConsumer != null) {
+            Component disableGlint = Component.literal("Disable glint on slot");
+            Component enableGlint = Component.literal("Enable glint on slot");
+            Component initialGlintMessage = initialGlint ? disableGlint : enableGlint;
+
+            
+            toggleGlintButton = new GlintSlotOnOffButton(
+                    initialGlint,
+                    slot,
+                    0,
+                    0,
+                    buttonWidth,
+                    UiConstants.DEFAULT_BUTTON_HEIGHT,
+                    initialGlintMessage,
+                    onPress -> {
+                        if (onPress instanceof GlintSlotOnOffButton btn) {
+                            var newValue = btn.toggle();
+                            glintConsumer.accept(newValue);
+                            if (!newValue) {
+                                btn.setTooltipAndMessage(enableGlint);
+                            }
+                            else {
+                                btn.setTooltipAndMessage(disableGlint);
+                            }
+                        }
+                    }, (component) -> Component.empty());
+        }
+        
         AffectOtherItemsButton affectOtherItemsButton = null;
         
-        if (secondInitial != null && additionalAffectConsumer != null) {
+        if (initialOtherAffect != null && additionalAffectConsumer != null) {
             Component disableAffectOtherItemText = Component.literal("Disable affecting other items");
             Component affectOtherItemText = Component.literal("Enable affecting other items (skulls/elytras)");
             Component initialMessage;
-            if (secondInitial) {
+            if (initialOtherAffect) {
                 initialMessage = disableAffectOtherItemText;
             }
             else {
                 initialMessage = affectOtherItemText;
             }
-            affectOtherItemsButton = new AffectOtherItemsButton(secondInitial,
+            affectOtherItemsButton = new AffectOtherItemsButton(initialOtherAffect,
                     slot, 
                     0,
                     0,
@@ -120,7 +141,7 @@ public class OptionElementFactory {
                         return Component.empty();
             });
         }
-        return new CompoundOptionWidget(sliderWidget, button, toggleGlintButton, affectOtherItemsButton, width, 20);
+        return new CompoundOptionWidget(sliderWidget, button, toggleGlintButton, affectOtherItemsButton, rowWidth, 20);
     }
 
     public OptionInstance<Double> buildDoubleOption(String key,

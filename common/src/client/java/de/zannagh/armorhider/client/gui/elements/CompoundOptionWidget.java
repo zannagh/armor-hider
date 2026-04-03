@@ -21,11 +21,11 @@ import org.jspecify.annotations.Nullable;
 public class CompoundOptionWidget extends AbstractWidget {
     private final AbstractWidget primary;
     private final AbstractWidget secondary;
-    private final AbstractWidget tertiary;
+    @Nullable private final AbstractWidget tertiary;
     @Nullable private final AbstractWidget additional;
     private static final int GAP = UiConstants.DEFAULT_BUTTON_SPACING / 2;
 
-    public CompoundOptionWidget(AbstractWidget primary, AbstractWidget secondary, AbstractWidget tertiary, @Nullable AbstractWidget additional, int width, int height) {
+    public CompoundOptionWidget(AbstractWidget primary, AbstractWidget secondary, @Nullable AbstractWidget tertiary, @Nullable AbstractWidget additional, int width, int height) {
         super(0, 0, width, height, Component.empty());
         this.primary = primary;
         this.secondary = secondary;
@@ -48,9 +48,12 @@ public class CompoundOptionWidget extends AbstractWidget {
         secondary.setX(firstElementX);
         secondary.setY(this.getY());
         secondary.setWidth(additionalElementWidth);
-        tertiary.setY(this.getY());
-        tertiary.setWidth(additionalElementWidth);
-        tertiary.setX(thirdElementX);
+        
+        if (tertiary != null) {
+            tertiary.setY(this.getY());
+            tertiary.setWidth(additionalElementWidth);
+            tertiary.setX(thirdElementX);
+        }
         
         if (additional != null) {
             additional.setX(secondElementX);
@@ -76,7 +79,9 @@ public class CompoundOptionWidget extends AbstractWidget {
         updateLayout();
         primary.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
         secondary.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
-        tertiary.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
+        if (tertiary != null) {
+            tertiary.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
+        }
         
         if (additional != null) {
             additional.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
@@ -88,7 +93,9 @@ public class CompoundOptionWidget extends AbstractWidget {
         updateLayout();
         primary.render(guiGraphics, mouseX, mouseY, partialTick);
         secondary.render(guiGraphics, mouseX, mouseY, partialTick);
-        tertiary.render(guiGraphics, mouseX, mouseY, partialTick);
+        if (tertiary != null) {
+            tertiary.render(guiGraphics, mouseX, mouseY, partialTick);
+        }
         
         if (additional != null) {
             additional.render(guiGraphics, mouseX, mouseY, partialTick);
@@ -100,7 +107,10 @@ public class CompoundOptionWidget extends AbstractWidget {
         updateLayout();
         primary.render(guiGraphics, mouseX, mouseY, partialTick);
         secondary.render(guiGraphics, mouseX, mouseY, partialTick);
-        tertiary.render(guiGraphics, mouseX, mouseY, partialTick);
+        
+        if (tertiary != null) {
+            tertiary.render(guiGraphics, mouseX, mouseY, partialTick);
+        }
         
         if (additional != null) {
             additional.render(guiGraphics, mouseX, mouseY, partialTick);
@@ -123,11 +133,7 @@ public class CompoundOptionWidget extends AbstractWidget {
         if (additional != null && additional.mouseClicked(event, doubleClick)) {
             return true;
         }
-        if (tertiary.mouseClicked(event, doubleClick)) {
-            return true;
-        }
-
-        return false;
+        return tertiary != null && tertiary.mouseClicked(event, doubleClick);
         //? }
         //? if <= 1.21.8 {
 
@@ -140,12 +146,7 @@ public class CompoundOptionWidget extends AbstractWidget {
         if (additional != null && additional.mouseClicked(d, e, i)) {
             return true;
         }
-        if (tertiary.mouseClicked(d, e, i)) {
-            return true;
-        }
-
-        return false;
-
+        return tertiary != null && tertiary.mouseClicked(d, e, i);
         *///?}
     }
 
@@ -164,10 +165,7 @@ public class CompoundOptionWidget extends AbstractWidget {
         if (additional != null && additional.mouseReleased(event)) {
             return true;
         }
-        if (tertiary.mouseReleased(event)) {
-            return true;
-        }
-        return false;
+        return tertiary != null && tertiary.mouseReleased(event);
         //?}
         //? if <= 1.21.8 {
         
@@ -182,7 +180,7 @@ public class CompoundOptionWidget extends AbstractWidget {
         if (additional != null && additional.mouseReleased(d, e, i)) {
             return true;
         }
-        return tertiary.mouseReleased(d, e, i);
+        return tertiary != null && tertiary.mouseReleased(d, e, i);
          
         *///?}
     }
@@ -202,7 +200,7 @@ public class CompoundOptionWidget extends AbstractWidget {
         if (additional != null && additional.mouseDragged(event, dx, dy)) {
             return true;
         }
-        return tertiary.mouseDragged(event, dx, dy);
+        return tertiary != null && tertiary.mouseDragged(event, dx, dy);
         //? }
         //? if <= 1.21.8 {
         
@@ -215,7 +213,7 @@ public class CompoundOptionWidget extends AbstractWidget {
         if (additional != null && additional.mouseDragged(d, e, i, f, g)) {
             return true;
         }
-        return tertiary.mouseDragged(d, e, i, f, g);
+        return tertiary != null && tertiary.mouseDragged(d, e, i, f, g);
         *///?}
     }
 
