@@ -1,16 +1,12 @@
 package de.zannagh.armorhider.client.gui.elements;
 
-import de.zannagh.armorhider.ArmorHider;
-import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.gui.UiConstants;
 import de.zannagh.armorhider.client.gui.screens.InjectableScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.OptionInstance;
 import net.minecraft.client.Options;
 import net.minecraft.client.gui.components.AbstractWidget;
-import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.MultiLineTextWidget;
-import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -59,13 +55,7 @@ public class OptionElementFactory {
         int buttonWidth = CompoundOptionWidget.getAdditionalElementWidth(width);
         Component disableGlint = Component.literal("Disable glint on slot");
         Component enableGlint = Component.literal("Enable glint on slot");
-        Component initialGlintMessage = Component.literal("Initial glint message");
-        if (!initial) {
-            initialGlintMessage = enableGlint;
-        }
-        else {
-            initialGlintMessage = disableGlint;
-        }
+        Component initialGlintMessage = initial ? disableGlint : enableGlint;
         
         AbstractWidget sliderWidget = slider.createButton(options, 0, 0, sliderWidth);
         GlintSlotOnOffButton toggleGlintButton = new GlintSlotOnOffButton(
@@ -87,14 +77,14 @@ public class OptionElementFactory {
                         btn.setTooltipAndMessage(disableGlint);
                     }
                 }
-        }, (component) -> Component.literal(""));
+        }, (component) -> Component.empty());
         ExtendedSlotIconButton button = new ExtendedSlotIconButton(slot, 0, 0, buttonWidth, UiConstants.DEFAULT_BUTTON_HEIGHT, Component.empty(), onPress -> {
             if (!(Minecraft.getInstance().screen instanceof InjectableScreen scr)) {
                 return;
             }
             scr.addWidget(new CustomInterceptionsWidget(slot, 0, 0, width, 0, Component.empty()));
         }, (component) -> {
-            return Component.literal("");
+            return Component.empty();
         });
         AffectOtherItemsButton affectOtherItemsButton = null;
         
@@ -127,7 +117,7 @@ public class OptionElementFactory {
                             }
                         }
                     }, (component) -> {
-                        return Component.literal("");
+                        return Component.empty();
             });
         }
         return new CompoundOptionWidget(sliderWidget, button, toggleGlintButton, affectOtherItemsButton, width, 20);

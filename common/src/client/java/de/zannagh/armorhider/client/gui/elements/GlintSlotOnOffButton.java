@@ -36,7 +36,7 @@ public class GlintSlotOnOffButton extends LayeredButton {
         return this::spriteForeground;
     }
 
-    protected Identifier spriteForeground(Boolean input) { return super.isEnabled ? Identifier.withDefaultNamespace("hud/air_bursting") : Identifier.withDefaultNamespace(""); }
+    protected Identifier spriteForeground(Boolean input) { return input ? Identifier.withDefaultNamespace("hud/air_bursting") : Identifier.withDefaultNamespace(""); }
     //?}
 
     public GlintSlotOnOffButton(boolean initial, EquipmentSlot slot, int x, int y, int width, int height, Component message, OnPress onPress, CreateNarration createNarration) {

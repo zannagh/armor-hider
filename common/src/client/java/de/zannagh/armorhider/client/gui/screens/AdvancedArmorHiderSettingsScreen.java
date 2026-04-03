@@ -5,7 +5,6 @@ import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.gui.elements.OptionElementFactory;
 import de.zannagh.armorhider.client.gui.elements.WidgetList;
 import de.zannagh.armorhider.log.DebugLogger;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.OptionInstance;
 import net.minecraft.client.Options;
 import net.minecraft.client.gui.components.*;
@@ -22,9 +21,9 @@ public class AdvancedArmorHiderSettingsScreen extends Screen {
     private boolean newServerCombatDetection;
     private boolean setForceArmorHiderOff;
     private boolean localSettingsChanged;
-    private boolean setDisableOthers;
-    private boolean setUseLocalSettingsForOthersWhenUnknown;
-    private boolean setDisableLocal;
+    private boolean setDisableOthers = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableArmorHiderForOthers.getValue();
+    private boolean setUseLocalSettingsForOthersWhenUnknown = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().usePlayerSettingsWhenUndeterminable.getValue();
+    private boolean setDisableLocal = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableArmorHider.getValue();
     private boolean forceServerOffDefaultSetting;
     private boolean combatDetectionDefaultSetting;
     private OptionInstance<Boolean> forceOffOption;
@@ -230,6 +229,7 @@ public class AdvancedArmorHiderSettingsScreen extends Screen {
             if (combatDetectionServerOption != null) {
                 combatDetectionServerOption.set(combatDetectionDefaultSetting);
             }
+            return;
         }
         newServerCombatDetection = enabled;
         serverSettingsChanged = true;
@@ -240,6 +240,7 @@ public class AdvancedArmorHiderSettingsScreen extends Screen {
             if (forceOffOption != null) {
                 forceOffOption.set(forceServerOffDefaultSetting);
             }
+            return;
         }
         setForceArmorHiderOff = enabled;
         serverSettingsChanged = true;

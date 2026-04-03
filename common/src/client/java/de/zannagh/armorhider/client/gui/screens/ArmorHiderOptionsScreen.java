@@ -13,15 +13,11 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.level.levelgen.synth.BlendedNoise;
 
 public class ArmorHiderOptionsScreen extends Screen implements InjectableScreen {
     private final Screen parent;
     private final Options gameOptions;
-    private boolean hasUsedFallbackWhereServerDidntTranspondSettings = false;
     private boolean settingsChanged;
-    private boolean serverSettingsChanged;
-    private boolean newServerCombatDetection;
 
     public ArmorHiderOptionsScreen(Screen parent, Options gameOptions) {
         super(Component.translatable("armorhider.options.mod_title"));
@@ -61,8 +57,6 @@ public class ArmorHiderOptionsScreen extends Screen implements InjectableScreen 
     }
 
     private void addOptions(OptionElementFactory factory, int rowWidth) {
-        
-        int sliderWidth = CompoundOptionWidget.getPrimaryWidth(rowWidth);
         
         var helmetOption = factory.buildDoubleOption(
                 "armorhider.helmet.transparency",
@@ -172,10 +166,6 @@ public class ArmorHiderOptionsScreen extends Screen implements InjectableScreen 
             ArmorHider.LOGGER.info("Updating current player settings...");
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.saveCurrent();
         }
-        if (serverSettingsChanged && !hasUsedFallbackWhereServerDidntTranspondSettings) {
-            ArmorHider.LOGGER.info("Updating current server settings (if possible)...");
-            ArmorHiderClient.CLIENT_CONFIG_MANAGER.setAndSendServerCombatDetection(newServerCombatDetection);
-        }
         if (this.minecraft != null) {
             this.minecraft.setScreen(this.parent);
         }
@@ -222,32 +212,23 @@ public class ArmorHiderOptionsScreen extends Screen implements InjectableScreen 
     }
 
     private void setDisableHelmetGlint(boolean value) {
-        ArmorHider.LOGGER.info("Setting helmet glint temporarily to {}", value);
         ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().helmetGlint.setValue(value);
         settingsChanged = true;
     }
 
     private void setDisableChestGlint(boolean value) {
-        ArmorHider.LOGGER.info("Setting chest glint temporarily to {}", value);
         ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().chestGlint.setValue(value);
         settingsChanged = true;
     }
 
     private void setDisableLegsGlint(boolean value) {
-        ArmorHider.LOGGER.info("Setting legs glint temporarily to {}", value);
         ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().legsGlint.setValue(value);
         settingsChanged = true;
     }
 
     private void setDisableBootsGlint(boolean value) {
-        ArmorHider.LOGGER.info("Setting boots glint temporarily to {}", value);
         ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().bootsGlint.setValue(value);
         settingsChanged = true;
-    }
-
-    private void setServerCombatDetection(boolean enabled) {
-        newServerCombatDetection = enabled;
-        serverSettingsChanged = true;
     }
 
     @Override

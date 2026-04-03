@@ -120,32 +120,32 @@ public class CompoundOptionWidget extends AbstractWidget {
         if (secondary.mouseClicked(event, doubleClick)) {
             return true;
         }
-        if (tertiary.mouseClicked(event, doubleClick)) {
-            return true;
-        }
         if (additional != null && additional.mouseClicked(event, doubleClick)) {
             return true;
         }
-        
+        if (tertiary.mouseClicked(event, doubleClick)) {
+            return true;
+        }
+
         return false;
         //? }
         //? if <= 1.21.8 {
-        
+
         /*if (primary.mouseClicked(d, e, i)) {
             return true;
         }
         if (secondary.mouseClicked(d, e, i)) {
             return true;
         }
-        if (tertiary.mouseClicked(d, e, i)) {
-            return true;
-        }
         if (additional != null && additional.mouseClicked(d, e, i)) {
             return true;
         }
-        
+        if (tertiary.mouseClicked(d, e, i)) {
+            return true;
+        }
+
         return false;
-         
+
         *///?}
     }
 

@@ -13,7 +13,7 @@ import net.minecraft.network.chat.Component;
 //? if >= 26.1-1.pre.1
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 
-import java.awt.*;
+import java.awt.Color;
 
 public class PlayerPreviewWidget extends AbstractWidget {
 
@@ -94,7 +94,7 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 
-import java.awt.*;
+import java.awt.Color;
 
 public class PlayerPreviewWidget extends AbstractWidget {
 

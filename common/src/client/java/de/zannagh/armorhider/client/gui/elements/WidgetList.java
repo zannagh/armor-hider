@@ -35,7 +35,7 @@ public class WidgetList extends ContainerObjectSelectionList<WidgetList.WidgetEn
 
     @Override
     public int getRowWidth() {
-        return Math.min(contentWidth - 20, 310);
+        return Math.max(0, Math.min(contentWidth - 20, 310));
     }
 
     //? if < 1.21 {

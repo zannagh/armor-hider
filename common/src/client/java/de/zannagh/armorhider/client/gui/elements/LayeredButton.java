@@ -1,6 +1,5 @@
 package de.zannagh.armorhider.client.gui.elements;
 
-import de.zannagh.armorhider.ArmorHider;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
@@ -47,10 +46,7 @@ public abstract class LayeredButton extends Button {
     }
 
     public boolean toggle(){
-        ArmorHider.LOGGER.info("Toggling button for slot {}", slot);
-        ArmorHider.LOGGER.info("Current state: {}", isEnabled);
         isEnabled = !isEnabled;
-        ArmorHider.LOGGER.info("New state: {}", isEnabled);
         return isEnabled;
     }
 
