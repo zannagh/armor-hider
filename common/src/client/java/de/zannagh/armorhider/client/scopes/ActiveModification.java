@@ -55,11 +55,13 @@ public record ActiveModification(
         EquipmentSlot resolvedSlot = ItemsUtil.itemStackContainsElytra(resolvedItem) ? EquipmentSlot.CHEST : slot;
 
         // Auto-discover new equippable items and add them to the exclusion list
-        var exclusionConfig = config.getExclusionItems();
-        exclusionConfig.discoverItem(resolvedSlot, resolvedItem.getItem(), resolvedItem.getHoverName().getString());
+        if (!resolvedItem.isEmpty()) {
+            var exclusionConfig = config.getExclusionItems();
+            exclusionConfig.discoverItem(resolvedSlot, resolvedItem.getItem(), resolvedItem.getHoverName().getString());
 
-        if (exclusionConfig.shouldArmorHiderIgnore(resolvedSlot, resolvedItem.getItem())) {
-            return null;
+            if (exclusionConfig.shouldArmorHiderIgnore(resolvedSlot, resolvedItem.getItem())) {
+                return null;
+            }
         }
         
         // Skull exclusion

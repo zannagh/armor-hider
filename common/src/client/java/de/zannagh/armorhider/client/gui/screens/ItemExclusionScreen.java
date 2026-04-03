@@ -39,7 +39,7 @@ public class ItemExclusionScreen extends ArmorHiderConfigurationScreen {
     
     @Override
     protected void addOptions() {
-        ExclusionItemConfiguration exclusionConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER.local().exclusionItems;
+        ExclusionItemConfiguration exclusionConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER.local().getExclusionItems();
         Map<String, ExclusionItemInfo> slotItems = exclusionConfig.getItemsForSlot(slot);
 
         for (Map.Entry<String, ExclusionItemInfo> entry : slotItems.entrySet()) {

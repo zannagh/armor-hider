@@ -15,6 +15,7 @@ import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.NonNull;
 
 import java.io.Reader;
+import java.util.Map;
 import java.util.UUID;
 
 //? if >= 1.21.11 {
@@ -174,7 +175,17 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         newConfig.chestGlint.setValue(this.chestGlint.getValue());
         newConfig.legsGlint.setValue(this.legsGlint.getValue());
         newConfig.bootsGlint.setValue(this.bootsGlint.getValue());
-        newConfig.exclusionItems = this.getExclusionItems();
+        var sourceExclusion = this.getExclusionItems();
+        var copiedExclusion = new ExclusionItemConfiguration();
+        for (Map.Entry<String, Map<String, ExclusionItemInfo>> slotEntry : sourceExclusion.items.entrySet()) {
+            for (Map.Entry<String, ExclusionItemInfo> itemEntry : slotEntry.getValue().entrySet()) {
+                ExclusionItemInfo orig = itemEntry.getValue();
+                copiedExclusion.items
+                        .computeIfAbsent(slotEntry.getKey(), s -> new java.util.LinkedHashMap<>())
+                        .put(itemEntry.getKey(), new ExclusionItemInfo(orig.displayName, orig.shouldIgnore));
+            }
+        }
+        newConfig.exclusionItems = copiedExclusion;
         return newConfig;
     }
 }
