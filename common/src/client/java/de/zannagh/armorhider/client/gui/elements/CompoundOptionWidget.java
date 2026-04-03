@@ -23,6 +23,7 @@ public class CompoundOptionWidget extends AbstractWidget {
     private final AbstractWidget secondary;
     @Nullable private final AbstractWidget tertiary;
     @Nullable private final AbstractWidget additional;
+    @Nullable private AbstractWidget activeChild;
     private static final int GAP = UiConstants.DEFAULT_BUTTON_SPACING / 2;
 
     public CompoundOptionWidget(AbstractWidget primary, AbstractWidget secondary, @Nullable AbstractWidget tertiary, @Nullable AbstractWidget additional, int width, int height) {
@@ -125,28 +126,42 @@ public class CompoundOptionWidget extends AbstractWidget {
     //public boolean mouseClicked(double d, double e, int i) {
         //? if > 1.21.8 {
         if (primary.mouseClicked(event, doubleClick)) {
+            activeChild = primary;
             return true;
         }
         if (secondary.mouseClicked(event, doubleClick)) {
+            activeChild = secondary;
             return true;
         }
         if (additional != null && additional.mouseClicked(event, doubleClick)) {
+            activeChild = additional;
             return true;
         }
-        return tertiary != null && tertiary.mouseClicked(event, doubleClick);
+        if (tertiary != null && tertiary.mouseClicked(event, doubleClick)) {
+            activeChild = tertiary;
+            return true;
+        }
+        return false;
         //? }
         //? if <= 1.21.8 {
 
         /*if (primary.mouseClicked(d, e, i)) {
+            activeChild = primary;
             return true;
         }
         if (secondary.mouseClicked(d, e, i)) {
+            activeChild = secondary;
             return true;
         }
         if (additional != null && additional.mouseClicked(d, e, i)) {
+            activeChild = additional;
             return true;
         }
-        return tertiary != null && tertiary.mouseClicked(d, e, i);
+        if (tertiary != null && tertiary.mouseClicked(d, e, i)) {
+            activeChild = tertiary;
+            return true;
+        }
+        return false;
         *///?}
     }
 
@@ -156,32 +171,25 @@ public class CompoundOptionWidget extends AbstractWidget {
     //? if <= 1.21.8
     //public boolean mouseReleased(double d, double e, int i) {
         //? if > 1.21.8 {
-        if (primary.mouseReleased(event)) {
-            return true;
+        try {
+            if (activeChild != null) {
+                return activeChild.mouseReleased(event);
+            }
+            return false;
+        } finally {
+            activeChild = null;
         }
-        if (secondary.mouseReleased(event)) {
-            return true;
-        }
-        if (additional != null && additional.mouseReleased(event)) {
-            return true;
-        }
-        return tertiary != null && tertiary.mouseReleased(event);
         //?}
         //? if <= 1.21.8 {
-        
-        /*if (primary.mouseReleased(d, e, i)) {
-            return true;
+
+        /*try {
+            if (activeChild != null) {
+                return activeChild.mouseReleased(d, e, i);
+            }
+            return false;
+        } finally {
+            activeChild = null;
         }
-        
-        if (secondary.mouseReleased(d, e, i)) {
-            return true;
-        }
-        
-        if (additional != null && additional.mouseReleased(d, e, i)) {
-            return true;
-        }
-        return tertiary != null && tertiary.mouseReleased(d, e, i);
-         
         *///?}
     }
 
@@ -191,29 +199,17 @@ public class CompoundOptionWidget extends AbstractWidget {
     //? if <= 1.21.8
     //public boolean mouseDragged(double d, double e, int i, double f, double g) {
         //? if > 1.21.8 {
-        if (primary.mouseDragged(event, dx, dy)) {
-            return true;
+        if (activeChild != null) {
+            return activeChild.mouseDragged(event, dx, dy);
         }
-        if (secondary.mouseDragged(event, dx, dy)) {
-            return true;
-        }
-        if (additional != null && additional.mouseDragged(event, dx, dy)) {
-            return true;
-        }
-        return tertiary != null && tertiary.mouseDragged(event, dx, dy);
+        return false;
         //? }
         //? if <= 1.21.8 {
-        
-        /*if (primary.mouseDragged(d, e, i, f, g)) {
-            return true;
+
+        /*if (activeChild != null) {
+            return activeChild.mouseDragged(d, e, i, f, g);
         }
-        if (secondary.mouseDragged(d, e, i, f, g)) {
-            return true;
-        }
-        if (additional != null && additional.mouseDragged(d, e, i, f, g)) {
-            return true;
-        }
-        return tertiary != null && tertiary.mouseDragged(d, e, i, f, g);
+        return false;
         *///?}
     }
 
