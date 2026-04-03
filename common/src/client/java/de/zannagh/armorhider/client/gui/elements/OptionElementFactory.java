@@ -66,25 +66,25 @@ public class OptionElementFactory {
         
         // Always have a slider + the extended slot button.
         AbstractWidget sliderWidget = slider.createButton(options, 0, 0, sliderWidth);
-        ExtendedSlotIconButton button = new ExtendedSlotIconButton(slot, 0, 0, buttonWidth, UiConstants.DEFAULT_BUTTON_HEIGHT,
-                Component.translatable("armorhider.options.item_exclusion.button_tooltip"), onPress -> {
-            var mc = Minecraft.getInstance();
-            var currentScreen = mc.screen;
-            if (currentScreen == null) {
-                return;
-            }
-            mc.setScreenAndShow(new ItemExclusionScreen(currentScreen, options, slot));
-        }, (component) -> {
-            return Component.empty();
+        ExtendedSlotIconButton button = new ExtendedSlotIconButton(
+                slot, 
+                0, 
+                0,
+                buttonWidth,
+                UiConstants.DEFAULT_BUTTON_HEIGHT, onPress -> {
+                var mc = Minecraft.getInstance();
+                var currentScreen = mc.screen;
+                if (currentScreen == null) {
+                    return;
+                }
+                mc.setScreenAndShow(new ItemExclusionScreen(currentScreen, options, slot));
+            }, (component) -> 
+        {
+                return Component.empty();
         });
         
         GlintSlotOnOffButton toggleGlintButton = null;
         if (initialGlint != null && glintConsumer != null) {
-            Component disableGlint = Component.literal("Disable glint on slot");
-            Component enableGlint = Component.literal("Enable glint on slot");
-            Component initialGlintMessage = initialGlint ? disableGlint : enableGlint;
-
-            
             toggleGlintButton = new GlintSlotOnOffButton(
                     initialGlint,
                     slot,
@@ -92,17 +92,10 @@ public class OptionElementFactory {
                     0,
                     buttonWidth,
                     UiConstants.DEFAULT_BUTTON_HEIGHT,
-                    initialGlintMessage,
                     onPress -> {
                         if (onPress instanceof GlintSlotOnOffButton btn) {
                             var newValue = btn.toggle();
                             glintConsumer.accept(newValue);
-                            if (!newValue) {
-                                btn.setTooltipAndMessage(enableGlint);
-                            }
-                            else {
-                                btn.setTooltipAndMessage(disableGlint);
-                            }
                         }
                     }, (component) -> Component.empty());
         }
@@ -110,32 +103,16 @@ public class OptionElementFactory {
         AffectOtherItemsButton affectOtherItemsButton = null;
         
         if (initialOtherAffect != null && additionalAffectConsumer != null) {
-            Component disableAffectOtherItemText = Component.literal("Disable affecting other items");
-            Component affectOtherItemText = Component.literal("Enable affecting other items (skulls/elytras)");
-            Component initialMessage;
-            if (initialOtherAffect) {
-                initialMessage = disableAffectOtherItemText;
-            }
-            else {
-                initialMessage = affectOtherItemText;
-            }
             affectOtherItemsButton = new AffectOtherItemsButton(initialOtherAffect,
                     slot, 
                     0,
                     0,
                     buttonWidth,
-                    UiConstants.DEFAULT_BUTTON_HEIGHT,
-                    initialMessage, 
+                    UiConstants.DEFAULT_BUTTON_HEIGHT, 
                     onPress -> {
                         if (onPress instanceof AffectOtherItemsButton btn) {
                             boolean result = btn.toggle();
                             additionalAffectConsumer.accept(result);
-                            if (result) {
-                                btn.setTooltipAndMessage(disableAffectOtherItemText);
-                            }
-                            else {
-                                btn.setTooltipAndMessage(affectOtherItemText);
-                            }
                         }
                     }, (component) -> {
                         return Component.empty();

@@ -35,18 +35,23 @@ public abstract class LayeredButton extends Button {
         this.slot = slot;
         this.setTooltip(Tooltip.create(message));
     }
+    
+    protected abstract Component enabledMessage();
+    protected abstract Component disabledMessage();
 
     public void setEnabled(boolean enabled) {
         isEnabled = enabled;
-    }
-
-    public void setTooltipAndMessage(@NonNull Component message) {
-        super.setMessage(message);
-        this.setTooltip(Tooltip.create(message));
+        if (isEnabled) {
+            this.setMessage(enabledMessage());
+            this.setTooltip(Tooltip.create(enabledMessage()));
+        } else {
+            this.setMessage(disabledMessage());
+            this.setTooltip(Tooltip.create(disabledMessage()));
+        }
     }
 
     public boolean toggle(){
-        isEnabled = !isEnabled;
+        setEnabled(!isEnabled);
         return isEnabled;
     }
 

@@ -39,8 +39,22 @@ public class GlintSlotOnOffButton extends LayeredButton {
     protected Identifier spriteForeground(Boolean input) { return input ? Identifier.withDefaultNamespace("hud/air_bursting") : Identifier.withDefaultNamespace(""); }
     //?}
 
-    public GlintSlotOnOffButton(boolean initial, EquipmentSlot slot, int x, int y, int width, int height, Component message, OnPress onPress, CreateNarration createNarration) {
-        super(slot, x, y, width, height, message, onPress, createNarration);
+    @Override
+    protected Component enabledMessage() {
+        return enabledMsg;
+    }
+
+    @Override
+    protected Component disabledMessage() {
+        return disabledMsg;
+    }
+
+    private static final Component enabledMsg = Component.literal("Disable glint on slot");
+
+    private static final Component disabledMsg = Component.literal("Enable glint on slot");
+
+    public GlintSlotOnOffButton(boolean initial, EquipmentSlot slot, int x, int y, int width, int height, OnPress onPress, CreateNarration createNarration) {
+        super(slot, x, y, width, height, initial ? GlintSlotOnOffButton.enabledMsg : GlintSlotOnOffButton.disabledMsg, onPress, createNarration);
         if (slot == EquipmentSlot.HEAD) {
             slotItem = Items.IRON_HELMET;
         }

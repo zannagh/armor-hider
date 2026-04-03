@@ -40,8 +40,22 @@ public class AffectOtherItemsButton extends LayeredButton {
     protected Identifier spriteForeground(Boolean input) { return input ? Identifier.withDefaultNamespace("pending_invite/accept_highlighted") : Identifier.withDefaultNamespace("spectator/close"); }
     //? }
 
-    public AffectOtherItemsButton(boolean initial, EquipmentSlot slot, int x, int y, int width, int height, Component message, OnPress onPress, CreateNarration createNarration) {
-        super(slot, x, y, width, height, message, onPress, createNarration);
+    @Override
+    protected Component enabledMessage() {
+        return enabledMsg;
+    }
+
+    @Override
+    protected Component disabledMessage() {
+        return disabledMsg;
+    }
+
+    private static final Component enabledMsg = Component.literal("Disable affecting other items");
+
+    private static final Component disabledMsg = Component.literal("Enable affecting other items");
+
+    public AffectOtherItemsButton(boolean initial, EquipmentSlot slot, int x, int y, int width, int height, OnPress onPress, CreateNarration createNarration) {
+        super(slot, x, y, width, height, initial ? AffectOtherItemsButton.enabledMsg : AffectOtherItemsButton.disabledMsg, onPress, createNarration);
         if (slot == EquipmentSlot.HEAD) {
             slotItem = Items.SKELETON_SKULL;
         }

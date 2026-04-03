@@ -18,7 +18,19 @@ public class ExtendedSlotIconButton extends LayeredButton {
         return Component.literal("…");
     }
 
-    public ExtendedSlotIconButton(EquipmentSlot slot, int x, int y, int width, int height, Component message, OnPress onPress, CreateNarration createNarration) {
-        super(slot, x, y, width, height, message, onPress, createNarration);
+    public ExtendedSlotIconButton(EquipmentSlot slot, int x, int y, int width, int height, OnPress onPress, CreateNarration createNarration) {
+        super(slot, x, y, width, height, buttonMessage, onPress, createNarration);
+    }
+    
+    private static final Component buttonMessage = Component.translatable("armorhider.options.item_exclusion.button_tooltip");
+    
+    @Override
+    protected Component enabledMessage() {
+        return null;
+    }
+
+    @Override
+    protected Component disabledMessage() {
+        return null;
     }
 }
