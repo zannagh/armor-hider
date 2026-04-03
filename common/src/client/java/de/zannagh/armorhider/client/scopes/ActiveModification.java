@@ -54,6 +54,14 @@ public record ActiveModification(
         ItemStack resolvedItem = item != null ? item : ItemStack.EMPTY;
         EquipmentSlot resolvedSlot = ItemsUtil.itemStackContainsElytra(resolvedItem) ? EquipmentSlot.CHEST : slot;
 
+        // Auto-discover new equippable items and add them to the exclusion list
+        var exclusionConfig = config.getExclusionItems();
+        exclusionConfig.discoverItem(resolvedSlot, resolvedItem.getItem(), resolvedItem.getHoverName().getString());
+
+        if (exclusionConfig.shouldArmorHiderIgnore(resolvedSlot, resolvedItem.getItem())) {
+            return null;
+        }
+        
         // Skull exclusion
         if (resolvedSlot == EquipmentSlot.HEAD
                 && ItemsUtil.isSkullBlockItem(resolvedItem.getItem())
@@ -68,14 +76,6 @@ public record ActiveModification(
             return null;
         }
         
-        // Auto-discover new equippable items and add them to the exclusion list
-        var exclusionConfig = config.getExclusionItems();
-        exclusionConfig.discoverItem(resolvedSlot, resolvedItem.getItem(), resolvedItem.getHoverName().getString());
-
-        if (exclusionConfig.shouldArmorHiderIgnore(resolvedSlot, resolvedItem.getItem())) {
-            return null;
-        }
-
         double transparency = getTransparencyForSlot(config, resolvedSlot);
         transparency = CombatManager.transformTransparencyBasedOnCombat(playerName, transparency);
         boolean disableGlint = getDisableGlintForSlot(config, resolvedSlot);
