@@ -41,6 +41,22 @@ public class ExclusionItemConfiguration {
     }
 
     /**
+     * Returns a deep copy of this configuration.
+     */
+    public ExclusionItemConfiguration deepCopy() {
+        var copy = new ExclusionItemConfiguration();
+        for (Map.Entry<String, Map<String, ExclusionItemInfo>> slotEntry : items.entrySet()) {
+            var slotCopy = new LinkedHashMap<String, ExclusionItemInfo>();
+            for (Map.Entry<String, ExclusionItemInfo> itemEntry : slotEntry.getValue().entrySet()) {
+                ExclusionItemInfo orig = itemEntry.getValue();
+                slotCopy.put(itemEntry.getKey(), new ExclusionItemInfo(orig.displayName, orig.shouldIgnore));
+            }
+            copy.items.put(slotEntry.getKey(), slotCopy);
+        }
+        return copy;
+    }
+
+    /**
      * Returns true if the mod should intercept (handle) this item.
      * Items not in the list default to intercepted.
      */
