@@ -1,7 +1,9 @@
 package de.zannagh.armorhider.client.gui.elements;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.Item;
@@ -10,6 +12,7 @@ import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class AffectOtherItemsButton extends LayeredButton {
     @Nullable private final Item slotItem;
@@ -42,20 +45,36 @@ public class AffectOtherItemsButton extends LayeredButton {
 
     @Override
     protected Component enabledMessage() {
-        return enabledMsg;
+        return enabledMsg(slot);
     }
 
     @Override
     protected Component disabledMessage() {
-        return disabledMsg;
+        return disabledMsg(slot);
     }
 
-    private static final Component enabledMsg = Component.literal("Disable affecting other items");
+    private static Component enabledMsg(EquipmentSlot slot){
+        if (slot == EquipmentSlot.HEAD) {
+            return Component.translatable("armorhider.options.helmet_affection.tooltip.enabled"); 
+        }  
+        if (slot == EquipmentSlot.CHEST) {
+            return Component.translatable("armorhider.options.elytra_affection.tooltip.enabled"); 
+        }
+        return Component.empty();
+    } 
 
-    private static final Component disabledMsg = Component.literal("Enable affecting other items");
+    private static Component disabledMsg(EquipmentSlot slot) {
+        if (slot == EquipmentSlot.HEAD) {
+            return Component.translatable("armorhider.options.helmet_affection.tooltip.disabled"); 
+        }  
+        if (slot == EquipmentSlot.CHEST) {
+            return Component.translatable("armorhider.options.elytra_affection.tooltip.disabled"); 
+        }
+        return Component.empty();
+    }
 
-    public AffectOtherItemsButton(boolean initial, EquipmentSlot slot, int x, int y, int width, int height, OnPress onPress, CreateNarration createNarration) {
-        super(slot, x, y, width, height, initial ? AffectOtherItemsButton.enabledMsg : AffectOtherItemsButton.disabledMsg, onPress, createNarration);
+    public AffectOtherItemsButton(boolean initial, EquipmentSlot slot, int width, int height, OnPress onPress) {
+        super(slot, width, height, initial ? enabledMsg(slot) : disabledMsg(slot), onPress);
         if (slot == EquipmentSlot.HEAD) {
             slotItem = Items.SKELETON_SKULL;
         }

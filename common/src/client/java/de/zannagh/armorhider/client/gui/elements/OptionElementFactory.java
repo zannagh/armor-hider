@@ -68,8 +68,6 @@ public class OptionElementFactory {
         AbstractWidget sliderWidget = slider.createButton(options, 0, 0, sliderWidth);
         ExtendedSlotIconButton button = new ExtendedSlotIconButton(
                 slot, 
-                0, 
-                0,
                 buttonWidth,
                 UiConstants.DEFAULT_BUTTON_HEIGHT, onPress -> {
                 var mc = Minecraft.getInstance();
@@ -78,18 +76,13 @@ public class OptionElementFactory {
                     return;
                 }
                 mc.setScreenAndShow(new ItemExclusionScreen(currentScreen, options, slot));
-            }, (component) -> 
-        {
-                return Component.empty();
-        });
+            });
         
         GlintSlotOnOffButton toggleGlintButton = null;
         if (initialGlint != null && glintConsumer != null) {
             toggleGlintButton = new GlintSlotOnOffButton(
                     initialGlint,
                     slot,
-                    0,
-                    0,
                     buttonWidth,
                     UiConstants.DEFAULT_BUTTON_HEIGHT,
                     onPress -> {
@@ -97,7 +90,7 @@ public class OptionElementFactory {
                             var newValue = btn.toggle();
                             glintConsumer.accept(newValue);
                         }
-                    }, (component) -> Component.empty());
+                    });
         }
         
         AffectOtherItemsButton affectOtherItemsButton = null;
@@ -105,8 +98,6 @@ public class OptionElementFactory {
         if (initialOtherAffect != null && additionalAffectConsumer != null) {
             affectOtherItemsButton = new AffectOtherItemsButton(initialOtherAffect,
                     slot, 
-                    0,
-                    0,
                     buttonWidth,
                     UiConstants.DEFAULT_BUTTON_HEIGHT, 
                     onPress -> {
@@ -114,9 +105,7 @@ public class OptionElementFactory {
                             boolean result = btn.toggle();
                             additionalAffectConsumer.accept(result);
                         }
-                    }, (component) -> {
-                        return Component.empty();
-            });
+                    });
         }
         return new CompoundOptionWidget(sliderWidget, button, toggleGlintButton, affectOtherItemsButton, rowWidth, 20);
     }

@@ -41,20 +41,50 @@ public class GlintSlotOnOffButton extends LayeredButton {
 
     @Override
     protected Component enabledMessage() {
-        return enabledMsg;
+        return enabledMsg(slot);
     }
 
     @Override
     protected Component disabledMessage() {
-        return disabledMsg;
+        return disabledMsg(slot);
     }
 
-    private static final Component enabledMsg = Component.literal("Disable glint on slot");
+    private static Component enabledMsg(EquipmentSlot slot) {
+        if (slot == EquipmentSlot.HEAD) {
+            return Component.translatable("armorhider.options.helmet_glint.tooltip.enabled");
+        }
+        else if (slot == EquipmentSlot.CHEST) {
+            return Component.translatable("armorhider.options.chest_glint.tooltip.enabled");
+        }
+        else if (slot == EquipmentSlot.LEGS) {
+            return Component.translatable("armorhider.options.legs_glint.tooltip.enabled");
+        }
+        else if (slot == EquipmentSlot.FEET) {
+            return Component.translatable("armorhider.options.boots_glint.tooltip.enabled");
+        }
+        return Component.empty();
+    }
 
-    private static final Component disabledMsg = Component.literal("Enable glint on slot");
+    private static Component disabledMsg(EquipmentSlot slot) {
+        if (slot == EquipmentSlot.HEAD) {
+            return Component.translatable("armorhider.options.helmet_glint.tooltip.disabled");
+        }
+        else if (slot == EquipmentSlot.CHEST) {
+            return Component.translatable("armorhider.options.chest_glint.tooltip.disabled");
+        }
+        else if (slot == EquipmentSlot.LEGS) {
+            return Component.translatable("armorhider.options.legs_glint.tooltip.disabled");
+        }
+        else if (slot == EquipmentSlot.FEET) {
+            return Component.translatable("armorhider.options.boots_glint.tooltip.disabled");
+        }
+        else {
+            return Component.empty();
+        }
+    }
 
-    public GlintSlotOnOffButton(boolean initial, EquipmentSlot slot, int x, int y, int width, int height, OnPress onPress, CreateNarration createNarration) {
-        super(slot, x, y, width, height, initial ? GlintSlotOnOffButton.enabledMsg : GlintSlotOnOffButton.disabledMsg, onPress, createNarration);
+    public GlintSlotOnOffButton(boolean initial, EquipmentSlot slot, int width, int height, OnPress onPress) {
+        super(slot, width, height, initial ? GlintSlotOnOffButton.enabledMsg(slot) : GlintSlotOnOffButton.disabledMsg(slot), onPress);
         if (slot == EquipmentSlot.HEAD) {
             slotItem = Items.IRON_HELMET;
         }

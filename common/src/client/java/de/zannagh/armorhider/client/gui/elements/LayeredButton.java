@@ -5,6 +5,7 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
@@ -30,8 +31,8 @@ public abstract class LayeredButton extends Button {
     
     protected final EquipmentSlot slot;
 
-    public LayeredButton(EquipmentSlot slot, int x, int y, int width, int height, Component message, OnPress onPress, CreateNarration createNarration) {
-        super(x, y, width, height, message, onPress, createNarration);
+    public LayeredButton(EquipmentSlot slot, int width, int height, Component message, OnPress onPress) {
+        super(0, 0, width, height, message, onPress, (discarded) -> MutableComponent.create(message.getContents()));
         this.slot = slot;
         this.setTooltip(Tooltip.create(message));
     }
@@ -39,7 +40,7 @@ public abstract class LayeredButton extends Button {
     protected abstract Component enabledMessage();
     protected abstract Component disabledMessage();
 
-    public void setEnabled(boolean enabled) {
+    protected void setEnabled(boolean enabled) {
         isEnabled = enabled;
         if (isEnabled) {
             this.setMessage(enabledMessage());
