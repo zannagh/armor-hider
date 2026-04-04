@@ -43,7 +43,9 @@ public class MixinPlugin implements IMixinConfigPlugin {
             "hand.ItemRendererMixin",
             "networking.ClientPacketListenerMixin",
             "networking.ClientPlayNetworkHandlerMixin",
-            "OptionsMixin"
+            "OptionsMixin",
+            // Compat — @Pseudo, auto-skipped if target mod absent
+            "compat.wildfiregender.GenderArmorLayerMixin"
     };
 
     @Override
