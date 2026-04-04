@@ -28,6 +28,16 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class HumanoidArmorLayerMixin<T extends LivingEntity, M extends HumanoidModel<T>, A extends HumanoidModel<T>> {
 
     @Inject(
+            method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/world/entity/LivingEntity;FFFFFF)V",
+            at = @At("HEAD")
+    )
+    private void capturePlayerName(PoseStack poseStack, MultiBufferSource bufferSource, int light, T entity, float f1, float f2, float f3, float f4, float f5, float f6, CallbackInfo ci) {
+        if (entity instanceof IdentityCarrier carrier) {
+            ArmorHiderClient.RENDER_CONTEXT.setCurrentPlayer(carrier.playerName());
+        }
+    }
+
+    @Inject(
             method = "renderArmorPiece",
             at = @At("HEAD"),
             cancellable = true
