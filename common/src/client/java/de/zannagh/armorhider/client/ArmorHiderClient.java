@@ -74,9 +74,9 @@ public class ArmorHiderClient {
         DebugLogger.enable();
         DebugLogger.log("Started debug logging.");
         DebugLogger.log("--- Mod configuration ---");
-        DebugLogger.log("The current local configuration is {}", ArmorHiderClient.CLIENT_CONFIG_MANAGER.local().toJson());
+        DebugLogger.log("The current local configuration is " + ArmorHiderClient.CLIENT_CONFIG_MANAGER.local().toJson());
         if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.getServerConfig() != null) {
-            DebugLogger.log("The current server configuration is {}", ArmorHiderClient.CLIENT_CONFIG_MANAGER.getServerConfig().toJson());
+            DebugLogger.log("The current server configuration is " + ArmorHiderClient.CLIENT_CONFIG_MANAGER.getServerConfig().toJson());
         }
         else {
             DebugLogger.log("The current server configuration is null");
