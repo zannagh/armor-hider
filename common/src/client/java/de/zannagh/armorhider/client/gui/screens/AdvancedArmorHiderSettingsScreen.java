@@ -197,11 +197,7 @@ public class AdvancedArmorHiderSettingsScreen extends ArmorHiderConfigurationScr
         debugButton = Button.builder(
                 getDebugButtonText(),
                 btn -> {
-                    if (DebugLogger.isEnabled()) {
-                        DebugLogger.disable();
-                    } else {
-                        DebugLogger.enable();
-                    }
+                    ArmorHiderClient.toggleDebugLogging();
                     btn.setMessage(getDebugButtonText());
                 })
                 .tooltip(Tooltip.create(Component.translatable("armorhider.options.debug.tooltip")))

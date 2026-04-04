@@ -105,14 +105,22 @@ public class ServerConfiguration implements ConfigurationSource<ServerConfigurat
                     ArmorHider.LOGGER.info("Loaded server config (v4 format).");
                 }
 
-                // Check if any player configs changed during deserialization
+                // Migrate embedded player configs from older schema versions
+                configuration.playerConfigs.replaceAll((uuid, pc) -> {
+                    if (pc.configVersion < PlayerConfig.CURRENT_CONFIG_VERSION) {
+                        return PlayerConfig.migrate(pc);
+                    }
+                    return pc;
+                });
+
+                // Check if any player configs changed during deserialization/migration
                 if (configuration.playerConfigs.values().stream().anyMatch(PlayerConfig::hasChangedFromSerializedContent) ||
-                        configuration.playerNameConfigs.values().stream().anyMatch(PlayerConfig::hasChangedFromSerializedContent) ||
                         configuration.serverWideSettings.hasChangedFromSerializedContent()) {
                     configuration.setHasChangedFromSerializedContent();
                 }
 
-                // Rebuild playerNameConfigs map if needed
+                // Rebuild playerNameConfigs from the (possibly migrated) playerConfigs
+                configuration.playerNameConfigs.clear();
                 configuration.playerConfigs.values().forEach(c ->
                         configuration.playerNameConfigs.put(c.playerName.getValue(), c));
 

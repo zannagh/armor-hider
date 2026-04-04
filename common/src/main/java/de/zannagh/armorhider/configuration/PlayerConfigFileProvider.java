@@ -38,11 +38,15 @@ public class PlayerConfigFileProvider implements ConfigurationProvider<PlayerCon
             if (Files.exists(FILE)) {
                 try (Reader r = Files.newBufferedReader(FILE)) {
                     var current = PlayerConfig.deserialize(r);
+
+                    if (current.configVersion < PlayerConfig.CURRENT_CONFIG_VERSION) {
+                        current = migrateConfig(current);
+                    }
+
                     if (current.hasChangedFromSerializedContent()) {
                         save(current);
                     }
                     ArmorHider.LOGGER.info("Loaded client config from file.");
-                    ArmorHider.LOGGER.info("Current config: {}", ArmorHider.GSON.toJson(current));
                     return current;
                 }
             } else {
@@ -56,6 +60,10 @@ public class PlayerConfigFileProvider implements ConfigurationProvider<PlayerCon
             save(defaults);
             return defaults;
         }
+    }
+
+    private PlayerConfig migrateConfig(PlayerConfig old) {
+        return PlayerConfig.migrate(old);
     }
 
     @Override

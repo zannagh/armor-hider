@@ -3,6 +3,7 @@ package de.zannagh.armorhider.client;
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.client.net.ClientCommunicationManager;
 import de.zannagh.armorhider.client.scopes.RenderContext;
+import de.zannagh.armorhider.log.DebugLogger;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.multiplayer.PlayerInfo;
@@ -59,5 +60,33 @@ public class ArmorHiderClient {
             return new Pair<>(false, null);
         }
         return new Pair<>(!profileName.equals(getCurrentPlayerName()), entry);
+    }
+    
+    public static void toggleDebugLogging() {
+        if (DebugLogger.isEnabled()) {
+            disableDebugLogging();
+        } else {
+            enableDebugLogging();
+        }
+    }
+    
+    private static void enableDebugLogging() {
+        DebugLogger.enable();
+        DebugLogger.log("Started debug logging.");
+        DebugLogger.log("--- Mod configuration ---");
+        DebugLogger.log("The current local configuration is {}", "Current config: {}", ArmorHiderClient.CLIENT_CONFIG_MANAGER.local().toJson());
+        if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.getServerConfig() != null) {
+            DebugLogger.log("The current server configuration is {}", ArmorHiderClient.CLIENT_CONFIG_MANAGER.getServerConfig().toJson());
+        }
+        else {
+            DebugLogger.log("The current server configuration is null");
+        }
+        
+        DebugLogger.log("--- End of mod configuration ---");
+    }
+
+    private static void disableDebugLogging() {
+        DebugLogger.log("Stopped debug logging due to client request.");
+        DebugLogger.disable();
     }
 }

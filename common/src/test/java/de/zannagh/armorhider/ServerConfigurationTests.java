@@ -426,6 +426,57 @@ public class ServerConfigurationTests {
         assertTrue(migratedConfig.hasChangedFromSerializedContent(), "Migration should mark config as changed");
     }
 
+    @Test
+    @DisplayName("Embedded player configs are migrated from pre-versioning format")
+    void upgradeEmbeddedPlayerConfigs() throws Exception {
+        // Simulates a server config from before config versioning (pre-0.10.0-pre.5).
+        // The embedded PlayerConfig entries have no configVersion or exclusionItems.
+        String preVersioningServerJson = """
+                {
+                    "serverWideSettings": {
+                        "enableCombatDetection": true,
+                        "forceArmorHiderOff": false
+                    },
+                    "playerConfigs": {
+                        "2eef3335-8d1f-3428-af42-f3cec9010d4c": {
+                            "helmetOpacity": 0.25,
+                            "helmetGlint": true,
+                            "chestOpacity": 1.0,
+                            "chestGlint": true,
+                            "legsOpacity": 1.0,
+                            "legsGlint": true,
+                            "bootsOpacity": 1.0,
+                            "bootsGlint": true,
+                            "enableCombatDetection": true,
+                            "opacityAffectingElytra": false,
+                            "opacityAffectingHatOrSkull": true,
+                            "disableArmorHider": false,
+                            "disableArmorHiderForOthers": false,
+                            "usePlayerSettingsWhenUndeterminable": true,
+                            "offHandOpacity": 1.0,
+                            "playerId": "2eef3335-8d1f-3428-af42-f3cec9010d4c",
+                            "playerName": "Player336"
+                        }
+                    }
+                }""";
+
+        ServerConfiguration config = ServerConfiguration.deserialize(preVersioningServerJson);
+        var playerConfig = config.getPlayerConfigOrDefault(
+                java.util.UUID.fromString("2eef3335-8d1f-3428-af42-f3cec9010d4c"));
+
+        assertNotNull(playerConfig, "player config should exist");
+        assertEquals(0.25, playerConfig.helmetOpacity.getValue(), "opacity preserved after migration");
+        assertEquals(false, playerConfig.opacityAffectingElytra.getValue(), "elytra setting preserved");
+        assertNotNull(playerConfig.exclusionItems, "exclusionItems should be initialized after migration");
+        assertFalse(playerConfig.exclusionItems
+                        .getItemsForSlot(net.minecraft.world.entity.EquipmentSlot.HEAD).isEmpty(),
+                "exclusionItems HEAD slot should have default items");
+        assertEquals(de.zannagh.armorhider.net.packets.PlayerConfig.CURRENT_CONFIG_VERSION,
+                playerConfig.configVersion, "configVersion should be current after migration");
+
+        assertTrue(config.hasChangedFromSerializedContent(), "server config should be marked changed");
+    }
+
     private @NonNull String formatBytes(int bytes) {
         if (bytes < 1024) {
             return bytes + "B";

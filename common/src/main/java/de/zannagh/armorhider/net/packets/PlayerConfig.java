@@ -26,6 +26,20 @@ import net.minecraft.resources.Identifier;
 
 public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
 
+    /**
+     * Config schema version. Absent (0) in configs from before versioning was introduced.
+     * Incremented when the config structure changes in a way that requires migration.
+     * <ul>
+     *   <li>0 = pre-versioning (before 0.10.0-pre.5)</li>
+     *   <li>1 = first versioned format (0.10.0-pre.5+, added exclusionItems)</li>
+     * </ul>
+     */
+    @SerializedName(value = "configVersion")
+    public int configVersion;
+
+    /** The current config schema version. */
+    public static final int CURRENT_CONFIG_VERSION = 1;
+    
     //? if >= 1.21.11 {
     public static final Identifier PACKET_IDENTIFIER = Identifier.fromNamespaceAndPath("de.zannagh.armorhider", "settings_c2s_packet");
     //?}
@@ -88,13 +102,14 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
     /** Per-item exclusion configuration. Null-safe via {@link #getExclusionItems()}. */
     @SerializedName(value = "exclusionItems")
     public ExclusionItemConfiguration exclusionItems;
-    
+
     private transient boolean hasChangedFromSerializedContent;
     
     public PlayerConfig(UUID uuid, String name) {
         this();
         this.playerId = new PlayerUuid(uuid);
         this.playerName = new PlayerName(name);
+        this.configVersion = CURRENT_CONFIG_VERSION;
     }
 
     public PlayerConfig() {
@@ -147,6 +162,42 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         return new PlayerConfig(playerId, playerName);
     }
 
+    /**
+     * Migrates a config from an older schema version to the current one.
+     * Creates a fresh config with all current defaults, then overlays
+     * the values that were present in the old config.
+     */
+    public static @NonNull PlayerConfig migrate(@NonNull PlayerConfig old) {
+        ArmorHider.LOGGER.info("Migrating player config for {} from version {} to {}.",
+                old.playerName.getValue(), old.configVersion, CURRENT_CONFIG_VERSION);
+
+        var fresh = new PlayerConfig(old.playerId.getValue(), old.playerName.getValue());
+
+        fresh.helmetOpacity.setValue(old.helmetOpacity.getValue());
+        fresh.chestOpacity.setValue(old.chestOpacity.getValue());
+        fresh.legsOpacity.setValue(old.legsOpacity.getValue());
+        fresh.bootsOpacity.setValue(old.bootsOpacity.getValue());
+        fresh.helmetGlint.setValue(old.helmetGlint.getValue());
+        fresh.chestGlint.setValue(old.chestGlint.getValue());
+        fresh.legsGlint.setValue(old.legsGlint.getValue());
+        fresh.bootsGlint.setValue(old.bootsGlint.getValue());
+        fresh.enableCombatDetection.setValue(old.enableCombatDetection.getValue());
+        fresh.opacityAffectingElytra.setValue(old.opacityAffectingElytra.getValue());
+        fresh.opacityAffectingHatOrSkull.setValue(old.opacityAffectingHatOrSkull.getValue());
+        fresh.disableArmorHider.setValue(old.disableArmorHider.getValue());
+        fresh.disableArmorHiderForOthers.setValue(old.disableArmorHiderForOthers.getValue());
+        fresh.usePlayerSettingsWhenUndeterminable.setValue(old.usePlayerSettingsWhenUndeterminable.getValue());
+        fresh.offHandOpacity.setValue(old.offHandOpacity.getValue());
+
+        if (old.exclusionItems != null
+                && !old.exclusionItems.getItemsForSlot(net.minecraft.world.entity.EquipmentSlot.HEAD).isEmpty()) {
+            fresh.exclusionItems = old.exclusionItems.deepCopy();
+        }
+
+        fresh.setHasChangedFromSerializedContent();
+        return fresh;
+    }
+
     @Override
     public boolean hasChangedFromSerializedContent() {
         return hasChangedFromSerializedContent;
@@ -155,6 +206,10 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
     @Override
     public void setHasChangedFromSerializedContent() {
         hasChangedFromSerializedContent = true;
+    }
+    
+    public String toJson() {
+        return ArmorHider.GSON.toJson(this);   
     }
 
     public PlayerConfig deepCopy(String playerName, UUID playerId) {
