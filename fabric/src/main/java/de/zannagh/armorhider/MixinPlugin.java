@@ -18,7 +18,8 @@ public class MixinPlugin implements IMixinConfigPlugin {
     };
 
     private static final String[] AT_OR_ABOVE_1_20_5_MIXINS_FABRIC = new String[]{
-            "CustomPayloadCodecMixin",
+            "ClientboundCustomPayloadPacketMixin",
+            "ServerboundCustomPayloadPacketMixin",
             "ServerGamePacketListenerMixin"
     };
 
