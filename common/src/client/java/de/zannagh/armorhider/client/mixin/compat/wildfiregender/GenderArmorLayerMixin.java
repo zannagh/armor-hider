@@ -34,6 +34,7 @@ import net.minecraft.resources.Identifier;
  * Applies chest armor hiding, transparency, and glint control
  * to the breast armor geometry rendered by {@code GenderArmorLayer}.
  */
+@SuppressWarnings("UnresolvedMixinReference")
 @Pseudo
 @Mixin(targets = "com.wildfire.render.GenderArmorLayer", remap = false)
 public class GenderArmorLayerMixin {
@@ -205,6 +206,7 @@ public class GenderArmorLayerMixin {
         ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
     }
 
+    // Target ARGB.opaque (1.21.4+) — silently skipped on older versions via require = 0
     @WrapOperation(
             method = "renderBreastArmor",
             require = 0,
@@ -213,6 +215,19 @@ public class GenderArmorLayerMixin {
                     remap = true)
     )
     private int modifyBreastArmorColor(int color, Operation<Integer> original) {
+        int opaqueColor = original.call(color);
+        return RenderModifications.applyArmorTransparency(ArmorHiderClient.RENDER_CONTEXT, opaqueColor);
+    }
+
+    // Target FastColor.ARGB32.opaque (1.21–1.21.1) — silently skipped on newer versions via require = 0
+    @WrapOperation(
+            method = "renderBreastArmor",
+            require = 0,
+            at = @At(value = "INVOKE",
+                    target = "Lnet/minecraft/util/FastColor$ARGB32;opaque(I)I",
+                    remap = true)
+    )
+    private int modifyBreastArmorColorLegacy(int color, Operation<Integer> original) {
         int opaqueColor = original.call(color);
         return RenderModifications.applyArmorTransparency(ArmorHiderClient.RENDER_CONTEXT, opaqueColor);
     }
@@ -283,41 +298,51 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.ArmorMaterial;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.armortrim.ArmorTrim;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Pseudo;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Coerce;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+// Compat for Wildfire's Female Gender Mod on 1.20.x.
+// On these versions the class is GenderLayer (not GenderArmorLayer)
+// and armor rendering happens in renderVanillaLikeBreastArmor.
+// No transparency support: Wildfire uses a custom renderBox with hardcoded alpha.
+@SuppressWarnings("UnresolvedMixinReference")
 @Pseudo
-@Mixin(targets = "com.wildfire.render.GenderArmorLayer", remap = false)
+@Mixin(targets = "com.wildfire.render.GenderLayer", remap = false)
 public class GenderArmorLayerMixin {
 
     // ========================
-    // renderBreastArmor
+    // renderVanillaLikeBreastArmor
     // ========================
 
-    @Inject(method = "renderBreastArmor", at = @At("HEAD"), cancellable = true)
-    private void interceptBreastArmor(LivingEntity entity, PoseStack poseStack,
-            MultiBufferSource bufferSource, int light,
-            @Coerce Object side, CallbackInfo ci) {
-        if (!(entity instanceof IdentityCarrier carrier)) return;
-        var mod = carrier.createModification(EquipmentSlot.CHEST, entity.getItemBySlot(EquipmentSlot.CHEST));
+    @Inject(method = "renderVanillaLikeBreastArmor", at = @At("HEAD"), cancellable = true)
+    private void interceptBreastArmor(Player player, PoseStack poseStack,
+            MultiBufferSource bufferSource, ArmorItem armorItem, ItemStack itemStack,
+            int light, boolean isLeft, CallbackInfo ci) {
+        if (!(player instanceof IdentityCarrier carrier)) return;
+        var mod = carrier.createModification(EquipmentSlot.CHEST, itemStack);
         if (mod != null && mod.shouldHide()) {
-            // Don't clear — let renderArmorTrim see the modification too,
-            // since it doesn't receive the entity and can't create its own.
             ci.cancel();
+            return;
         }
     }
 
-    // No RETURN clear here: the modification must persist for renderArmorTrim
-    // which is called next and has no entity access. Cleared at renderArmorTrim RETURN
-    // or overwritten by the next renderBreastArmor call (other breast side).
+    @Inject(method = "renderVanillaLikeBreastArmor", at = @At("RETURN"))
+    private void clearBreastArmorContext(Player player, PoseStack poseStack,
+            MultiBufferSource bufferSource, ArmorItem armorItem, ItemStack itemStack,
+            int light, boolean isLeft, CallbackInfo ci) {
+        ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
+    }
 
     @WrapOperation(
-            method = "renderBreastArmor",
+            method = "renderVanillaLikeBreastArmor",
             require = 0,
             at = @At(value = "INVOKE",
                     target = "Lnet/minecraft/client/renderer/RenderType;armorCutoutNoCull(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/RenderType;",
@@ -328,7 +353,7 @@ public class GenderArmorLayerMixin {
     }
 
     @ModifyExpressionValue(
-            method = "renderBreastArmor",
+            method = "renderVanillaLikeBreastArmor",
             require = 0,
             at = @At(value = "INVOKE",
                     target = "Lnet/minecraft/world/item/ItemStack;hasFoil()Z",
@@ -347,9 +372,9 @@ public class GenderArmorLayerMixin {
     // ========================
 
     @Inject(method = "renderArmorTrim", at = @At("HEAD"), cancellable = true)
-    private void interceptArmorTrim(@Coerce Object material, PoseStack poseStack,
+    private void interceptArmorTrim(ArmorMaterial material, PoseStack poseStack,
             MultiBufferSource bufferSource, int light,
-            @Coerce Object trim, boolean glint, @Coerce Object side, CallbackInfo ci) {
+            ArmorTrim trim, boolean glint, boolean isLeft, CallbackInfo ci) {
         var mod = ArmorHiderClient.RENDER_CONTEXT.activeModification();
         if (mod != null && mod.shouldHide()) {
             ci.cancel();
@@ -357,9 +382,9 @@ public class GenderArmorLayerMixin {
     }
 
     @Inject(method = "renderArmorTrim", at = @At("RETURN"))
-    private void clearArmorTrimContext(@Coerce Object material, PoseStack poseStack,
+    private void clearArmorTrimContext(ArmorMaterial material, PoseStack poseStack,
             MultiBufferSource bufferSource, int light,
-            @Coerce Object trim, boolean glint, @Coerce Object side, CallbackInfo ci) {
+            ArmorTrim trim, boolean glint, boolean isLeft, CallbackInfo ci) {
         ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
     }
 
