@@ -35,9 +35,11 @@ public class ClientboundCustomPayloadPacketMixin {
         if (types instanceof ArmorHiderPayloadList) return types;
 
         var s2cPackets = PayloadRegistry.getAllS2C();
-        if (types.stream().anyMatch(tac -> s2cPackets.containsKey(tac.type().id()))) return types;
+        if (types.stream().anyMatch(tac -> s2cPackets.containsKey(tac.type().id()))) {
+            return types;
+        }
 
-        ArmorHiderPayloadList modifiedTypes = new ArmorHiderPayloadList<>(types);
+        ArmorHiderPayloadList<CustomPacketPayload.TypeAndCodec<?, ?>> modifiedTypes = new ArmorHiderPayloadList<>(types);
         ArmorHider.LOGGER.info("Injecting S2C payloads into ClientboundCustomPayloadPacket codec. Current types: {}, adding: {}",
                 types.size(), s2cPackets.size());
         s2cPackets.forEach((id, entry) -> {

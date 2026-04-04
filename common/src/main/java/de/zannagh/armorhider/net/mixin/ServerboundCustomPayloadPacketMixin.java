@@ -35,9 +35,11 @@ public class ServerboundCustomPayloadPacketMixin {
         if (types instanceof ArmorHiderPayloadList) return types;
 
         var c2sPackets = PayloadRegistry.getAllC2S();
-        if (types.stream().anyMatch(tac -> c2sPackets.containsKey(tac.type().id()))) return types;
+        if (types.stream().anyMatch(tac -> c2sPackets.containsKey(tac.type().id()))) {
+            return types;
+        }
 
-        ArmorHiderPayloadList modifiedTypes = new ArmorHiderPayloadList<>(types);
+        ArmorHiderPayloadList<CustomPacketPayload.TypeAndCodec<?, ?>> modifiedTypes = new ArmorHiderPayloadList<>(types);
         ArmorHider.LOGGER.info("Injecting C2S payloads into ServerboundCustomPayloadPacket codec. Current types: {}, adding: {}",
                 types.size(), c2sPackets.size());
         c2sPackets.forEach((id, entry) -> {
