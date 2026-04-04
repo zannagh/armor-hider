@@ -30,8 +30,8 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
      * Config schema version. Absent (0) in configs from before versioning was introduced.
      * Incremented when the config structure changes in a way that requires migration.
      * <ul>
-     *   <li>0 = pre-versioning (before 0.10.0-pre.5)</li>
-     *   <li>1 = first versioned format (0.10.0-pre.5+, added exclusionItems)</li>
+     *   <li>0 = pre-versioning format (before 0.10.0-pre.5)</li>
+     *   <li>1 = introduced explicit configVersion/schema versioning (0.10.0-pre.5+)</li>
      * </ul>
      */
     @SerializedName(value = "configVersion")
