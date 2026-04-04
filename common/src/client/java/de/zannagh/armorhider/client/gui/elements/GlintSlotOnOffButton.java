@@ -3,40 +3,28 @@ package de.zannagh.armorhider.client.gui.elements;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.function.Function;
-
 public class GlintSlotOnOffButton extends LayeredButton {
-    @Nullable private final Item slotItem;
-    @Nullable private ItemStack cachedSlotStack;
+    @Nullable private final Identifier slotSprite;
 
     @Override
-    protected @Nullable ItemStack midLayer() {
-        if (slotItem == null) return null;
-        if (cachedSlotStack == null) {
-            try {
-                cachedSlotStack = new ItemStack(slotItem);
-            } catch (Exception ignored) {}
-        }
-        return cachedSlotStack;
+    protected @Nullable Identifier midLayerSprite() {
+        return slotSprite;
     }
 
-    @Override
+    //? if < 1.21 {
+    /*@Override
     protected int statusBorderColor() {
-        return isEnabled ? 0xCCFFFF00 : 0; // semi-transparent yellow border when glint on
+        return isEnabled ? 0xCCFFFF00 : 0;
     }
+    *///?}
 
     //? if >= 1.21 {
     @Override
-    protected Function<Boolean, @Nullable Identifier> spriteForeground() {
-        return this::spriteForeground;
+    protected @Nullable Identifier spriteForeground(boolean enabled) {
+        return enabled ? modSprite("air_bursting") : null;
     }
-
-    protected Identifier spriteForeground(Boolean input) { return input ? Identifier.withDefaultNamespace("hud/air_bursting") : Identifier.withDefaultNamespace(""); }
     //?}
 
     @Override
@@ -86,19 +74,19 @@ public class GlintSlotOnOffButton extends LayeredButton {
     public GlintSlotOnOffButton(boolean initial, EquipmentSlot slot, int width, int height, OnPress onPress) {
         super(slot, width, height, initial ? GlintSlotOnOffButton.enabledMsg(slot) : GlintSlotOnOffButton.disabledMsg(slot), onPress);
         if (slot == EquipmentSlot.HEAD) {
-            slotItem = Items.IRON_HELMET;
+            slotSprite = modSprite("iron_helmet");
         }
         else if (slot == EquipmentSlot.CHEST) {
-            slotItem = Items.IRON_CHESTPLATE;
+            slotSprite = modSprite("iron_chestplate");
         }
         else if (slot == EquipmentSlot.LEGS) {
-            slotItem = Items.IRON_LEGGINGS;
+            slotSprite = modSprite("iron_leggings");
         }
         else if (slot == EquipmentSlot.FEET) {
-            slotItem = Items.IRON_BOOTS;
+            slotSprite = modSprite("iron_boots");
         }
         else {
-            slotItem = null;
+            slotSprite = null;
         }
         super.setEnabled(initial);
     }
