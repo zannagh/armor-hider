@@ -189,8 +189,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         fresh.usePlayerSettingsWhenUndeterminable.setValue(old.usePlayerSettingsWhenUndeterminable.getValue());
         fresh.offHandOpacity.setValue(old.offHandOpacity.getValue());
 
-        if (old.exclusionItems != null
-                && !old.exclusionItems.getItemsForSlot(net.minecraft.world.entity.EquipmentSlot.HEAD).isEmpty()) {
+        if (old.exclusionItems != null) {
             fresh.exclusionItems = old.exclusionItems.deepCopy();
         }
 
