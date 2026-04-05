@@ -33,6 +33,19 @@ public abstract class LayeredButton extends Button {
     //? if < 1.21
     //protected static Identifier modSprite(String name) { return new Identifier("armor-hider", name); }
 
+    //? if < 1.21 {
+    /*@Nullable private Identifier cachedMidLayerTexture;
+    private @Nullable Identifier midLayerTextureId() {
+        if (cachedMidLayerTexture == null) {
+            var sprite = midLayerSprite();
+            if (sprite != null) {
+                cachedMidLayerTexture = new Identifier(sprite.getNamespace(), "textures/gui/sprites/" + sprite.getPath() + ".png");
+            }
+        }
+        return cachedMidLayerTexture;
+    }
+    *///?}
+
     protected final EquipmentSlot slot;
 
     public LayeredButton(EquipmentSlot slot, int width, int height, Component message, OnPress onPress) {
@@ -137,9 +150,8 @@ public abstract class LayeredButton extends Button {
         super.setMessage(Component.empty());
         super.renderWidget(guiGraphics, mouseX, mouseY, partialTick);
         super.setMessage(savedMsg);
-        var sprite = midLayerSprite();
-        if (sprite != null) {
-            var texture = new Identifier(sprite.getNamespace(), "textures/gui/sprites/" + sprite.getPath() + ".png");
+        var texture = midLayerTextureId();
+        if (texture != null) {
             guiGraphics.blit(texture, this.getX() + (this.width - 15) / 2, this.getY() + (this.height - 15) / 2, 15, 15, 0, 0, 16, 16, 16, 16);
         }
         guiGraphics.pose().pushPose();
