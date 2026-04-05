@@ -28,7 +28,7 @@ public class CapeRenderMixin {
             cancellable = true
     )
     private void setupCapeRenderContext(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int light, AvatarRenderState avatarRenderState, float f, float g, CallbackInfo ci) {
-        var mod = ((IdentityCarrier) avatarRenderState).createModification(EquipmentSlot.CHEST, null);
+        var mod = ((IdentityCarrier) avatarRenderState).createModification(EquipmentSlot.CHEST, avatarRenderState.chestEquipment);
 
         if (avatarRenderState instanceof IdentityCarrier carrier
                 && carrier.isPlayerFlying()
@@ -118,7 +118,7 @@ public class CapeRenderMixin {
             cancellable = true
     )
     private void setupCapeRenderContext(PoseStack poseStack, MultiBufferSource multiBufferSource, int light, AvatarRenderState playerRenderState, float f, float g, CallbackInfo ci) {
-        var mod = ((IdentityCarrier) playerRenderState).createModification(EquipmentSlot.CHEST, null);
+        var mod = ((IdentityCarrier) playerRenderState).createModification(EquipmentSlot.CHEST, playerRenderState.chestEquipment);
 
         if (playerRenderState instanceof IdentityCarrier carrier
                 && carrier.isPlayerFlying()
@@ -208,7 +208,7 @@ public class CapeRenderMixin {
             cancellable = true
     )
     private void setupCapeRenderContext(PoseStack poseStack, MultiBufferSource bufferSource, int light, AbstractClientPlayer player, float limbSwing, float limbSwingAmount, float partialTick, float ageInTicks, float netHeadYaw, float headPitch, CallbackInfo ci) {
-        var mod = ((IdentityCarrier) player).createModification(EquipmentSlot.CHEST, null);
+        var mod = ((IdentityCarrier) player).createModification(EquipmentSlot.CHEST, player.getItemBySlot(EquipmentSlot.CHEST));
 
         if (player instanceof IdentityCarrier carrier
                 && carrier.isPlayerFlying()
