@@ -7,10 +7,6 @@ import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
-
-//? if < 26.1-1.pre.1
-//import net.minecraft.client.gui.GuiGraphics;
-//? if >= 26.1-1.pre.1
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 import java.awt.Color;
@@ -83,7 +79,7 @@ public class PlayerPreviewWidget extends AbstractWidget {
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.player.LocalPlayer;

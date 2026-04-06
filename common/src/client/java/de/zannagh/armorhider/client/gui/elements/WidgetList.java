@@ -3,10 +3,7 @@ package de.zannagh.armorhider.client.gui.elements;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.ContainerObjectSelectionList;
-//? if >= 26.1-1.pre.1
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-//? if < 26.1-1.pre.1
-//import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
 

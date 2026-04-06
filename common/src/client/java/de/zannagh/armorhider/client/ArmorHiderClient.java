@@ -19,6 +19,19 @@ public class ArmorHiderClient {
     public static ClientConfigManager CLIENT_CONFIG_MANAGER = new ClientConfigManager();
     public static RenderContext RENDER_CONTEXT = new RenderContext();
 
+    /** True if GeckoLib is on the classpath — used to counteract mods like FantasyArmor
+     *  that hide vanilla player-model arms when GeckoLib armor is equipped. */
+    public static final boolean GECKOLIB_LOADED = classExists("software.bernie.geckolib.renderer.GeoArmorRenderer");
+
+    private static boolean classExists(String name) {
+        try {
+            Class.forName(name, false, ArmorHiderClient.class.getClassLoader());
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
+
     public static void init() {
         ArmorHider.LOGGER.info("Armor Hider client initializing...");
         ClientCommunicationManager.initClient();

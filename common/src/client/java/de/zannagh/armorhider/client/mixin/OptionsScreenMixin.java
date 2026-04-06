@@ -54,9 +54,9 @@ public abstract class OptionsScreenMixin extends Screen {
                 Component.translatable("armorhider.options.mod_title"),
                 button ->
                         //? if < 1.21
-                        //this.minecraft.setScreen(new ArmorHiderOptionsScreen(this, this.options))
+                        //this.minecraft.setScreenAndShow(new ArmorHiderOptionsScreen(this, this.options))
                 //? if >= 1.21
-                this.minecraft.setScreen(new ArmorHiderOptionsScreen(this, this.options))
+                this.minecraft.setScreenAndShow(new ArmorHiderOptionsScreen(this, this.options))
         ).width(200).build();
         instance.addChild(settingsButton, 2, instance.newCellSettings().paddingTop(-26).paddingBottom(6));
         return layoutElement;
@@ -77,9 +77,9 @@ public abstract class OptionsScreenMixin extends Screen {
                 Component.translatable("armorhider.options.mod_title"),
                 button ->
                         //? if < 1.21
-                        //this.minecraft.setScreen(new ArmorHiderOptionsScreen(this, this.options))
+                        //this.minecraft.setScreenAndShow(new ArmorHiderOptionsScreen(this, this.options))
                         //? if >= 1.21
-                        this.minecraft.setScreen(new ArmorHiderOptionsScreen(this, this.options))).width(200).build();
+                        this.minecraft.setScreenAndShow(new ArmorHiderOptionsScreen(this, this.options))).width(200).build();
         returnValue.addChild(settingsButton, 2, instance.newCellSettings().paddingTop(-26).paddingBottom(6));
         return returnValue;
     }

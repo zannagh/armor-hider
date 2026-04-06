@@ -83,7 +83,9 @@ public record ActiveModification(
         boolean disableGlint = getDisableGlintForSlot(config, resolvedSlot);
 
         boolean shouldModify = (transparency < 1 - ArmorOpacity.TRANSPARENCY_STEP / 2) || disableGlint;
-        if (!shouldModify) return null;
+        if (!shouldModify) {
+            return null;
+        }
 
         boolean shouldHide = transparency < ArmorOpacity.TRANSPARENCY_STEP;
 
@@ -97,6 +99,15 @@ public record ActiveModification(
     public static boolean isSlotFullyHidden(@NotNull String playerName, @NotNull EquipmentSlot slot, @NotNull ItemStack item) {
         var mod = create(playerName, slot, item);
         return mod != null && mod.shouldHide;
+    }
+
+    /**
+     * Checks if a slot would cause any modification by armor hider for a player, without needing a render context.
+     * Used by {@code PlayerMixin} and {@code CapeRenderMixin}.
+     */
+    public static boolean isSlotModified(@NotNull String playerName, @NotNull EquipmentSlot slot, @NotNull ItemStack item) {
+        var mod = create(playerName, slot, item);
+        return mod != null && ((mod.transparency < 1 - ArmorOpacity.TRANSPARENCY_STEP / 2) || mod.shouldDisableGlint);
     }
 
     private static double getTransparencyForSlot(@NotNull PlayerConfig config, @NotNull EquipmentSlot slot) {

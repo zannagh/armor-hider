@@ -137,7 +137,7 @@ public class ArmorHiderOptionsScreen extends ArmorHiderConfigurationScreen {
                     //? if >= 1.21.9
                     Minecraft.getInstance().setScreenAndShow(new AdvancedArmorHiderSettingsScreen(this, gameOptions, this.title));
                     //? if < 1.21.9
-                    //Minecraft.getInstance().setScreen(new AdvancedArmorHiderSettingsScreen(this, gameOptions, this.title));
+                    //Minecraft.getInstance().setScreenAndShow(new AdvancedArmorHiderSettingsScreen(this, gameOptions, this.title));
                 }
         ).tooltip(Tooltip.create(Component.translatable("armorhider.options.regular.title"))).build());
     }

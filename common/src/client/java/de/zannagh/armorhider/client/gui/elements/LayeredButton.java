@@ -101,8 +101,8 @@ public abstract class LayeredButton extends Button {
     *///?}
 
     //? if <= 1.21.10 && >= 1.21.6 {
-    /*
-    @Override
+    
+    /*@Override
     protected void renderWidget(GuiGraphics guiGraphics, int i, int j, float f) {
         guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, spriteBg(), this.getX(), this.getY(), this.width, this.height);
         if (spriteForeground(isEnabled) instanceof Identifier identifier && !identifier.getPath().isEmpty()) {
@@ -129,8 +129,8 @@ public abstract class LayeredButton extends Button {
     *///?}
 
     //? if < 1.21.4 && >= 1.21 {
-    /*
-    @Override
+    
+    /*@Override
     protected void renderWidget(GuiGraphics guiGraphics, int i, int j, float f) {
         guiGraphics.blitSprite(spriteBg(), this.getX(), this.getY(), this.width, this.height);
         if (spriteForeground(isEnabled) instanceof Identifier identifier && !identifier.getPath().isEmpty()) {

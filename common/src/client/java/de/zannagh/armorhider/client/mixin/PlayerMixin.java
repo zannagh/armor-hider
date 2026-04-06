@@ -18,12 +18,28 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(Player.class)
 public class PlayerMixin implements IdentityCarrier {
+
+    @Unique
+    private boolean armorHider$needsArmRerender;
+
+    @Override
+    public void setNeedsArmRerender() {
+        armorHider$needsArmRerender = true;
+    }
+
+    @Override
+    public boolean pollNeedsArmRerender() {
+        boolean needs = armorHider$needsArmRerender;
+        armorHider$needsArmRerender = false;
+        return needs;
+    }
     
     @Override
     public @Nullable String playerName() {

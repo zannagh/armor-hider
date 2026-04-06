@@ -13,6 +13,13 @@ stonecutter {
 }
 
 configure<net.fabricmc.loom.api.LoomGradleExtensionAPI> {
+    if (sc.current.parsed < dev.kikugie.stonecutter.data.ParsedVersion("1.21.9")) {
+        val awFile = rootProject.file("common/src/main/resources/armor-hider.accesswidener")
+        if (awFile.exists()) {
+            accessWidenerPath.set(awFile)
+        }
+    }
+
     splitEnvironmentSourceSets()
 
     mods {

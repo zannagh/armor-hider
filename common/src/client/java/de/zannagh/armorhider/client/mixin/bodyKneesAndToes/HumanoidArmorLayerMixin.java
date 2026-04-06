@@ -12,7 +12,9 @@ import de.zannagh.armorhider.client.scopes.IdentityCarrier;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
+import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
@@ -25,7 +27,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 // Mixin for armor rendering in 1.21/1.21.1 versions.
 @Mixin(HumanoidArmorLayer.class)
-public class HumanoidArmorLayerMixin<T extends LivingEntity, M extends HumanoidModel<T>, A extends HumanoidModel<T>> {
+public abstract class HumanoidArmorLayerMixin<T extends LivingEntity, M extends HumanoidModel<T>, A extends HumanoidModel<T>> extends RenderLayer<T, M> {
+
+    protected HumanoidArmorLayerMixin(RenderLayerParent<T, M> renderer) {
+        super(renderer);
+    }
 
     @Inject(
             method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/world/entity/LivingEntity;FFFFFF)V",
@@ -129,6 +135,7 @@ public class HumanoidArmorLayerMixin<T extends LivingEntity, M extends HumanoidM
         int modifiedColor = RenderModifications.applyArmorTransparency(ArmorHiderClient.RENDER_CONTEXT, packedOverlay);
         model.renderToBuffer(poseStack, vertexConsumer, packedLight, packedOverlay, modifiedColor);
     }
+
 }
 *///?}
 
@@ -146,7 +153,9 @@ import de.zannagh.armorhider.client.scopes.IdentityCarrier;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
+import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
@@ -158,7 +167,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 // Mixin for armor rendering in 1.20.x versions.
 @Mixin(HumanoidArmorLayer.class)
-public class HumanoidArmorLayerMixin<T extends LivingEntity, M extends HumanoidModel<T>, A extends HumanoidModel<T>> {
+public abstract class HumanoidArmorLayerMixin<T extends LivingEntity, M extends HumanoidModel<T>, A extends HumanoidModel<T>> extends RenderLayer<T, M> {
+
+    protected HumanoidArmorLayerMixin(RenderLayerParent<T, M> renderer) {
+        super(renderer);
+    }
 
     @Inject(
             method = "renderArmorPiece",
@@ -236,5 +249,6 @@ public class HumanoidArmorLayerMixin<T extends LivingEntity, M extends HumanoidM
         float modifiedAlpha = RenderModifications.getTransparencyAlpha(ArmorHiderClient.RENDER_CONTEXT);
         original.call(model, poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, modifiedAlpha);
     }
+
 }
 *///?}

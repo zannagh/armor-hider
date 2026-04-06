@@ -26,14 +26,39 @@ public interface IdentityCarrier {
     /**
      * Creates a rendering modification for the given equipment slot and item.
      * Returns {@code null} when no modification is needed.
-     * Also sets the active context if the modification is not null via {@link RenderContext#setActiveModification(ActiveModification)} 
+     * Also sets the active context if the modification is not null via {@link RenderContext#setActiveModification(ActiveModification)}
      */
     default @Nullable ActiveModification createModification(@NotNull EquipmentSlot slot, @Nullable ItemStack item) {
-        
+
         var mod = ActiveModification.create(playerName(), slot, item);
         if (mod != null) {
             ArmorHiderClient.RENDER_CONTEXT.setActiveModification(mod);
+        } else {
+            // Clear any stale modification from a previous slot to prevent context leaks.
+            ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
         }
         return mod;
     }
+
+    /**
+     * Signals that a compat layer (e.g. GeckoLib) needs the vanilla arm model
+     * parts re-rendered because its custom armor model includes body geometry.
+     */
+    default void setNeedsArmRerender() {}
+
+    /**
+     * Returns and clears the arm re-render flag.
+     */
+    default boolean pollNeedsArmRerender() { return false; }
+
+    /**
+     * Saves the original GeckoLib render color before patching for transparency,
+     * so it can be restored after GeckoLib finishes rendering the slot.
+     */
+    default void saveGeckoLibColor(int color) {}
+
+    /**
+     * Returns and clears the saved GeckoLib render color.
+     */
+    default @Nullable Integer pollSavedGeckoLibColor() { return null; }
 }
