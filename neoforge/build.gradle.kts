@@ -36,6 +36,26 @@ val expandResourcesForIdea = registerExpandResourcesForIdea(
 expandResourcesForIdea.configure { dependsOn(tasks.classes, tasks.named("clientClasses")) }
 patchIdeRunConfigsAllowParallel()
 
+repositories {
+    maven("https://api.modrinth.com/maven") {
+        content { includeGroup("maven.modrinth") }
+    }
+}
+
+// ElytraTrims compat — only for versions where compat class compiles (>= 1.21.9)
+val needsElytraTrims = project.isDeobf || project.mcVersion.let {
+    it.startsWith("1.21.") && (it.removePrefix("1.21.").toIntOrNull() ?: 0) >= 9
+}
+if (needsElytraTrims) {
+    dependencies {
+        if (project.isDeobf) {
+            compileOnly("maven.modrinth:elytra-trims:fE4eMbIS")       // ET 4.7.0 NeoForge 26.1
+        } else {
+            compileOnly("maven.modrinth:elytra-trims:GxM8lsm4")       // ET 4.5.7 NeoForge 1.21.9+
+        }
+    }
+}
+
 neoForge {
     version = neoforgeVersion
 

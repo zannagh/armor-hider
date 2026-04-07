@@ -22,6 +22,30 @@ public class ArmorHiderClient {
     public static void init() {
         ArmorHider.LOGGER.info("Armor Hider client initializing...");
         ClientCommunicationManager.initClient();
+        initCompat();
+    }
+
+    private static void initCompat() {
+        loadCompat("dev.kikugie.elytratrims.api.render.ETRenderingAPI",
+                "de.zannagh.armorhider.client.compat.elytratrims.ElytraTrimsCompat");
+    }
+
+    /**
+     * Loads an optional compatibility module via reflection.
+     * The compat class must have a public static {@code init()} method.
+     *
+     * @param apiClass    a class from the target mod; used as a presence check
+     * @param compatClass the fully-qualified Armor Hider compat class to initialise
+     */
+    private static void loadCompat(String apiClass, String compatClass) {
+        try {
+            Class.forName(apiClass, false, ArmorHiderClient.class.getClassLoader());
+            Class.forName(compatClass).getMethod("init").invoke(null);
+        } catch (ClassNotFoundException ignored) {
+            // Target mod or compat class not present
+        } catch (Exception e) {
+            ArmorHider.LOGGER.error("Failed to initialise compat: {}", compatClass, e);
+        }
     }
     
     public static @NonNull Boolean isClientConnectedToServer() {

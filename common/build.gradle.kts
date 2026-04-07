@@ -47,9 +47,25 @@ configure<net.fabricmc.loom.api.LoomGradleExtensionAPI> {
     }
 }
 
+repositories {
+    maven("https://api.modrinth.com/maven") {
+        content { includeGroup("maven.modrinth") }
+    }
+}
+
 dependencies {
     if (!project.isDeobf) {
         add("modCompileOnly", "net.fabricmc:fabric-loader:${property("loader_version")}")
+    }
+
+    // ElytraTrims compat — only needed for versions where the compat class compiles (>= 1.21.9).
+    // Must use version-matched artifacts: MC types move packages across major versions.
+    if (project.isDeobf) {
+        compileOnly("maven.modrinth:elytra-trims:q7SmWLkn")       // ET 4.7.0 for 26.1
+    } else if (project.mcVersion.let {
+        it.startsWith("1.21.") && (it.removePrefix("1.21.").toIntOrNull() ?: 0) >= 9
+    }) {
+        add("modCompileOnly", "maven.modrinth:elytra-trims:iLC0LP3D") // ET 4.5.7 for 1.21.9+
     }
 
     compileOnly("org.jspecify:jspecify:1.0.0")
