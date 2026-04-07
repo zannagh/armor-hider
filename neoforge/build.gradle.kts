@@ -55,6 +55,21 @@ if (geckoLibNeeded) {
     }
 }
 
+// ElytraTrims compat — only for versions where compat class compiles (>= 1.21.9)
+// The 1.21.9 artifact uses ResourceLocation which was renamed in 1.21.11, so cap at < 1.21.11.
+val needsElytraTrims = project.isDeobf || project.mcVersion.let {
+    it.startsWith("1.21.") && (it.removePrefix("1.21.").toIntOrNull() ?: 0).let { minor -> minor in 9..10 }
+}
+if (needsElytraTrims) {
+    dependencies {
+        if (project.isDeobf) {
+            compileOnly("maven.modrinth:elytra-trims:fE4eMbIS")       // ET 4.7.0 NeoForge 26.1
+        } else {
+            compileOnly("maven.modrinth:elytra-trims:GxM8lsm4")       // ET 4.5.7 NeoForge 1.21.9+
+        }
+    }
+}
+
 neoForge {
     version = neoforgeVersion
 

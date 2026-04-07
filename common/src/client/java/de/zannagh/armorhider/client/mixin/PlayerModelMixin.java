@@ -40,18 +40,18 @@ public class PlayerModelMixin {
             return;
         }
         var mod = carrier.createModification(EquipmentSlot.CHEST, null);
-        if (mod == null) {
-            return;
+        try {
+            if (mod == null || !mod.shouldModify()) {
+                return;
+            }
+
+            model.rightArm.visible = true;
+            model.leftArm.visible = true;
+
+            model.rightSleeve.visible = true;
+            model.leftSleeve.visible = true;
+        } finally {
+            ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
         }
-
-        if (!mod.shouldModify()) {
-            return;
-        }
-
-        model.rightArm.visible = true;
-        model.leftArm.visible = true;
-
-        model.rightSleeve.visible = true;
-        model.leftSleeve.visible = true;
     }
 }

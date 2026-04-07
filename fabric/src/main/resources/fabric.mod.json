@@ -36,7 +36,6 @@
       "environment": "client"
     }
   ],
-  "accessWidener": "armor-hider.accesswidener",
   "depends": {
     "fabricloader": ">=0.15.0",
     "minecraft": "${fabric_minecraft_version}",
