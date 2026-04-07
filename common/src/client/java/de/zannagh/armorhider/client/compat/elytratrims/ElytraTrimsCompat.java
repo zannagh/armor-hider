@@ -1,4 +1,4 @@
-//? if >= 1.21.9 && < 1.21.11 {
+//? if >= 1.21.9 {
 package de.zannagh.armorhider.client.compat.elytratrims;
 
 import de.zannagh.armorhider.ArmorHider;
@@ -16,9 +16,11 @@ import net.minecraft.world.entity.EquipmentSlot;
  * Registers a {@link ETRenderingAPI.Callback} that applies Armor Hider's
  * hiding and transparency to all ElytraTrims decorators (trims, patterns, etc.).
  */
-public class ElytraTrimsCompat implements CompatLoader {
+public final class ElytraTrimsCompat {
 
-    public void init() {
+    private ElytraTrimsCompat() {}
+
+    public static void init() {
         ETRenderingAPI.wrapRenderCall((parameters, collector, operation) -> {
             var ctx = ArmorHiderClient.RENDER_CONTEXT;
             ActiveModification mod = ctx.activeModification();

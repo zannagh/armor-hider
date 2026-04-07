@@ -1,4 +1,3 @@
-//? if >= 1.21.4 {
 package de.zannagh.armorhider.client.mixin;
 
 import com.google.common.collect.Lists;
@@ -137,46 +136,13 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, S extend
     }
     *///?}
 
-    
-}
-//?}
-
-//? if < 1.21.4 {
-/*package de.zannagh.armorhider.client.mixin;
-
-import com.mojang.blaze3d.vertex.PoseStack;
-import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.scopes.ActiveModification;
-import de.zannagh.armorhider.client.scopes.IdentityCarrier;
-import net.minecraft.client.model.HumanoidModel;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.entity.LivingEntityRenderer;
-import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.LivingEntity;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-/^*
- * Counteracts compat mods (e.g. FantasyArmor) that hide the player model's arms
- * when GeckoLib-based armor is equipped on the chest slot.
- * <p>
- * Those mods inject into {@code PlayerRenderer.render()} before the super call
- * and set the arm ModelParts invisible. By injecting at HEAD of
- * {@code LivingEntityRenderer.render()} (inside the super call), we run after
- * the compat mod and can restore arm visibility when our mod fully hides the
- * armor piece — so the player looks like they have no armor on, arms and all.
- ^/
-@Mixin(LivingEntityRenderer.class)
-public class LivingEntityRendererMixin {
-
-    @Inject(
+    //? if < 1.21.4 {
+    /*@Inject(
             method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
             at = @At("HEAD")
     )
     private void forceArmVisibility(LivingEntity entity, float yBodyRot, float partialTick,
-            PoseStack poseStack, MultiBufferSource bufferSource, int light, CallbackInfo ci) {
+                                    PoseStack poseStack, MultiBufferSource bufferSource, int light, CallbackInfo ci) {
         if (!ArmorHiderClient.GECKOLIB_LOADED) return;
         if (!(entity instanceof IdentityCarrier carrier)) return;
 
@@ -191,5 +157,6 @@ public class LivingEntityRendererMixin {
             }
         }
     }
+    *///?}
+    
 }
-*///?}

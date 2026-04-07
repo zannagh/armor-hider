@@ -92,10 +92,6 @@ public record ActiveModification(
         return new ActiveModification(resolvedSlot, resolvedItem, playerName, transparency, shouldHide, disableGlint);
     }
     
-    public boolean shouldModify() {
-        return transparency < 1 - ArmorOpacity.TRANSPARENCY_STEP / 2 || shouldDisableGlint;
-    }
-
     /**
      * Evaluates whether the current modification should apply any transformations to glint or transparency.
      * @return True if the item should be modified.
