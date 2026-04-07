@@ -45,15 +45,6 @@ configure<net.fabricmc.loom.api.LoomGradleExtensionAPI> {
     runConfigs.configureEach {
         runDir = "run"
     }
-
-    // Access widener for custom RenderType creation (arm re-rendering after GeckoLib).
-    // Only needed for < 1.21.9 (pre-deferred pipeline) where CompositeState is protected.
-    if (sc.current.parsed < dev.kikugie.stonecutter.data.ParsedVersion("1.21.9")) {
-        val awFile = rootProject.file("common/src/main/resources/armor-hider.accesswidener")
-        if (awFile.exists()) {
-            accessWidenerPath.set(awFile)
-        }
-    }
 }
 
 repositories {
