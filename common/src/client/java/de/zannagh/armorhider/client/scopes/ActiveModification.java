@@ -91,6 +91,10 @@ public record ActiveModification(
 
         return new ActiveModification(resolvedSlot, resolvedItem, playerName, transparency, shouldHide, disableGlint);
     }
+    
+    public boolean shouldModify() {
+        return transparency < 1 - ArmorOpacity.TRANSPARENCY_STEP / 2 || shouldDisableGlint;
+    }
 
     /**
      * Checks if a slot is fully hidden for a player, without needing a render context.

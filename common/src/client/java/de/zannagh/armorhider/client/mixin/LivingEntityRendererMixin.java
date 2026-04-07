@@ -88,49 +88,6 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, S extend
         }
     }
 
-    //? if >= 1.21.9 {
-    @Inject(method = "submit",
-            //? if fabric
-            order = 2000,
-            at = @At("HEAD")
-    
-    )
-    private void forceArmVisibility(LivingEntityRenderState state, PoseStack poseStack,
-            SubmitNodeCollector submitNodeCollector, CameraRenderState cameraRenderState, CallbackInfo ci) {
-        forceArmVisibilityFromState(state);
-    }
-    
-    @WrapOperation(
-            method = "submit(Lnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;Lnet/minecraft/client/renderer/state/level/CameraRenderState;)V",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/client/model/EntityModel;setupAnim(Ljava/lang/Object;)V"
-            )
-    )
-    private void killmeNow(EntityModel instance, Object o, Operation<Void> original) {
-        if (o instanceof AvatarRenderState state) {
-            forceArmVisibilityFromState(state);
-            instance.resetPose();
-            // We don't wanna pass this to "setupAnim" so FA injections don't fire
-            return;
-        }
-        original.call(instance, o);
-    }
-    
-    @WrapOperation(
-            method = "submit(Lnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;Lnet/minecraft/client/renderer/state/level/CameraRenderState;)V",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/client/renderer/entity/layers/RenderLayer;submit(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/client/renderer/entity/state/EntityRenderState;FF)V"
-            )
-    )
-    private <S extends EntityRenderState> void forceArmVisibilityOperation(RenderLayer instance, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int i, S s, float v, float j, Operation<Void> original) {
-        forceArmVisibilityFromState(s);
-        original.call(instance, poseStack, submitNodeCollector, i, s, v, j);
-    }
-    
-    //?}
-
     //? if >= 1.21.4 && < 1.21.9 {
     /*@Inject(method = "render", at = @At("HEAD"))
     private void forceArmVisibility(LivingEntityRenderState state, PoseStack poseStack,

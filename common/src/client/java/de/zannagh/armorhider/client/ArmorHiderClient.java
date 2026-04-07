@@ -18,6 +18,8 @@ public class ArmorHiderClient {
     public static int permissionLevel = 0; // Default to lowest.
     public static ClientConfigManager CLIENT_CONFIG_MANAGER = new ClientConfigManager();
     public static RenderContext RENDER_CONTEXT = new RenderContext();
+    
+    public static final boolean FA_LOADED = classExists("net.kenddie.fantasyarmor.FantasyArmor");
 
     /** True if GeckoLib is on the classpath — used to counteract mods like FantasyArmor
      *  that hide vanilla player-model arms when GeckoLib armor is equipped. */
