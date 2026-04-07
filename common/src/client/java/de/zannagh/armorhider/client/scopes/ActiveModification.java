@@ -111,7 +111,7 @@ public record ActiveModification(
      */
     public static boolean isSlotModified(@NotNull String playerName, @NotNull EquipmentSlot slot, @NotNull ItemStack item) {
         var mod = create(playerName, slot, item);
-        return mod != null && ((mod.transparency < 1 - ArmorOpacity.TRANSPARENCY_STEP / 2) || mod.shouldDisableGlint);
+        return mod != null && mod.shouldModify();
     }
 
     private static double getTransparencyForSlot(@NotNull PlayerConfig config, @NotNull EquipmentSlot slot) {
