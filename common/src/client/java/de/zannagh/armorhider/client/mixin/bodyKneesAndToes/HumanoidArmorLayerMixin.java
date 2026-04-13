@@ -1,33 +1,63 @@
-//? if >= 1.21 && < 1.21.4 {
-/*package de.zannagh.armorhider.client.mixin.bodyKneesAndToes;
+package de.zannagh.armorhider.client.mixin.bodyKneesAndToes;
 
-import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.rendering.RenderModifications;
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
-import net.minecraft.client.model.HumanoidModel;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
-import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-// Mixin for armor rendering in 1.21/1.21.1 versions.
-@Mixin(HumanoidArmorLayer.class)
-public class HumanoidArmorLayerMixin<T extends LivingEntity, M extends HumanoidModel<T>, A extends HumanoidModel<T>> {
+//? if >= 1.21.9
+import net.minecraft.client.renderer.SubmitNodeCollector;
 
-    @Inject(
+//? if >= 1.21.4
+import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
+
+//? if >= 1.21.4 && < 1.21.9 {
+/*import de.zannagh.armorhider.client.scopes.ActiveModification;
+import net.minecraft.client.model.HumanoidModel;
+import net.minecraft.client.renderer.MultiBufferSource;
+*///?}
+
+//? if < 1.21.4 {
+/*import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import de.zannagh.armorhider.client.rendering.RenderModifications;
+import net.minecraft.client.model.HumanoidModel;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.LivingEntity;
+*///?}
+
+@Mixin(HumanoidArmorLayer.class)
+public class HumanoidArmorLayerMixin
+//? if < 1.21.4
+//<T extends LivingEntity, M extends HumanoidModel<T>, A extends HumanoidModel<T>>
+{
+    // ===== Player/state capture (render HEAD) =====
+
+    //? if >= 1.21.4 && < 1.21.9 {
+    /*@Inject(
+            method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/renderer/entity/state/HumanoidRenderState;FF)V",
+            at = @At("HEAD")
+    )
+    private <S extends HumanoidRenderState> void captureRenderState(PoseStack poseStack, MultiBufferSource multiBufferSource, int i, S humanoidRenderState, float f, float g, CallbackInfo ci) {
+        if (humanoidRenderState instanceof IdentityCarrier carrier) {
+            ArmorHiderClient.RENDER_CONTEXT.setCurrentPlayer(carrier.playerName());
+        }
+    }
+    *///?}
+
+    //? if >= 1.21 && < 1.21.4 {
+    /*@Inject(
             method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/world/entity/LivingEntity;FFFFFF)V",
             at = @At("HEAD")
     )
@@ -36,8 +66,53 @@ public class HumanoidArmorLayerMixin<T extends LivingEntity, M extends HumanoidM
             ArmorHiderClient.RENDER_CONTEXT.setCurrentPlayer(carrier.playerName());
         }
     }
+    *///?}
 
-    @Inject(
+    // ===== Per-piece scope setup (renderArmorPiece HEAD) =====
+
+    //? if >= 1.21.9 {
+    @Inject(method = "renderArmorPiece", at = @At("HEAD"), cancellable = true)
+    private <S extends HumanoidRenderState> void captureContext(
+            PoseStack poseStack, SubmitNodeCollector submitNodeCollector, ItemStack itemStack, EquipmentSlot equipmentSlot, int i, S humanoidRenderState, CallbackInfo ci) {
+        if (!(humanoidRenderState instanceof IdentityCarrier identityCarrier)) {
+            return;
+        }
+        if (itemStack.is(Items.AIR)) {
+            return;
+        }
+        var mod = identityCarrier.createModification(equipmentSlot, itemStack);
+
+        if (mod != null && mod.shouldHide()) {
+            ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
+            ci.cancel();
+        }
+    }
+    //?}
+
+    //? if >= 1.21.4 && < 1.21.9 {
+    /*@Inject(method = "renderArmorPiece", at = @At("HEAD"), cancellable = true)
+    private void captureContext(PoseStack poseStack, MultiBufferSource multiBufferSource, ItemStack itemStack, EquipmentSlot equipmentSlot, int i, HumanoidModel<?> model, CallbackInfo ci) {
+        var ctx = ArmorHiderClient.RENDER_CONTEXT;
+        String playerName = ctx.currentPlayerName();
+        if (playerName == null) {
+            return;
+        }
+        if (itemStack.is(Items.AIR)) {
+            return;
+        }
+        var mod = ActiveModification.create(playerName, equipmentSlot, itemStack);
+        if (mod != null) {
+            ctx.setActiveModification(mod);
+        }
+        if (mod != null && mod.shouldHide()) {
+            ctx.clearActiveModification();
+            ci.cancel();
+        }
+    }
+    *///?}
+
+    //? if >= 1.21 && < 1.21.4 {
+    /*@Inject(
             method = "renderArmorPiece",
             at = @At("HEAD"),
             cancellable = true
@@ -57,16 +132,49 @@ public class HumanoidArmorLayerMixin<T extends LivingEntity, M extends HumanoidM
             ci.cancel();
         }
     }
+    *///?}
 
-    @Inject(
+    //? if < 1.21 {
+    /*@Inject(
+            method = "renderArmorPiece",
+            at = @At("HEAD")
+    )
+    private void onRenderArmorPiece(PoseStack poseStack, MultiBufferSource bufferSource, T entity, EquipmentSlot slot, int packedLight, A armorModel, CallbackInfo ci) {
+        if (!(entity instanceof IdentityCarrier carrier)) {
+            return;
+        }
+        if (entity.getItemBySlot(slot).is(Items.AIR)) {
+            return;
+        }
+        carrier.createModification(slot, entity.getItemBySlot(slot));
+    }
+    *///?}
+
+    // ===== Per-piece scope cleanup (renderArmorPiece RETURN) =====
+    // In 1.21.4–1.21.8 this is handled by EquipmentRenderMixin.resetContext at the renderLayers level.
+
+    //? if >= 1.21.9 {
+    @Inject(method = "renderArmorPiece", at = @At("RETURN"))
+    private <S extends HumanoidRenderState> void onRenderArmorPieceReturn(
+            PoseStack poseStack, SubmitNodeCollector submitNodeCollector, ItemStack itemStack, EquipmentSlot equipmentSlot, int i, S humanoidRenderState, CallbackInfo ci) {
+        ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
+    }
+    //?}
+
+    //? if < 1.21.4 {
+    /*@Inject(
             method = "renderArmorPiece",
             at = @At("RETURN")
     )
     private void onRenderArmorPieceReturn(PoseStack poseStack, MultiBufferSource bufferSource, T entity, EquipmentSlot slot, int packedLight, A armorModel, CallbackInfo ci) {
         ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
     }
+    *///?}
 
-    @ModifyExpressionValue(
+    // ===== Render modifications (< 1.21.4 only — 1.21.4+ uses EquipmentRenderMixin) =====
+
+    //? if < 1.21.4 {
+    /*@ModifyExpressionValue(
             method = "renderArmorPiece",
             at = @At(
                     value = "INVOKE",
@@ -94,8 +202,10 @@ public class HumanoidArmorLayerMixin<T extends LivingEntity, M extends HumanoidM
     private RenderType modifyArmorRenderLayer(Identifier texture, Operation<RenderType> original) {
         return RenderModifications.getTranslucentArmorRenderType(ArmorHiderClient.RENDER_CONTEXT, texture, original.call(texture));
     }
+    *///?}
 
-    @WrapOperation(
+    //? if >= 1.21 && < 1.21.4 {
+    /*@WrapOperation(
             method = "renderModel",
             at = @At(
                     value = "INVOKE",
@@ -129,89 +239,10 @@ public class HumanoidArmorLayerMixin<T extends LivingEntity, M extends HumanoidM
         int modifiedColor = RenderModifications.applyArmorTransparency(ArmorHiderClient.RENDER_CONTEXT, packedOverlay);
         model.renderToBuffer(poseStack, vertexConsumer, packedLight, packedOverlay, modifiedColor);
     }
-}
-*///?}
+    *///?}
 
-//? if < 1.21 {
-/*package de.zannagh.armorhider.client.mixin.bodyKneesAndToes;
-
-import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.rendering.RenderModifications;
-import de.zannagh.armorhider.client.scopes.IdentityCarrier;
-import net.minecraft.client.model.HumanoidModel;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
-import net.minecraft.resources.Identifier;
-import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.Items;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-// Mixin for armor rendering in 1.20.x versions.
-@Mixin(HumanoidArmorLayer.class)
-public class HumanoidArmorLayerMixin<T extends LivingEntity, M extends HumanoidModel<T>, A extends HumanoidModel<T>> {
-
-    @Inject(
-            method = "renderArmorPiece",
-            at = @At("HEAD")
-    )
-    private void onRenderArmorPiece(PoseStack poseStack, MultiBufferSource bufferSource, T entity, EquipmentSlot slot, int packedLight, A armorModel, CallbackInfo ci) {
-        if (!(entity instanceof IdentityCarrier carrier)) {
-            return;
-        }
-        if (entity.getItemBySlot(slot).is(Items.AIR)) {
-            return;
-        }
-        carrier.createModification(slot, entity.getItemBySlot(slot));
-    }
-
-    @Inject(
-            method = "renderArmorPiece",
-            at = @At("RETURN")
-    )
-    private void onRenderArmorPieceReturn(PoseStack poseStack, MultiBufferSource bufferSource, T entity, EquipmentSlot slot, int packedLight, A armorModel, CallbackInfo ci) {
-        ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
-    }
-
-    @ModifyExpressionValue(
-            method = "renderArmorPiece",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/world/item/ItemStack;hasFoil()Z"
-            )
-    )
-    private boolean modifyGlint(boolean original) {
-        var ctx = ArmorHiderClient.RENDER_CONTEXT;
-        var mod = ctx.activeModification();
-        if (mod != null) {
-            if (mod.shouldDisableGlint() || mod.shouldHide()) {
-                return false;
-            }
-        }
-        return original;
-    }
-
-    @WrapOperation(
-            method = "renderModel",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/client/renderer/RenderType;armorCutoutNoCull(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/RenderType;"
-            )
-    )
-    private RenderType modifyArmorRenderLayer(Identifier texture, Operation<RenderType> original) {
-        return RenderModifications.getTranslucentArmorRenderType(ArmorHiderClient.RENDER_CONTEXT, texture, original.call(texture));
-    }
-
-    @WrapOperation(
+    //? if < 1.21 {
+    /*@WrapOperation(
             method = "renderModel",
             at = @At(
                     value = "INVOKE",
@@ -236,5 +267,5 @@ public class HumanoidArmorLayerMixin<T extends LivingEntity, M extends HumanoidM
         float modifiedAlpha = RenderModifications.getTransparencyAlpha(ArmorHiderClient.RENDER_CONTEXT);
         original.call(model, poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, modifiedAlpha);
     }
+    *///?}
 }
-*///?}

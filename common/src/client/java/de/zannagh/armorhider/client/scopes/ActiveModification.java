@@ -1,6 +1,7 @@
 package de.zannagh.armorhider.client.scopes;
 
 import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.client.rendering.ColorMath;
 import de.zannagh.armorhider.combat.CombatManager;
 import de.zannagh.armorhider.configuration.items.ArmorOpacity;
 import de.zannagh.armorhider.net.packets.PlayerConfig;
@@ -25,7 +26,6 @@ public record ActiveModification(
         boolean shouldHide,
         boolean shouldDisableGlint
 ) {
-
     /**
      * Core factory. Returns {@code null} when no modification is needed:
      * <ul>
@@ -83,11 +83,29 @@ public record ActiveModification(
         boolean disableGlint = getDisableGlintForSlot(config, resolvedSlot);
 
         boolean shouldModify = (transparency < 1 - ArmorOpacity.TRANSPARENCY_STEP / 2) || disableGlint;
-        if (!shouldModify) return null;
+        if (!shouldModify) {
+            return null;
+        }
 
         boolean shouldHide = transparency < ArmorOpacity.TRANSPARENCY_STEP;
 
         return new ActiveModification(resolvedSlot, resolvedItem, playerName, transparency, shouldHide, disableGlint);
+    }
+
+    /**
+     * Evaluates whether the current modification should apply any transformations to glint or transparency.
+     * @return True if the item should be modified.
+     */
+    public boolean shouldModify(){
+        return (transparency < 1 - ArmorOpacity.TRANSPARENCY_STEP / 2) || shouldDisableGlint;
+    }
+
+    public int applyTransparency(int originalColor) {
+        if (!shouldModify()) {
+            return originalColor;
+        }
+        int alpha = (int) (transparency * 255);
+        return ColorMath.withAlpha(originalColor, alpha);
     }
 
     /**

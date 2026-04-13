@@ -67,6 +67,25 @@ jobs:
             exit 0
           fi
 
+          # Check if another release already exists for the same commit
+          # (e.g., a full release was published from the same commit, making this prerelease redundant)
+          TAG_COMMIT=$(gh api repos/${{ github.repository }}/commits/${TAG} --jq '.sha' 2>/dev/null || echo "")
+          echo "Prerelease tag $TAG points to commit: $TAG_COMMIT"
+
+          if [[ -n "$TAG_COMMIT" ]]; then
+            OTHER_TAGS=$(gh api repos/${{ github.repository }}/releases?per_page=20 \
+              --jq "[.[] | select(.draft | not) | select(.tag_name != \"$TAG\") | .tag_name]")
+
+            for OTHER_TAG in $(echo "$OTHER_TAGS" | jq -r '.[]'); do
+              OTHER_COMMIT=$(gh api repos/${{ github.repository }}/commits/${OTHER_TAG} --jq '.sha' 2>/dev/null || echo "")
+              if [[ "$OTHER_COMMIT" == "$TAG_COMMIT" ]]; then
+                echo "Another release ($OTHER_TAG) already exists for the same commit $TAG_COMMIT — skipping"
+                echo "should_publish=false" >> $GITHUB_OUTPUT
+                exit 0
+              fi
+            done
+          fi
+
           # Strip leading 'v' to get mod version
           MOD_VERSION="${TAG#v}"
 
@@ -251,7 +270,8 @@ jobs:
   publish-curseforge:
     name: Publish to CurseForge
     runs-on: ubuntu-latest
-    needs: [find-prerelease, build, changelog]
+    needs: [find-prerelease, check-modrinth, build, changelog]
+    if: needs.check-modrinth.outputs.version_exists != 'true'
     strategy:
       fail-fast: false
       matrix:

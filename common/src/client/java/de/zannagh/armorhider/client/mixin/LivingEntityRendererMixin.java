@@ -5,6 +5,7 @@ import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
 import de.zannagh.armorhider.client.scopes.IdentityStateCarrier;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
+import net.minecraft.client.renderer.entity.state.AvatarRenderState;
 import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -49,6 +50,9 @@ public class LivingEntityRendererMixin {
             at = @At("HEAD")
     )
     private void enterEntityRenderDuringExtraction(LivingEntity entity, LivingEntityRenderState state, float partialTick, CallbackInfo ci) {
+        if (!(state instanceof AvatarRenderState)) {
+            return;
+        }
         ArmorHiderClient.RENDER_CONTEXT.enterEntityRender();
     }
 
@@ -62,7 +66,9 @@ public class LivingEntityRendererMixin {
             at = @At("TAIL")
     )
     private void capturePlayerIdentity(LivingEntity entity, LivingEntityRenderState state, float partialTick, CallbackInfo ci) {
-        if (entity instanceof IdentityCarrier carrier && state instanceof IdentityStateCarrier stateCarrier) {
+        if (entity instanceof IdentityCarrier carrier 
+                && state instanceof IdentityStateCarrier stateCarrier
+                && state instanceof AvatarRenderState) { // Make sure we don't accidentally capture zombies or other humanoids.
             stateCarrier.attachCarrier(carrier);
         }
     }

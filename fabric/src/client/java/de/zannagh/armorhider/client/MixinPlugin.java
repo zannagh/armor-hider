@@ -16,7 +16,7 @@ public class MixinPlugin implements IMixinConfigPlugin {
     private static final String[] MIXINS = new String[]{
             "PlayerMixin",
             "GameRendererMixin",
-            // Guarded by //? if >= 1.21.4 in source
+            // All versions — Stonecutter guards per version range
             "EntityRenderDispatcherMixin",
             "LivingEntityMixin",
             "LivingEntityRendererMixin",
@@ -27,16 +27,15 @@ public class MixinPlugin implements IMixinConfigPlugin {
             "hand.OffHandRenderMixin",
             // Guarded by //? if >= 1.21.9 in source
             "OptionsScreenMixin",
-            "bodyKneesAndToes.ArmorFeatureRenderMixin",
             "bodyKneesAndToes.EquipmentRenderMixin",
             "hand.ItemRenderStateMixin",
             "hand.SubmitNodeCollectorMixin",
-            "cape.CapeRenderMixin",
             "cape.ElytraRenderMixin",
             "head.CustomHeadLayerMixin",
             "head.SkullBlockRenderMixin",
-            // Guarded by //? if >= 1.21 && < 1.21.4 in source
+            // All versions — Stonecutter guards per version range
             "bodyKneesAndToes.HumanoidArmorLayerMixin",
+            "cape.CapeRenderMixin",
             // Guarded by //? if < 1.21.9 in source
             "hand.ModelPartMixin",
             "bodyKneesAndToes.EquipmentRenderColorMixin",

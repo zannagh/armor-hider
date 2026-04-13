@@ -43,6 +43,23 @@ public class PlayerMixin implements IdentityCarrier {
         return player.isFallFlying() || player.getAbilities().flying;
     }
 
+    @Override
+    public void setActiveModification(@Nullable ActiveModification mod) {
+        activeModification = mod;
+    }
+
+    @Override
+    public void clearActiveModification() {
+        activeModification = null;
+    }
+
+    @Nullable private ActiveModification activeModification;
+
+    @Override
+    public @Nullable ActiveModification getActiveModification() {
+        return activeModification;
+    }
+
     @ModifyReturnValue(method = "getItemBySlot", at = @At("RETURN"))
     private ItemStack hideFullyHiddenSlot(ItemStack original, EquipmentSlot slot) {
         if (original.isEmpty()) {

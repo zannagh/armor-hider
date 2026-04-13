@@ -18,7 +18,12 @@ public class ArmorHiderClient {
     public static int permissionLevel = 0; // Default to lowest.
     public static ClientConfigManager CLIENT_CONFIG_MANAGER = new ClientConfigManager();
     public static RenderContext RENDER_CONTEXT = new RenderContext();
-
+    
+    /**
+     * A static initializer for client-related methods (communication, payloads, etc.).
+     * Required so it can be called from loader-specific client-side mod implementations.
+     */
+    @SuppressWarnings("unused")
     public static void init() {
         ArmorHider.LOGGER.info("Armor Hider client initializing...");
         ClientCommunicationManager.initClient();

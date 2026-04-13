@@ -5,6 +5,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.rendering.RenderModifications;
+import de.zannagh.armorhider.client.scopes.IdentityStateCarrier;
 import net.minecraft.client.renderer.entity.layers.EquipmentLayerRenderer;
 import net.minecraft.client.resources.model.EquipmentClientInfo;
 import org.spongepowered.asm.mixin.Mixin;
@@ -31,8 +32,18 @@ public class EquipmentRenderColorMixin {
             )
     )
     private <S> void modifyArmorColor(OrderedSubmitNodeCollector collector, Model<? super S> model, S state, PoseStack poseStack, RenderType renderType, int light, int overlay, int color, TextureAtlasSprite sprite, int param9, ModelFeatureRenderer.CrumblingOverlay crumblingOverlay, Operation<Void> original) {
-        var modifiedColor = RenderModifications.applyArmorTransparency(ArmorHiderClient.RENDER_CONTEXT, color);
-        original.call(collector, model, state, poseStack, renderType, light, overlay, modifiedColor, sprite, param9, crumblingOverlay);
+        if (!(state instanceof IdentityStateCarrier isCarrier) 
+                || isCarrier.getCarrier() == null
+                || isCarrier.getCarrier().getActiveModification() == null) {
+            original.call(collector, model, state, poseStack, renderType, light, overlay, color, sprite, param9, crumblingOverlay);
+            return;
+        }
+        var mod = isCarrier.getCarrier().getActiveModification();
+        if (mod == null) {
+            original.call(collector, model, state, poseStack, renderType, light, overlay, color, sprite, param9, crumblingOverlay);
+            return;
+        }
+        original.call(collector, model, state, poseStack, renderType, light, overlay, mod.applyTransparency(color), sprite, param9, crumblingOverlay);
     }
     //?}
 

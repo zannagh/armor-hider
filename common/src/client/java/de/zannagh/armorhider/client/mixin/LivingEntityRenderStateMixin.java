@@ -1,6 +1,7 @@
 //? if >= 1.21.4 {
 package de.zannagh.armorhider.client.mixin;
 
+import de.zannagh.armorhider.client.scopes.ActiveModification;
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
 import de.zannagh.armorhider.client.scopes.IdentityStateCarrier;
 import de.zannagh.armorhider.util.ItemsUtil;
@@ -38,6 +39,11 @@ public class LivingEntityRenderStateMixin implements IdentityStateCarrier {
     }
 
     @Override
+    public @Nullable IdentityCarrier getCarrier() {
+        return armorHider$carrier;
+    }
+
+    @Override
     public @Nullable ItemStack customHeadItem() {
         HumanoidRenderState state = (HumanoidRenderState) (Object) this;
         if (state.wornHeadProfile != null) {
@@ -51,6 +57,28 @@ public class LivingEntityRenderStateMixin implements IdentityStateCarrier {
     @Override
     public boolean isPlayerFlying() {
         return armorHider$carrier != null && armorHider$carrier.isPlayerFlying();
+    }
+
+    @Override
+    public void setActiveModification(@Nullable ActiveModification mod) {
+        if (armorHider$carrier != null) {
+            armorHider$carrier.setActiveModification(mod);
+        }
+    }
+
+    @Override
+    public @Nullable ActiveModification getActiveModification() {
+        if (armorHider$carrier != null) {
+            return armorHider$carrier.getActiveModification();
+        }
+        return null;
+    }
+
+    @Override
+    public void clearActiveModification() {
+        if (armorHider$carrier != null) {
+            armorHider$carrier.clearActiveModification();
+        }
     }
 }
 //?}
