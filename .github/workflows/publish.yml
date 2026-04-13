@@ -166,17 +166,14 @@ jobs:
           prerelease-number: ${{ needs.analyze.outputs.prerelease_number }}
           commits-since: ${{ needs.analyze.outputs.commits_since }}
 
+      - name: Prepare NeoForge Artifacts
+        run: ./gradlew createMinecraftArtifacts --no-parallel --max-workers=1 --stacktrace
+
       - name: Build & Stage Artifacts
         run: |
-          if ! ./gradlew stageArtifacts \
+          ./gradlew stageArtifacts \
             -PsemVer="${{ steps.mod-ver.outputs.version }}" \
-            -Pprerelease="${{ steps.mod-ver.outputs.is_prerelease }}"; then
-            echo "::warning::Build failed, retrying with reduced parallelism and cleared NFRT caches..."
-            find . -path '*/build/tmp/neoformruntime' -type d -exec rm -rf {} + 2>/dev/null || true
-            ./gradlew stageArtifacts \
-              -PsemVer="${{ steps.mod-ver.outputs.version }}" \
-              -Pprerelease="${{ steps.mod-ver.outputs.is_prerelease }}" --max-workers=2
-          fi
+            -Pprerelease="${{ steps.mod-ver.outputs.is_prerelease }}"
 
       - name: Read Supported Versions
         id: versions

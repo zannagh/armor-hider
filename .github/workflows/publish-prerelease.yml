@@ -142,17 +142,14 @@ jobs:
       - name: Setup Gradle Environment
         uses: zannagh/versionizer/setup-gradle-env@v1
 
+      - name: Prepare NeoForge Artifacts
+        run: ./gradlew createMinecraftArtifacts --no-parallel --max-workers=1 --stacktrace
+
       - name: Build & Stage Artifacts
         run: |
-          if ! ./gradlew stageArtifacts \
+          ./gradlew stageArtifacts \
             -PsemVer="${{ needs.find-prerelease.outputs.mod_version }}" \
-            -Pprerelease="true"; then
-            echo "::warning::Build failed, retrying with reduced parallelism and cleared NFRT caches..."
-            find . -path '*/build/tmp/neoformruntime' -type d -exec rm -rf {} + 2>/dev/null || true
-            ./gradlew stageArtifacts \
-              -PsemVer="${{ needs.find-prerelease.outputs.mod_version }}" \
-              -Pprerelease="true" --max-workers=2
-          fi
+            -Pprerelease="true"
 
       - name: Read Supported Versions
         id: versions

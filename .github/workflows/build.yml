@@ -40,13 +40,11 @@ jobs:
         id: version
         uses: zannagh/versionizer/calculate-version@v1
 
+      - name: Prepare NeoForge Artifacts
+        run: ./gradlew createMinecraftArtifacts --no-parallel --max-workers=1 --stacktrace
+
       - name: Build & Stage Artifacts
-        run: |
-          if ! ./gradlew stageArtifacts -PsemVer="${{ steps.version.outputs.fullSemVer }}" -Pprerelease="true"; then
-            echo "::warning::Build failed, retrying with reduced parallelism and cleared NFRT caches..."
-            find . -path '*/build/tmp/neoformruntime' -type d -exec rm -rf {} + 2>/dev/null || true
-            ./gradlew stageArtifacts -PsemVer="${{ steps.version.outputs.fullSemVer }}" -Pprerelease="true" --max-workers=2
-          fi
+        run: ./gradlew stageArtifacts -PsemVer="${{ steps.version.outputs.fullSemVer }}" -Pprerelease="true"
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v6
