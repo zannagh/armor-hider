@@ -144,9 +144,15 @@ jobs:
 
       - name: Build & Stage Artifacts
         run: |
-          ./gradlew stageArtifacts \
+          if ! ./gradlew stageArtifacts \
             -PsemVer="${{ needs.find-prerelease.outputs.mod_version }}" \
-            -Pprerelease="true"
+            -Pprerelease="true"; then
+            echo "::warning::Build failed, retrying with reduced parallelism and cleared NFRT caches..."
+            find . -path '*/build/tmp/neoformruntime' -type d -exec rm -rf {} + 2>/dev/null || true
+            ./gradlew stageArtifacts \
+              -PsemVer="${{ needs.find-prerelease.outputs.mod_version }}" \
+              -Pprerelease="true" --max-workers=2
+          fi
 
       - name: Read Supported Versions
         id: versions

@@ -41,7 +41,12 @@ jobs:
         uses: zannagh/versionizer/calculate-version@v1
 
       - name: Build & Stage Artifacts
-        run: ./gradlew stageArtifacts -PsemVer="${{ steps.version.outputs.fullSemVer }}" -Pprerelease="true"
+        run: |
+          if ! ./gradlew stageArtifacts -PsemVer="${{ steps.version.outputs.fullSemVer }}" -Pprerelease="true"; then
+            echo "::warning::Build failed, retrying with reduced parallelism and cleared NFRT caches..."
+            find . -path '*/build/tmp/neoformruntime' -type d -exec rm -rf {} + 2>/dev/null || true
+            ./gradlew stageArtifacts -PsemVer="${{ steps.version.outputs.fullSemVer }}" -Pprerelease="true" --max-workers=2
+          fi
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v6
