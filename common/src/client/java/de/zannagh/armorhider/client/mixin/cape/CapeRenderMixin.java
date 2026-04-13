@@ -103,35 +103,42 @@ public class CapeRenderMixin {
         }
     }
 
+    //? if >= 1.21.4 {
     @WrapOperation(
             method = CAPE_CONTEXT_METHOD,
-            //? if >= 1.21.4 {
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/client/renderer/entity/layers/CapeLayer;hasLayer(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/client/resources/model/EquipmentClientInfo$LayerType;)Z",
                     ordinal = 0
             )
-            //?} else {
-            /*
+    )
+    private boolean bypassWingsWhenElytraHidden(CapeLayer instance,
+                                                ItemStack item,
+                                                EquipmentClientInfo.LayerType layerType,
+                                                Operation<Boolean> original) {
+        boolean result = original.call(instance, item, layerType);
+    //?} else {
+    /*@WrapOperation(
+            method = CAPE_CONTEXT_METHOD,
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/world/item/ItemStack;is(Lnet/minecraft/world/item/Item;)Z"
             )
-            *///?}
     )
-    private boolean bypassWingsWhenElytraHidden(CapeLayer instance,
-                                                ItemStack item,
-                                                //? if >= 1.21.4
-                                                EquipmentClientInfo.LayerType layerType,
+    private boolean bypassWingsWhenElytraHidden(ItemStack instance,
+                                                Item item,
                                                 Operation<Boolean> original) {
-        //? if >= 1.21.4
-        boolean result = original.call(instance, item, layerType);
-        //? if < 1.21.4
-        //boolean result = original.call(instance, item);
+        boolean result = original.call(instance, item);
+    *///?}
         if (result) {
             var mod = ArmorHiderClient.RENDER_CONTEXT.activeModification();
             if (mod != null
-                    && ActiveModification.isSlotFullyHidden(mod.playerName(), EquipmentSlot.CHEST, item)) {
+                    && ActiveModification.isSlotFullyHidden(mod.playerName(), EquipmentSlot.CHEST,
+                    //? if >= 1.21.4
+                    item
+                    //? if < 1.21.4
+                    //instance
+                    )) {
                 return false;
             }
         }
