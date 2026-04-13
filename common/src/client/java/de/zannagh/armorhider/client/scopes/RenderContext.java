@@ -34,15 +34,12 @@ public final class RenderContext {
         DebugTracer.scopeEnterLevelRender();
     }
 
-    public void exitLevelRender(@Nullable Object identityCarrier) {
+    public void exitLevelRender() {
         activeModification.remove();
         currentPlayerName.remove();
         inEntityRender.set(false);
         inLevelRender.set(false);
         DebugTracer.scopeExitLevelRender();
-        if (identityCarrier instanceof IdentityCarrier carrier) {
-            carrier.clearActiveModification();
-        }
     }
 
     public boolean isInLevelRender() {
@@ -58,13 +55,10 @@ public final class RenderContext {
         DebugTracer.scopeEnterEntityRender();
     }
 
-    public void exitEntityRender(@Nullable Object identityCarrier) {
+    public void exitEntityRender() {
         activeModification.remove();
         currentPlayerName.remove();
         inEntityRender.set(false);
-        if (identityCarrier instanceof IdentityCarrier carrier) {
-            carrier.clearActiveModification();
-        }
         DebugTracer.scopeExitEntityRender();
     }
 

@@ -71,6 +71,6 @@ public class EntityRenderDispatcherMixin {
     *///?} else {
     /*private <E extends Entity> void exitEntityRendering(E entity, double x, double y, double z, float yRot, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int light, CallbackInfo ci) {
     *///?}
-        ArmorHiderClient.RENDER_CONTEXT.exitEntityRender(entity);
+        ArmorHiderClient.RENDER_CONTEXT.exitEntityRender();
     }
 }

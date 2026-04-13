@@ -35,6 +35,6 @@ public class GameRendererMixin {
     private void exitLevelRender(DeltaTracker deltaTracker, CallbackInfo ci) {
     //? if < 1.21
     //private void exitLevelRender(float partialTick, long nanoTime, PoseStack poseStack, CallbackInfo ci) {
-        ArmorHiderClient.RENDER_CONTEXT.exitLevelRender(null);
+        ArmorHiderClient.RENDER_CONTEXT.exitLevelRender();
     }
 }

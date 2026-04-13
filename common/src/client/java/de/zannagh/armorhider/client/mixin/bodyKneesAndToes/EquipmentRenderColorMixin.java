@@ -32,18 +32,9 @@ public class EquipmentRenderColorMixin {
             )
     )
     private <S> void modifyArmorColor(OrderedSubmitNodeCollector collector, Model<? super S> model, S state, PoseStack poseStack, RenderType renderType, int light, int overlay, int color, TextureAtlasSprite sprite, int param9, ModelFeatureRenderer.CrumblingOverlay crumblingOverlay, Operation<Void> original) {
-        if (!(state instanceof IdentityStateCarrier isCarrier) 
-                || isCarrier.getCarrier() == null
-                || isCarrier.getCarrier().getActiveModification() == null) {
-            original.call(collector, model, state, poseStack, renderType, light, overlay, color, sprite, param9, crumblingOverlay);
-            return;
-        }
-        var mod = isCarrier.getCarrier().getActiveModification();
-        if (mod == null) {
-            original.call(collector, model, state, poseStack, renderType, light, overlay, color, sprite, param9, crumblingOverlay);
-            return;
-        }
-        original.call(collector, model, state, poseStack, renderType, light, overlay, mod.applyTransparency(color), sprite, param9, crumblingOverlay);
+        var modifiedColor = RenderModifications.applyArmorTransparency(ArmorHiderClient.RENDER_CONTEXT, color);
+        original.call(collector, model, state, poseStack, renderType, light, overlay, modifiedColor, sprite, param9, crumblingOverlay);
+
     }
     //?}
 

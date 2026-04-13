@@ -15,6 +15,7 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import static de.zannagh.armorhider.util.ItemsUtil.itemStackContainsElytra;
 
 //? if >= 1.21.9
 import net.minecraft.client.renderer.SubmitNodeCollector;
@@ -70,8 +71,11 @@ public class CapeRenderMixin {
         if (avatarRenderState instanceof IdentityCarrier carrier)
         {
             var mod = carrier.createModification(EquipmentSlot.CHEST, chestEquipment);
-            if (mod != null && mod.shouldHide() && carrier.isPlayerFlying()) {
-                    DebugLogger.log("CapeRendering: Player is flying, suppressing cape rendering, temporarily.");
+            if (mod != null 
+                    && mod.shouldHide() 
+                    && itemStackContainsElytra(chestEquipment) 
+                    && carrier.isPlayerFlying()) {
+                DebugLogger.log("CapeRendering: Player is flying with hidden elytra, suppressing cape rendering temporarily.");
                     ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
                     ci.cancel();
             }

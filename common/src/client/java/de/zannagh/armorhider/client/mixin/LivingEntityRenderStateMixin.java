@@ -58,27 +58,5 @@ public class LivingEntityRenderStateMixin implements IdentityStateCarrier {
     public boolean isPlayerFlying() {
         return armorHider$carrier != null && armorHider$carrier.isPlayerFlying();
     }
-
-    @Override
-    public void setActiveModification(@Nullable ActiveModification mod) {
-        if (armorHider$carrier != null) {
-            armorHider$carrier.setActiveModification(mod);
-        }
-    }
-
-    @Override
-    public @Nullable ActiveModification getActiveModification() {
-        if (armorHider$carrier != null) {
-            return armorHider$carrier.getActiveModification();
-        }
-        return null;
-    }
-
-    @Override
-    public void clearActiveModification() {
-        if (armorHider$carrier != null) {
-            armorHider$carrier.clearActiveModification();
-        }
-    }
 }
 //?}

@@ -36,13 +36,6 @@ public interface IdentityCarrier {
         } else {
             ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
         }
-        setActiveModification(mod);
         return mod;
     }
-    
-    void setActiveModification(@Nullable ActiveModification mod);
-    
-    void clearActiveModification();
-    
-    @Nullable ActiveModification getActiveModification();
 }
