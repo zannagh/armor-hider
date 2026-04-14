@@ -20,6 +20,14 @@ stonecutter {
     replacements.string(current.parsed <= "1.21.8"){
         replace("AvatarRenderState", "PlayerRenderState")
     }
+
+    replacements.string(current.parsed < "1.21.11"){
+        replace("net.minecraft.client.model.player.PlayerModel", "net.minecraft.client.model.PlayerModel")
+    }
+
+    replacements.string(current.parsed < "26.1-0.snapshot.11"){
+        replace("net.minecraft.client.renderer.state.level.CameraRenderState", "net.minecraft.client.renderer.state.CameraRenderState")
+    }
     
     replacements.string(current.parsed <= "26.1-1.pre.1") {
         replace("net.minecraft.client.gui.GuiGraphicsExtractor","net.minecraft.client.gui.GuiGraphics")
@@ -71,11 +79,10 @@ dependencies {
 
     // ElytraTrims compat — only needed for versions where the compat class compiles (>= 1.21.9).
     // Must use version-matched artifacts: MC types move packages across major versions.
-    // The 1.21.9 artifact uses ResourceLocation which was renamed in 1.21.11, so cap at < 1.21.11.
     if (project.isDeobf) {
         compileOnly("maven.modrinth:elytra-trims:q7SmWLkn")       // ET 4.7.0 for 26.1
     } else if (project.mcVersion.let {
-        it.startsWith("1.21.") && (it.removePrefix("1.21.").toIntOrNull() ?: 0).let { minor -> minor in 9..10 }
+        it.startsWith("1.21.") && (it.removePrefix("1.21.").toIntOrNull() ?: 0) >= 9
     }) {
         add("modCompileOnly", "maven.modrinth:elytra-trims:iLC0LP3D") // ET 4.5.7 for 1.21.9+
     }

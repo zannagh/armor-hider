@@ -1,34 +1,17 @@
 package de.zannagh.armorhider.client.mixin;
 
-import com.google.common.collect.Lists;
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.mixin.hand.OffHandRenderMixin;
 import de.zannagh.armorhider.client.scopes.ActiveModification;
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
 import de.zannagh.armorhider.client.scopes.IdentityStateCarrier;
 import net.minecraft.client.model.EntityModel;
-import net.minecraft.client.model.HumanoidModel;
-//?if >= 1.21.11
 import net.minecraft.client.model.player.PlayerModel;
-//?if < 1.21.11
-//import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
-import net.minecraft.client.renderer.entity.state.AvatarRenderState;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
-import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
-import net.minecraft.client.renderer.entity.layers.RenderLayer;
-import net.minecraft.client.renderer.entity.state.AvatarRenderState;
-import net.minecraft.client.renderer.entity.state.EntityRenderState;
-import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
-import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -36,20 +19,20 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-//? if >= 1.21.9 {
-import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.client.renderer.SubmitNodeCollector;
+//? if >= 1.21.4 {
+import net.minecraft.client.renderer.entity.state.AvatarRenderState;
+import net.minecraft.client.renderer.entity.state.EntityRenderState;
+import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
+import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 //?}
-//? if >= 26.1-0.snapshot.11
-import net.minecraft.client.renderer.state.level.CameraRenderState;
 
-import java.lang.reflect.Method;
-import java.util.List;
-//? if >= 1.21.9 && < 26.1-0.snapshot.11
-//import net.minecraft.client.renderer.state.CameraRenderState;
-//? if >= 1.21.4 && < 1.21.9 {
+//? if < 1.21.9 {
 /*import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.MultiBufferSource;
+*///?}
+
+//? if < 1.21.4 {
+/*import net.minecraft.client.model.HumanoidModel;
 *///?}
 
 /**
@@ -61,8 +44,15 @@ import net.minecraft.client.renderer.MultiBufferSource;
  * the render/submit call.
  */
 @Mixin(LivingEntityRenderer.class)
-public abstract class LivingEntityRendererMixin<T extends LivingEntity, S extends LivingEntityRenderState, M extends EntityModel<? super S>> extends EntityRenderer<T, S> implements RenderLayerParent<S, M> {
-    
+public abstract class LivingEntityRendererMixin
+    //? if >= 1.21.4 {
+        <T extends LivingEntity, S extends LivingEntityRenderState, M extends EntityModel<? super S>> extends EntityRenderer<T, S> implements RenderLayerParent<S, M>
+    //?}
+    //? if < 1.21.4 {
+    //<T extends LivingEntity, M extends EntityModel<T>> extends EntityRenderer<T> implements RenderLayerParent<T, M>
+    //?}
+    {
+
     @Shadow
     protected M model;
 
@@ -70,6 +60,7 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, S extend
         super(context);
     }
 
+    //? if >= 1.21.4 {
     /**
      * Enters the entity render scope during {@code extractRenderState} so that
      * {@code PlayerMixin}'s slot hiding does not
@@ -101,12 +92,13 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, S extend
             at = @At("TAIL")
     )
     private void capturePlayerIdentity(LivingEntity entity, LivingEntityRenderState state, float partialTick, CallbackInfo ci) {
-        if (entity instanceof IdentityCarrier carrier 
+        if (entity instanceof IdentityCarrier carrier
                 && state instanceof IdentityStateCarrier stateCarrier
                 && state instanceof AvatarRenderState) { // Make sure we don't accidentally capture zombies or other humanoids.
             stateCarrier.attachCarrier(carrier);
         }
     }
+    //?}
 
     //? if >= 1.21.4 && < 1.21.9 {
     /*@Inject(method = "render", at = @At("HEAD"))
@@ -114,7 +106,7 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, S extend
             MultiBufferSource bufferSource, int light, CallbackInfo ci) {
         forceArmVisibilityFromState(state);
     }
-    
+
     @Unique
     private void forceArmVisibilityFromState(EntityRenderState state) {
         if (!ArmorHiderClient.GECKOLIB_LOADED) return;
@@ -142,7 +134,7 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, S extend
             at = @At("HEAD")
     )
     private void forceArmVisibility(LivingEntity entity, float yBodyRot, float partialTick,
-                                    PoseStack poseStack, MultiBufferSource bufferSource, int light, CallbackInfo ci) {
+            PoseStack poseStack, MultiBufferSource bufferSource, int light, CallbackInfo ci) {
         if (!ArmorHiderClient.GECKOLIB_LOADED) return;
         if (!(entity instanceof IdentityCarrier carrier)) return;
 
@@ -158,5 +150,4 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, S extend
         }
     }
     *///?}
-    
 }

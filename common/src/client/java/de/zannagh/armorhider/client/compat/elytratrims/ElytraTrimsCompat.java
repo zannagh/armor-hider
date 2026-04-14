@@ -1,4 +1,3 @@
-//? if >= 1.21.9 {
 package de.zannagh.armorhider.client.compat.elytratrims;
 
 import de.zannagh.armorhider.ArmorHider;
@@ -7,20 +6,22 @@ import de.zannagh.armorhider.client.rendering.ColorMath;
 import de.zannagh.armorhider.client.rendering.RenderTypeResolver;
 import de.zannagh.armorhider.client.scopes.ActiveModification;
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
+import net.minecraft.world.entity.EquipmentSlot;
+
+//? if >= 1.21.9 && fabric {
 import dev.kikugie.elytratrims.api.render.ETRenderParameters;
 import dev.kikugie.elytratrims.api.render.ETRenderingAPI;
-import net.minecraft.world.entity.EquipmentSlot;
+//?}
 
 /**
  * ElytraTrims compatibility via their public rendering API.
  * Registers a {@link ETRenderingAPI.Callback} that applies Armor Hider's
  * hiding and transparency to all ElytraTrims decorators (trims, patterns, etc.).
  */
-public final class ElytraTrimsCompat {
-
-    private ElytraTrimsCompat() {}
-
-    public static void init() {
+public class ElytraTrimsCompat implements CompatLoader {
+    
+    public void init() {
+        //? if >= 1.21.9 && fabric {
         ETRenderingAPI.wrapRenderCall((parameters, collector, operation) -> {
             var ctx = ArmorHiderClient.RENDER_CONTEXT;
             ActiveModification mod = ctx.activeModification();
@@ -66,6 +67,6 @@ public final class ElytraTrimsCompat {
             }
         });
         ArmorHider.LOGGER.info("ElytraTrims compatibility loaded.");
+        //?}
     }
 }
-//?}
