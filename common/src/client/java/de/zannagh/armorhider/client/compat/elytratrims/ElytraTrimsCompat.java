@@ -2,15 +2,16 @@ package de.zannagh.armorhider.client.compat.elytratrims;
 
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.client.compat.CompatLoader;
+
+//? if >= 1.21.9 && fabric {
 import de.zannagh.armorhider.client.rendering.ColorMath;
 import de.zannagh.armorhider.client.rendering.RenderTypeResolver;
 import de.zannagh.armorhider.client.scopes.ActiveModification;
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
-import net.minecraft.world.entity.EquipmentSlot;
-
-//? if >= 1.21.9 && fabric {
 import dev.kikugie.elytratrims.api.render.ETRenderParameters;
 import dev.kikugie.elytratrims.api.render.ETRenderingAPI;
+import net.minecraft.world.entity.EquipmentSlot;
 //?}
 
 /**

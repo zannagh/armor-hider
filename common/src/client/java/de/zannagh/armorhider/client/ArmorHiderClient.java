@@ -1,7 +1,7 @@
 package de.zannagh.armorhider.client;
 
 import de.zannagh.armorhider.ArmorHider;
-import de.zannagh.armorhider.client.compat.elytratrims.CompatLoader;
+import de.zannagh.armorhider.client.compat.CompatLoader;
 import de.zannagh.armorhider.client.compat.elytratrims.ElytraTrimsCompat;
 import de.zannagh.armorhider.client.net.ClientCommunicationManager;
 import de.zannagh.armorhider.client.scopes.RenderContext;

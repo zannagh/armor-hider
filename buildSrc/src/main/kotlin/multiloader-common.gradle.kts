@@ -3,6 +3,12 @@ plugins {
     id("java-library")
 }
 
+repositories {
+    maven("https://api.modrinth.com/maven") {
+        content { includeGroup("maven.modrinth") }
+    }
+}
+
 val sc = project.stonecutterBuild
 val loader = sc.branch.id
 sc.constants["fabric"] = sc.current.project.contains("fabric")
