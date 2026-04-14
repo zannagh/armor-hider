@@ -3,6 +3,7 @@ package de.zannagh.armorhider.client;
 import de.zannagh.armorhider.util.MixinUtil;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.fml.loading.FMLLoader;
 import org.objectweb.asm.tree.ClassNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
@@ -83,6 +84,9 @@ public class MixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public void onLoad(String mixinPackage) {
+        if (FMLLoader.getLoadingModList().getModFileById("elytratrims") != null) {
+            ArmorHiderClient.ET_LOADED = true;
+        }
     }
 
     @Override

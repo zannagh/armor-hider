@@ -109,12 +109,21 @@ public abstract class LivingEntityRendererMixin
 
     @Unique
     private void forceArmVisibilityFromState(EntityRenderState state) {
-        if (!ArmorHiderClient.GECKOLIB_LOADED) return;
-        if (!(state instanceof IdentityCarrier carrier)) return;
-        if (!(state instanceof HumanoidRenderState humanoidState)) return;
+        if (!ArmorHiderClient.GECKOLIB_LOADED || !ArmorHiderClient.FA_LOADED) {
+            return;
+        }
+        
+        if (!(state instanceof IdentityCarrier carrier)) {
+            return;
+        }
+        if (!(state instanceof HumanoidRenderState humanoidState)) {
+            return;
+        }
 
         String name = carrier.playerName();
-        if (name == null) return;
+        if (name == null) { 
+            return;
+        }
 
         if (ActiveModification.isSlotModified(name, EquipmentSlot.CHEST, humanoidState.chestEquipment)) {
             var model = ((LivingEntityRenderer<?, ?, ?>) (Object) this).getModel();
@@ -135,11 +144,17 @@ public abstract class LivingEntityRendererMixin
     )
     private void forceArmVisibility(LivingEntity entity, float yBodyRot, float partialTick,
             PoseStack poseStack, MultiBufferSource bufferSource, int light, CallbackInfo ci) {
-        if (!ArmorHiderClient.GECKOLIB_LOADED) return;
-        if (!(entity instanceof IdentityCarrier carrier)) return;
+        if (!ArmorHiderClient.GECKOLIB_LOADED || !ArmorHiderClient.FA_LOADED) {
+            return;
+        }
+        if (!(entity instanceof IdentityCarrier carrier)) {
+            return;
+        }
 
         String name = carrier.playerName();
-        if (name == null) return;
+        if (name == null) {
+            return;
+        }
 
         if (ActiveModification.isSlotModified(name, EquipmentSlot.CHEST, entity.getItemBySlot(EquipmentSlot.CHEST))) {
             var model = ((LivingEntityRenderer<?, ?>) (Object) this).getModel();

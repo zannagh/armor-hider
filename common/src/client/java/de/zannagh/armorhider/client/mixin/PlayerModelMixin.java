@@ -32,7 +32,7 @@ public class PlayerModelMixin {
 
     @Unique
     private void resetArmVisibility(Object state) {
-        if (!ArmorHiderClient.FA_LOADED) {
+        if (!ArmorHiderClient.GECKOLIB_LOADED || !ArmorHiderClient.FA_LOADED) {
             return;
         }
         PlayerModel model = (PlayerModel)(Object)this;

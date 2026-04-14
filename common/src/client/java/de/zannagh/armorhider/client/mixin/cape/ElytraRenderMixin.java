@@ -40,6 +40,10 @@ public class ElytraRenderMixin {
             ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
             ci.cancel();
         }
+        else if (ArmorHiderClient.ET_LOADED) {
+            ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
+            // Suppress transparency on ElytraTrims, only allow full hide/show.
+        }
     }
 
     @Inject(
@@ -93,6 +97,10 @@ public class ElytraRenderMixin {
         if (mod.shouldHide()) {
             ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
             ci.cancel();
+        }
+        else if (ArmorHiderClient.ET_LOADED) {
+            ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
+            // Suppress transparency on ElytraTrims, only allow full hide/show.
         }
     }
 
@@ -156,6 +164,10 @@ public class ElytraRenderMixin<T extends LivingEntity, M extends EntityModel<T>>
         if (mod.shouldHide()) {
             ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
             ci.cancel();
+        }
+        else if (ArmorHiderClient.ET_LOADED) {
+            ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
+            // Suppress transparency on ElytraTrims, only allow full hide/show.
         }
     }
 
