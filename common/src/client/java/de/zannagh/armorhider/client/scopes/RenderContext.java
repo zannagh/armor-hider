@@ -102,4 +102,5 @@ public final class RenderContext {
         var mod = activeModification.get();
         return mod != null && mod.slot() == slot;
     }
+
 }

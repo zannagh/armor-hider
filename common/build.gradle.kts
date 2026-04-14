@@ -47,9 +47,37 @@ configure<net.fabricmc.loom.api.LoomGradleExtensionAPI> {
     }
 }
 
+repositories {
+    maven("https://api.modrinth.com/maven") {
+        content { includeGroup("maven.modrinth") }
+    }
+}
+
 dependencies {
     if (!project.isDeobf) {
         add("modCompileOnly", "net.fabricmc:fabric-loader:${property("loader_version")}")
+    }
+
+    if (!project.isDeobf) {
+        val mcMinor = project.mcVersion.removePrefix("1.21.").toIntOrNull()
+        if (mcMinor != null && mcMinor >= 9) {
+            add("modCompileOnly", "maven.modrinth:geckolib:7qjQQSWv") // GL 5.3-alpha-3 Fabric 1.21.10
+        } else if (project.mcVersion.startsWith("1.21")) {
+            add("modCompileOnly", "maven.modrinth:geckolib:3GjkJptS") // GL 4.8.4 Fabric 1.21.1
+        } else if (project.mcVersion.startsWith("1.20")) {
+            add("modCompileOnly", "maven.modrinth:geckolib:PdrSPr53") // GL 4.8.3 Fabric 1.20.1
+        }
+    }
+
+    // ElytraTrims compat — only needed for versions where the compat class compiles (>= 1.21.9).
+    // Must use version-matched artifacts: MC types move packages across major versions.
+    // The 1.21.9 artifact uses ResourceLocation which was renamed in 1.21.11, so cap at < 1.21.11.
+    if (project.isDeobf) {
+        compileOnly("maven.modrinth:elytra-trims:q7SmWLkn")       // ET 4.7.0 for 26.1
+    } else if (project.mcVersion.let {
+        it.startsWith("1.21.") && (it.removePrefix("1.21.").toIntOrNull() ?: 0).let { minor -> minor in 9..10 }
+    }) {
+        add("modCompileOnly", "maven.modrinth:elytra-trims:iLC0LP3D") // ET 4.5.7 for 1.21.9+
     }
 
     compileOnly("org.jspecify:jspecify:1.0.0")

@@ -73,7 +73,7 @@ public abstract class ArmorHiderConfigurationScreen extends Screen {
         if (settingsChanged) {
             saveSettingsOnClose();
         }
-        this.minecraft.setScreen(parent);
+        this.minecraft.setScreenAndShow(parent);
     }
     
     protected <T> void setSetting(T value, Consumer<T> setter){

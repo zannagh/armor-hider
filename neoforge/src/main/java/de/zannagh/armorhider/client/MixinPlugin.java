@@ -48,7 +48,8 @@ public class MixinPlugin implements IMixinConfigPlugin {
             "bodyKneesAndToes.NeoForgeHumanoidArmorLayerMixin",
             "OptionsMixin",
             // Compat — @Pseudo, auto-skipped if target mod absent
-            "compat.wildfiregender.GenderArmorLayerMixin"
+            "compat.wildfiregender.GenderArmorLayerMixin",
+            "compat.geckolib.GeckoLibArmorMixin"
     };
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {

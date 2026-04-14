@@ -7,10 +7,6 @@ import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import org.jspecify.annotations.NonNull;
-
-//? if < 26.1-1.pre.1
-//import net.minecraft.client.gui.GuiGraphics;
-//? if >= 26.1-1.pre.1
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import org.jspecify.annotations.Nullable;
 

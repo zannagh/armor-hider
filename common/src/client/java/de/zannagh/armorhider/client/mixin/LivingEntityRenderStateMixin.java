@@ -58,5 +58,35 @@ public class LivingEntityRenderStateMixin implements IdentityStateCarrier {
     public boolean isPlayerFlying() {
         return armorHider$carrier != null && armorHider$carrier.isPlayerFlying();
     }
+
+    @Unique
+    private boolean armorHider$needsArmRerender;
+
+    @Override
+    public void setNeedsArmRerender() {
+        armorHider$needsArmRerender = true;
+    }
+
+    @Override
+    public boolean pollNeedsArmRerender() {
+        boolean needs = armorHider$needsArmRerender;
+        armorHider$needsArmRerender = false;
+        return needs;
+    }
+
+    @Unique
+    private @Nullable Integer armorHider$savedGeckoLibColor;
+
+    @Override
+    public void saveGeckoLibColor(int color) {
+        armorHider$savedGeckoLibColor = color;
+    }
+
+    @Override
+    public @Nullable Integer pollSavedGeckoLibColor() {
+        Integer color = armorHider$savedGeckoLibColor;
+        armorHider$savedGeckoLibColor = null;
+        return color;
+    }
 }
 //?}

@@ -91,6 +91,10 @@ public record ActiveModification(
 
         return new ActiveModification(resolvedSlot, resolvedItem, playerName, transparency, shouldHide, disableGlint);
     }
+    
+    public boolean shouldModify() {
+        return transparency < 1 - ArmorOpacity.TRANSPARENCY_STEP / 2 || shouldDisableGlint;
+    }
 
     /**
      * Evaluates whether the current modification should apply any transformations to glint or transparency.
@@ -115,6 +119,15 @@ public record ActiveModification(
     public static boolean isSlotFullyHidden(@NotNull String playerName, @NotNull EquipmentSlot slot, @NotNull ItemStack item) {
         var mod = create(playerName, slot, item);
         return mod != null && mod.shouldHide;
+    }
+
+    /**
+     * Checks if a slot would cause any modification by armor hider for a player, without needing a render context.
+     * Used by {@code PlayerMixin} and {@code CapeRenderMixin}.
+     */
+    public static boolean isSlotModified(@NotNull String playerName, @NotNull EquipmentSlot slot, @NotNull ItemStack item) {
+        var mod = create(playerName, slot, item);
+        return mod != null && mod.shouldModify();
     }
 
     private static double getTransparencyForSlot(@NotNull PlayerConfig config, @NotNull EquipmentSlot slot) {

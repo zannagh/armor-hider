@@ -1,6 +1,8 @@
 package de.zannagh.armorhider.client;
 
 import de.zannagh.armorhider.ArmorHider;
+import de.zannagh.armorhider.client.compat.elytratrims.CompatLoader;
+import de.zannagh.armorhider.client.compat.elytratrims.ElytraTrimsCompat;
 import de.zannagh.armorhider.client.net.ClientCommunicationManager;
 import de.zannagh.armorhider.client.scopes.RenderContext;
 import de.zannagh.armorhider.log.DebugLogger;
@@ -18,6 +20,21 @@ public class ArmorHiderClient {
     public static int permissionLevel = 0; // Default to lowest.
     public static ClientConfigManager CLIENT_CONFIG_MANAGER = new ClientConfigManager();
     public static RenderContext RENDER_CONTEXT = new RenderContext();
+
+    public static final boolean FA_LOADED = classExists("net.kenddie.fantasyarmor.FantasyArmor");
+
+    /** True if GeckoLib is on the classpath — used to counteract mods like FantasyArmor
+     *  that hide vanilla player-model arms when GeckoLib armor is equipped. */
+    public static final boolean GECKOLIB_LOADED = classExists("software.bernie.geckolib.renderer.GeoArmorRenderer");
+
+    private static boolean classExists(String name) {
+        try {
+            Class.forName(name, false, ArmorHiderClient.class.getClassLoader());
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
     
     /**
      * A static initializer for client-related methods (communication, payloads, etc.).
@@ -27,6 +44,33 @@ public class ArmorHiderClient {
     public static void init() {
         ArmorHider.LOGGER.info("Armor Hider client initializing...");
         ClientCommunicationManager.initClient();
+        initCompat();
+    }
+
+    private static void initCompat() {
+        loadCompat("dev.kikugie.elytratrims.api.render.ETRenderingAPI",
+                new ElytraTrimsCompat());
+    }
+
+    /**
+     * Loads an optional compatibility module via reflection.
+     * The compat class must have a public static {@code init()} method.
+     *
+     * @param apiClass    a class from the target mod; used as a presence check
+     * @param compatClass the fully-qualified Armor Hider compat class to initialise
+     */
+    private static void loadCompat(String apiClass, CompatLoader compatClass) {
+        try {
+            if (!classExists(apiClass)) {
+                return;
+            }
+            Class.forName(apiClass, false, ArmorHiderClient.class.getClassLoader());
+            compatClass.init();
+        } catch (ClassNotFoundException ignored) {
+            // Target mod or compat class not present
+        } catch (Exception e) {
+            ArmorHider.LOGGER.error("Failed to initialise compat: {}", compatClass, e);
+        }
     }
     
     public static @NonNull Boolean isClientConnectedToServer() {

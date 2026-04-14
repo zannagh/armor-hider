@@ -106,8 +106,8 @@ public class AdvancedArmorHiderSettingsScreen extends ArmorHiderConfigurationScr
         //?}
 
         //? if < 1.21.9 {
-        /*
-        OptionInstance<Boolean> combatDetectionServerOption = factory.buildBooleanOption(
+        
+        /*OptionInstance<Boolean> combatDetectionServerOption = factory.buildBooleanOption(
                 combatDetectionServerText,
                 ArmorHiderClient.permissionLevel >= 3
                         ? Component.translatable("armorhider.options.combat_detection_server.tooltip")
@@ -226,9 +226,9 @@ public class AdvancedArmorHiderSettingsScreen extends ArmorHiderConfigurationScr
 
     //? if < 1.21.4 {
     /*@Override
-    public void render(net.minecraft.client.gui.GuiGraphics context, int mouseX, int mouseY, float delta) {
+    public void render(net.minecraft.client.gui.GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
         //? if >= 1.21
-        //this.renderBackground(context, mouseX, mouseY, delta);
+        this.renderBackground(context, mouseX, mouseY, delta);
         //? if < 1.21 {
         /^this.renderBackground(context);
         ^///?}
