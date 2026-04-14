@@ -22,6 +22,7 @@ extra["commonSourceSets"] = commonSourceSets
 // Carry over compile-only dependencies from common that are needed when compiling common sources
 dependencies {
     compileOnly("org.jspecify:jspecify:1.0.0")
+    compileOnly("net.luckperms:api:5.4")
 }
 
 // Include common's sources in the loader's source sets for IntelliJ

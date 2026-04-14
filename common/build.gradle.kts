@@ -74,6 +74,7 @@ dependencies {
         add(modDep, "maven.modrinth:elytra-trims:${prop("elytratrims.version")}")
     }
 
+    compileOnly("net.luckperms:api:5.4")
     compileOnly("org.jspecify:jspecify:1.0.0")
 
     testImplementation(platform("org.junit:junit-bom:6.0.1"))

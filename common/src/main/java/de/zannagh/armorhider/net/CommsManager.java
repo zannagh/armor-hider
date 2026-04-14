@@ -27,17 +27,6 @@ public final class CommsManager {
             sendToClient(player, new PermissionPacket(ServerUtil.getPermissionLevelForPlayer(player, server)));
         });
 
-        ServerConnectionEvents.registerJoin((player, server) -> {
-            int permissionLevel;
-            //? if >= 1.21.11
-            permissionLevel = server.getProfilePermissions(player.nameAndId()).level().id();
-            //? if >= 1.21.9 && < 1.21.11
-            //permissionLevel = server.getProfilePermissions(player.nameAndId());
-            //? if < 1.21.9
-            //permissionLevel = server.getProfilePermissions(player.getGameProfile());
-            sendToClient(player, new PermissionPacket(permissionLevel));
-        });
-
         // Register PlayerConfig handler (C2S)
         //? if >= 1.20.5 {
         PayloadRegistry.registerC2SHandler(PlayerConfig.TYPE, ctx -> {

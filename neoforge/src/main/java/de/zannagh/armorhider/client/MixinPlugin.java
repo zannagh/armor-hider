@@ -1,9 +1,9 @@
 package de.zannagh.armorhider.client;
 
+import de.zannagh.armorhider.CompatFlags;
 import de.zannagh.armorhider.util.MixinUtil;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLEnvironment;
-import net.neoforged.fml.loading.FMLLoader;
 import org.objectweb.asm.tree.ClassNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
@@ -84,8 +84,18 @@ public class MixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public void onLoad(String mixinPackage) {
-        if (FMLLoader.getLoadingModList().getModFileById("elytratrims") != null) {
-            ArmorHiderClient.ET_LOADED = true;
+        if (classExists("dev.kikugie.elytratrims.ep.ETClientEntrypoint")) CompatFlags.ET_LOADED = true;
+        if (classExists("software.bernie.geckolib.renderer.GeoArmorRenderer")) CompatFlags.GECKOLIB_LOADED = true;
+        if (classExists("net.kenddie.fantasyarmor.FantasyArmor")) CompatFlags.FA_LOADED = true;
+        if (classExists("com.wildfire.render.GenderArmorLayer")) CompatFlags.WFGM_LOADED = true;
+    }
+
+    private static boolean classExists(String name) {
+        try {
+            Class.forName(name, false, MixinPlugin.class.getClassLoader());
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
         }
     }
 

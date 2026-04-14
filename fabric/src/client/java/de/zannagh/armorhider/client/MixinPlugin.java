@@ -1,5 +1,6 @@
 package de.zannagh.armorhider.client;
 
+import de.zannagh.armorhider.CompatFlags;
 import de.zannagh.armorhider.util.MixinUtil;
 import net.fabricmc.loader.api.FabricLoader;
 import org.objectweb.asm.tree.ClassNode;
@@ -75,9 +76,11 @@ public class MixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public void onLoad(String mixinPackage) {
-        if (FabricLoader.getInstance().isModLoaded("elytratrims")) {
-            ArmorHiderClient.ET_LOADED = true;
-        }
+        var loader = FabricLoader.getInstance();
+        if (loader.isModLoaded("elytratrims")) CompatFlags.ET_LOADED = true;
+        if (loader.isModLoaded("geckolib")) CompatFlags.GECKOLIB_LOADED = true;
+        if (loader.isModLoaded("fantasy_armor")) CompatFlags.FA_LOADED = true;
+        if (loader.isModLoaded("wildfire_gender")) CompatFlags.WFGM_LOADED = true;
     }
 
     @Override

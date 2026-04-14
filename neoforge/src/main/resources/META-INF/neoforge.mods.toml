@@ -29,3 +29,10 @@ type="required"
 versionRange="${minecraft_version}"
 ordering="NONE"
 side="BOTH"
+
+[[dependencies."armor_hider"]]
+modId="luckperms"
+type="optional"
+versionRange="[5.4,)"
+ordering="AFTER"
+side="SERVER"
