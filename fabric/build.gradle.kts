@@ -29,9 +29,6 @@ configure<net.fabricmc.loom.api.LoomGradleExtensionAPI> {
         if (project.isDeobf) {
             vmArg("-Dfabric.gameVersion=${fabricVersion}")
         }
-        if (environment == "client") {
-            programArgs("--username=zannagh")
-        }
     }
 }
 

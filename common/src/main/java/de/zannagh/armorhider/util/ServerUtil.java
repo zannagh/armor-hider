@@ -11,7 +11,7 @@ public final class ServerUtil {
 
     static {
         if (LUCKPERMS_AVAILABLE) {
-            ArmorHider.LOGGER.info("LuckPerms detected — using it for permission checks instead of default permission handling (mod/admin can change settings.");
+            ArmorHider.LOGGER.info("LuckPerms detected — using it for permission checks instead of default permission handling.");
             ArmorHider.LOGGER.info("--- Armor Hider Configuration ---");
             ArmorHider.LOGGER.info("Add permission to users with the following key to let them change armor hider settings server-wide: {}", LuckPermsHook.ADMIN_PERMISSION);
             ArmorHider.LOGGER.info("--- End of Armor Hider Configuration ---");
@@ -41,7 +41,7 @@ public final class ServerUtil {
         try {
             Class.forName(name, false, ServerUtil.class.getClassLoader());
             return true;
-        } catch (ClassNotFoundException e) {
+        } catch (ClassNotFoundException | LinkageError e) {
             return false;
         }
     }
