@@ -1,6 +1,5 @@
 package de.zannagh.armorhider.client.mixin;
 
-import de.zannagh.armorhider.client.gui.screens.ArmorHiderOptionsScreen;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
