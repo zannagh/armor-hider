@@ -33,6 +33,21 @@ class PlayerConfigurationTests {
                 }""";
     }
 
+    private static String getCurrentVersionPlayerConfig() {
+        return """
+                {
+                  "configVersion": 2,
+                  "helmetOpacity": 0.35,
+                  "chestOpacity": 0.35,
+                  "legsOpacity": 0.2,
+                  "bootsOpacity": 0.25,
+                  "playerId": "6f7d35ad-9152-3823-9277-b683a91158a3",
+                  "playerName": "Player446",
+                  "enableCombatDetection": true,
+                  "showSettingsInSkinCustomization": true
+                }""";
+    }
+
     @Test
     @DisplayName("Read from v1 configuration")
     void readV1() {
@@ -116,6 +131,15 @@ class PlayerConfigurationTests {
         assertEquals(UUID.fromString("6f7d35ad-9152-3823-9277-b683a91158a3"), currentConfig.playerId.getValue());
         assertEquals("Player446", currentConfig.playerName.getValue());
         assertEquals(true, currentConfig.enableCombatDetection.getValue());
+    }
+
+    @Test
+    @DisplayName("Read current configuration with embedded settings toggle")
+    void readCurrentConfigWithEmbeddedSettingsToggle() {
+        var configurationProvider = new StringPlayerConfigProvider(getCurrentVersionPlayerConfig());
+        var currentConfig = configurationProvider.getValue();
+        assertEquals(PlayerConfig.CURRENT_CONFIG_VERSION, currentConfig.configVersion);
+        assertEquals(true, currentConfig.showSettingsInSkinCustomization.getValue());
     }
 
     /**

@@ -2,13 +2,12 @@ package de.zannagh.armorhider.client.gui.screens;
 
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.gui.elements.*;
+//? if >= 1.21
+import de.zannagh.armorhider.client.gui.elements.ArmorHiderOptionsPanelWidget;
+import de.zannagh.armorhider.client.gui.elements.PlayerPreviewWidget;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
-import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.Tooltip;
-import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -24,7 +23,23 @@ public class ArmorHiderOptionsScreen extends ArmorHiderConfigurationScreen {
 
     @Override
     protected void init() {
-        int listWidth = super.isPlayerInGame() ? (this.width * 3) / 5 : this.width;
+        //? if >= 1.21.9 {
+        int panelWidth = super.isPlayerInGame() ? (this.width * 3) / 5 : this.width;
+        int panelHeight = this.height - topMargin - bottomMargin;
+        this.addRenderableWidget(new ArmorHiderOptionsPanelWidget(0, topMargin, panelWidth, panelHeight, this, this.gameOptions, () -> this.settingsChanged = true));
+        this.addRenderableWidget(Button.builder(net.minecraft.network.chat.CommonComponents.GUI_DONE, btn -> onClose())
+                .bounds(this.width / 2 - 100, this.height - 27, 200, 20).build());
+
+        if (super.isPlayerInGame()) {
+            int previewWidth = this.width * 2 / 5 - previewMargin;
+            int previewHeight = this.height - topMargin - bottomMargin - previewMargin;
+            int previewX = panelWidth + previewMargin / 2;
+            int previewY = topMargin + previewMargin / 2;
+            addRenderableWidget(new PlayerPreviewWidget(previewX, previewY, previewWidth, previewHeight));
+        }
+        //?}
+        //? if < 1.21.9 {
+        /*int listWidth = super.isPlayerInGame() ? (this.width * 3) / 5 : this.width;
         super.initWidgetList(listWidth);
         super.init();
 
@@ -35,11 +50,13 @@ public class ArmorHiderOptionsScreen extends ArmorHiderConfigurationScreen {
             int previewY = topMargin + previewMargin / 2;
             addRenderableWidget(new PlayerPreviewWidget(previewX, previewY, previewWidth, previewHeight));
         }
+        *///?}
     }
 
     @Override
     protected void addOptions() {
-        var config = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue();
+        //? if < 1.21.9 {
+        /*var config = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue();
 
         var helmetOption = factory.buildDoubleOption(
                 "armorhider.helmet.transparency",
@@ -133,28 +150,14 @@ public class ArmorHiderOptionsScreen extends ArmorHiderConfigurationScreen {
 
         factory.addElementAsWidget(Button.builder(
                 Component.translatable("armorhider.options.regular.title"),
-                btn -> {
-                    //? if >= 1.21.9
-                    Minecraft.getInstance().setScreenAndShow(new AdvancedArmorHiderSettingsScreen(this, gameOptions, this.title));
-                    //? if < 1.21.9
-                    //Minecraft.getInstance().setScreenAndShow(new AdvancedArmorHiderSettingsScreen(this, gameOptions, this.title));
-                }
-        ).tooltip(Tooltip.create(Component.translatable("armorhider.options.regular.title"))).build());
+                btn -> Minecraft.getInstance().setScreenAndShow(new AdvancedArmorHiderSettingsScreen(this, gameOptions, this.title))
+        ).tooltip(net.minecraft.client.gui.components.Tooltip.create(Component.translatable("armorhider.options.regular.title"))).build());
+        *///?}
     }
 
     @Override
     protected void saveSettingsOnClose() {
         ArmorHider.LOGGER.info("Updating current player settings...");
         ArmorHiderClient.CLIENT_CONFIG_MANAGER.saveCurrent();
-    }
-
-    @Override
-    public void addWidget(AbstractWidget widget) {
-        this.addRenderableWidget(widget);
-    }
-
-    @Override
-    void removeWidget(AbstractWidget widget) {
-        this.removeWidget((GuiEventListener) widget);
     }
 }

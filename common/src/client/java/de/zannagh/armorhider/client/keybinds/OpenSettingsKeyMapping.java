@@ -2,7 +2,7 @@ package de.zannagh.armorhider.client.keybinds;
 
 
 import net.minecraft.client.Minecraft;
-import de.zannagh.armorhider.client.gui.screens.ArmorHiderOptionsScreen;
+import de.zannagh.armorhider.client.ArmorHiderClient;
 
 import java.awt.event.KeyEvent;
 import java.nio.channels.NetworkChannel;
@@ -19,7 +19,7 @@ public class OpenSettingsKeyMapping extends CustomKeyMapping {
         if (client == null) {
             return;
         }
-        client.setScreenAndShow(new ArmorHiderOptionsScreen(client.screen, client.options));
+        ArmorHiderClient.openPreferredSettingsScreen(client.screen, client.options);
     }
 
     @Override

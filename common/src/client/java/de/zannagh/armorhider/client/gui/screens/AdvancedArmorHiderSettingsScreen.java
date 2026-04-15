@@ -17,6 +17,7 @@ public class AdvancedArmorHiderSettingsScreen extends ArmorHiderConfigurationScr
     private boolean localSettingsChanged;
     private boolean setDisableOthers = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableArmorHiderForOthers.getValue();
     private boolean setUseLocalSettingsForOthersWhenUnknown = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().usePlayerSettingsWhenUndeterminable.getValue();
+    private boolean setShowSettingsInSkinCustomization = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().showSettingsInSkinCustomization.getValue();
     private boolean setDisableLocal = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableArmorHider.getValue();
     private boolean forceServerOffDefaultSetting;
     private boolean combatDetectionDefaultSetting;
@@ -190,6 +191,17 @@ public class AdvancedArmorHiderSettingsScreen extends ArmorHiderConfigurationScr
 
         factory.addSimpleOptionAsWidget(settingsToUse);
         factory.addSimpleOptionAsWidget(globalToggle);
+        var settingsLocationToggle = factory.buildBooleanOption(
+                Component.translatable("armorhider.options.show_settings_in_skin.title"),
+                Component.translatable("armorhider.options.show_settings_in_skin.tooltip"),
+                Component.translatable("armorhider.options.show_settings_in_skin.tooltip_narration"),
+                ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().showSettingsInSkinCustomization.getValue(),
+                val -> setSetting(val, v -> {
+                    setShowSettingsInSkinCustomization = v;
+                    localSettingsChanged = true;
+                })
+        );
+        factory.addSimpleOptionAsWidget(settingsLocationToggle);
         factory.addSimpleOptionAsWidget(otherToggle);
 
         factory.addTextWidget(Component.translatable("armorhider.options.debug.title"));
@@ -215,6 +227,8 @@ public class AdvancedArmorHiderSettingsScreen extends ArmorHiderConfigurationScr
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableArmorHiderForOthers.setValue(setDisableOthers);
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableArmorHider.setValue(setDisableLocal);
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().usePlayerSettingsWhenUndeterminable.setValue(setUseLocalSettingsForOthersWhenUnknown);
+            //? if >= 1.21.9
+            ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().showSettingsInSkinCustomization.setValue(setShowSettingsInSkinCustomization);
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.saveCurrent();
         }
     }

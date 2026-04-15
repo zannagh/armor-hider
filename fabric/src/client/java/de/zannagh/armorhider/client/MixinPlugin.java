@@ -29,6 +29,7 @@ public class MixinPlugin implements IMixinConfigPlugin {
             "hand.OffHandRenderMixin",
             // Guarded by //? if >= 1.21.9 in source
             "OptionsScreenMixin",
+            "SkinCustomizationScreenMixin",
             "bodyKneesAndToes.EquipmentRenderMixin",
             "hand.ItemRenderStateMixin",
             "hand.SubmitNodeCollectorMixin",

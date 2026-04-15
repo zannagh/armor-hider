@@ -25,12 +25,12 @@ stonecutter {
         "26.1-snapshot-11",
         "26.1-pre-2",
         "26.1-rc-1", "26.1-rc-2",
-        "26.1", "26.1.1"
+        "26.1", "26.1.1", "26.1.2"
     )
     val neoforgeVersions = listOf(
         "1.21", "1.21.1", "1.21.4", "1.21.5", "1.21.6", "1.21.7", "1.21.8",
         "1.21.9", "1.21.10", "1.21.11",
-        "26.1", "26.1.1"
+        "26.1", "26.1.1", "26.1.2"
     )
 
     // Required to have a parseable semVer for StoneCutter (26.1-0.snapshot.2 instead of 26.1-snapshot-2)

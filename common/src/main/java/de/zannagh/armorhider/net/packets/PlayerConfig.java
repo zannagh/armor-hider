@@ -32,13 +32,14 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
      * <ul>
      *   <li>0 = pre-versioning format (before 0.10.0-pre.5)</li>
      *   <li>1 = introduced explicit configVersion/schema versioning (0.10.0-pre.5+)</li>
+     *   <li>2 = added client-side settings placement preference</li>
      * </ul>
      */
     @SerializedName(value = "configVersion")
     public int configVersion;
 
     /** The current config schema version. */
-    public static final int CURRENT_CONFIG_VERSION = 1;
+    public static final int CURRENT_CONFIG_VERSION = 2;
     
     //? if >= 1.21.11 {
     public static final Identifier PACKET_IDENTIFIER = Identifier.fromNamespaceAndPath("de.zannagh.armorhider", "settings_c2s_packet");
@@ -91,6 +92,8 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
     public DisableArmorHiderForOthers disableArmorHiderForOthers;
     @SerializedName(value = "usePlayerSettingsWhenUndeterminable")
     public UsePlayerSettingsWhenUndeterminable usePlayerSettingsWhenUndeterminable;
+    @SerializedName(value = "showSettingsInSkinCustomization")
+    public ShowSettingsInSkinCustomization showSettingsInSkinCustomization;
     @SerializedName(value = "offHandOpacity")
     public OffHandOpacity offHandOpacity;
     
@@ -125,6 +128,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         disableArmorHider = new DisableArmorHiderGlobally();
         disableArmorHiderForOthers = new DisableArmorHiderForOthers();
         usePlayerSettingsWhenUndeterminable = new UsePlayerSettingsWhenUndeterminable();
+        showSettingsInSkinCustomization = new ShowSettingsInSkinCustomization();
         offHandOpacity = new OffHandOpacity();
         helmetGlint = new EnableGlint();
         chestGlint = new EnableGlint();
@@ -187,6 +191,9 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         fresh.disableArmorHider.setValue(old.disableArmorHider.getValue());
         fresh.disableArmorHiderForOthers.setValue(old.disableArmorHiderForOthers.getValue());
         fresh.usePlayerSettingsWhenUndeterminable.setValue(old.usePlayerSettingsWhenUndeterminable.getValue());
+        if (old.showSettingsInSkinCustomization != null) {
+            fresh.showSettingsInSkinCustomization.setValue(old.showSettingsInSkinCustomization.getValue());
+        }
         fresh.offHandOpacity.setValue(old.offHandOpacity.getValue());
 
         if (old.exclusionItems != null) {
@@ -223,6 +230,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         newConfig.opacityAffectingHatOrSkull.setValue(this.opacityAffectingHatOrSkull.getValue());
         newConfig.opacityAffectingElytra.setValue(this.opacityAffectingElytra.getValue());
         newConfig.usePlayerSettingsWhenUndeterminable.setValue(this.usePlayerSettingsWhenUndeterminable.getValue());
+        newConfig.showSettingsInSkinCustomization.setValue(this.showSettingsInSkinCustomization.getValue());
         newConfig.offHandOpacity.setValue(this.offHandOpacity.getValue());
         newConfig.helmetGlint.setValue(this.helmetGlint.getValue());
         newConfig.chestGlint.setValue(this.chestGlint.getValue());

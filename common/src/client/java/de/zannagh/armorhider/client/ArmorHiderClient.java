@@ -2,17 +2,25 @@ package de.zannagh.armorhider.client;
 
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.CompatFlags;
+import de.zannagh.armorhider.client.gui.screens.ArmorHiderOptionsScreen;
 import de.zannagh.armorhider.client.net.ClientCommunicationManager;
 import de.zannagh.armorhider.client.scopes.RenderContext;
 import de.zannagh.armorhider.log.DebugLogger;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.multiplayer.PlayerInfo;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.NonNull;
 import oshi.util.tuples.Pair;
+
+//? if >= 1.21 {
+import net.minecraft.client.gui.screens.options.SkinCustomizationScreen;
+//?} else {
+/*import net.minecraft.client.gui.screens.SkinCustomizationScreen;
+*///?}
 
 public class ArmorHiderClient {
 
@@ -47,6 +55,18 @@ public class ArmorHiderClient {
         return Minecraft.getInstance().isLocalServer()
                 || Minecraft.getInstance().getCurrentServer() != null
                 || (Minecraft.getInstance().getConnection() != null && Minecraft.getInstance().getConnection().getServerData() != null);
+    }
+
+    public static void openPreferredSettingsScreen(Screen parent, net.minecraft.client.Options options) {
+        var minecraft = Minecraft.getInstance();
+        //? if >= 1.21.9 {
+        Screen target = CLIENT_CONFIG_MANAGER.getValue().showSettingsInSkinCustomization.getValue()
+                ? new SkinCustomizationScreen(parent, options)
+                : new ArmorHiderOptionsScreen(parent, options);
+        //?}
+        //? if < 1.21.9
+        /*Screen target = new ArmorHiderOptionsScreen(parent, options);*/
+        minecraft.setScreenAndShow(target);
     }
 
     public static String getCurrentPlayerName() {

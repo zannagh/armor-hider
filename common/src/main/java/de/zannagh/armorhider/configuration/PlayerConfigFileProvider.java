@@ -38,6 +38,9 @@ public class PlayerConfigFileProvider implements ConfigurationProvider<PlayerCon
             if (Files.exists(FILE)) {
                 try (Reader r = Files.newBufferedReader(FILE)) {
                     var current = PlayerConfig.deserialize(r);
+                    if (current == null) {
+                        throw new IllegalStateException("Client config file was empty or deserialized to null.");
+                    }
 
                     if (current.configVersion < PlayerConfig.CURRENT_CONFIG_VERSION) {
                         current = migrateConfig(current);
