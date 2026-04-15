@@ -25,7 +25,7 @@ A mod to alter the transparency or fully hide armor and equipment with multiplay
 - **Admin controls** for server operators (force armor visible, server-wide combat detection)
 
 #### Compatibility
-Armor Hider features compatibility with some major mods focused around visuals. 
+Armor Hider is compatible with some major mods focused around visuals. 
 
 If you're using a mod not yet supported, please open an issue on GitHub to let me know or drop a message on Discord.
 
