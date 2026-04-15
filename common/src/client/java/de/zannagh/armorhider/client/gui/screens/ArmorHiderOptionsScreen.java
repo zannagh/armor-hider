@@ -2,7 +2,6 @@ package de.zannagh.armorhider.client.gui.screens;
 
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-//? if >= 1.21
 import de.zannagh.armorhider.client.gui.elements.ArmorHiderOptionsPanelWidget;
 import de.zannagh.armorhider.client.gui.elements.PlayerPreviewWidget;
 import net.minecraft.client.Minecraft;

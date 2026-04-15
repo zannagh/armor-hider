@@ -26,6 +26,8 @@ public class WidgetList extends ContainerObjectSelectionList<WidgetList.WidgetEn
         super(mc, width, height, y, y + height, itemHeight);
         this.contentWidth = width;
         this.itemHeight = itemHeight;
+        this.setRenderBackground(false);
+        this.setRenderTopAndBottom(false);
     }
     *///?}
 
@@ -43,9 +45,15 @@ public class WidgetList extends ContainerObjectSelectionList<WidgetList.WidgetEn
     }
 
     //? if < 1.21 {
-    /*@Override
+    /*public void updateSizeAndPosition(int width, int height, int x, int y) {
+        this.updateSize(width, height, y, y + height);
+        this.x0 = x;
+        this.x1 = x + width;
+    }
+
+    @Override
     protected int getScrollbarPosition() {
-        return (this.width + this.getRowWidth()) / 2 + 4;
+        return (this.x1 + this.x0) / 2 + this.getRowWidth() / 2 + 4;
     }
     *///?}
 

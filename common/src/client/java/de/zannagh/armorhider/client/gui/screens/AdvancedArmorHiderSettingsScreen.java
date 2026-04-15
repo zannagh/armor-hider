@@ -227,7 +227,6 @@ public class AdvancedArmorHiderSettingsScreen extends ArmorHiderConfigurationScr
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableArmorHiderForOthers.setValue(setDisableOthers);
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableArmorHider.setValue(setDisableLocal);
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().usePlayerSettingsWhenUndeterminable.setValue(setUseLocalSettingsForOthersWhenUnknown);
-            //? if >= 1.21.9
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().showSettingsInSkinCustomization.setValue(setShowSettingsInSkinCustomization);
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.saveCurrent();
         }
@@ -237,18 +236,6 @@ public class AdvancedArmorHiderSettingsScreen extends ArmorHiderConfigurationScr
         hasUsedFallbackWhereServerDidntTranspondSettings = true;
         return valueToReturn;
     }
-
-    //? if < 1.21.4 {
-    /*@Override
-    public void render(net.minecraft.client.gui.GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
-        //? if >= 1.21
-        this.renderBackground(context, mouseX, mouseY, delta);
-        //? if < 1.21 {
-        /^this.renderBackground(context);
-        ^///?}
-        super.render(context, mouseX, mouseY, delta);
-    }
-    *///?}
 
     @Override
     public void tick() {

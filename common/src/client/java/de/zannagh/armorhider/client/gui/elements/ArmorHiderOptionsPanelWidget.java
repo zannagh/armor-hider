@@ -1,4 +1,3 @@
-//? if >= 1.21 {
 package de.zannagh.armorhider.client.gui.elements;
 
 import de.zannagh.armorhider.client.ArmorHiderClient;
@@ -162,8 +161,10 @@ public class ArmorHiderOptionsPanelWidget extends AbstractWidget {
     private void updateLayout() {
         //? if > 1.21.8
         widgetList.updateSizeAndPosition(this.width, this.height, this.getX(), this.getY());
-        //? if <= 1.21.8
+        //? if >= 1.21 && <= 1.21.8
         //widgetList.updateSizeAndPosition(this.width, this.height, this.getY());
+        //? if < 1.21
+        //widgetList.updateSizeAndPosition(this.width, this.height, this.getX(), this.getY());
     }
 
     @Override
@@ -184,11 +185,19 @@ public class ArmorHiderOptionsPanelWidget extends AbstractWidget {
         updateLayout();
     }
 
+    //? if >= 1.21 {
     @Override
     public void setHeight(int height) {
         super.setHeight(height);
         updateLayout();
     }
+    //?}
+    //? if < 1.21 {
+    /*public void setHeight(int height) {
+        this.height = height;
+        updateLayout();
+    }
+    *///?}
 
     @Override
     //? if >= 26.1-1.pre.1 {
@@ -197,8 +206,14 @@ public class ArmorHiderOptionsPanelWidget extends AbstractWidget {
         widgetList.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
     }
     //?}
-    //? if < 26.1-1.pre.1 {
+    //? if >= 1.21 && < 26.1-1.pre.1 {
     /*protected void renderWidget(@NonNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        updateLayout();
+        widgetList.render(guiGraphics, mouseX, mouseY, partialTick);
+    }
+    *///?}
+    //? if < 1.21 {
+    /*public void renderWidget(@NonNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         updateLayout();
         widgetList.render(guiGraphics, mouseX, mouseY, partialTick);
     }
@@ -241,9 +256,16 @@ public class ArmorHiderOptionsPanelWidget extends AbstractWidget {
     }
 
     @Override
+    //? if >= 1.21 {
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
         return widgetList.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
+    //?}
+    //? if < 1.21 {
+    /*public boolean mouseScrolled(double mouseX, double mouseY, double scrollY) {
+        return widgetList.mouseScrolled(mouseX, mouseY, scrollY);
+    }
+    *///?}
 
     //? if > 1.21.8 {
     @Override
@@ -290,4 +312,3 @@ public class ArmorHiderOptionsPanelWidget extends AbstractWidget {
         widgetList.updateNarration(output);
     }
 }
-//?}

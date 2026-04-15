@@ -76,6 +76,18 @@ public abstract class ArmorHiderConfigurationScreen extends Screen {
         this.minecraft.setScreenAndShow(parent);
     }
     
+    //? if < 1.21.4 {
+    /*@Override
+    public void render(net.minecraft.client.gui.GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
+        //? if >= 1.21
+        this.renderBackground(context, mouseX, mouseY, delta);
+        //? if < 1.21 {
+        /^this.renderBackground(context);
+        ^///?}
+        super.render(context, mouseX, mouseY, delta);
+    }
+    *///?}
+
     protected <T> void setSetting(T value, Consumer<T> setter){
         setter.accept(value);
         settingsChanged = true;

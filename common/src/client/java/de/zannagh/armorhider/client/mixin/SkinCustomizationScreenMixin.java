@@ -41,10 +41,10 @@ public abstract class SkinCustomizationScreenMixin extends Screen {
     public HeaderAndFooterLayout layout;
     //?}
 
+    //? if >= 1.21 {
     @Unique
     private boolean armorHider$settingsChanged;
 
-    //? if >= 1.21 {
     @Unique
     private ArmorHiderOptionsPanelWidget armorHider$panel;
 
@@ -96,7 +96,7 @@ public abstract class SkinCustomizationScreenMixin extends Screen {
     private void armorHider$layoutPanel() {
         if (this.armorHider$panel == null) return;
 
-        int listBottom = this.list.getY() * UiConstants.DEFAULT_BUTTON_HEIGHT + 3 * UiConstants.DEFAULT_BUTTON_SPACING;
+        int listBottom = this.list.getY() + 4 * UiConstants.DEFAULT_BUTTON_HEIGHT + 3 * UiConstants.DEFAULT_BUTTON_SPACING;
         int gap = 4;
         int panelY = listBottom + gap;
         int panelHeight = this.height - panelY - 37;
@@ -115,7 +115,7 @@ public abstract class SkinCustomizationScreenMixin extends Screen {
             this.armorHider$panel.setHeight(panelHeight);
 
             int contentHeight = this.armorHider$panel.getContentHeight();
-            int previewAreaLeft = sectionLeft + optionsPanelWidth;
+            int previewAreaLeft = sectionLeft + optionsPanelWidth + 40;
             int squareSize = Math.min(contentHeight, Math.min(previewAreaWidth, panelHeight));
             this.armorHider$preview.setX(previewAreaLeft);
             this.armorHider$preview.setY(panelY);
