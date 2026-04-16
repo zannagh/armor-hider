@@ -19,8 +19,8 @@ tasks.register("stageArtifacts") {
     val staging = rootProject.file("staging")
     val versionDirs = listOf("fabric/versions", "neoforge/versions").map { rootProject.file(it) }
 
-    // Build the version map from gradle.properties: { loader: { displayVersion: [mcVersion, ...] } }
-    val versionMap = mutableMapOf<String, MutableMap<String, MutableList<String>>>()
+    // Build the version map from gradle.properties: { loader: { displayVersion: [gameVersion, ...] } }
+    val versionMap = mutableMapOf<String, MutableMap<String, List<String>>>()
     for (loaderDir in versionDirs) {
         loaderDir.listFiles()?.filter { it.isDirectory }?.forEach { versionDir ->
             val props = java.util.Properties()
@@ -29,18 +29,18 @@ tasks.register("stageArtifacts") {
                 propsFile.reader().use { props.load(it) }
             }
             val displayVersion = props.getProperty("display_version") ?: return@forEach
-            val dirName = versionDir.name // e.g. "fabric-1.20"
+            val gameVersions = props.getProperty("game_versions")
+                ?.split(",")?.map { it.trim() }
+                ?: return@forEach
+            val dirName = versionDir.name // e.g. "fabric-1.20.1"
             val loader = dirName.substringBefore("-")
-            val mcVersion = dirName.substringAfter("$loader-")
             versionMap.getOrPut(loader) { mutableMapOf() }
-                .getOrPut(displayVersion) { mutableListOf() }
-                .add(mcVersion)
+                .putIfAbsent(displayVersion, gameVersions)
         }
     }
     val versionMapJson = versionMap.entries.sortedBy { it.key }.joinToString(",\n  ", "{\n  ", "\n}") { (loader, groups) ->
         val groupsJson = groups.entries.sortedBy { it.key }.joinToString(",\n    ", "{\n    ", "\n  }") { (display, versions) ->
-            val versionsJson = if (versions.size == 1 && versions[0] == display) "null"
-            else versions.sorted().joinToString("\", \"", "[\"", "\"]")
+            val versionsJson = versions.joinToString("\", \"", "[\"", "\"]")
             "\"$display\": $versionsJson"
         }
         "\"$loader\": $groupsJson"
