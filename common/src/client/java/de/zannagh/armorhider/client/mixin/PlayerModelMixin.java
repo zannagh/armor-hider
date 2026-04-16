@@ -1,3 +1,4 @@
+//? if >= 1.21.10 {
 package de.zannagh.armorhider.client.mixin;
 
 import de.zannagh.armorhider.client.ArmorHiderClient;
@@ -18,7 +19,6 @@ This mixin purely exists to reset the visible setting of FantasyArmor on 1.21.10
  */
 @Mixin(PlayerModel.class)
 public class PlayerModelMixin {
-    //? if >= 1.21.10 {
     @Inject(
             method = "setupAnim(Ljava/lang/Object;)V",
             //? if fabric
@@ -28,7 +28,6 @@ public class PlayerModelMixin {
     private void setupAnim(Object state, CallbackInfo ci) {
         resetArmVisibility(state);
     }
-    //?}
 
     @Unique
     private void resetArmVisibility(Object state) {
@@ -55,3 +54,4 @@ public class PlayerModelMixin {
         }
     }
 }
+//?}
