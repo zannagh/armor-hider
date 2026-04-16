@@ -30,17 +30,20 @@ tasks.register("stageArtifacts") {
             }
             val displayVersion = props.getProperty("display_version") ?: return@forEach
             val gameVersions = props.getProperty("game_versions")
-                ?.split(",")?.map { it.trim() }
-                ?: return@forEach
+                ?.split(",")?.map { it.trim() }?.filter { it.isNotEmpty() }
+                ?: error("Missing game_versions in ${versionDir.name}/gradle.properties")
             val dirName = versionDir.name // e.g. "fabric-1.20.1"
             val loader = dirName.substringBefore("-")
-            versionMap.getOrPut(loader) { mutableMapOf() }
+            val existing = versionMap.getOrPut(loader) { mutableMapOf() }
                 .putIfAbsent(displayVersion, gameVersions)
+            if (existing != null && existing.sorted() != gameVersions.sorted()) {
+                error("Conflicting game_versions for $loader/$displayVersion: $existing vs $gameVersions")
+            }
         }
     }
     val versionMapJson = versionMap.entries.sortedBy { it.key }.joinToString(",\n  ", "{\n  ", "\n}") { (loader, groups) ->
         val groupsJson = groups.entries.sortedBy { it.key }.joinToString(",\n    ", "{\n    ", "\n  }") { (display, versions) ->
-            val versionsJson = versions.joinToString("\", \"", "[\"", "\"]")
+            val versionsJson = versions.sorted().joinToString("\", \"", "[\"", "\"]")
             "\"$display\": $versionsJson"
         }
         "\"$loader\": $groupsJson"
