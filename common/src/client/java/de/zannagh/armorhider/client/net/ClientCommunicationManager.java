@@ -7,6 +7,7 @@ import de.zannagh.armorhider.log.DebugLogger;
 import de.zannagh.armorhider.net.packets.CombatLogNotificationPacket;
 import de.zannagh.armorhider.net.packets.PermissionPacket;
 import de.zannagh.armorhider.server.ServerConfiguration;
+import de.zannagh.armorhider.util.PlayerNameUtil;
 import net.minecraft.client.multiplayer.ServerData;
 
 //? if >= 1.20.5 
@@ -52,7 +53,7 @@ public final class ClientCommunicationManager {
 
         ClientConnectionEvents.registerJoin((handler, client) -> {
             assert client.player != null;
-            var playerName = client.player.getName().getString();
+            var playerName = PlayerNameUtil.getPlayerName(client.player);
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.updateName(playerName);
             //? if >= 1.21.9
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.updateId(handler.getLocalGameProfile().id());

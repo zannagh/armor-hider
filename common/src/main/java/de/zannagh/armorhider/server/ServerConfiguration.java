@@ -8,6 +8,7 @@ import com.google.gson.reflect.TypeToken;
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.configuration.ConfigurationSource;
 import de.zannagh.armorhider.net.packets.ServerWideSettings;
+import de.zannagh.armorhider.util.PlayerNameUtil;
 
 import de.zannagh.armorhider.net.CompressedJsonCodec;
 import de.zannagh.armorhider.net.packets.PlayerConfig;
@@ -152,10 +153,11 @@ public class ServerConfiguration implements ConfigurationSource<ServerConfigurat
 
     public PlayerConfig getPlayerConfigOrDefault(Player player) {
         PlayerConfig uuidConfig = getPlayerConfigOrDefault(player.getUUID());
-        if (uuidConfig != null && Objects.equals(uuidConfig.playerName.getValue(), Objects.requireNonNull(player.getDisplayName()).getString())) {
+        String name = PlayerNameUtil.getPlayerName(player);
+        if (uuidConfig != null && Objects.equals(uuidConfig.playerName.getValue(), name)) {
             return uuidConfig;
         }
-        return getPlayerConfigOrDefault(Objects.requireNonNull(player.getDisplayName()).getString());
+        return getPlayerConfigOrDefault(name);
     }
 
     public PlayerConfig getPlayerConfigOrDefault(UUID uuid) {

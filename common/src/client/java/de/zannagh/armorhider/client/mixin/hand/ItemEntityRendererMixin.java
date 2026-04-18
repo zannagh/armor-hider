@@ -39,11 +39,6 @@ public class ItemEntityRendererMixin {
         if (slot != EquipmentSlot.OFFHAND) {
             return;
         }
-        //? if >= 1.21.9
-        String name = player.getGameProfile().name();
-        //? if < 1.21.9
-        //String name = player.getGameProfile().getName();
-        
         carrier.createModification(slot, itemEntity.getItem());
     }
 

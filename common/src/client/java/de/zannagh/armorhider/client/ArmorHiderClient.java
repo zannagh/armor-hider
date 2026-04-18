@@ -6,11 +6,11 @@ import de.zannagh.armorhider.client.gui.screens.ArmorHiderOptionsScreen;
 import de.zannagh.armorhider.client.net.ClientCommunicationManager;
 import de.zannagh.armorhider.client.scopes.RenderContext;
 import de.zannagh.armorhider.log.DebugLogger;
+import de.zannagh.armorhider.util.PlayerNameUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.NonNull;
@@ -70,12 +70,8 @@ public class ArmorHiderClient {
     }
 
     public static String getCurrentPlayerName() {
-        Player clientPlayer = Minecraft.getInstance().player;
-        if (clientPlayer == null) {
-            return ClientConfigManager.DEFAULT_PLAYER_NAME;
-        }
-        Component displayText = clientPlayer.getDisplayName();
-        return displayText.getString().isEmpty() ? ClientConfigManager.DEFAULT_PLAYER_NAME : displayText.getString();
+        String name = PlayerNameUtil.getPlayerName(Minecraft.getInstance().player);
+        return name != null ? name : ClientConfigManager.DEFAULT_PLAYER_NAME;
     }
 
     @Contract("_ -> new")
@@ -91,14 +87,19 @@ public class ArmorHiderClient {
         if (entry == null) {
             return new Pair<>(false, null);
         }
-        //? if >= 1.21.9
-        String profileName = entry.getProfile().name();
-        //? if < 1.21.9
-        //String profileName = entry.getProfile().getName();
-        if (profileName == null) {
+        Player localPlayer = Minecraft.getInstance().player;
+        if (localPlayer == null) {
             return new Pair<>(false, null);
         }
-        return new Pair<>(!profileName.equals(getCurrentPlayerName()), entry);
+        //? if >= 1.21.9 {
+        boolean isLocal = entry.getProfile().id().equals(localPlayer.getUUID())
+                || playerName.equals(entry.getProfile().name());
+        //?}
+        //? if < 1.21.9 {
+        /*boolean isLocal = entry.getProfile().getId().equals(localPlayer.getUUID())
+                || playerName.equals(entry.getProfile().getName());
+        *///?}
+        return new Pair<>(!isLocal, entry);
     }
     
     public static void toggleDebugLogging() {

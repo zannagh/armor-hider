@@ -51,7 +51,7 @@ public class HumanoidArmorLayerMixin
     )
     private <S extends HumanoidRenderState> void captureRenderState(PoseStack poseStack, MultiBufferSource multiBufferSource, int i, S humanoidRenderState, float f, float g, CallbackInfo ci) {
         if (humanoidRenderState instanceof IdentityCarrier carrier) {
-            ArmorHiderClient.RENDER_CONTEXT.setCurrentPlayer(carrier.playerName());
+            ArmorHiderClient.RENDER_CONTEXT.setCurrentPlayer(carrier.armorHider$playerName());
         }
     }
     *///?}
@@ -63,7 +63,7 @@ public class HumanoidArmorLayerMixin
     )
     private void capturePlayerName(PoseStack poseStack, MultiBufferSource bufferSource, int light, T entity, float f1, float f2, float f3, float f4, float f5, float f6, CallbackInfo ci) {
         if (entity instanceof IdentityCarrier carrier) {
-            ArmorHiderClient.RENDER_CONTEXT.setCurrentPlayer(carrier.playerName());
+            ArmorHiderClient.RENDER_CONTEXT.setCurrentPlayer(carrier.armorHider$playerName());
         }
     }
     *///?}

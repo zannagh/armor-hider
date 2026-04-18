@@ -17,7 +17,7 @@ import org.jetbrains.annotations.Nullable;
  * for downstream render interceptors.
  */
 public interface IdentityCarrier {
-    @Nullable String playerName();
+    @Nullable String armorHider$playerName();
 
     @Nullable ItemStack customHeadItem();
 
@@ -30,7 +30,7 @@ public interface IdentityCarrier {
      */
     default @Nullable ActiveModification createModification(@NotNull EquipmentSlot slot, @Nullable ItemStack item) {
         
-        var mod = ActiveModification.create(playerName(), slot, item);
+        var mod = ActiveModification.create(armorHider$playerName(), slot, item);
         if (mod != null) {
             ArmorHiderClient.RENDER_CONTEXT.setActiveModification(mod);
         } else {

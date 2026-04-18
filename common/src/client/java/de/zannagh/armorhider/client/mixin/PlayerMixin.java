@@ -12,6 +12,7 @@ import de.zannagh.armorhider.client.combat.ClientCombatManager;
 import de.zannagh.armorhider.client.scopes.ActiveModification;
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
 import de.zannagh.armorhider.log.DebugTracer;
+import de.zannagh.armorhider.util.PlayerNameUtil;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
@@ -42,8 +43,8 @@ public class PlayerMixin implements IdentityCarrier {
     }
     
     @Override
-    public @Nullable String playerName() {
-        return ((Player) (Object) this).getName().getString();
+    public @Nullable String armorHider$playerName() {
+        return PlayerNameUtil.getPlayerName(this);
     }
 
     @Override
@@ -83,8 +84,8 @@ public class PlayerMixin implements IdentityCarrier {
             return original;
         }
 
-        if (ActiveModification.isSlotFullyHidden(playerName(), slot, original)) {
-            DebugTracer.equipmentSlotHidingFired(playerName(), slot, true, "isSlotFullyHidden");
+        if (ActiveModification.isSlotFullyHidden(armorHider$playerName(), slot, original)) {
+            DebugTracer.equipmentSlotHidingFired(armorHider$playerName(), slot, true, "isSlotFullyHidden");
             return ItemStack.EMPTY;
         }
         return original;

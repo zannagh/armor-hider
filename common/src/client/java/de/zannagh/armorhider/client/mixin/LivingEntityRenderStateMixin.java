@@ -29,8 +29,8 @@ public class LivingEntityRenderStateMixin implements IdentityStateCarrier {
     private @Nullable IdentityCarrier armorHider$carrier;
 
     @Override
-    public @Nullable String playerName() {
-        return armorHider$carrier != null ? armorHider$carrier.playerName() : null;
+    public @Nullable String armorHider$playerName() {
+        return armorHider$carrier != null ? armorHider$carrier.armorHider$playerName() : null;
     }
 
     @Override

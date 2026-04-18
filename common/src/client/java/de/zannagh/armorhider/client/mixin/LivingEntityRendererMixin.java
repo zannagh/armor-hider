@@ -120,7 +120,7 @@ public abstract class LivingEntityRendererMixin
             return;
         }
 
-        String name = carrier.playerName();
+        String name = carrier.armorHider$playerName();
         if (name == null) { 
             return;
         }
@@ -151,7 +151,7 @@ public abstract class LivingEntityRendererMixin
             return;
         }
 
-        String name = carrier.playerName();
+        String name = carrier.armorHider$playerName();
         if (name == null) {
             return;
         }
