@@ -23,7 +23,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import net.minecraft.client.gui.screens.options.OptionsSubScreen;
 import net.minecraft.client.gui.screens.options.SkinCustomizationScreen;
 //?} else {
-/*import net.minecraft.client.gui.screens.OptionsSubScreen;
+/*import net.minecraft.client.gui.screens.options.OptionsSubScreen;
 import net.minecraft.client.gui.screens.SkinCustomizationScreen;
 *///?}
 

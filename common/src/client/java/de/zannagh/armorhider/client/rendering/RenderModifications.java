@@ -107,7 +107,10 @@ public final class RenderModifications {
         if (transparency >= 1.0 || transparency <= 0) {
             return originalLayer;
         }
+        //? if <= 26.1.2
         if (originalLayer == Sheets.cutoutBlockSheet()) {
+        //? if > 26.1.2
+        //if (originalLayer == Sheets.cutoutBlockItemSheet()) {
             return RenderTypeResolver.translucentItemSheet();
         }
         return originalLayer;

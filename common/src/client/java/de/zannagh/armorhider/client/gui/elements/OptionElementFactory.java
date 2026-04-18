@@ -71,7 +71,11 @@ public class OptionElementFactory {
                 buttonWidth,
                 UiConstants.DEFAULT_BUTTON_HEIGHT, onPress -> {
                 var mc = Minecraft.getInstance();
+                
+                //? if <= 26.1.2
                 var currentScreen = mc.screen;
+                //? if > 26.1.2
+                //var currentScreen = mc.gui.screen();
                 if (currentScreen == null) {
                     return;
                 }
@@ -128,7 +132,10 @@ public class OptionElementFactory {
                 //OptionInstance.UnitDouble.INSTANCE
                 ,
                 defaultValue,
-                setter
+                //? if > 26.1.2
+                setter::accept
+                //? if <= 26.1.2
+                //setter
         );
     }
 
@@ -148,7 +155,10 @@ public class OptionElementFactory {
                 new NarratedTooltipFactory<>(tooltip, narration),
                 (text, value) -> value ? Component.translatable("armorhider.options.toggle.on") : Component.translatable("armorhider.options.toggle.off"),
                 defaultValue,
-                setter
+                //? if > 26.1.2
+                setter::accept
+                //? if <= 26.1.2
+                //setter
         );
     }
 }

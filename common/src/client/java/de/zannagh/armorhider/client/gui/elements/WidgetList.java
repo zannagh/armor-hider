@@ -64,12 +64,12 @@ public class WidgetList extends ContainerObjectSelectionList<WidgetList.WidgetEn
     //?}
     //? if >= 1.21 && < 26.1-1.pre.1 {
     /*@Override
-    protected void renderListBackground(net.minecraft.client.gui.GuiGraphics context) {
+    protected void renderListBackground(net.minecraft.client.gui.GuiGraphicsExtractor context) {
     }
     *///?}
     //? if < 1.21 {
     /*@Override
-    protected void renderBackground(net.minecraft.client.gui.GuiGraphics context) {
+    protected void renderBackground(net.minecraft.client.gui.GuiGraphicsExtractor context) {
     }
     *///?}
 

@@ -10,11 +10,14 @@ import de.zannagh.armorhider.client.rendering.RenderModifications;
 import net.minecraft.client.renderer.SubmitNodeCollection;
 import net.minecraft.client.renderer.SubmitNodeStorage;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+//? if <= 26.1.2
 import net.minecraft.client.renderer.feature.ModelPartFeatureRenderer;
 import net.minecraft.world.entity.EquipmentSlot;
+//? if <= 26.1.2 {
 import org.jspecify.annotations.NonNull;
-import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
+//?}
+import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
 //? if >= 1.21.11 {
@@ -29,6 +32,7 @@ import net.minecraft.client.renderer.rendertype.RenderTypes;
 @Mixin(SubmitNodeCollection.class)
 public class SubmitNodeCollectorMixin {
 
+    //? if <= 26.1.2 {
     @WrapOperation(
             method = "submitModelPart",
             at = @At(
@@ -49,7 +53,6 @@ public class SubmitNodeCollectorMixin {
 
             SubmitNodeStorage.ModelPartSubmit modified = getModelPartSubmit(submit, alpha);
 
-            // Swap render type to translucent using the sprite's atlas location
             RenderType translucentType = renderType;
             if (submit.sprite() != null) {
                 //? if >= 1.21.11
@@ -78,6 +81,7 @@ public class SubmitNodeCollectorMixin {
                 submit.crumblingOverlay(), submit.outlineColor()
         );
     }
+    //?}
 
     @WrapOperation(
             method = "submitModel",
@@ -108,7 +112,6 @@ public class SubmitNodeCollectorMixin {
                     submit.sprite(), submit.outlineColor(), submit.crumblingOverlay()
             );
 
-            // Swap render type to translucent using the sprite's atlas location
             RenderType translucentType = renderType;
             if (submit.sprite() != null) {
                 //? if >= 1.21.11

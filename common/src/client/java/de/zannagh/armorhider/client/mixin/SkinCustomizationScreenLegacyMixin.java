@@ -6,7 +6,7 @@ import de.zannagh.armorhider.client.gui.elements.ArmorHiderOptionsPanelWidget;
 import de.zannagh.armorhider.client.gui.elements.PlayerPreviewWidget;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.screens.OptionsSubScreen;
+import net.minecraft.client.gui.screens.options.OptionsSubScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.SkinCustomizationScreen;
 import net.minecraft.network.chat.CommonComponents;

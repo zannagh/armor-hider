@@ -6,7 +6,7 @@ import de.zannagh.armorhider.client.scopes.IdentityCarrier;
 //? if > 1.21.10
 import net.minecraft.client.model.player.PlayerModel;
 //? if <= 1.21.10
-//import net.minecraft.client.model.PlayerModel;
+//import net.minecraft.client.model.player.PlayerModel;
 import net.minecraft.world.entity.EquipmentSlot;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;

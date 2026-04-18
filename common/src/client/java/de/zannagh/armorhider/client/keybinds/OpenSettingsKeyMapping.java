@@ -19,7 +19,11 @@ public class OpenSettingsKeyMapping extends CustomKeyMapping {
         if (client == null) {
             return;
         }
-        ArmorHiderClient.openPreferredSettingsScreen(client.screen, client.options);
+        //? if <= 26.1.2
+        var currentScreen = client.screen;
+        //? if > 26.1.2
+        //var currentScreen = client.gui.screen();
+        ArmorHiderClient.openPreferredSettingsScreen(currentScreen, client.options);
     }
 
     @Override

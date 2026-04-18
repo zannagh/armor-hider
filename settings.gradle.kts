@@ -25,7 +25,8 @@ stonecutter {
         "26.1-snapshot-11",
         "26.1-pre-2",
         "26.1-rc-1", "26.1-rc-2",
-        "26.1.2"
+        "26.1.2",
+        "26.2-snapshot-3"
     )
     val neoforgeVersions = listOf(
         "1.21.1", "1.21.4", "1.21.8",
