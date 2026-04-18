@@ -40,9 +40,6 @@ jobs:
         id: version
         uses: zannagh/versionizer/calculate-version@v1
 
-      - name: Prepare NeoForge Artifacts
-        run: ./gradlew createMinecraftArtifacts --no-parallel --max-workers=1 --stacktrace
-
       - name: Build & Stage Artifacts
         run: ./gradlew stageArtifacts -PsemVer="${{ steps.version.outputs.fullSemVer }}" -Pprerelease="true"
 

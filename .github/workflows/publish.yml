@@ -166,9 +166,6 @@ jobs:
           prerelease-number: ${{ needs.analyze.outputs.prerelease_number }}
           commits-since: ${{ needs.analyze.outputs.commits_since }}
 
-      - name: Prepare NeoForge Artifacts
-        run: ./gradlew createMinecraftArtifacts --no-parallel --max-workers=1 --stacktrace
-
       - name: Build & Stage Artifacts
         run: |
           ./gradlew stageArtifacts \

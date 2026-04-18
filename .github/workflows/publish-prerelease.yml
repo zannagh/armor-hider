@@ -142,9 +142,6 @@ jobs:
       - name: Setup Gradle Environment
         uses: zannagh/versionizer/setup-gradle-env@v1
 
-      - name: Prepare NeoForge Artifacts
-        run: ./gradlew createMinecraftArtifacts --no-parallel --max-workers=1 --stacktrace
-
       - name: Build & Stage Artifacts
         run: |
           ./gradlew stageArtifacts \
