@@ -142,6 +142,12 @@ jobs:
       - name: Setup Gradle Environment
         uses: zannagh/versionizer/setup-gradle-env@v1
 
+      - name: Cache NeoForge NFRT Artifacts
+        uses: actions/cache@v4
+        with:
+          path: neoforge/versions/*/build/moddev/artifacts/
+          key: nfrt-${{ runner.os }}-${{ hashFiles('neoforge/versions/*/gradle.properties') }}
+
       - name: Build & Stage Artifacts
         run: |
           ./gradlew stageArtifacts \
