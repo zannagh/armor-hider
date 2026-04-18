@@ -77,9 +77,8 @@ public abstract class SkinCustomizationScreenLegacyMixin extends OptionsSubScree
             int contentHeight = this.armorHider$panel.getContentHeight();
             int squareSize = Math.min(contentHeight, Math.min(previewAreaWidth, panelHeight));
             int previewX = previewAreaLeft + (previewAreaWidth - squareSize) / 2;
-            int previewY = panelY + (panelHeight - squareSize) / 2;
 
-            this.armorHider$preview = new PlayerPreviewWidget(previewX, previewY, squareSize, squareSize);
+            this.armorHider$preview = new PlayerPreviewWidget(previewX, panelY, squareSize, squareSize);
             this.addRenderableWidget(this.armorHider$preview);
         } else {
             this.armorHider$preview = null;

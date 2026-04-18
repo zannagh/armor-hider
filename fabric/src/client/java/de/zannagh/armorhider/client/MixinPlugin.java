@@ -1,5 +1,6 @@
 package de.zannagh.armorhider.client;
 
+import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.util.MixinUtil;
 import org.objectweb.asm.tree.ClassNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
@@ -12,6 +13,7 @@ import java.util.Set;
 public class MixinPlugin implements IMixinConfigPlugin {
 
     private static final String PACKAGE = "de.zannagh.armorhider.client.mixin";
+    private static boolean ON_FORGE = false;
 
     private static final String[] MIXINS = new String[]{
             "PlayerMixin",
@@ -37,6 +39,7 @@ public class MixinPlugin implements IMixinConfigPlugin {
             "head.SkullBlockRenderMixin",
             // All versions — Stonecutter guards per version range
             "bodyKneesAndToes.HumanoidArmorLayerMixin",
+            "bodyKneesAndToes.HumanoidArmorLayerRenderMixin",
             "cape.CapeRenderMixin",
             // Guarded by //? if < 1.21.9 in source
             "hand.ModelPartMixin",
@@ -53,6 +56,10 @@ public class MixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
+        if (ON_FORGE && mixinClassName.endsWith("HumanoidArmorLayerRenderMixin")) {
+            ArmorHider.LOGGER.info("Skipping {} — Forge-patched bytecode is incompatible with @WrapOperation targets.", mixinClassName);
+            return false;
+        }
         return true;
     }
 
@@ -63,6 +70,10 @@ public class MixinPlugin implements IMixinConfigPlugin {
     @Override
     public List<String> getMixins() {
         var mixinsToAdd = new ArrayList<>(List.of(MIXINS));
+        if (ON_FORGE) {
+            mixinsToAdd.remove("bodyKneesAndToes.HumanoidArmorLayerRenderMixin");
+            ArmorHider.LOGGER.info("Removed HumanoidArmorLayerRenderMixin — Forge-patched bytecode is incompatible with @WrapOperation targets.");
+        }
         return MixinUtil.getMixinClassesWherePresent(PACKAGE, mixinsToAdd);
     }
 
@@ -77,6 +88,12 @@ public class MixinPlugin implements IMixinConfigPlugin {
     @Override
     public void onLoad(String mixinPackage) {
         MixinUtil.setCompatFlags(MixinPlugin.class.getClassLoader());
+        try {
+            Class.forName("cpw.mods.modlauncher.Launcher", false, MixinPlugin.class.getClassLoader());
+            ON_FORGE = true;
+            ArmorHider.LOGGER.info("Detected Forge/Sinytra Connector environment.");
+        } catch (ClassNotFoundException ignored) {
+        }
     }
 
     @Override

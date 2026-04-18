@@ -37,6 +37,7 @@ public final class MixinUtil {
         CompatFlags.ET_LOADED = isModPresent(cl, "dev.kikugie.elytratrims.ep.ETClientEntrypoint");
         CompatFlags.GECKOLIB_LOADED = isModPresent(cl, "software.bernie.geckolib.renderer.GeoArmorRenderer");
         CompatFlags.FA_LOADED = isModPresent(cl, "net.kenddie.fantasyarmor.FantasyArmor");
+        CompatFlags.SINYTRA_LOADED = isModPresent(cl, "org.sinytra.connector.locator.ConnectorLocator");
         CompatFlags.WFGM_LOADED = isModPresent(cl, "com.wildfire.render.GenderArmorLayer");
     }
 

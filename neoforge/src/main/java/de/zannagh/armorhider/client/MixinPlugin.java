@@ -42,6 +42,7 @@ public class MixinPlugin implements IMixinConfigPlugin {
             "head.SkullBlockRenderMixin",
             // All versions — Stonecutter guards per version range
             "bodyKneesAndToes.HumanoidArmorLayerMixin",
+            "bodyKneesAndToes.HumanoidArmorLayerRenderMixin",
             "cape.CapeRenderMixin",
             // Guarded by //? if < 1.21.9 in source
             "hand.ModelPartMixin",

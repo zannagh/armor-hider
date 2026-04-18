@@ -25,15 +25,8 @@ import net.minecraft.client.renderer.MultiBufferSource;
 *///?}
 
 //? if < 1.21.4 {
-/*import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-import de.zannagh.armorhider.client.rendering.RenderModifications;
-import net.minecraft.client.model.HumanoidModel;
+/*import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.LivingEntity;
 *///?}
 
@@ -137,7 +130,8 @@ public class HumanoidArmorLayerMixin
     //? if < 1.21 {
     /*@Inject(
             method = "renderArmorPiece",
-            at = @At("HEAD")
+            at = @At("HEAD"),
+            cancellable = true
     )
     private void onRenderArmorPiece(PoseStack poseStack, MultiBufferSource bufferSource, T entity, EquipmentSlot slot, int packedLight, A armorModel, CallbackInfo ci) {
         if (!(entity instanceof IdentityCarrier carrier)) {
@@ -146,7 +140,11 @@ public class HumanoidArmorLayerMixin
         if (entity.getItemBySlot(slot).is(Items.AIR)) {
             return;
         }
-        carrier.createModification(slot, entity.getItemBySlot(slot));
+        var mod = carrier.createModification(slot, entity.getItemBySlot(slot));
+        if (mod != null && mod.shouldHide()) {
+            ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
+            ci.cancel();
+        }
     }
     *///?}
 
@@ -171,101 +169,4 @@ public class HumanoidArmorLayerMixin
     }
     *///?}
 
-    // ===== Render modifications (< 1.21.4 only — 1.21.4+ uses EquipmentRenderMixin) =====
-
-    //? if < 1.21.4 {
-    /*@ModifyExpressionValue(
-            method = "renderArmorPiece",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/world/item/ItemStack;hasFoil()Z"
-            )
-    )
-    private boolean modifyGlint(boolean original) {
-        var ctx = ArmorHiderClient.RENDER_CONTEXT;
-        var mod = ctx.activeModification();
-        if (mod != null) {
-            if (mod.shouldDisableGlint() || mod.shouldHide()) {
-                return false;
-            }
-        }
-        return original;
-    }
-
-    @WrapOperation(
-            method = "renderModel",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/client/renderer/RenderType;armorCutoutNoCull(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/RenderType;"
-            )
-    )
-    private RenderType modifyArmorRenderLayer(Identifier texture, Operation<RenderType> original) {
-        return RenderModifications.getTranslucentArmorRenderType(ArmorHiderClient.RENDER_CONTEXT, texture, original.call(texture));
-    }
-    *///?}
-
-    //? if >= 1.21 && < 1.21.4 {
-    /*@WrapOperation(
-            method = "renderModel",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/client/model/HumanoidModel;renderToBuffer(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;III)V"
-            )
-    )
-    private void modifyArmorColor(A model, PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, int color, Operation<Void> original) {
-        int modifiedColor = RenderModifications.applyArmorTransparency(ArmorHiderClient.RENDER_CONTEXT, color);
-        original.call(model, poseStack, vertexConsumer, packedLight, packedOverlay, modifiedColor);
-    }
-
-    @WrapOperation(
-            method = "renderTrim",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/client/renderer/Sheets;armorTrimsSheet(Z)Lnet/minecraft/client/renderer/RenderType;"
-            )
-    )
-    private RenderType modifyTrimRenderLayer(boolean decal, Operation<RenderType> original) {
-        return RenderModifications.getTrimRenderLayer(ArmorHiderClient.RENDER_CONTEXT, decal, original.call(decal));
-    }
-
-    @WrapOperation(
-            method = "renderTrim",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/client/model/HumanoidModel;renderToBuffer(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;II)V"
-            )
-    )
-    private void modifyTrimColor(A model, PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, Operation<Void> original) {
-        int modifiedColor = RenderModifications.applyArmorTransparency(ArmorHiderClient.RENDER_CONTEXT, packedOverlay);
-        model.renderToBuffer(poseStack, vertexConsumer, packedLight, packedOverlay, modifiedColor);
-    }
-    *///?}
-
-    //? if < 1.21 {
-    /*@WrapOperation(
-            method = "renderModel",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/client/model/HumanoidModel;renderToBuffer(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;IIFFFF)V"
-            )
-    )
-    private void modifyArmorColor(A model, PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, float red, float green, float blue, float v, Operation<Void> original) {
-        float modifiedAlpha = RenderModifications.getTransparencyAlpha(ArmorHiderClient.RENDER_CONTEXT);
-        original.call(model, poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, modifiedAlpha);
-    }
-
-    // Trim transparency support for 1.20.x (uses float RGBA)
-    @WrapOperation(
-            method = "renderTrim",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/client/model/HumanoidModel;renderToBuffer(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;IIFFFF)V"
-            ),
-            require = 0
-    )
-    private void modifyTrimColor(HumanoidModel<?> model, PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, float red, float green, float blue, float alpha, Operation<Void> original) {
-        float modifiedAlpha = RenderModifications.getTransparencyAlpha(ArmorHiderClient.RENDER_CONTEXT);
-        original.call(model, poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, modifiedAlpha);
-    }
-    *///?}
 }
