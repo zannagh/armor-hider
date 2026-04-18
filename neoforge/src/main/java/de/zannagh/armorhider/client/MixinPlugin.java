@@ -1,6 +1,5 @@
 package de.zannagh.armorhider.client;
 
-import de.zannagh.armorhider.CompatFlags;
 import de.zannagh.armorhider.util.MixinUtil;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLEnvironment;

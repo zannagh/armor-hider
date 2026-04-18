@@ -55,10 +55,11 @@ public final class MixinUtil {
         }
         String[] parts = className.split("\\.");
         if (parts.length >= 3) {
-            String packageProbe = parts[1] + "/" + parts[2];
+            String packageProbe = parts[1] + "/" + parts[2] + "/";
             try {
                 return cl.getResources(packageProbe).hasMoreElements();
             } catch (IOException e) {
+                ArmorHider.LOGGER.debug("Failed to probe package resource '{}'.", packageProbe, e);
                 return false;
             }
         }
