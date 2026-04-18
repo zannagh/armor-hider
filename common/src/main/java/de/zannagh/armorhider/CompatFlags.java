@@ -4,10 +4,9 @@ package de.zannagh.armorhider;
  * Lightweight compat flags set during mixin plugin load — before MC classes are available.
  * This class must NOT import any Minecraft classes to avoid early class loading.
  *
- * <p>Flags are set by each loader's {@code MixinPlugin.onLoad()} using the loader's
- * native mod detection API (FabricLoader / classExists on NeoForge).
- * {@link de.zannagh.armorhider.client.ArmorHiderClient} reads these with a
- * {@code classExists} fallback for safety.</p>
+ * <p>Flags are set via {@link de.zannagh.armorhider.util.MixinUtil#setCompatFlags}
+ * using resource-based probing (never {@code Class.forName}) to avoid premature
+ * class loading that breaks other mods' mixins.</p>
  */
 public final class CompatFlags {
 
