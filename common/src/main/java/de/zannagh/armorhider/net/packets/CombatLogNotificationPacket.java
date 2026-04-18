@@ -53,6 +53,7 @@ public class CombatLogNotificationPacket implements CustomPacketPayload {
 //? if < 1.20.5 {
 /*package de.zannagh.armorhider.net.packets;
 
+import de.zannagh.armorhider.util.PlayerNameUtil;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.player.Player;
 import java.util.UUID;

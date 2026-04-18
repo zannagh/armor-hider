@@ -22,6 +22,14 @@ public final class PlayerNameUtil {
             return null;
         }
         String name = player.getDisplayName().getString();
+        if (name.isEmpty()) {
+            //? if >= 1.21.9 {
+            name = player.getGameProfile().name();
+            //?}
+            //? if < 1.21.9 {
+            /*name = player.getGameProfile().getName();
+            *///?}
+        }
         return name.isEmpty() ? null : name;
     }
 }

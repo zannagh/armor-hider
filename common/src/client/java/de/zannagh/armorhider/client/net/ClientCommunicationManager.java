@@ -54,6 +54,12 @@ public final class ClientCommunicationManager {
         ClientConnectionEvents.registerJoin((handler, client) -> {
             assert client.player != null;
             var playerName = PlayerNameUtil.getPlayerName(client.player);
+            if (playerName == null || playerName.isBlank()) {
+                //? if >= 1.21.9
+                playerName = client.player.getGameProfile().name();
+                //? if < 1.21.9
+                /*playerName = client.player.getGameProfile().getName();*/
+            }
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.updateName(playerName);
             //? if >= 1.21.9
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.updateId(handler.getLocalGameProfile().id());
