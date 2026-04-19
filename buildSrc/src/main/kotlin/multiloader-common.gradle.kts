@@ -14,6 +14,10 @@ val loader = sc.branch.id
 sc.constants["fabric"] = sc.current.project.contains("fabric")
 sc.constants["neoforge"] = sc.current.project.contains("neoforge")
 
+// Register the MC version part as a property tag so version-shared sections
+// in stonecutter.properties.toml (e.g. ["1.20.1"]) resolve correctly.
+sc.properties.tags(sc.current.project.substringAfter('-'))
+
 val javaVersion = findProperty("java.version")?.toString() ?: error("No Java version specified")
 val displayVersion = findProperty("display_version")?.toString() ?: error("No display version specified")
 
