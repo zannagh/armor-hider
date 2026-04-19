@@ -24,13 +24,13 @@ The Minecraft render pipeline has changed significantly across versions, so `Arm
 
 # Access wideners
 
-Because `RenderType.create()` and `RenderType.CompositeState` are not public in vanilla Minecraft, `common/build.gradle.kts` dynamically generates an access widener at build time (`build/generated/armor-hider.accesswidener`). The widener entries vary by version:
+Because `RenderType.create()` and `RenderType.CompositeState` are not public in vanilla Minecraft, the `multiloader-loom` convention plugin dynamically generates an access widener at build time (`build/generated/armor-hider.accesswidener`). The widener entries vary by version:
 
 - **< 1.21.5**: Widens `CompositeState` inner class and the 7-arg `create()` method.
 - **1.21.5 – 1.21.10**: Additionally widens the pipeline-based `create()` and all `CompositeStateBuilder` methods (which became protected in 1.21.5).
 - **>= 1.21.11**: Widens the `RenderSetup`-based `create(String, RenderSetup)` in the `rendertype` package.
 
-The fabric module references the common module's access widener via `fabric/build.gradle.kts`.
+The fabric module references the common module's access widener via the `multiloader-loom` convention plugin.
 
 # Notes
 - On versions smaller than 1.21 it's virtually impossible to disable depth writes for translucent entities in third person. Entities render before translucent terrain, so disabling depth writes causes water/ice to render *in front of* the item instead of behind it. Hence, 1.20.x uses vanilla `entityTranslucent` (with depth writes) for the third-person buffer wrapping in `RenderModifications.solidToTranslucent`. First person is unaffected because the hand renders after translucent terrain.

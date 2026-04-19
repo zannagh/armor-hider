@@ -10,6 +10,8 @@ import net.minecraft.resources.Identifier;
  */
 public final class RenderTypeFactory {
 
+    private RenderTypeFactory() {}
+
     public static RenderType translucentArmor(Identifier texture) {
         return ArmorHiderRenderTypes.translucentArmor(texture);
     }
