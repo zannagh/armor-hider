@@ -6,10 +6,12 @@ plugins {
 val sc = project.stonecutterBuild
 
 val neoforgeVersion = findProperty("neoforge.version")?.toString()
-    ?: error("No NeoForge version mapping for Minecraft ${project.mcVersion}")
-val neoforgeVersionRange = findProperty("neoforge.minecraft_version_range")?.toString() ?: error("No NeoForge version range specified for Minecraft ${project.mcVersion}")
+    ?: error("No neoforge.version for ${sc.current.project}")
+val neoforgeVersionRange = findProperty("neoforge.minecraft_version_range")?.toString()
+    ?: error("No neoforge.minecraft_version_range for ${sc.current.project}")
 
-val javaVersion = project.javaVersion
+val javaVersion = findProperty("java.version")?.toString()
+    ?: error("No java.version for ${sc.current.project}")
 
 val clientSourceSet = sourceSets.create("client") {
     compileClasspath += sourceSets.main.get().output + sourceSets.main.get().compileClasspath
