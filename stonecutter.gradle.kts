@@ -5,6 +5,18 @@ plugins {
 
 stonecutter active "fabric-26.1.2" /* [SC] DO NOT EDIT */
 
+stonecutter parameters {
+    replacements.string(current.parsed >= "1.21.11") { replace("ResourceLocation", "Identifier") }
+    replacements.string(false) { replace("packet.getIdentifier()", "packet.getResourceLocation()") }
+    replacements.string(current.parsed <= "1.21.8") { replace("AvatarRenderState", "PlayerRenderState") }
+    replacements.string(current.parsed < "1.21.11") { replace("net.minecraft.client.renderer.rendertype.RenderType", "net.minecraft.client.renderer.RenderType") }
+    replacements.string(current.parsed < "1.21.11") { replace("net.minecraft.client.model.player.PlayerModel", "net.minecraft.client.model.PlayerModel") }
+    replacements.string(current.parsed < "26.1-0.snapshot.11") { replace("net.minecraft.client.renderer.state.level.CameraRenderState", "net.minecraft.client.renderer.state.CameraRenderState") }
+    replacements.string(current.parsed <= "26.1-1.pre.1") { replace("net.minecraft.client.gui.GuiGraphicsExtractor", "net.minecraft.client.gui.GuiGraphics") }
+    replacements.string(current.parsed < "1.21") { replace("net.minecraft.client.gui.screens.options.OptionsSubScreen", "net.minecraft.client.gui.screens.OptionsSubScreen") }
+    replacements.string(current.parsed < "1.21.9") { replace(".setScreenAndShow(", ".setScreen(") }
+}
+
 tasks.register("stageArtifacts") {
     group = "build"
     description = "Builds all loader variants and copies unique artifacts to staging/"
