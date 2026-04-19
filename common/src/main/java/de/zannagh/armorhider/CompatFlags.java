@@ -13,7 +13,6 @@ public final class CompatFlags {
     public static boolean ET_LOADED = false;
     public static boolean FA_LOADED = false;
     public static boolean GECKOLIB_LOADED = false;
-    public static boolean SINYTRA_LOADED = false;
     public static boolean WFGM_LOADED = false;
 
     private CompatFlags() {}

@@ -37,8 +37,21 @@ public final class MixinUtil {
         CompatFlags.ET_LOADED = isModPresent(cl, "dev.kikugie.elytratrims.ep.ETClientEntrypoint");
         CompatFlags.GECKOLIB_LOADED = isModPresent(cl, "software.bernie.geckolib.renderer.GeoArmorRenderer");
         CompatFlags.FA_LOADED = isModPresent(cl, "net.kenddie.fantasyarmor.FantasyArmor");
-        CompatFlags.SINYTRA_LOADED = isModPresent(cl, "org.sinytra.connector.locator.ConnectorLocator");
         CompatFlags.WFGM_LOADED = isModPresent(cl, "com.wildfire.render.GenderArmorLayer");
+    }
+
+    /**
+     * Checks whether a class exists on the classpath without initializing it.
+     * Uses {@code Class.forName(name, false, cl)} — the class is resolved but
+     * no static initializers run and no side effects occur.
+     */
+    public static boolean isClassAvailableWithoutLoading(ClassLoader cl, String className) {
+        try {
+            Class.forName(className, false, cl);
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
     }
 
     /**
