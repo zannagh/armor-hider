@@ -15,6 +15,10 @@ stonecutter {
 configure<net.fabricmc.loom.api.LoomGradleExtensionAPI> {
     splitEnvironmentSourceSets()
 
+    val commonProj = extra["commonProject"] as Project
+    val commonLoom = commonProj.extensions.getByType(net.fabricmc.loom.api.LoomGradleExtensionAPI::class.java)
+    accessWidenerPath.set(commonLoom.accessWidenerPath)
+
     mods {
         register("armor-hider") {
             sourceSet(sourceSets.main.get())
@@ -56,12 +60,16 @@ dependencies {
 val expandProps = mapOf(
     "version" to project.version,
     "java_version" to project.prop("java.version")!!,
-    "fabric_minecraft_version" to project.prop("fabric.minecraft_version_range")!!
+    "fabric_minecraft_version" to project.prop("fabric.minecraft_version_range")!!,
+    "accesswidener" to (findProperty("accesswidener.version")?.toString() ?: "current")
 )
 
 tasks.processResources {
     inputs.properties(expandProps)
     filesMatching(listOf("fabric.mod.json", "**/*.mixins.json"), ExpandPropertiesAction(expandProps))
+    from(rootProject.file("common/accesswideners")) {
+        include("armorhider.${expandProps["accesswidener"]}.accesswideners")
+    }
 }
 
 tasks.named<ProcessResources>("processClientResources") {

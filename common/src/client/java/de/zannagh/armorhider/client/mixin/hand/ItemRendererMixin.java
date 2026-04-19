@@ -7,6 +7,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.rendering.RenderModifications;
+import de.zannagh.armorhider.client.rendering.RenderTypeFactory;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.Sheets;
@@ -45,10 +46,10 @@ public class ItemRendererMixin {
                 return bufferSource.getBuffer(Sheets.translucentItemSheet());
             }
             if (renderType == Sheets.shieldSheet()) {
-                return bufferSource.getBuffer(RenderType.entityTranslucent(Sheets.SHIELD_SHEET));
+                return bufferSource.getBuffer(RenderTypeFactory.translucentEntity(Sheets.SHIELD_SHEET));
             }
             if (renderType == Sheets.bannerSheet()) {
-                return bufferSource.getBuffer(RenderType.entityTranslucent(Sheets.BANNER_SHEET));
+                return bufferSource.getBuffer(RenderTypeFactory.translucentEntity(Sheets.BANNER_SHEET));
             }
             return bufferSource.getBuffer(renderType);
         };
@@ -66,10 +67,10 @@ public class ItemRendererMixin {
         if (ctx.hasActiveModification(EquipmentSlot.OFFHAND) || ctx.hasActiveModification(EquipmentSlot.HEAD)) {
             MultiBufferSource wrappedSource = renderType -> {
                 if (renderType == Sheets.shieldSheet()) {
-                    return bufferSource.getBuffer(RenderType.entityTranslucent(Sheets.SHIELD_SHEET));
+                    return bufferSource.getBuffer(RenderTypeFactory.translucentEntity(Sheets.SHIELD_SHEET));
                 }
                 if (renderType == Sheets.bannerSheet()) {
-                    return bufferSource.getBuffer(RenderType.entityTranslucent(Sheets.BANNER_SHEET));
+                    return bufferSource.getBuffer(RenderTypeFactory.translucentEntity(Sheets.BANNER_SHEET));
                 }
                 return bufferSource.getBuffer(renderType);
             };

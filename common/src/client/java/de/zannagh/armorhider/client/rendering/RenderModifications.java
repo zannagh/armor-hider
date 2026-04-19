@@ -1,24 +1,13 @@
 package de.zannagh.armorhider.client.rendering;
 
-import de.zannagh.armorhider.client.scopes.ActiveModification;
 import de.zannagh.armorhider.client.scopes.RenderContext;
 import de.zannagh.armorhider.util.ItemsUtil;
 import net.minecraft.client.renderer.Sheets;
 import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.NotNull;
 
-//?if >= 1.21.11 {
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.resources.Identifier;
-//? }
-//? if >= 1.21.4 && < 1.21.11 {
-/*import net.minecraft.client.renderer.RenderType;
-import net.minecraft.resources.Identifier;
-*///?}
-//? if < 1.21.4 {
-/*import net.minecraft.client.renderer.RenderType;
-import net.minecraft.resources.Identifier;
-*///?}
 
 /**
  * Applies visual modifications (transparency, render type swaps, color changes)
@@ -48,7 +37,7 @@ public final class RenderModifications {
         }
         double transparency = mod.transparency();
         if (transparency < 1.0 && transparency >= 0) {
-            return RenderTypeResolver.translucentEntity(texture);
+            return RenderTypeFactory.translucentEntity(texture);
         }
         return originalLayer;
     }
@@ -67,7 +56,7 @@ public final class RenderModifications {
         if (transparency >= 1.0 || transparency <= 0) {
             return originalLayer;
         }
-        return RenderTypeResolver.translucentArmor(texture);
+        return RenderTypeFactory.translucentArmor(texture);
     }
 
     //? if >= 1.21.4 {
@@ -80,7 +69,7 @@ public final class RenderModifications {
         if (transparency >= 1.0 || transparency <= 0) {
             return originalLayer;
         }
-        return RenderTypeResolver.translucentArmorTrim();
+        return RenderTypeFactory.translucentArmorTrim();
     }
     //?}
 
@@ -94,7 +83,7 @@ public final class RenderModifications {
         if (transparency >= 1.0 || transparency <= 0) {
             return originalLayer;
         }
-        return RenderTypeResolver.translucentArmorTrim();
+        return RenderTypeFactory.translucentArmorTrim();
     }
     *///?}
 
@@ -111,7 +100,7 @@ public final class RenderModifications {
         if (originalLayer == Sheets.cutoutBlockSheet()) {
         //? if > 26.1.2
         //if (originalLayer == Sheets.cutoutBlockItemSheet()) {
-            return RenderTypeResolver.translucentItemSheet();
+            return RenderTypeFactory.translucentItemSheet();
         }
         return originalLayer;
     }
@@ -169,16 +158,29 @@ public final class RenderModifications {
             = new java.util.concurrent.ConcurrentHashMap<>();
 
     static {
+        //? if >= 1.21 {
         solidToTranslucent.put(
+                net.minecraft.client.renderer.RenderType.entitySolid(Sheets.SHIELD_SHEET),
+                RenderTypeFactory.translucentEntity(Sheets.SHIELD_SHEET));
+        solidToTranslucent.put(
+                net.minecraft.client.renderer.RenderType.entitySolid(Sheets.BANNER_SHEET),
+                RenderTypeFactory.translucentEntity(Sheets.BANNER_SHEET));
+        //? } else {
+        /^solidToTranslucent.put(
                 net.minecraft.client.renderer.RenderType.entitySolid(Sheets.SHIELD_SHEET),
                 net.minecraft.client.renderer.RenderType.entityTranslucent(Sheets.SHIELD_SHEET));
         solidToTranslucent.put(
                 net.minecraft.client.renderer.RenderType.entitySolid(Sheets.BANNER_SHEET),
                 net.minecraft.client.renderer.RenderType.entityTranslucent(Sheets.BANNER_SHEET));
-        //? if < 1.21.4 {
+        ^///?}
+        //? if < 1.21 {
         /^solidToTranslucent.put(
                 net.minecraft.client.renderer.RenderType.entitySolid(net.minecraft.world.inventory.InventoryMenu.BLOCK_ATLAS),
                 net.minecraft.client.renderer.RenderType.entityTranslucent(net.minecraft.world.inventory.InventoryMenu.BLOCK_ATLAS));
+        ^///?} elif < 1.21.4 {
+        /^solidToTranslucent.put(
+                net.minecraft.client.renderer.RenderType.entitySolid(net.minecraft.world.inventory.InventoryMenu.BLOCK_ATLAS),
+                RenderTypeFactory.translucentEntity(net.minecraft.world.inventory.InventoryMenu.BLOCK_ATLAS));
         ^///?}
     }
 

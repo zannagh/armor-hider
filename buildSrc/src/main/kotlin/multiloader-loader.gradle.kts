@@ -16,8 +16,9 @@ evaluationDependsOn(commonPath)
 val commonProject = project(commonPath)
 val commonSourceSets = commonProject.extensions.getByType(SourceSetContainer::class.java)
 
-// Expose common source sets for loader build scripts that need additional wiring
+// Expose common source sets and project for loader build scripts that need additional wiring
 extra["commonSourceSets"] = commonSourceSets
+extra["commonProject"] = commonProject
 
 // Carry over compile-only dependencies from common that are needed when compiling common sources
 dependencies {

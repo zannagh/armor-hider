@@ -6,6 +6,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.rendering.RenderModifications;
+import de.zannagh.armorhider.client.rendering.RenderTypeFactory;
 
 import net.minecraft.client.renderer.SubmitNodeCollection;
 import net.minecraft.client.renderer.SubmitNodeStorage;
@@ -22,7 +23,6 @@ import org.spongepowered.asm.mixin.injection.At;
 
 //? if >= 1.21.11 {
 import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.client.renderer.rendertype.RenderTypes;
 //? }
 
 //? if 1.21.9 || 1.21.10
@@ -55,10 +55,7 @@ public class SubmitNodeCollectorMixin {
 
             RenderType translucentType = renderType;
             if (submit.sprite() != null) {
-                //? if >= 1.21.11
-                translucentType = RenderTypes.entityTranslucent(submit.sprite().atlasLocation());
-                //? if 1.21.9 || 1.21.10
-                //translucentType = RenderType.entityTranslucent(submit.sprite().atlasLocation());
+                translucentType = RenderTypeFactory.translucentEntity(submit.sprite().atlasLocation());
             }
 
             original.call(storage, translucentType, modified);
@@ -114,10 +111,7 @@ public class SubmitNodeCollectorMixin {
 
             RenderType translucentType = renderType;
             if (submit.sprite() != null) {
-                //? if >= 1.21.11
-                translucentType = RenderTypes.entityTranslucent(submit.sprite().atlasLocation());
-                //? if 1.21.9 || 1.21.10
-                //translucentType = RenderType.entityTranslucent(submit.sprite().atlasLocation());
+                translucentType = RenderTypeFactory.translucentEntity(submit.sprite().atlasLocation());
             }
 
             original.call(storage, translucentType, modified);

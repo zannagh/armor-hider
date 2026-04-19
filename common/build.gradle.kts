@@ -17,8 +17,12 @@ stonecutter {
         replace("packet.getIdentifier()", "packet.getResourceLocation()")
     }
     
-    replacements.string(current.parsed <= "1.21.8"){
+    replacements.string(current.parsed <= "1.21.8") {
         replace("AvatarRenderState", "PlayerRenderState")
+    }
+    
+    replacements.string(current.parsed < "1.21.11") {
+        replace("net.minecraft.client.renderer.rendertype.RenderType", "net.minecraft.client.renderer.RenderType")
     }
 
     replacements.string(current.parsed < "1.21.11"){
@@ -42,8 +46,18 @@ stonecutter {
     }
 }
 
+// Read version-specific access widener from resources
+val awVersion = findProperty("accesswidener.version")?.toString() ?: "current"
+val awSource = rootProject.file("common/accesswideners/armorhider.$awVersion.accesswideners")
+val awFile = layout.buildDirectory.file("generated/armor-hider.accesswidener").get().asFile.also { it.parentFile.mkdirs() }
+run {
+    val awNamespace = if (project.isDeobf) "official" else "named"
+    awFile.writeText(awSource.readText().replace("classTweaker v1 named", "classTweaker v1 $awNamespace"))
+}
+
 configure<net.fabricmc.loom.api.LoomGradleExtensionAPI> {
     splitEnvironmentSourceSets()
+    accessWidenerPath.set(awFile)
 
     mixin {
         useLegacyMixinAp = false
@@ -84,14 +98,22 @@ dependencies {
 
 val javaVersion = findProperty("java.version")?.toString() ?: error("No Java version specified")
 
-val expandProps = mapOf("java_version" to javaVersion)
+val accessWidener = findProperty("accesswidener.version")?.toString() ?: error("No access widener version specified")
+
+val javaVersionProp = mapOf("java_version" to javaVersion)
+val accessWidenerProp = mapOf("accesswidener.version" to accessWidener)
 
 tasks.processResources {
-    inputs.properties(expandProps)
-    filesMatching("**/*.mixins.json", ExpandPropertiesAction(expandProps))
+    inputs.properties(javaVersionProp)
+    filesMatching("**/*.mixins.json", ExpandPropertiesAction(javaVersionProp))
 }
 
 tasks.named<ProcessResources>("processClientResources") {
-    inputs.properties(expandProps)
-    filesMatching("**/*.mixins.json", ExpandPropertiesAction(expandProps))
+    inputs.properties(javaVersionProp)
+    filesMatching("**/*.mixins.json", ExpandPropertiesAction(javaVersionProp))
+    
+    inputs.properties(accessWidenerProp)
+    filesMatching("fabric.mod.json", ExpandPropertiesAction(accessWidenerProp))
+    
+    // TODO: Copy matchin access widener (resolved via armorhider.${accesswidener.version}.accesswidener to META-INF/accesstransformer.cfg ?
 }

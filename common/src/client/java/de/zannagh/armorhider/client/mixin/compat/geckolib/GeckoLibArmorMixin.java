@@ -5,7 +5,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.rendering.GeckoLibRenderState;
 import de.zannagh.armorhider.client.rendering.RenderModifications;
-import de.zannagh.armorhider.client.rendering.RenderTypeResolver;
+import de.zannagh.armorhider.client.rendering.RenderTypeFactory;
 import de.zannagh.armorhider.client.scopes.ActiveModification;
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
 import net.minecraft.client.renderer.SubmitNodeCollector;
@@ -125,7 +125,7 @@ public class GeckoLibArmorMixin {
         // Force translucent render type for partial transparency.
         // shouldHide is handled earlier by cancelling tryRenderGeoArmorPiece entirely.
         if (mod.transparency() < 1.0) {
-            cir.setReturnValue(RenderTypeResolver.translucentArmor(texture));
+            cir.setReturnValue(RenderTypeFactory.translucentArmor(texture));
         }
     }
 
@@ -137,7 +137,7 @@ public class GeckoLibArmorMixin {
 
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.rendering.RenderModifications;
-import de.zannagh.armorhider.client.rendering.RenderTypeResolver;
+import de.zannagh.armorhider.client.rendering.RenderTypeFactory;
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.Identifier;
@@ -184,7 +184,7 @@ public class GeckoLibArmorMixin {
             return;
         }
         if (mod.shouldHide() || mod.transparency() < 1.0) {
-            cir.setReturnValue(RenderTypeResolver.translucentArmor(texture));
+            cir.setReturnValue(RenderTypeFactory.translucentArmor(texture));
         }
     }
 
@@ -206,7 +206,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.rendering.RenderModifications;
-import de.zannagh.armorhider.client.rendering.RenderTypeResolver;
+import de.zannagh.armorhider.client.rendering.RenderTypeFactory;
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.Identifier;
@@ -251,7 +251,7 @@ public class GeckoLibArmorMixin {
         var mod = ArmorHiderClient.RENDER_CONTEXT.activeModification();
         if (mod == null) return;
         if (mod.shouldHide() || mod.transparency() < 1.0) {
-            cir.setReturnValue(RenderTypeResolver.translucentArmor(texture));
+            cir.setReturnValue(RenderTypeFactory.translucentArmor(texture));
         }
     }
 
