@@ -43,6 +43,12 @@ with(sc) {
 
 // ── Common branch ──
 if (branch == "common") {
+    with(sc) {
+        replacements.string(current.parsed >= "26.1-0.snapshot.11") {
+            replace("software.bernie.geckolib", "com.geckolib")
+        }
+    }
+
     val awVersion = findProperty("accesswidener.version")?.toString() ?: "current"
     val awSource = rootProject.file("common/accesswideners/armorhider.$awVersion.accesswideners")
     val awFile = layout.buildDirectory.file("generated/armor-hider.accesswidener").get().asFile.also { it.parentFile.mkdirs() }
@@ -63,8 +69,10 @@ if (branch == "common") {
             add("modCompileOnly", "net.fabricmc:fabric-loader:${property("loader_version")}")
         }
         val modDep = if (isDeobf) "compileOnly" else "modCompileOnly"
+        val modClientDep = if (isDeobf) "clientCompileOnly" else "modClientCompileOnly"
         if (hasProperty("geckolib.version")) {
             add(modDep, "maven.modrinth:geckolib:${findProperty("geckolib.version")}")
+            add(modClientDep, "maven.modrinth:geckolib:${findProperty("geckolib.version")}")
         }
         if (hasProperty("elytratrims.version")) {
             add(modDep, "maven.modrinth:elytra-trims:${findProperty("elytratrims.version")}")

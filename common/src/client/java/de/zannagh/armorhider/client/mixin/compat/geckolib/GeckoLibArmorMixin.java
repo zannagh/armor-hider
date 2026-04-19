@@ -8,6 +8,7 @@ import de.zannagh.armorhider.client.rendering.RenderModifications;
 import de.zannagh.armorhider.client.rendering.RenderTypeFactory;
 import de.zannagh.armorhider.client.scopes.ActiveModification;
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 import net.minecraft.resources.Identifier;
@@ -19,33 +20,11 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Coerce;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import com.geckolib.renderer.base.GeoRenderState;
 
-//? if >= 1.21.11 {
-import net.minecraft.client.renderer.rendertype.RenderType;
-//?}
-//? if >= 1.21.9 && < 1.21.11 {
-/*import net.minecraft.client.renderer.RenderType;
-*///?}
-
-/**
- * Compatibility mixin for GeckoLib's custom armor renderer (GeckoLib 5+).
- * Applies armor hiding, transparency, and color modifications
- * to GeckoLib-rendered armor pieces on players.
- * <p>
- * Targets {@code GeoArmorRenderer.tryRenderGeoArmorPiece} as the static
- * per-piece entry point. Uses {@code @Inject} on instance methods instead
- * of {@code @WrapOperation} to avoid bridge method descriptor mismatches
- * caused by GeckoLib's generic type hierarchy.
- * <p>
- * Color alpha is modified by directly patching the render state's cached
- * {@code DataTickets.RENDER_COLOR} in the HEAD inject of
- * {@code tryRenderGeoArmorPiece}, before {@code submitRenderTasks} reads it.
- * {@code @ModifyVariable} on {@code buildRenderTask} is unreliable due to
- * bridge method ambiguity from GeckoLib's generic type hierarchy.
- */
 @SuppressWarnings("UnresolvedMixinReference")
 @Pseudo
-@Mixin(targets = "software.bernie.geckolib.renderer.GeoArmorRenderer", remap = false)
+@Mixin(targets = "com.geckolib.renderer.GeoArmorRenderer", remap = false)
 public class GeckoLibArmorMixin {
 
     // ========================
@@ -74,15 +53,15 @@ public class GeckoLibArmorMixin {
             return;
         }
 
-        // Partial transparency: patch the per-slot render state's cached color
-        // so submitRenderTasks reads the correct alpha.
-        Object perSlotState = GeckoLibRenderState.getPerSlotState(renderState, slot);
-        if (perSlotState != null) {
-            int originalColor = GeckoLibRenderState.getRenderColor(perSlotState);
-            carrier.saveGeckoLibColor(originalColor);
-            int modifiedColor = RenderModifications.applyArmorTransparency(
-                    ArmorHiderClient.RENDER_CONTEXT, originalColor);
-            GeckoLibRenderState.setRenderColor(perSlotState, modifiedColor);
+        if (renderState instanceof GeoRenderState geoState) {
+            GeoRenderState perSlotState = GeckoLibRenderState.getPerSlotState(geoState, slot);
+            if (perSlotState != null) {
+                int originalColor = GeckoLibRenderState.getRenderColor(perSlotState);
+                carrier.saveGeckoLibColor(originalColor);
+                int modifiedColor = RenderModifications.applyArmorTransparency(
+                        ArmorHiderClient.RENDER_CONTEXT, originalColor);
+                GeckoLibRenderState.setRenderColor(perSlotState, modifiedColor);
+            }
         }
     }
 
@@ -99,8 +78,8 @@ public class GeckoLibArmorMixin {
         // Restore the original render color on the per-slot state
         if (renderState instanceof IdentityCarrier carrier) {
             Integer savedColor = carrier.pollSavedGeckoLibColor();
-            if (savedColor != null) {
-                Object perSlotState = GeckoLibRenderState.getPerSlotState(renderState, slot);
+            if (savedColor != null && renderState instanceof GeoRenderState geoState) {
+                GeoRenderState perSlotState = GeckoLibRenderState.getPerSlotState(geoState, slot);
                 if (perSlotState != null) {
                     GeckoLibRenderState.setRenderColor(perSlotState, savedColor);
                 }

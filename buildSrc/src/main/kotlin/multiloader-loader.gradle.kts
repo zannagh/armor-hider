@@ -24,6 +24,9 @@ extra["commonProject"] = commonProject
 dependencies {
     compileOnly("org.jspecify:jspecify:1.0.0")
     compileOnly("net.luckperms:api:5.4")
+    if (hasProperty("geckolib.version")) {
+        add("compileOnly", "maven.modrinth:geckolib:${findProperty("geckolib.version")}")
+    }
 }
 
 // Include common's sources in the loader's source sets for IntelliJ
