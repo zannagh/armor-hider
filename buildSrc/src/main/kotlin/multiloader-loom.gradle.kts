@@ -149,8 +149,10 @@ if (branch == "fabric") {
     tasks.named<ProcessResources>("processResources") {
         inputs.properties(expandProps)
         filesMatching(listOf("fabric.mod.json", "**/*.mixins.json"), ExpandPropertiesAction(expandProps))
+        val awNamespace = if (isDeobf) "official" else "named"
         from(rootProject.file("common/accesswideners"), Action<org.gradle.api.file.CopySpec> {
             include("armorhider.${expandProps["accesswidener"]}.accesswideners")
+            filter { it.replace("classTweaker v1 named", "classTweaker v1 $awNamespace") }
         })
     }
     tasks.named<ProcessResources>("processClientResources") {
