@@ -38,6 +38,8 @@ val expandResourcesForIdea = registerExpandResourcesForIdea(
 expandResourcesForIdea.configure { dependsOn(tasks.classes, tasks.named("clientClasses")) }
 patchIdeRunConfigsAllowParallel()
 
+val devProfile = loadDevProfile()
+
 neoForge {
     version = neoforgeVersion
 
@@ -45,6 +47,15 @@ neoForge {
         register("client") {
             client()
             taskBefore(expandResourcesForIdea)
+            if (devProfile != null) {
+                programArguments.addAll("--username", devProfile.username, "--uuid", devProfile.uuid)
+                if (devProfile.skinTexturesValue != null) {
+                    jvmArgument("-Darmorhider.dev.skin.textures=${devProfile.skinTexturesValue}")
+                }
+                if (devProfile.skinTexturesSignature != null) {
+                    jvmArgument("-Darmorhider.dev.skin.signature=${devProfile.skinTexturesSignature}")
+                }
+            }
         }
         register("server") {
             server()

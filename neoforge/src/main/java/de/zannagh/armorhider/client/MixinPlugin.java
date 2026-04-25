@@ -21,6 +21,7 @@ public class MixinPlugin implements IMixinConfigPlugin {
             // Always present
             "PlayerMixin",
             "GameRendererMixin",
+            "DevSkinMixin",
             // All versions — Stonecutter guards per version range
             "EntityRenderDispatcherMixin",
             "LivingEntityMixin",
@@ -52,7 +53,8 @@ public class MixinPlugin implements IMixinConfigPlugin {
             "OptionsMixin",
             // Compat — @Pseudo, auto-skipped if target mod absent
             "compat.wildfiregender.GenderArmorLayerMixin",
-            "compat.geckolib.GeckoLibArmorMixin"
+            "compat.geckolib.GeckoLibArmorMixin",
+            "compat.waveycapes.WaveyCapesMixin"
     };
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {

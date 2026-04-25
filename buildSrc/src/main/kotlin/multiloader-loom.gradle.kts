@@ -108,6 +108,8 @@ if (branch == "fabric") {
     val commonProj = extra["commonProject"] as Project
     val commonLoom = commonProj.extensions.getByType(net.fabricmc.loom.api.LoomGradleExtensionAPI::class.java)
 
+    val devProfile = loadDevProfile()
+
     loom.apply {
         splitEnvironmentSourceSets()
         accessWidenerPath.set(commonLoom.accessWidenerPath)
@@ -122,6 +124,18 @@ if (branch == "fabric") {
             ideConfigGenerated(true)
             if (isDeobf) {
                 vmArg("-Dfabric.gameVersion=${fabricVersion}")
+            }
+            if (devProfile != null) {
+                programArg("--username")
+                programArg(devProfile.username)
+                programArg("--uuid")
+                programArg(devProfile.uuid)
+                if (devProfile.skinTexturesValue != null) {
+                    vmArg("-Darmorhider.dev.skin.textures=${devProfile.skinTexturesValue}")
+                }
+                if (devProfile.skinTexturesSignature != null) {
+                    vmArg("-Darmorhider.dev.skin.signature=${devProfile.skinTexturesSignature}")
+                }
             }
         }
     }
