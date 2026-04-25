@@ -32,12 +32,12 @@ public class DevSkinMixin {
             )
     )
     private Property injectDevSkinTextures(MinecraftSessionService service, GameProfile profile, Operation<Property> original) {
-        Property result = original.call(service, profile);
-        if (getDevTextures() != null) {
+        String devTextures = getDevTextures();
+        if (devTextures != null) {
             ArmorHider.LOGGER.debug("[DevSkin] Injecting dev skin textures for profile: {}", profile);
-            return new Property("textures", getDevTextures(), getDevSignature());
+            return new Property("textures", devTextures, getDevSignature());
         }
-        return result;
+        return original.call(service, profile);
     }
     //?}
     

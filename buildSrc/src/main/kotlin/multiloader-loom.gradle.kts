@@ -108,7 +108,11 @@ if (branch == "fabric") {
     val commonProj = extra["commonProject"] as Project
     val commonLoom = commonProj.extensions.getByType(net.fabricmc.loom.api.LoomGradleExtensionAPI::class.java)
 
-    val devProfile = loadDevProfile()
+    val shouldLoadDevProfile = !gradle.startParameter.isOffline && gradle.startParameter.taskNames.any { taskName ->
+        val simple = taskName.substringAfterLast(':')
+        simple.startsWith("run") || simple == "genIntellijRuns"
+    }
+    val devProfile = if (shouldLoadDevProfile) loadDevProfile() else null
 
     loom.apply {
         splitEnvironmentSourceSets()

@@ -38,7 +38,10 @@ val expandResourcesForIdea = registerExpandResourcesForIdea(
 expandResourcesForIdea.configure { dependsOn(tasks.classes, tasks.named("clientClasses")) }
 patchIdeRunConfigsAllowParallel()
 
-val devProfile = loadDevProfile()
+val requestedTasks = gradle.startParameter.taskNames.map { it.substringAfterLast(':') }
+val devProfile = if (!gradle.startParameter.isOffline && requestedTasks.any {
+    it.equals("runClient", ignoreCase = true) || it.equals("client", ignoreCase = true)
+}) loadDevProfile() else null
 
 neoForge {
     version = neoforgeVersion
