@@ -29,8 +29,9 @@ import net.minecraft.client.renderer.entity.state.AvatarRenderState;
 /*import net.minecraft.client.player.AbstractClientPlayer;
 *///?}
 
+@SuppressWarnings("UnresolvedMixinReference")
 @Pseudo
-@Mixin(targets = "dev.tr7zw.waveycapes.renderlayers.CustomCapeRenderLayer")
+@Mixin(targets = "dev.tr7zw.waveycapes.renderlayers.CustomCapeRenderLayer", remap = false)
 public class WaveyCapesMixin {
 
     @Unique
