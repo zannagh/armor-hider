@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.*;
+import java.util.function.Consumer;
 
 //? if >= 1.21.11 {
 import net.minecraft.resources.Identifier;
@@ -178,16 +179,28 @@ public class ServerConfiguration implements ConfigurationSource<ServerConfigurat
         return new ArrayList<>(playerConfigs.values());
     }
 
+    private final List<Consumer<String>> configListeners = new ArrayList<>();
+
+    public void addConfigChangeListener(Consumer<String> listener) {
+        configListeners.add(listener);
+    }
+
+    private void notifyConfigListeners(String playerName) {
+        configListeners.forEach(l -> l.accept(playerName));
+    }
+
     public void put(@NotNull String playerName, UUID playerId, PlayerConfig playerConfig) {
         playerNameConfigs.put(playerName, playerConfig);
         if (playerId != null) {
             playerConfigs.put(playerId, playerConfig);
         }
+        notifyConfigListeners(playerName);
     }
 
     public void put(PlayerConfig playerConfig) {
         playerNameConfigs.put(playerConfig.playerName.getValue(), playerConfig);
         playerConfigs.put(playerConfig.playerId.getValue(), playerConfig);
+        notifyConfigListeners(playerConfig.playerName.getValue());
     }
 
     public String toJson() {

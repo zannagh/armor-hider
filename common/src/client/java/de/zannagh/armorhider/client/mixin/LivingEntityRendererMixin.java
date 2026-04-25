@@ -4,6 +4,7 @@ import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.scopes.ActiveModification;
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
 import de.zannagh.armorhider.client.scopes.IdentityStateCarrier;
+import de.zannagh.armorhider.log.DebugLogger;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.player.PlayerModel;
 import net.minecraft.client.renderer.entity.EntityRenderer;
@@ -76,10 +77,40 @@ public abstract class LivingEntityRendererMixin
             at = @At("HEAD")
     )
     private void enterEntityRenderDuringExtraction(LivingEntity entity, LivingEntityRenderState state, float partialTick, CallbackInfo ci) {
-        if (!(state instanceof AvatarRenderState)) {
+        if (!(state instanceof AvatarRenderState avRenderState)) {
             return;
         }
         ArmorHiderClient.RENDER_CONTEXT.enterEntityRender();
+        IdentityCarrier carrierIns = null;
+        if (entity instanceof IdentityCarrier carrier) {
+            carrierIns = carrier;
+        }
+        if (carrierIns == null && state instanceof IdentityStateCarrier stateCarrier) {
+            carrierIns = stateCarrier.getCarrier();
+        }
+        if (carrierIns == null) {
+            return;
+        }
+        // If we already have the info, we can clear the item from the render state to suppress any further render calls to it!
+        if (carrierIns.armorHider$getChestMod() instanceof ActiveModification mod && mod.shouldHide()) {
+            DebugLogger.log("ArmorHider: Clearing chest slot from render state!");
+            avRenderState.chestEquipment.copyAndClear();
+        }
+
+        if (carrierIns.armorHider$getHeadMod() instanceof ActiveModification mod && mod.shouldHide()) {
+            DebugLogger.log("ArmorHider: Clearing head slot from render state!");
+            avRenderState.headEquipment.copyAndClear();
+        }
+
+        if (carrierIns.armorHider$getLegsMod() instanceof ActiveModification mod && mod.shouldHide()) {
+            DebugLogger.log("ArmorHider: Clearing legs slot from render state!");
+            avRenderState.legsEquipment.copyAndClear();
+        }
+
+        if (carrierIns.armorHider$getFeetMod() instanceof ActiveModification mod && mod.shouldHide()) {
+            DebugLogger.log("ArmorHider: Clearing feet slot from render state!");
+            avRenderState.feetEquipment.copyAndClear();
+        }
     }
 
     /**

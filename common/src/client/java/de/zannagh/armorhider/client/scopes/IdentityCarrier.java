@@ -1,6 +1,5 @@
 package de.zannagh.armorhider.client.scopes;
 
-import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
@@ -22,6 +21,21 @@ public interface IdentityCarrier {
     @Nullable ItemStack customHeadItem();
 
     boolean isPlayerFlying();
+    
+    @Nullable ActiveModification armorHider$getHeadMod();
+    @Nullable ActiveModification armorHider$getChestMod();
+    @Nullable ActiveModification armorHider$getLegsMod();
+    @Nullable ActiveModification armorHider$getFeetMod();
+
+    /**
+     * Creates a rendering modification for the given equipment slot and item.
+     * Returns {@code null} when no modification is needed.
+     * Also sets the active context if the modification is not null via {@link RenderContext#setActiveModification(ActiveModification)}
+     */
+    default @Nullable ActiveModification getModification(@NotNull EquipmentSlot slot, @Nullable ItemStack item) {
+
+        return ActiveModification.create(armorHider$playerName(), slot, item);
+    }
 
     /**
      * Creates a rendering modification for the given equipment slot and item.
@@ -29,14 +43,28 @@ public interface IdentityCarrier {
      * Also sets the active context if the modification is not null via {@link RenderContext#setActiveModification(ActiveModification)} 
      */
     default @Nullable ActiveModification createModification(@NotNull EquipmentSlot slot, @Nullable ItemStack item) {
-        
-        var mod = ActiveModification.create(armorHider$playerName(), slot, item);
-        if (mod != null) {
-            ArmorHiderClient.RENDER_CONTEXT.setActiveModification(mod);
+        ActiveModification modification = null;
+        if (slot == EquipmentSlot.HEAD && armorHider$getHeadMod() != null && item != null) {
+            modification = armorHider$getHeadMod();
+        }
+        else if (slot == EquipmentSlot.CHEST && armorHider$getChestMod() != null && item != null) {
+            modification = armorHider$getChestMod();
+        }
+        else if (slot == EquipmentSlot.LEGS && armorHider$getLegsMod() != null && item != null) {
+            modification = armorHider$getLegsMod();
+        }
+        else if (slot == EquipmentSlot.FEET && armorHider$getFeetMod() != null && item != null) {
+            modification = armorHider$getFeetMod();
+        }
+        else {
+            modification = ActiveModification.create(armorHider$playerName(), slot, item);
+        }
+        if (modification != null) {
+            ArmorHiderClient.RENDER_CONTEXT.setActiveModification(modification);
         } else {
             ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
         }
-        return mod;
+        return modification;
     }
 
     /**

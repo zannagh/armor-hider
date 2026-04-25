@@ -33,6 +33,30 @@ public class LivingEntityRenderStateMixin implements IdentityStateCarrier {
         return armorHider$carrier != null ? armorHider$carrier.armorHider$playerName() : null;
     }
 
+    @Nullable
+    @Override
+    public ActiveModification armorHider$getHeadMod() {
+        return armorHider$carrier != null ? armorHider$carrier.armorHider$getHeadMod() : null;
+    }
+
+    @Nullable
+    @Override
+    public ActiveModification armorHider$getChestMod() {
+        return armorHider$carrier != null ? armorHider$carrier.armorHider$getChestMod() : null;
+    }
+
+    @Override
+    @Nullable
+    public ActiveModification armorHider$getLegsMod() {
+        return armorHider$carrier != null ? armorHider$carrier.armorHider$getLegsMod() : null;
+    }
+
+    @Override
+    @Nullable
+    public ActiveModification armorHider$getFeetMod() {
+        return armorHider$carrier != null ? armorHider$carrier.armorHider$getFeetMod() : null;
+    }
+
     @Override
     public void attachCarrier(@Nullable IdentityCarrier carrier) {
         armorHider$carrier = carrier;
