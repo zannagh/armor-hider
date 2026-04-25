@@ -35,6 +35,10 @@ bin/
 
 run/
 
+# dev profile (contains personal MC username)
+
+dev-profile.properties
+
 # java
 
 hs_err_*.log

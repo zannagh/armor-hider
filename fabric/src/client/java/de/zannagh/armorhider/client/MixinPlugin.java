@@ -18,6 +18,7 @@ public class MixinPlugin implements IMixinConfigPlugin {
     private static final String[] MIXINS = new String[]{
             "PlayerMixin",
             "GameRendererMixin",
+            "DevSkinMixin",
             // All versions — Stonecutter guards per version range
             "EntityRenderDispatcherMixin",
             "LivingEntityMixin",
@@ -51,7 +52,8 @@ public class MixinPlugin implements IMixinConfigPlugin {
             "PlayerModelMixin",
             // Compat — @Pseudo, auto-skipped if target mod absent
             "compat.wildfiregender.GenderArmorLayerMixin",
-            "compat.geckolib.GeckoLibArmorMixin"
+            "compat.geckolib.GeckoLibArmorMixin",
+            "compat.waveycapes.WaveyCapesMixin"
     };
 
     @Override

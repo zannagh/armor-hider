@@ -1,0 +1,8 @@
+# Dev profile for run configurations.
+# Copy this file to dev-profile.properties and set your username.
+# The UUID is resolved automatically from Mojang's API if omitted.
+#
+# To test with a different skin, change the username to any MC account.
+
+# username=YourMinecraftName
+# uuid=00000000-0000-0000-0000-000000000000
