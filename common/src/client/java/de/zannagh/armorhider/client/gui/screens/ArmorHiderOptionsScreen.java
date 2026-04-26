@@ -25,7 +25,11 @@ public class ArmorHiderOptionsScreen extends ArmorHiderConfigurationScreen {
         //? if >= 1.21.9 {
         int panelWidth = super.isPlayerInGame() ? (this.width * 3) / 5 : this.width;
         int panelHeight = this.height - topMargin - bottomMargin;
-        this.addRenderableWidget(new ArmorHiderOptionsPanelWidget(0, topMargin, panelWidth, panelHeight, this, this.gameOptions, () -> this.settingsChanged = true));
+        this.addRenderableWidget(new ArmorHiderOptionsPanelWidget(0, topMargin, panelWidth, panelHeight, this, this.gameOptions, 
+                () -> { 
+            this.settingsChanged = true; 
+            ArmorHiderClient.CLIENT_CONFIG_MANAGER.markLocalDirty();
+        }));
         this.addRenderableWidget(Button.builder(net.minecraft.network.chat.CommonComponents.GUI_DONE, btn -> onClose())
                 .bounds(this.width / 2 - 100, this.height - 27, 200, 20).build());
 

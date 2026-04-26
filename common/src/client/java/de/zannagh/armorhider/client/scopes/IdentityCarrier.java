@@ -28,12 +28,10 @@ public interface IdentityCarrier {
     @Nullable ActiveModification armorHider$getFeetMod();
 
     /**
-     * Creates a rendering modification for the given equipment slot and item.
+     * Creates a rendering modification for the given equipment slot and item without setting the render context.
      * Returns {@code null} when no modification is needed.
-     * Also sets the active context if the modification is not null via {@link RenderContext#setActiveModification(ActiveModification)}
      */
     default @Nullable ActiveModification getModification(@NotNull EquipmentSlot slot, @Nullable ItemStack item) {
-
         return ActiveModification.create(armorHider$playerName(), slot, item);
     }
 

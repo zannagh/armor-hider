@@ -10,6 +10,7 @@ import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.scopes.ActiveModification;
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
+import de.zannagh.armorhider.log.DebugLogger;
 import de.zannagh.armorhider.log.DebugTracer;
 import de.zannagh.armorhider.util.PlayerNameUtil;
 import net.minecraft.world.entity.*;
@@ -50,11 +51,14 @@ public abstract class PlayerMixin
     private ActiveModification armorHider$bootsMod;
 
     @Unique
-    private Consumer<String> armorHider$configListener;
+    private Consumer<String> armorHider$configListener = (changedPlayerName) -> armorHider$modsDirty = true;
 
     protected PlayerMixin(EntityType<? extends LivingEntity> type, Level level) {
         super(type, level);
-        armorHider$configListener = (changedPlayerName) -> armorHider$modsDirty = true;
+    }
+
+    @Inject(method = "<init>", at = @At("TAIL"))
+    private void registerConfigListener(CallbackInfo ci) {
         ArmorHiderClient.CLIENT_CONFIG_MANAGER.addConfigChangeListener(armorHider$configListener);
     }
 
@@ -79,6 +83,7 @@ public abstract class PlayerMixin
         if (!armorHider$modsDirty) {
             return;
         }
+        DebugLogger.log("Rebuilding armor mods for " + armorHider$playerName());
         armorHider$modsDirty = false;
         armorHider$headMod = getModification(EquipmentSlot.HEAD, getItemBySlot(EquipmentSlot.HEAD));
         armorHider$chestMod = getModification(EquipmentSlot.CHEST, getItemBySlot(EquipmentSlot.CHEST));

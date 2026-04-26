@@ -50,7 +50,7 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
     }
 
     private void notifyConfigListeners(String playerName) {
-        configListeners.forEach(l -> l.accept(playerName));
+        List.copyOf(configListeners).forEach(l -> l.accept(playerName));
     }
 
     public void updateName(String name) {
@@ -195,6 +195,10 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
         }
 
         return PlayerConfig.defaults(playerId, playerName);
+    }
+    
+    public void markLocalDirty() {
+        notifyConfigListeners(ArmorHiderClient.getCurrentPlayerName());
     }
     
     public PlayerConfig local() {

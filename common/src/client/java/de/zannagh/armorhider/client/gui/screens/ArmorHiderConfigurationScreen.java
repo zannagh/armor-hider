@@ -1,5 +1,6 @@
 package de.zannagh.armorhider.client.gui.screens;
 
+import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.gui.elements.OptionElementFactory;
 import de.zannagh.armorhider.client.gui.elements.WidgetList;
 import net.minecraft.client.Minecraft;
@@ -91,6 +92,7 @@ public abstract class ArmorHiderConfigurationScreen extends Screen {
     protected <T> void setSetting(T value, Consumer<T> setter){
         setter.accept(value);
         settingsChanged = true;
+        ArmorHiderClient.CLIENT_CONFIG_MANAGER.markLocalDirty();
     }
 
     public void addWidget(AbstractWidget widget){
