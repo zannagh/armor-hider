@@ -27,6 +27,9 @@ dependencies {
     if (hasProperty("geckolib.version")) {
         add("compileOnly", "maven.modrinth:geckolib:${findProperty("geckolib.version")}")
     }
+    if (hasProperty("iris.version")) {
+        add("compileOnly", "maven.modrinth:iris:${findProperty("iris.version")}")
+    }
 }
 
 // Include common's sources in the loader's source sets for IntelliJ
