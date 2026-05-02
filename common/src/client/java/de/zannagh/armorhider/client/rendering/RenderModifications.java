@@ -154,39 +154,39 @@ public final class RenderModifications {
     //? if < 1.21.9 {
 
     /*// Cache: maps entitySolid/entityCutout Identifiers to entityTranslucent equivalents.
-    private static final java.util.Map<net.minecraft.client.renderer.RenderType, net.minecraft.client.renderer.RenderType> solidToTranslucent
+    private static final java.util.Map<net.minecraft.client.renderer.rendertype.RenderType, net.minecraft.client.renderer.rendertype.RenderType> solidToTranslucent
             = new java.util.concurrent.ConcurrentHashMap<>();
 
     static {
         //? if >= 1.21 {
         solidToTranslucent.put(
-                net.minecraft.client.renderer.RenderType.entitySolid(Sheets.SHIELD_SHEET),
+                net.minecraft.client.renderer.rendertype.RenderType.entitySolid(Sheets.SHIELD_SHEET),
                 RenderTypeFactory.translucentEntity(Sheets.SHIELD_SHEET));
         solidToTranslucent.put(
-                net.minecraft.client.renderer.RenderType.entitySolid(Sheets.BANNER_SHEET),
+                net.minecraft.client.renderer.rendertype.RenderType.entitySolid(Sheets.BANNER_SHEET),
                 RenderTypeFactory.translucentEntity(Sheets.BANNER_SHEET));
         //? } else {
         /^solidToTranslucent.put(
-                net.minecraft.client.renderer.RenderType.entitySolid(Sheets.SHIELD_SHEET),
-                net.minecraft.client.renderer.RenderType.entityTranslucent(Sheets.SHIELD_SHEET));
+                net.minecraft.client.renderer.rendertype.RenderType.entitySolid(Sheets.SHIELD_SHEET),
+                net.minecraft.client.renderer.rendertype.RenderType.entityTranslucent(Sheets.SHIELD_SHEET));
         solidToTranslucent.put(
-                net.minecraft.client.renderer.RenderType.entitySolid(Sheets.BANNER_SHEET),
-                net.minecraft.client.renderer.RenderType.entityTranslucent(Sheets.BANNER_SHEET));
+                net.minecraft.client.renderer.rendertype.RenderType.entitySolid(Sheets.BANNER_SHEET),
+                net.minecraft.client.renderer.rendertype.RenderType.entityTranslucent(Sheets.BANNER_SHEET));
         ^///?}
         //? if < 1.21 {
         /^solidToTranslucent.put(
-                net.minecraft.client.renderer.RenderType.entitySolid(net.minecraft.world.inventory.InventoryMenu.BLOCK_ATLAS),
-                net.minecraft.client.renderer.RenderType.entityTranslucent(net.minecraft.world.inventory.InventoryMenu.BLOCK_ATLAS));
+                net.minecraft.client.renderer.rendertype.RenderType.entitySolid(net.minecraft.world.inventory.InventoryMenu.BLOCK_ATLAS),
+                net.minecraft.client.renderer.rendertype.RenderType.entityTranslucent(net.minecraft.world.inventory.InventoryMenu.BLOCK_ATLAS));
         ^///?} elif < 1.21.4 {
         /^solidToTranslucent.put(
-                net.minecraft.client.renderer.RenderType.entitySolid(net.minecraft.world.inventory.InventoryMenu.BLOCK_ATLAS),
+                net.minecraft.client.renderer.rendertype.RenderType.entitySolid(net.minecraft.world.inventory.InventoryMenu.BLOCK_ATLAS),
                 RenderTypeFactory.translucentEntity(net.minecraft.world.inventory.InventoryMenu.BLOCK_ATLAS));
         ^///?}
     }
 
     public static net.minecraft.client.renderer.MultiBufferSource wrapTranslucentBufferSource(
             net.minecraft.client.renderer.MultiBufferSource original, float alpha) {
-        return (net.minecraft.client.renderer.RenderType renderType) -> {
+        return (net.minecraft.client.renderer.rendertype.RenderType renderType) -> {
             var translucent = solidToTranslucent.get(renderType);
             if (translucent != null) {
                 return original.getBuffer(translucent);
@@ -198,7 +198,7 @@ public final class RenderModifications {
         };
     }
 
-    public static void registerSolidToTranslucent(net.minecraft.client.renderer.RenderType solid, net.minecraft.client.renderer.RenderType translucent) {
+    public static void registerSolidToTranslucent(net.minecraft.client.renderer.rendertype.RenderType solid, net.minecraft.client.renderer.rendertype.RenderType translucent) {
         solidToTranslucent.putIfAbsent(solid, translucent);
     }
     *///? }

@@ -115,15 +115,15 @@ public abstract class LayeredButton extends Button {
     *///?}
 
     //? if <= 1.21.5 && >= 1.21.4 {
-    /*
-    @Override
+    
+    /*@Override
     protected void renderWidget(GuiGraphics guiGraphics, int i, int j, float f) {
-        guiGraphics.blitSprite((t) -> net.minecraft.client.renderer.RenderType.guiTextured(t), spriteBg(), this.getX(), this.getY(), this.width, this.height);
+        guiGraphics.blitSprite((t) -> net.minecraft.client.renderer.rendertype.RenderType.guiTextured(t), spriteBg(), this.getX(), this.getY(), this.width, this.height);
         if (spriteForeground(isEnabled) instanceof Identifier identifier && !identifier.getPath().isEmpty()) {
-            guiGraphics.blitSprite((t) -> net.minecraft.client.renderer.RenderType.guiTextured(t), identifier, this.getX() + (this.width - 15) / 2, this.getY() + (this.height - 15) / 2, 15, 15);
+            guiGraphics.blitSprite((t) -> net.minecraft.client.renderer.rendertype.RenderType.guiTextured(t), identifier, this.getX() + (this.width - 15) / 2, this.getY() + (this.height - 15) / 2, 15, 15);
         }
         if (midLayerSprite() instanceof Identifier sprite) {
-            guiGraphics.blitSprite((t) -> net.minecraft.client.renderer.RenderType.guiTextured(t), sprite, this.getX() + (this.width - 15) / 2, this.getY() + (this.height - 15) / 2, 15, 15);
+            guiGraphics.blitSprite((t) -> net.minecraft.client.renderer.rendertype.RenderType.guiTextured(t), sprite, this.getX() + (this.width - 15) / 2, this.getY() + (this.height - 15) / 2, 15, 15);
         }
     }
     *///?}

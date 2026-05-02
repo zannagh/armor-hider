@@ -133,9 +133,9 @@ public class OptionElementFactory {
                 ,
                 defaultValue,
                 //? if > 26.1.2
-                setter::accept
+                //setter::accept
                 //? if <= 26.1.2
-                //setter
+                setter
         );
     }
 
@@ -156,9 +156,9 @@ public class OptionElementFactory {
                 (text, value) -> value ? Component.translatable("armorhider.options.toggle.on") : Component.translatable("armorhider.options.toggle.off"),
                 defaultValue,
                 //? if > 26.1.2
-                setter::accept
+                //setter::accept
                 //? if <= 26.1.2
-                //setter
+                setter
         );
     }
 }

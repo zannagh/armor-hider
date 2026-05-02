@@ -17,6 +17,7 @@ import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 import net.minecraft.client.resources.model.EquipmentClientInfo;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.equipment.EquipmentAsset;
 import org.spongepowered.asm.mixin.Mixin;
@@ -30,7 +31,7 @@ import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.resources.Identifier;
 //? }
 //? if >= 1.21.9 && < 1.21.11 {
-/*import net.minecraft.client.renderer.RenderType;
+/*import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.resources.Identifier;
 *///?}
 
@@ -69,6 +70,13 @@ public class EquipmentRenderMixin {
         var mod = carrier.createModification(slot, itemStack);
 
         if (mod == null) {
+            return;
+        }
+        
+        if (mod.slot() == EquipmentSlot.CHEST 
+                && de.zannagh.armorhider.util.ItemsUtil.itemStackContainsElytra(itemStack)
+                && carrier.isPlayerFlying()) {
+            ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
             return;
         }
 
@@ -146,9 +154,7 @@ public class EquipmentRenderMixin {
     //private RenderType modifyTrimRenderLayer(boolean decal, Operation<RenderType> original) {
         return RenderModifications.getTranslucentArmorRenderType(ArmorHiderClient.RENDER_CONTEXT, Sheets.ARMOR_TRIMS_SHEET, original.call(decal));
     }
-
 }
-
 //?}
 
 //? if >= 1.21.4 && < 1.21.9 {
@@ -163,7 +169,7 @@ import de.zannagh.armorhider.client.rendering.RenderModifications;
 import de.zannagh.armorhider.client.scopes.ActiveModification;
 import net.minecraft.client.model.Model;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.entity.layers.EquipmentLayerRenderer;
 import net.minecraft.client.resources.model.EquipmentClientInfo;
@@ -208,6 +214,7 @@ public class EquipmentRenderMixin {
         }
 
         if (mod.shouldHide() && ci != null) {
+            ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
             ci.cancel();
         }
     }

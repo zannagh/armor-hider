@@ -102,6 +102,9 @@ public abstract class PlayerMixin
     @Override
     public ActiveModification armorHider$getChestMod() {
         armorHider$rebuildModsIfDirty();
+        if (this.isPlayerFlying() && de.zannagh.armorhider.util.ItemsUtil.itemStackContainsElytra(getItemBySlot(EquipmentSlot.CHEST))) {
+            return null;
+        }
         return armorHider$chestMod;
     }
 

@@ -58,7 +58,7 @@ public final class ClientCommunicationManager {
                 //? if >= 1.21.9
                 playerName = client.player.getGameProfile().name();
                 //? if < 1.21.9
-                /*playerName = client.player.getGameProfile().getName();*/
+                //playerName = client.player.getGameProfile().getName();
             }
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.updateName(playerName);
             //? if >= 1.21.9

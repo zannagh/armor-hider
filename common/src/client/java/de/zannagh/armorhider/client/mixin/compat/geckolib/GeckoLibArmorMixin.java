@@ -118,7 +118,7 @@ import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.rendering.RenderModifications;
 import de.zannagh.armorhider.client.rendering.RenderTypeFactory;
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -134,7 +134,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @SuppressWarnings("UnresolvedMixinReference")
 @Pseudo
-@Mixin(targets = "software.bernie.geckolib.renderer.GeoArmorRenderer", remap = false)
+@Mixin(targets = "com.geckolib.renderer.GeoArmorRenderer", remap = false)
 public class GeckoLibArmorMixin {
 
     @Shadow protected EquipmentSlot currentSlot;
@@ -187,7 +187,7 @@ import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.rendering.RenderModifications;
 import de.zannagh.armorhider.client.rendering.RenderTypeFactory;
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -203,7 +203,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @SuppressWarnings("UnresolvedMixinReference")
 @Pseudo
-@Mixin(targets = "software.bernie.geckolib.renderer.GeoArmorRenderer", remap = false)
+@Mixin(targets = "com.geckolib.renderer.GeoArmorRenderer", remap = false)
 public class GeckoLibArmorMixin {
 
     @Shadow protected EquipmentSlot currentSlot;

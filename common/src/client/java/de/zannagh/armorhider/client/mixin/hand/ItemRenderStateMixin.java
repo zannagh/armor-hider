@@ -26,7 +26,7 @@ import net.minecraft.client.renderer.Sheets;
 //? if >= 1.21.11
 import net.minecraft.client.renderer.rendertype.RenderType;
 //? if < 1.21.11
-//import net.minecraft.client.renderer.RenderType;
+//import net.minecraft.client.renderer.rendertype.RenderType;
 
 /// Intercepts item layer rendering to apply transparency to off-hand items.
 /// Modifies tint layer alpha values and assigns a synthetic tint index to non-tinted

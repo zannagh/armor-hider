@@ -26,7 +26,7 @@ import net.minecraft.client.renderer.rendertype.RenderType;
 //? }
 
 //? if 1.21.9 || 1.21.10
-//import net.minecraft.client.renderer.RenderType;
+//import net.minecraft.client.renderer.rendertype.RenderType;
 
 @SuppressWarnings({"unused", "UnusedMixin"})
 @Mixin(SubmitNodeCollection.class)

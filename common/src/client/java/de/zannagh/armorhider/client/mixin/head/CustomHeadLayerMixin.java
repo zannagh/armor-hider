@@ -26,7 +26,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import net.minecraft.client.renderer.rendertype.RenderType;
 //? }
 //? if >= 1.21.9 && < 1.21.11 {
-/*import net.minecraft.client.renderer.RenderType;
+/*import net.minecraft.client.renderer.rendertype.RenderType;
 *///?}
 
 @Mixin(CustomHeadLayer.class)
