@@ -50,13 +50,11 @@ public class ArmorHiderClient {
     public static void init() {
         ArmorHider.LOGGER.info("Armor Hider client initializing...");
         ClientCommunicationManager.initClient();
-        //? if >= 1.21.5
-        if (IRIS_LOADED) {
-            initIrisCompat();
-        }
+        //? if iris
+        if (IRIS_LOADED) initIrisCompat();
     }
 
-    //? if >= 1.21.5 {
+    //? if iris {
     private static void initIrisCompat() {
         try {
             de.zannagh.armorhider.client.compat.iris.IrisCompat.registerPipelines();

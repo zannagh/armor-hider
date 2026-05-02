@@ -39,6 +39,7 @@ repositories {
 with(sc) {
     constants["fabric"] = current.project.contains("fabric")
     constants["neoforge"] = current.project.contains("neoforge")
+    constants["iris"] = hasProperty("iris.version")
 }
 
 // ── Common branch ──

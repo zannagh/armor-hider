@@ -1,4 +1,4 @@
-//? if >= 1.21.5 {
+//? if iris {
 package de.zannagh.armorhider.client.compat.iris;
 
 import de.zannagh.armorhider.ArmorHider;
