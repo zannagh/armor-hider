@@ -1,7 +1,5 @@
 package de.zannagh.armorhider.client.mixin.cape;
 
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
@@ -13,6 +11,7 @@ import de.zannagh.armorhider.client.rendering.RenderModifications;
 import net.minecraft.client.renderer.entity.layers.WingsLayer;
 import net.minecraft.world.entity.EquipmentSlot;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -23,6 +22,11 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 //? if >= 1.21.4 
 import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
+//? if <= 1.21.4 {
+/*
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+*///?}
 //? if <= 1.21.1 {
 /*
 import net.minecraft.client.model.ElytraModel;
@@ -39,13 +43,13 @@ public class ElytraRenderMixin
     {
         
     //? if >= 1.21.9
-    private static final String ENTRY_METHOD = "submit(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/client/renderer/entity/state/HumanoidRenderState;FF)V";
+    @Unique private static final String ENTRY_METHOD = "submit(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/client/renderer/entity/state/HumanoidRenderState;FF)V";
     
     //? if < 1.21.9 && >= 1.21.4
-    //private static final String ENTRY_METHOD = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/renderer/entity/state/HumanoidRenderState;FF)V";
+    //@Unique private static final String ENTRY_METHOD = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/renderer/entity/state/HumanoidRenderState;FF)V";
         
     //? if < 1.21.4
-    //private static final String ENTRY_METHOD = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/renderer/entity/state/HumanoidRenderState;FF)V";
+    //@Unique private static final String ENTRY_METHOD = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/renderer/entity/state/HumanoidRenderState;FF)V";
     
     @Inject(method = ENTRY_METHOD, at = @At(value = "HEAD"), cancellable = true)
     //? if >= 1.21.4 {
@@ -69,6 +73,8 @@ public class ElytraRenderMixin
         
         var mod = carrier.createModification(EquipmentSlot.CHEST, ItemsUtil.ELYTRA_ITEM_STACK);
 
+        // 1.21.4 and above has the elytra handled in the equipment render mixins.
+        
         if (mod == null) {
             return;
         }

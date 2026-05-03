@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.scopes.ActiveModification;
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
+import de.zannagh.armorhider.util.ItemsUtil;
 import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.Items;
@@ -36,6 +37,22 @@ public class HumanoidArmorLayerMixin
 //? if < 1.21.4
 //<T extends LivingEntity, M extends HumanoidModel<T>, A extends HumanoidModel<T>>
 {
+    @Unique
+    private static boolean armorHider$allSlotsFullyHidden(IdentityCarrier carrier) {
+        return armorHider$shouldSkipSlot(carrier.armorHider$getHeadMod())
+                && armorHider$shouldSkipSlot(carrier.armorHider$getChestMod())
+                && armorHider$shouldSkipSlot(carrier.armorHider$getLegsMod())
+                && armorHider$shouldSkipSlot(carrier.armorHider$getFeetMod());
+    }
+
+    @Unique
+    private static boolean armorHider$shouldSkipSlot(ActiveModification mod) {
+        if (mod == null) {
+            return false;
+        }
+        return mod.shouldHide();
+    }
+    
     // ===== Player/state capture + early-out (render HEAD) =====
 
     //? if >= 1.21.4 && < 1.21.9 {
@@ -85,22 +102,6 @@ public class HumanoidArmorLayerMixin
     }
     *///?}
 
-    @Unique
-    private static boolean armorHider$allSlotsFullyHidden(IdentityCarrier carrier) {
-        return armorHider$shouldSkipSlot(carrier.armorHider$getHeadMod())
-                && armorHider$shouldSkipSlot(carrier.armorHider$getChestMod())
-                && armorHider$shouldSkipSlot(carrier.armorHider$getLegsMod())
-                && armorHider$shouldSkipSlot(carrier.armorHider$getFeetMod());
-    }
-
-    @Unique
-    private static boolean armorHider$shouldSkipSlot(ActiveModification mod) {
-        if (mod == null) {
-            return false;
-        }
-        return mod.shouldHide();
-    }
-
     // ===== Per-piece scope setup (renderArmorPiece HEAD) =====
 
     //? if >= 1.21.9 {
@@ -110,7 +111,8 @@ public class HumanoidArmorLayerMixin
         if (!(humanoidRenderState instanceof IdentityCarrier identityCarrier)) {
             return;
         }
-        if (itemStack.is(Items.AIR)) {
+        if (itemStack.is(Items.AIR) 
+                || (ItemsUtil.itemStackContainsElytra(itemStack) && identityCarrier.isPlayerFlying())) {
             return;
         }
         var mod = identityCarrier.createModification(equipmentSlot, itemStack);

@@ -44,7 +44,6 @@ public class MixinPlugin implements IMixinConfigPlugin {
             "cape.CapeRenderMixin",
             // Guarded by //? if < 1.21.9 in source
             "hand.ModelPartMixin",
-            "bodyKneesAndToes.EquipmentRenderColorMixin",
             "hand.ItemRendererMixin",
             "networking.ClientPacketListenerMixin",
             "networking.ClientPlayNetworkHandlerMixin",
