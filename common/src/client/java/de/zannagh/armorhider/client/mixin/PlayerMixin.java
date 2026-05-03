@@ -52,7 +52,11 @@ public abstract class PlayerMixin
     private ActiveModification armorHider$bootsMod;
 
     @Unique
-    private Consumer<@Nullable String> armorHider$configListener = (changedPlayerName) -> armorHider$modsDirty = true;
+    private Consumer<@Nullable String> armorHider$configListener = (changedPlayerName) -> {
+        if (changedPlayerName == null || changedPlayerName.equals(armorHider$playerName())) {
+            armorHider$modsDirty = true;
+        }
+    };
 
     protected PlayerMixin(EntityType<? extends LivingEntity> type, Level level) {
         super(type, level);
@@ -103,7 +107,7 @@ public abstract class PlayerMixin
     @Nullable
     @Override
     public ActiveModification armorHider$getHeadMod() {
-        if (armorHider$isCombatActive()) return null;
+        if (armorHider$isCombatActive()) armorHider$modsDirty = true;
         armorHider$rebuildModsIfDirty();
         return armorHider$headMod;
     }
@@ -111,7 +115,7 @@ public abstract class PlayerMixin
     @Nullable
     @Override
     public ActiveModification armorHider$getChestMod() {
-        if (armorHider$isCombatActive()) return null;
+        if (armorHider$isCombatActive()) armorHider$modsDirty = true;
         armorHider$rebuildModsIfDirty();
         if (this.isPlayerFlying() && de.zannagh.armorhider.util.ItemsUtil.itemStackContainsElytra(getItemBySlot(EquipmentSlot.CHEST))) {
             return null;
@@ -122,7 +126,7 @@ public abstract class PlayerMixin
     @Override
     @Nullable
     public ActiveModification armorHider$getLegsMod() {
-        if (armorHider$isCombatActive()) return null;
+        if (armorHider$isCombatActive()) armorHider$modsDirty = true;
         armorHider$rebuildModsIfDirty();
         return armorHider$legsMod;
     }
@@ -130,7 +134,7 @@ public abstract class PlayerMixin
     @Override
     @Nullable
     public ActiveModification armorHider$getFeetMod() {
-        if (armorHider$isCombatActive()) return null;
+        if (armorHider$isCombatActive()) armorHider$modsDirty = true;
         armorHider$rebuildModsIfDirty();
         return armorHider$bootsMod;
     }
