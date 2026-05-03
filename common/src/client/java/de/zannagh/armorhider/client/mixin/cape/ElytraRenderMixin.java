@@ -23,13 +23,13 @@ import net.minecraft.client.renderer.SubmitNodeCollector;
 //? if >= 1.21.4 
 import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 //? if <= 1.21.4 {
-/*
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+
+/*import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 *///?}
 //? if <= 1.21.1 {
-/*
-import net.minecraft.client.model.ElytraModel;
+
+/*import net.minecraft.client.model.ElytraModel;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.rendertype.RenderType;
  *///?}
@@ -68,6 +68,7 @@ public class ElytraRenderMixin
         }
         
         if (carrier.isPlayerFlying()) {
+            ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
             return;
         }
         
@@ -101,16 +102,16 @@ public class ElytraRenderMixin
                                 S humanoidRenderState, float f, float g, CallbackInfo ci) {
     //? }
     //? if < 1.21.4 {
-    /*
-    private void releaseContext(PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, S humanoidRenderState, float limbSwing, float limbSwingAmount, float partialTick, float ageInTicks, float netHeadYaw, float headPitch, CallbackInfo ci) {
+    
+    /*private void releaseContext(PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, S humanoidRenderState, float limbSwing, float limbSwingAmount, float partialTick, float ageInTicks, float netHeadYaw, float headPitch, CallbackInfo ci) {
      *///?}
         ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
     }
     
     // 1.21.4 has to render type swap and all that within this mixin as downstream mixins don't catch the rendering.
     //? if < 1.21.4 {
-    /*
-    @WrapOperation(
+    
+    /*@WrapOperation(
             method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/world/entity/LivingEntity;FFFFFF)V",
             at = @At(
                     value = "INVOKE",

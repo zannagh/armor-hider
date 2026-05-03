@@ -50,8 +50,8 @@ public abstract class LivingEntityRendererMixin
         <T extends LivingEntity, S extends LivingEntityRenderState, M extends EntityModel<? super S>> extends EntityRenderer<T, S> implements RenderLayerParent<S, M>
     //?}
     //? if < 1.21.4 {
-    //<T extends LivingEntity, M extends EntityModel<T>> extends EntityRenderer<T> implements RenderLayerParent<T, M>
-    //?}
+    /*<T extends LivingEntity, M extends EntityModel<T>> extends EntityRenderer<T> implements RenderLayerParent<T, M>
+    *///?}
     {
 
     @Shadow

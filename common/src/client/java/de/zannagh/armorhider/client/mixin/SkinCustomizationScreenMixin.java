@@ -72,7 +72,11 @@ public abstract class SkinCustomizationScreenMixin extends Screen {
 
         this.armorHider$panel = new ArmorHiderOptionsPanelWidget(
                 0, 0, panelWidth, 100,
-                this, this.options, () -> this.armorHider$settingsChanged = true
+                this, this.options, () -> 
+                {
+                    this.armorHider$settingsChanged = true;
+                    ArmorHiderClient.CLIENT_CONFIG_MANAGER.markLocalDirty();
+                }
         );
         this.addRenderableWidget(this.armorHider$panel);
 
