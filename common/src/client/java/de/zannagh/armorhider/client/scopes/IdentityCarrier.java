@@ -41,20 +41,17 @@ public interface IdentityCarrier {
      * Also sets the active context if the modification is not null via {@link RenderContext#setActiveModification(ActiveModification)} 
      */
     default @Nullable ActiveModification createModification(@NotNull EquipmentSlot slot, @Nullable ItemStack item) {
-        ActiveModification modification = null;
-        if (slot == EquipmentSlot.HEAD && armorHider$getHeadMod() != null && item != null) {
-            modification = armorHider$getHeadMod();
-        }
-        else if (slot == EquipmentSlot.CHEST && armorHider$getChestMod() != null && item != null) {
-            modification = armorHider$getChestMod();
-        }
-        else if (slot == EquipmentSlot.LEGS && armorHider$getLegsMod() != null && item != null) {
-            modification = armorHider$getLegsMod();
-        }
-        else if (slot == EquipmentSlot.FEET && armorHider$getFeetMod() != null && item != null) {
-            modification = armorHider$getFeetMod();
-        }
-        else {
+        ActiveModification cached = switch (slot) {
+            case HEAD -> armorHider$getHeadMod();
+            case CHEST -> armorHider$getChestMod();
+            case LEGS -> armorHider$getLegsMod();
+            case FEET -> armorHider$getFeetMod();
+            default -> null;
+        };
+        ActiveModification modification;
+        if (cached != null && item != null && ItemStack.matches(cached.item(), item)) {
+            modification = cached;
+        } else {
             modification = ActiveModification.create(armorHider$playerName(), slot, item);
         }
         if (modification != null) {

@@ -29,7 +29,10 @@ public class ArmorHiderClient {
     public static RenderContext RENDER_CONTEXT = new RenderContext();
 
     public static final boolean FA_LOADED = CompatFlags.FA_LOADED || classExists("net.kenddie.fantasyarmor.FantasyArmor");
+    //? if >= 1.21.9
     public static final boolean GECKOLIB_LOADED = CompatFlags.GECKOLIB_LOADED || classExists("com.geckolib.renderer.GeoArmorRenderer");
+    //? if < 1.21.9
+    //public static final boolean GECKOLIB_LOADED = CompatFlags.GECKOLIB_LOADED || classExists("software.bernie.geckolib.renderer.GeoArmorRenderer");
     public static boolean ET_LOADED = CompatFlags.ET_LOADED || classExists("dev.kikugie.elytratrims.ep.ETClientEntrypoint");
     public static final boolean IRIS_LOADED = classExists("net.irisshaders.iris.api.v0.IrisApi");
 

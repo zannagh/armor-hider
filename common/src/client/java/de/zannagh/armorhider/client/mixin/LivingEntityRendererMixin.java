@@ -77,40 +77,10 @@ public abstract class LivingEntityRendererMixin
             at = @At("HEAD")
     )
     private void enterEntityRenderDuringExtraction(LivingEntity entity, LivingEntityRenderState state, float partialTick, CallbackInfo ci) {
-        if (!(state instanceof AvatarRenderState avRenderState)) {
+        if (!(state instanceof AvatarRenderState)) {
             return;
         }
         ArmorHiderClient.RENDER_CONTEXT.enterEntityRender();
-        IdentityCarrier carrierIns = null;
-        if (entity instanceof IdentityCarrier carrier) {
-            carrierIns = carrier;
-        }
-        if (carrierIns == null && state instanceof IdentityStateCarrier stateCarrier) {
-            carrierIns = stateCarrier.getCarrier();
-        }
-        if (carrierIns == null) {
-            return;
-        }
-        // If we already have the info, we can clear the item from the render state to suppress any further render calls to it!
-        if (carrierIns.armorHider$getChestMod() instanceof ActiveModification mod && mod.shouldHide()) {
-            DebugLogger.log("ArmorHider: Clearing chest slot from render state!");
-            avRenderState.chestEquipment.copyAndClear();
-        }
-
-        if (carrierIns.armorHider$getHeadMod() instanceof ActiveModification mod && mod.shouldHide()) {
-            DebugLogger.log("ArmorHider: Clearing head slot from render state!");
-            avRenderState.headEquipment.copyAndClear();
-        }
-
-        if (carrierIns.armorHider$getLegsMod() instanceof ActiveModification mod && mod.shouldHide()) {
-            DebugLogger.log("ArmorHider: Clearing legs slot from render state!");
-            avRenderState.legsEquipment.copyAndClear();
-        }
-
-        if (carrierIns.armorHider$getFeetMod() instanceof ActiveModification mod && mod.shouldHide()) {
-            DebugLogger.log("ArmorHider: Clearing feet slot from render state!");
-            avRenderState.feetEquipment.copyAndClear();
-        }
     }
 
     /**
@@ -125,8 +95,25 @@ public abstract class LivingEntityRendererMixin
     private void capturePlayerIdentity(LivingEntity entity, LivingEntityRenderState state, float partialTick, CallbackInfo ci) {
         if (entity instanceof IdentityCarrier carrier
                 && state instanceof IdentityStateCarrier stateCarrier
-                && state instanceof AvatarRenderState) { // Make sure we don't accidentally capture zombies or other humanoids.
+                && state instanceof AvatarRenderState avRenderState) {
             stateCarrier.attachCarrier(carrier);
+            armorHider$clearHiddenEquipment(carrier, avRenderState);
+        }
+    }
+
+    @Unique
+    private static void armorHider$clearHiddenEquipment(IdentityCarrier carrier, AvatarRenderState avRenderState) {
+        if (carrier.armorHider$getHeadMod() instanceof ActiveModification mod && mod.shouldHide()) {
+            avRenderState.headEquipment.copyAndClear();
+        }
+        if (carrier.armorHider$getChestMod() instanceof ActiveModification mod && mod.shouldHide()) {
+            avRenderState.chestEquipment.copyAndClear();
+        }
+        if (carrier.armorHider$getLegsMod() instanceof ActiveModification mod && mod.shouldHide()) {
+            avRenderState.legsEquipment.copyAndClear();
+        }
+        if (carrier.armorHider$getFeetMod() instanceof ActiveModification mod && mod.shouldHide()) {
+            avRenderState.feetEquipment.copyAndClear();
         }
     }
     //?}

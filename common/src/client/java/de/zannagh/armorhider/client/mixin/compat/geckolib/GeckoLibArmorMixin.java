@@ -134,7 +134,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @SuppressWarnings("UnresolvedMixinReference")
 @Pseudo
-@Mixin(targets = "com.geckolib.renderer.GeoArmorRenderer", remap = false)
+@Mixin(targets = "software.bernie.geckolib.renderer.GeoArmorRenderer", remap = false)
 public class GeckoLibArmorMixin {
 
     @Shadow protected EquipmentSlot currentSlot;
@@ -203,7 +203,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @SuppressWarnings("UnresolvedMixinReference")
 @Pseudo
-@Mixin(targets = "com.geckolib.renderer.GeoArmorRenderer", remap = false)
+@Mixin(targets = "software.bernie.geckolib.renderer.GeoArmorRenderer", remap = false)
 public class GeckoLibArmorMixin {
 
     @Shadow protected EquipmentSlot currentSlot;

@@ -10,6 +10,7 @@ import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.scopes.ActiveModification;
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
+import de.zannagh.armorhider.combat.CombatManager;
 import de.zannagh.armorhider.log.DebugLogger;
 import de.zannagh.armorhider.log.DebugTracer;
 import de.zannagh.armorhider.util.PlayerNameUtil;
@@ -51,7 +52,7 @@ public abstract class PlayerMixin
     private ActiveModification armorHider$bootsMod;
 
     @Unique
-    private Consumer<String> armorHider$configListener = (changedPlayerName) -> armorHider$modsDirty = true;
+    private Consumer<@Nullable String> armorHider$configListener = (changedPlayerName) -> armorHider$modsDirty = true;
 
     protected PlayerMixin(EntityType<? extends LivingEntity> type, Level level) {
         super(type, level);
@@ -59,7 +60,9 @@ public abstract class PlayerMixin
 
     @Inject(method = "<init>", at = @At("TAIL"))
     private void registerConfigListener(CallbackInfo ci) {
-        ArmorHiderClient.CLIENT_CONFIG_MANAGER.addConfigChangeListener(armorHider$configListener);
+        if (ArmorHiderClient.CLIENT_CONFIG_MANAGER != null) {
+            ArmorHiderClient.CLIENT_CONFIG_MANAGER.addConfigChangeListener(armorHider$configListener);
+        }
     }
 
     @Inject(method = "remove", at = @At("HEAD"))
@@ -91,9 +94,16 @@ public abstract class PlayerMixin
         armorHider$bootsMod = getModification(EquipmentSlot.FEET, getItemBySlot(EquipmentSlot.FEET));
     }
 
+    @Unique
+    private boolean armorHider$isCombatActive() {
+        String name = armorHider$playerName();
+        return name != null && CombatManager.isInCombat(name);
+    }
+
     @Nullable
     @Override
     public ActiveModification armorHider$getHeadMod() {
+        if (armorHider$isCombatActive()) return null;
         armorHider$rebuildModsIfDirty();
         return armorHider$headMod;
     }
@@ -101,6 +111,7 @@ public abstract class PlayerMixin
     @Nullable
     @Override
     public ActiveModification armorHider$getChestMod() {
+        if (armorHider$isCombatActive()) return null;
         armorHider$rebuildModsIfDirty();
         if (this.isPlayerFlying() && de.zannagh.armorhider.util.ItemsUtil.itemStackContainsElytra(getItemBySlot(EquipmentSlot.CHEST))) {
             return null;
@@ -111,6 +122,7 @@ public abstract class PlayerMixin
     @Override
     @Nullable
     public ActiveModification armorHider$getLegsMod() {
+        if (armorHider$isCombatActive()) return null;
         armorHider$rebuildModsIfDirty();
         return armorHider$legsMod;
     }
@@ -118,6 +130,7 @@ public abstract class PlayerMixin
     @Override
     @Nullable
     public ActiveModification armorHider$getFeetMod() {
+        if (armorHider$isCombatActive()) return null;
         armorHider$rebuildModsIfDirty();
         return armorHider$bootsMod;
     }

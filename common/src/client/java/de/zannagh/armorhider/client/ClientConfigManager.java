@@ -39,17 +39,17 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
         CURRENT = load();
     }
     
-    private final List<Consumer<String>> configListeners = new ArrayList<>();
+    private final List<Consumer<@Nullable String>> configListeners = new ArrayList<>();
 
-    public void addConfigChangeListener(Consumer<String> listener) {
+    public void addConfigChangeListener(Consumer<@Nullable String> listener) {
         configListeners.add(listener);
     }
 
-    public void removeConfigChangeListener(Consumer<String> listener) {
+    public void removeConfigChangeListener(Consumer<@Nullable String> listener) {
         configListeners.remove(listener);
     }
 
-    private void notifyConfigListeners(String playerName) {
+    private void notifyConfigListeners(@Nullable String playerName) {
         List.copyOf(configListeners).forEach(l -> l.accept(playerName));
     }
 

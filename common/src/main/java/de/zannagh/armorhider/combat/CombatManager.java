@@ -35,6 +35,11 @@ public final class CombatManager {
         }
     }
 
+    public static boolean isInCombat(String playerDisplayName) {
+        clearCombatTimesOlderThanTenSeconds();
+        return !playerDisplayName.isEmpty() && combatTimes.containsKey(playerDisplayName);
+    }
+
     public static double transformTransparencyBasedOnCombat(String playerDisplayName, double transparency) {
         clearCombatTimesOlderThanTenSeconds();
         if (playerDisplayName.isEmpty()) {

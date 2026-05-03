@@ -103,15 +103,6 @@ public class EquipmentRenderMixin {
             return;
         }
 
-        //? if >= 1.21.9 {
-        if (mod.slot() == EquipmentSlot.CHEST
-                && de.zannagh.armorhider.util.ItemsUtil.itemStackContainsElytra(itemStack)
-                && carrier.isPlayerFlying()) {
-            ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
-            return;
-        }
-        //?}
-
         if (mod.shouldHide() && ci != null) {
             ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
             ci.cancel();
