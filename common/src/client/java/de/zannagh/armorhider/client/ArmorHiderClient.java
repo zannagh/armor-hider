@@ -31,6 +31,7 @@ public class ArmorHiderClient {
     public static final boolean FA_LOADED = CompatFlags.FA_LOADED || classExists("net.kenddie.fantasyarmor.FantasyArmor");
     public static final boolean GECKOLIB_LOADED = CompatFlags.GECKOLIB_LOADED || classExists("com.geckolib.renderer.GeoArmorRenderer");
     public static boolean ET_LOADED = CompatFlags.ET_LOADED || classExists("dev.kikugie.elytratrims.ep.ETClientEntrypoint");
+    public static final boolean IRIS_LOADED = classExists("net.irisshaders.iris.api.v0.IrisApi");
 
     private static boolean classExists(String name) {
         try {
@@ -49,7 +50,19 @@ public class ArmorHiderClient {
     public static void init() {
         ArmorHider.LOGGER.info("Armor Hider client initializing...");
         ClientCommunicationManager.initClient();
+        //? if iris
+        if (IRIS_LOADED) initIrisCompat();
     }
+
+    //? if iris {
+    private static void initIrisCompat() {
+        try {
+            de.zannagh.armorhider.client.compat.iris.IrisCompat.registerPipelines();
+        } catch (Exception e) {
+            ArmorHider.LOGGER.warn("Failed to register pipelines with Iris", e);
+        }
+    }
+    //?}
     
     public static @NonNull Boolean isClientConnectedToServer() {
         return Minecraft.getInstance().isLocalServer()

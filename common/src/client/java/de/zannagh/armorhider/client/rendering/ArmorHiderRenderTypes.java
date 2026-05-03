@@ -141,6 +141,16 @@ public final class ArmorHiderRenderTypes {
             Identifier.fromNamespaceAndPath("armor_hider", "pipeline/item_entity_translucent_cull_no_depth"));
     *///?}
 
+    //? if >= 1.21.5 {
+    public static RenderPipeline[] pipelines() {
+        return new RenderPipeline[] {
+            ARMOR_TRANSLUCENT_NO_DEPTH,
+            ENTITY_TRANSLUCENT_NO_DEPTH,
+            ITEM_ENTITY_TRANSLUCENT_CULL_NO_DEPTH
+        };
+    }
+    //?}
+
     // --- Render types ---
 
     //? if >= 1.21.11 {
