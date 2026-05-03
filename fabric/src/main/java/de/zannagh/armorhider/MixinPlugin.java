@@ -42,10 +42,13 @@ public class MixinPlugin implements IMixinConfigPlugin {
         var mixinsToAdd = new ArrayList<String>();
         mixinsToAdd.addAll(List.of(GENERIC_MIXINS));
 
-        //? if >= 1.20.5 
+        //? if >= 1.20.5
         mixinsToAdd.addAll(List.of(AT_OR_ABOVE_1_20_5_MIXINS_FABRIC));
-        //? if < 1.20.5 
+        //? if < 1.20.5
         //mixinsToAdd.addAll(List.of(BELOW_1_20_5_MIXINS));
+
+        //? if >= 26.1-0.snapshot.11
+        mixinsToAdd.add("PackRepositoryMixin");
 
         return MixinUtil.getMixinClassesWherePresent(PACKAGE, mixinsToAdd);
     }
