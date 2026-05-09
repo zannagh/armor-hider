@@ -103,6 +103,7 @@ public final class ClientCommunicationManager {
         var serverConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getServerConfig();
         boolean serverForces = serverConfig != null
                 && serverConfig.serverWideSettings != null
+                && serverConfig.serverWideSettings.enableCombatDetection != null
                 && serverConfig.serverWideSettings.enableCombatDetection.getValue();
         if (!serverForces) {
             var config = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getConfigForPlayer(ctx.playerName);
