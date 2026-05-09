@@ -133,11 +133,8 @@ public record ActiveModification(
             return true;
         }
         var serverConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getServerConfig();
-        if (serverConfig == null || serverConfig.serverWideSettings == null) {
-            return false;
-        }
-        return serverConfig.serverWideSettings.enableCombatDetection == null
-                || serverConfig.serverWideSettings.enableCombatDetection.getValue();
+        return serverConfig != null
+                && serverConfig.serverWideSettings.enableCombatDetection.getValue();
     }
 
     private static double getTransparencyForSlot(@NotNull PlayerConfig config, @NotNull EquipmentSlot slot) {

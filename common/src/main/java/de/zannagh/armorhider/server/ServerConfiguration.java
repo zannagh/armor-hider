@@ -63,7 +63,7 @@ public class ServerConfiguration implements ConfigurationSource<ServerConfigurat
     private static final java.lang.reflect.Type LEGACY_MAP_TYPE = new TypeToken<Map<UUID, PlayerConfig>>() {
     }.getType();
     @SerializedName(value = "serverWideSettings")
-    public ServerWideSettings serverWideSettings;
+    public @NonNull ServerWideSettings serverWideSettings;
     Map<UUID, PlayerConfig> playerConfigs = new HashMap<>();
 
     Map<String, PlayerConfig> playerNameConfigs = new HashMap<>();
@@ -75,9 +75,9 @@ public class ServerConfiguration implements ConfigurationSource<ServerConfigurat
         this.serverWideSettings = new ServerWideSettings();
     }
 
-    private ServerConfiguration(Map<UUID, PlayerConfig> playerConfigs, ServerWideSettings serverWideSettings) {
+    private ServerConfiguration(Map<UUID, PlayerConfig> playerConfigs, @NonNull ServerWideSettings serverWideSettings) {
         this.playerConfigs = playerConfigs != null ? playerConfigs : new HashMap<>();
-        this.serverWideSettings = serverWideSettings != null ? serverWideSettings : new ServerWideSettings();
+        this.serverWideSettings = serverWideSettings;
         this.playerConfigs.values().forEach(c -> playerNameConfigs.put(c.playerName.getValue(), c));
     }
 
@@ -99,10 +99,6 @@ public class ServerConfiguration implements ConfigurationSource<ServerConfigurat
                     configuration.serverWideSettings = new ServerWideSettings(legacyCombatDetection, false);
                     ArmorHider.LOGGER.info("Migrated server config from v3 to v4 format (enableCombatDetection -> serverWideSettings).");
                     configuration.setHasChangedFromSerializedContent();
-                } else if (configuration.serverWideSettings == null) {
-                    // Safety fallback: if somehow serverWideSettings is still null, initialize with defaults
-                    configuration.serverWideSettings = new ServerWideSettings();
-                    ArmorHider.LOGGER.warn("ServerWideSettings was null after deserialization, initialized with defaults.");
                 } else {
                     ArmorHider.LOGGER.info("Loaded server config (v4 format).");
                 }

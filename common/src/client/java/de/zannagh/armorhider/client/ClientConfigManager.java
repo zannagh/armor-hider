@@ -6,7 +6,6 @@ import de.zannagh.armorhider.client.net.*;
 import de.zannagh.armorhider.configuration.ExclusionItemConfiguration;
 import de.zannagh.armorhider.net.packets.PlayerConfig;
 import de.zannagh.armorhider.server.ServerConfiguration;
-import de.zannagh.armorhider.net.packets.ServerWideSettings;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import org.jetbrains.annotations.Nullable;
@@ -137,11 +136,6 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
 
     public void setServerConfig(ServerConfiguration serverConfig) {
         ArmorHider.LOGGER.info("Setting server config...");
-        if (serverConfig.serverWideSettings == null) {
-            ArmorHider.LOGGER.warn("Received ServerConfiguration with null serverWideSettings, initializing with defaults");
-            serverConfig.serverWideSettings = new ServerWideSettings();
-        }
-
         serverConfiguration = serverConfig;
         notifyConfigListeners(null);
     }
@@ -210,11 +204,8 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
             return true;
         }
         ServerConfiguration serverConfig = getServerConfig();
-        if (serverConfig != null) {
-            ServerWideSettings serverWideSettings = serverConfig.serverWideSettings;
-            if (serverWideSettings != null && serverWideSettings.forceArmorHiderOff.getValue()) {
-                return true;
-            }
+        if (serverConfig != null && serverConfig.serverWideSettings.forceArmorHiderOff.getValue()) {
+            return true;
         }
         return false;
     }

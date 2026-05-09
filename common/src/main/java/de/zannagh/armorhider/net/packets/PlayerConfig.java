@@ -65,46 +65,44 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
     //?}
 
     @SerializedName(value = "helmetOpacity", alternate = {"helmetTransparency"})
-    public ArmorOpacity helmetOpacity;
+    public @NonNull ArmorOpacity helmetOpacity;
     @SerializedName(value = "helmetGlint")
-    public EnableGlint helmetGlint;
+    public @NonNull EnableGlint helmetGlint;
     @SerializedName(value = "chestOpacity", alternate = {"chestTransparency"})
-    public ArmorOpacity chestOpacity;
+    public @NonNull ArmorOpacity chestOpacity;
     @SerializedName(value = "chestGlint")
-    public EnableGlint chestGlint;
+    public @NonNull EnableGlint chestGlint;
     @SerializedName(value = "legsOpacity", alternate = {"legsTransparency"})
-    public ArmorOpacity legsOpacity;
+    public @NonNull ArmorOpacity legsOpacity;
     @SerializedName(value = "legsGlint")
-    public EnableGlint legsGlint;
+    public @NonNull EnableGlint legsGlint;
     @SerializedName(value = "bootsOpacity", alternate = {"bootsTransparency"})
-    public ArmorOpacity bootsOpacity;
+    public @NonNull ArmorOpacity bootsOpacity;
     @SerializedName(value = "bootsGlint")
-    public EnableGlint bootsGlint;
+    public @NonNull EnableGlint bootsGlint;
     @SerializedName(value = "enableCombatDetection")
-    public CombatDetection enableCombatDetection;
+    public @NonNull CombatDetection enableCombatDetection;
     @SerializedName(value = "opacityAffectingElytra")
-    public OpacityAffectingElytraItem opacityAffectingElytra;
+    public @NonNull OpacityAffectingElytraItem opacityAffectingElytra;
     @SerializedName(value = "opacityAffectingHatOrSkull")
-    public OpacityAffectingHatOrSkullItem opacityAffectingHatOrSkull;
+    public @NonNull OpacityAffectingHatOrSkullItem opacityAffectingHatOrSkull;
     @SerializedName(value = "disableArmorHider", alternate = "globalArmorHiderToggle")
-    public DisableArmorHiderGlobally disableArmorHider;
+    public @NonNull DisableArmorHiderGlobally disableArmorHider;
     @SerializedName(value = "disableArmorHiderForOthers", alternate = "toggleArmorHiderForOthers")
-    public DisableArmorHiderForOthers disableArmorHiderForOthers;
+    public @NonNull DisableArmorHiderForOthers disableArmorHiderForOthers;
     @SerializedName(value = "usePlayerSettingsWhenUndeterminable")
-    public UsePlayerSettingsWhenUndeterminable usePlayerSettingsWhenUndeterminable;
+    public @NonNull UsePlayerSettingsWhenUndeterminable usePlayerSettingsWhenUndeterminable;
     @SerializedName(value = "showSettingsInSkinCustomization")
-    public ShowSettingsInSkinCustomization showSettingsInSkinCustomization;
+    public @NonNull ShowSettingsInSkinCustomization showSettingsInSkinCustomization;
     @SerializedName(value = "offHandOpacity")
-    public OffHandOpacity offHandOpacity;
-    
-    public PlayerUuid playerId;
+    public @NonNull OffHandOpacity offHandOpacity;
 
-    /** The name of the player, derived from the display name. */
-    public PlayerName playerName;
+    public @NonNull PlayerUuid playerId;
 
-    /** Per-item exclusion configuration. Null-safe via {@link #getExclusionItems()}. */
+    public @NonNull PlayerName playerName;
+
     @SerializedName(value = "exclusionItems")
-    public ExclusionItemConfiguration exclusionItems;
+    public @NonNull ExclusionItemConfiguration exclusionItems;
 
     private transient boolean hasChangedFromSerializedContent;
     
@@ -137,14 +135,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         exclusionItems = ExclusionItemConfiguration.defaults();
     }
 
-    /**
-     * Returns the exclusion item configuration, initializing with defaults if null
-     * (for backwards compatibility with configs saved before this field existed).
-     */
-    public ExclusionItemConfiguration getExclusionItems() {
-        if (exclusionItems == null) {
-            exclusionItems = ExclusionItemConfiguration.defaults();
-        }
+    public @NonNull ExclusionItemConfiguration getExclusionItems() {
         return exclusionItems;
     }
 
@@ -191,14 +182,9 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         fresh.disableArmorHider.setValue(old.disableArmorHider.getValue());
         fresh.disableArmorHiderForOthers.setValue(old.disableArmorHiderForOthers.getValue());
         fresh.usePlayerSettingsWhenUndeterminable.setValue(old.usePlayerSettingsWhenUndeterminable.getValue());
-        if (old.showSettingsInSkinCustomization != null) {
-            fresh.showSettingsInSkinCustomization.setValue(old.showSettingsInSkinCustomization.getValue());
-        }
+        fresh.showSettingsInSkinCustomization.setValue(old.showSettingsInSkinCustomization.getValue());
         fresh.offHandOpacity.setValue(old.offHandOpacity.getValue());
-
-        if (old.exclusionItems != null) {
-            fresh.exclusionItems = old.exclusionItems.deepCopy();
-        }
+        fresh.exclusionItems = old.exclusionItems.deepCopy();
 
         fresh.setHasChangedFromSerializedContent();
         return fresh;

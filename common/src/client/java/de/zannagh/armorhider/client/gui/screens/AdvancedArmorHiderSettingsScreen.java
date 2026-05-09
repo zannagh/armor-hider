@@ -43,14 +43,10 @@ public class AdvancedArmorHiderSettingsScreen extends ArmorHiderConfigurationScr
 
         var serverConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getServerConfig();
         combatDetectionDefaultSetting = serverConfig != null
-                && serverConfig.serverWideSettings != null
-                && serverConfig.serverWideSettings.enableCombatDetection != null
                 ? serverConfig.serverWideSettings.enableCombatDetection.getValue()
                 : getFallbackDefault(true);
 
         forceServerOffDefaultSetting = serverConfig != null
-                && serverConfig.serverWideSettings != null
-                && serverConfig.serverWideSettings.forceArmorHiderOff != null
                 ? serverConfig.serverWideSettings.forceArmorHiderOff.getValue()
                 : getFallbackDefault(false);
 

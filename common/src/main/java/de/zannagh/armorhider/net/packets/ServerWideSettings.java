@@ -40,8 +40,10 @@ public class ServerWideSettings implements ConfigurationSource<ServerWideSetting
     //?}
 
     @SerializedName(value = "enableCombatDetection")
+    @NonNull
     public CombatDetection enableCombatDetection;
     @SerializedName(value = "forceArmorHiderOff")
+    @NonNull
     public ForceArmorHiderOffOnPlayers forceArmorHiderOff;
     private transient boolean hasChangedFromSerializedContent = false;
 
