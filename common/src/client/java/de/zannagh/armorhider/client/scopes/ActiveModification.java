@@ -79,7 +79,9 @@ public record ActiveModification(
         }
         
         double transparency = getTransparencyForSlot(config, resolvedSlot);
-        transparency = CombatManager.transformTransparencyBasedOnCombat(playerName, transparency);
+        if (shouldApplyCombatTransformation(config)) {
+            transparency = CombatManager.transformTransparencyBasedOnCombat(playerName, transparency);
+        }
         boolean disableGlint = getDisableGlintForSlot(config, resolvedSlot);
 
         boolean shouldModify = (transparency < 1 - ArmorOpacity.TRANSPARENCY_STEP / 2) || disableGlint;
@@ -124,6 +126,16 @@ public record ActiveModification(
     public static boolean isSlotModified(@NotNull String playerName, @NotNull EquipmentSlot slot, @NotNull ItemStack item) {
         var mod = create(playerName, slot, item);
         return mod != null && mod.shouldModify();
+    }
+
+    private static boolean shouldApplyCombatTransformation(@NotNull PlayerConfig config) {
+        if (config.enableCombatDetection.getValue()) {
+            return true;
+        }
+        var serverConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getServerConfig();
+        return serverConfig != null
+                && serverConfig.serverWideSettings != null
+                && serverConfig.serverWideSettings.enableCombatDetection.getValue();
     }
 
     private static double getTransparencyForSlot(@NotNull PlayerConfig config, @NotNull EquipmentSlot slot) {

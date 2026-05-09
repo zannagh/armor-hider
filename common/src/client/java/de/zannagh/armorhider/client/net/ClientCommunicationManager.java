@@ -100,6 +100,16 @@ public final class ClientCommunicationManager {
     }
 
     private static void handleCombatLogNotificationReceived(CombatLogNotificationPacket ctx) {
+        var serverConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getServerConfig();
+        boolean serverForces = serverConfig != null
+                && serverConfig.serverWideSettings != null
+                && serverConfig.serverWideSettings.enableCombatDetection.getValue();
+        if (!serverForces) {
+            var config = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getConfigForPlayer(ctx.playerName);
+            if (!config.enableCombatDetection.getValue()) {
+                return;
+            }
+        }
         CombatManager.logCombat(ctx.playerName, ctx.timestamp);
     }
 }
