@@ -51,6 +51,7 @@ public final class ClientCombatManager {
         var serverConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getServerConfig();
         boolean serverUsesCombatDetection = serverConfig != null
                 && serverConfig.serverWideSettings != null
+                && serverConfig.serverWideSettings.enableCombatDetection != null
                 && serverConfig.serverWideSettings.enableCombatDetection.getValue();
 
         if (serverUsesCombatDetection) {
