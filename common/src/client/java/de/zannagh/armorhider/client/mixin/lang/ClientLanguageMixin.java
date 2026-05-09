@@ -8,15 +8,16 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import de.zannagh.armorhider.ArmorHider;
 import net.minecraft.client.resources.language.ClientLanguage;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
-import org.apache.logging.log4j.core.appender.rolling.action.IfAccumulatedFileCount;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -35,6 +36,9 @@ public class ClientLanguageMixin {
 
     @Unique
     private static final ThreadLocal<List<String>> armorHider$currentLanguages = new ThreadLocal<>();
+
+    @Unique
+    private static final ThreadLocal<ResourceManager> armorHider$currentResourceManager = new ThreadLocal<>();
 
     @WrapOperation(
             method = "loadFrom",
@@ -59,6 +63,7 @@ public class ClientLanguageMixin {
             // Load translations for each requested language
             for (String langCode : languages) {
                 armorHider$loadModTranslations(langCode, stringMap);
+                armorHider$loadTranslationsFromResourcePacks(langCode, stringMap);
             }
 
             // Always load en_us as fallback if not already in the list
@@ -66,8 +71,8 @@ public class ClientLanguageMixin {
                 armorHider$loadModTranslations("en_us", stringMap);
             }
 
-            // Clean up thread local
             armorHider$currentLanguages.remove();
+            armorHider$currentResourceManager.remove();
         }
         return original.call(map);
     }
@@ -96,31 +101,85 @@ public class ClientLanguageMixin {
             boolean rightToLeft
     ) {
         armorHider$currentLanguages.set(languageCodes);
+        armorHider$currentResourceManager.set(resourceManager);
         return original.call();
     }
 
     @Unique
     private static void armorHider$loadModTranslations(String langCode, Map<String, String> map) {
         String resourcePath = String.format(Locale.ROOT, "/assets/armor-hider/lang/%s.json", langCode);
-
         try (InputStream stream = ClientLanguageMixin.class.getResourceAsStream(resourcePath)) {
             if (stream != null) {
-                JsonObject json = armorHider$GSON.fromJson(new InputStreamReader(stream, StandardCharsets.UTF_8), JsonObject.class);
-                if (json != null) {
-                    int count = 0;
-                    for (Map.Entry<String, JsonElement> entry : json.entrySet()) {
-                        String key = entry.getKey();
-                        if (entry.getValue().isJsonPrimitive()) {
-                            String value = entry.getValue().getAsString();
-                            map.put(key, value);
-                            count++;
-                        }
-                    }
-                    ArmorHider.LOGGER.debug("Loaded {} translations from {}", count, resourcePath);
-                }
+                armorHider$parseTranslations(stream, resourcePath, map);
             }
         } catch (Exception e) {
             ArmorHider.LOGGER.warn("Failed to load translations from {}: {}", resourcePath, e.getMessage());
         }
+    }
+
+    @Unique
+    private static void armorHider$loadTranslationsFromResourcePacks(String langCode, Map<String, String> map) {
+        // Load from non-activated packs on the filesystem first (lowest priority)
+        armorHider$loadFromResourcePacksDirectory(langCode, map);
+
+        // Activated resource packs override via ResourceManager (highest priority)
+        ResourceManager resourceManager = armorHider$currentResourceManager.get();
+        if (resourceManager != null) {
+            armorHider$loadFromResourceManager(resourceManager, langCode, map);
+        }
+    }
+
+    @Unique
+    private static void armorHider$loadFromResourceManager(ResourceManager resourceManager, String langCode, Map<String, String> map) {
+        //? if >= 1.20.5 {
+        var location = Identifier.parse("armor-hider:lang/" + langCode + ".json");
+        //?} else {
+        /*var location = new Identifier("armor-hider", "lang/" + langCode + ".json");
+        *///?}
+        resourceManager.getResource(location).ifPresent(resource -> {
+            try (InputStream stream = resource.open()) {
+                armorHider$parseTranslations(stream, "resource pack [" + langCode + "]", map);
+            } catch (Exception e) {
+                ArmorHider.LOGGER.warn("Failed to load translations from resource pack for {}: {}", langCode, e.getMessage());
+            }
+        });
+    }
+
+    @Unique
+    private static void armorHider$loadFromResourcePacksDirectory(String langCode, Map<String, String> map) {
+        Path resourcePacksDir = Path.of("resourcepacks");
+        if (!Files.isDirectory(resourcePacksDir)) {
+            return;
+        }
+        try (var packEntries = Files.list(resourcePacksDir)) {
+            packEntries.filter(Files::isDirectory).forEach(packDir -> {
+                Path langFile = packDir.resolve("assets/armor-hider/lang/" + langCode + ".json");
+                if (Files.isRegularFile(langFile)) {
+                    try (InputStream stream = Files.newInputStream(langFile)) {
+                        armorHider$parseTranslations(stream, langFile.toString(), map);
+                    } catch (Exception e) {
+                        ArmorHider.LOGGER.warn("Failed to load translations from {}: {}", langFile, e.getMessage());
+                    }
+                }
+            });
+        } catch (IOException e) {
+            ArmorHider.LOGGER.warn("Failed to scan resource packs for translations: {}", e.getMessage());
+        }
+    }
+
+    @Unique
+    private static void armorHider$parseTranslations(InputStream stream, String source, Map<String, String> map) {
+        JsonObject json = armorHider$GSON.fromJson(new InputStreamReader(stream, StandardCharsets.UTF_8), JsonObject.class);
+        if (json == null) {
+            return;
+        }
+        int count = 0;
+        for (Map.Entry<String, JsonElement> entry : json.entrySet()) {
+            if (entry.getValue().isJsonPrimitive()) {
+                map.put(entry.getKey(), entry.getValue().getAsString());
+                count++;
+            }
+        }
+        ArmorHider.LOGGER.debug("Loaded {} translations from {}", count, source);
     }
 }

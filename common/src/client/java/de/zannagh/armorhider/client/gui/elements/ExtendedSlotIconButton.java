@@ -8,7 +8,7 @@ import org.jetbrains.annotations.Nullable;
 public class ExtendedSlotIconButton extends LayeredButton {
     //? if >= 1.21 {
     @Override
-    protected @Nullable Identifier spriteForeground(boolean enabled) { return modSprite("item_dropped"); }
+    protected @Nullable Identifier spriteForeground(boolean enabled) { return modSprite("other_items_icon"); }
     //?}
 
     //? if < 1.21 {

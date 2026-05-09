@@ -63,7 +63,7 @@ public class AffectOtherItemsButton extends LayeredButton {
     public AffectOtherItemsButton(boolean initial, EquipmentSlot slot, int width, int height, OnPress onPress) {
         super(slot, width, height, initial ? enabledMsg(slot) : disabledMsg(slot), onPress);
         if (slot == EquipmentSlot.HEAD) {
-            slotSprite = modSprite("skull_banner_pattern");
+            slotSprite = modSprite("affect_head_slot_button");
         }
         else if (slot == EquipmentSlot.CHEST) {
             slotSprite = modSprite("elytra");

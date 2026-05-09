@@ -23,7 +23,7 @@ public class GlintSlotOnOffButton extends LayeredButton {
     //? if >= 1.21 {
     @Override
     protected @Nullable Identifier spriteForeground(boolean enabled) {
-        return enabled ? modSprite("air_bursting") : null;
+        return enabled ? modSprite("glint_button_icon") : null;
     }
     //?}
 
