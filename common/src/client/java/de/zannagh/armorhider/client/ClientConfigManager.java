@@ -3,12 +3,13 @@ package de.zannagh.armorhider.client;
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.configuration.ConfigurationProvider;
 import de.zannagh.armorhider.client.net.*;
-import de.zannagh.armorhider.configuration.ExclusionItemConfiguration;
 import de.zannagh.armorhider.net.packets.PlayerConfig;
+import de.zannagh.armorhider.net.packets.ServerWideSettings;
 import de.zannagh.armorhider.server.ServerConfiguration;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -108,7 +109,7 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
         setAndSendServerWideSettings(serverConfiguration.serverWideSettings);
     }
 
-    public void setAndSendServerWideSettings(ServerWideSettings serverWideSettings) {
+    public void setAndSendServerWideSettings(@NonNull ServerWideSettings serverWideSettings) {
         if (ArmorHiderClient.permissionLevel < 3) {
             ArmorHider.LOGGER.info("Player is no admin, suppressing update...");
             return;
@@ -204,9 +205,6 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
             return true;
         }
         ServerConfiguration serverConfig = getServerConfig();
-        if (serverConfig != null && serverConfig.serverWideSettings.forceArmorHiderOff.getValue()) {
-            return true;
-        }
-        return false;
+        return serverConfig != null && serverConfig.serverWideSettings.forceArmorHiderOff.getValue();
     }
 }
