@@ -91,7 +91,7 @@ public class HumanoidArmorLayerRenderMixin
             )
     )
     private void modifyTrimColor(A model, PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, Operation<Void> original) {
-        int modifiedColor = RenderModifications.applyArmorTransparency(ArmorHiderClient.RENDER_CONTEXT, packedOverlay);
+        int modifiedColor = RenderModifications.applyTransparencyFromWhite(ArmorHiderClient.RENDER_CONTEXT, packedOverlay);
         model.renderToBuffer(poseStack, vertexConsumer, packedLight, packedOverlay, modifiedColor);
     }
     *///?}
