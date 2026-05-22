@@ -52,7 +52,8 @@ public class MixinPlugin implements IMixinConfigPlugin {
             // Compat — @Pseudo, auto-skipped if target mod absent
             "compat.wildfiregender.GenderArmorLayerMixin",
             "compat.geckolib.GeckoLibArmorMixin",
-            "compat.waveycapes.WaveyCapesMixin"
+            "compat.waveycapes.WaveyCapesMixin",
+            "compat.mekanism.MekanismArmorMixin"
     };
 
     @Override
