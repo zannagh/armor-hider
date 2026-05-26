@@ -37,6 +37,7 @@ public class ConfigurationItemFactoryRegistry {
         registerFactoriesForClass(OffHandOpacity.class);
         registerFactoriesForClass(EnableGlint.class);
         registerFactoriesForClass(ShowSettingsInSkinCustomization.class);
+        registerFactoriesForClass(InCombatUseDefaultArmorSkin.class);
 
         initialized = true;
     }

@@ -4,6 +4,7 @@ import com.google.gson.annotations.SerializedName;
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.configuration.*;
 import de.zannagh.armorhider.configuration.items.*;
+import de.zannagh.armorhider.configuration.items.InCombatUseDefaultArmorSkin;
 import com.google.gson.annotations.Expose;
 //? if >= 1.20.5 {
 import de.zannagh.armorhider.net.CompressedJsonCodec;
@@ -33,13 +34,15 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
      *   <li>0 = pre-versioning format (before 0.10.0-pre.5)</li>
      *   <li>1 = introduced explicit configVersion/schema versioning (0.10.0-pre.5+)</li>
      *   <li>2 = added client-side settings placement preference</li>
+     *   <li>3 = added per-slot in-combat default armor skin setting</li>
+     *   <li>4 = consolidated per-slot combat skin into single global toggle</li>
      * </ul>
      */
     @SerializedName(value = "configVersion")
     public int configVersion;
 
     /** The current config schema version. */
-    public static final int CURRENT_CONFIG_VERSION = 2;
+    public static final int CURRENT_CONFIG_VERSION = 4;
     
     //? if >= 1.21.11 {
     public static final Identifier PACKET_IDENTIFIER = Identifier.fromNamespaceAndPath("de.zannagh.armorhider", "settings_c2s_packet");
@@ -80,6 +83,8 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
     public @NonNull ArmorOpacity bootsOpacity;
     @SerializedName(value = "bootsGlint")
     public @NonNull EnableGlint bootsGlint;
+    @SerializedName(value = "inCombatUseDefaultModel")
+    public @NonNull InCombatUseDefaultArmorSkin inCombatUseDefaultModel;
     @SerializedName(value = "enableCombatDetection")
     public @NonNull CombatDetection enableCombatDetection;
     @SerializedName(value = "opacityAffectingElytra")
@@ -118,6 +123,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         chestOpacity = new ArmorOpacity();
         legsOpacity = new ArmorOpacity();
         bootsOpacity = new ArmorOpacity();
+        inCombatUseDefaultModel = new InCombatUseDefaultArmorSkin();
         enableCombatDetection = new CombatDetection();
         playerId = new PlayerUuid();
         playerName = new PlayerName();
@@ -177,6 +183,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         fresh.legsGlint.setValue(old.legsGlint.getValue());
         fresh.bootsGlint.setValue(old.bootsGlint.getValue());
         fresh.enableCombatDetection.setValue(old.enableCombatDetection.getValue());
+        fresh.inCombatUseDefaultModel.setValue(old.inCombatUseDefaultModel.getValue());
         fresh.opacityAffectingElytra.setValue(old.opacityAffectingElytra.getValue());
         fresh.opacityAffectingHatOrSkull.setValue(old.opacityAffectingHatOrSkull.getValue());
         fresh.disableArmorHider.setValue(old.disableArmorHider.getValue());
@@ -213,6 +220,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         newConfig.legsOpacity.setValue(this.legsOpacity.getValue());
         newConfig.bootsOpacity.setValue(this.bootsOpacity.getValue());
         newConfig.enableCombatDetection.setValue(this.enableCombatDetection.getValue());
+        newConfig.inCombatUseDefaultModel.setValue(this.inCombatUseDefaultModel.getValue());
         newConfig.opacityAffectingHatOrSkull.setValue(this.opacityAffectingHatOrSkull.getValue());
         newConfig.opacityAffectingElytra.setValue(this.opacityAffectingElytra.getValue());
         newConfig.usePlayerSettingsWhenUndeterminable.setValue(this.usePlayerSettingsWhenUndeterminable.getValue());

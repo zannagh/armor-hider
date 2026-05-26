@@ -79,7 +79,8 @@ public record ActiveModification(
         }
         
         double transparency = getTransparencyForSlot(config, resolvedSlot);
-        if (shouldApplyCombatTransformation(config)) {
+        boolean inCombat = shouldApplyCombatTransformation(config);
+        if (inCombat) {
             transparency = CombatManager.transformTransparencyBasedOnCombat(playerName, transparency);
         }
         boolean disableGlint = getDisableGlintForSlot(config, resolvedSlot);
@@ -157,4 +158,5 @@ public record ActiveModification(
             default -> false;
         };
     }
+
 }

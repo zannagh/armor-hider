@@ -44,6 +44,15 @@ public class ArmorHiderOptionsPanelWidget extends AbstractWidget {
         var factory = new OptionElementFactory(widgetList::addWidget, gameOptions, widgetList.getRowWidth());
         var config = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue();
 
+        var inCombatDefaultModel = factory.buildBooleanOption(
+                Component.translatable("armorhider.options.in_combat_default_model.title"),
+                Component.translatable("armorhider.options.in_combat_default_model.tooltip"),
+                Component.translatable("armorhider.options.in_combat_default_model.tooltip_narration"),
+                config.inCombatUseDefaultModel.getValue(),
+                val -> setSetting(val, config.inCombatUseDefaultModel::setValue)
+        );
+        factory.addSimpleOptionAsWidget(inCombatDefaultModel);
+
         var helmetOption = factory.buildDoubleOption(
                 "armorhider.helmet.transparency",
                 Component.translatable("armorhider.options.helmet.tooltip"),

@@ -55,7 +55,19 @@ public class ArmorHiderClient {
         ClientCommunicationManager.initClient();
         //? if iris
         if (IRIS_LOADED) initIrisCompat();
+        //? if emf
+        if (CompatFlags.EMF_LOADED) initEmfCompat();
     }
+
+    //? if emf {
+    private static void initEmfCompat() {
+        try {
+            de.zannagh.armorhider.client.compat.emf.EmfCompat.register();
+        } catch (Exception e) {
+            ArmorHider.LOGGER.warn("Failed to register vanilla model condition with EMF", e);
+        }
+    }
+    //?}
 
     //? if iris {
     private static void initIrisCompat() {

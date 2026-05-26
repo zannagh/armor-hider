@@ -30,6 +30,12 @@ dependencies {
     if (hasProperty("iris.version")) {
         add("compileOnly", "maven.modrinth:iris:${findProperty("iris.version")}")
     }
+    if (hasProperty("emf.version")) {
+        add("compileOnly", "maven.modrinth:entity-model-features:${findProperty("emf.version")}")
+    }
+    if (hasProperty("etf.version")) {
+        add("compileOnly", "maven.modrinth:entitytexturefeatures:${findProperty("etf.version")}")
+    }
 }
 
 // Include common's sources in the loader's source sets for IntelliJ

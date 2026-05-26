@@ -30,43 +30,58 @@ public class CompoundOptionWidget extends AbstractWidget {
         this.additional = additional;
     }
 
+    private int smallElementCount() {
+        int count = 1; // secondary is always present
+        if (additional != null) count++;
+        if (tertiary != null) count++;
+        return count;
+    }
+
     private void updateLayout() {
-        int additionalElementWidth = getAdditionalElementWidth(this.width);
-        int primaryWidth = getPrimaryWidth(this.width);
-        
-        int firstElementX = this.getX() + this.width - additionalElementWidth * 3 - GAP * 2;
-        int secondElementX = this.getX() + this.width - additionalElementWidth * 2 - GAP;
-        int thirdElementX = this.getX() + this.width - additionalElementWidth;
-        
+        int count = smallElementCount();
+        int additionalElementWidth = getAdditionalElementWidth(this.width, count);
+        int primaryWidth = getPrimaryWidth(this.width, count);
+
         primary.setX(this.getX());
         primary.setY(this.getY());
         primary.setWidth(primaryWidth);
 
-        secondary.setX(firstElementX);
+        int buttonX = this.getX() + primaryWidth + GAP;
+
+        secondary.setX(buttonX);
         secondary.setY(this.getY());
         secondary.setWidth(additionalElementWidth);
-        
-        if (tertiary != null) {
-            tertiary.setY(this.getY());
-            tertiary.setWidth(additionalElementWidth);
-            tertiary.setX(thirdElementX);
-        }
-        
+        buttonX += additionalElementWidth + GAP;
+
         if (additional != null) {
-            additional.setX(secondElementX);
+            additional.setX(buttonX);
             additional.setY(this.getY());
             additional.setWidth(additionalElementWidth);
+            buttonX += additionalElementWidth + GAP;
+        }
+
+        if (tertiary != null) {
+            tertiary.setX(buttonX);
+            tertiary.setY(this.getY());
+            tertiary.setWidth(additionalElementWidth);
         }
     }
-    
+
     private static final double SMALL_ELEMENT_WIDTH_PERCENT = 0.1;
-    
+
     public static int getPrimaryWidth(int width) {
-        int smallElements = 3; // Currently 3 buttons next to the sliders.
+        return getPrimaryWidth(width, 3);
+    }
+
+    public static int getPrimaryWidth(int width, int smallElements) {
         return (int) (width * (1 - smallElements * SMALL_ELEMENT_WIDTH_PERCENT)) - GAP;
     }
-    
+
     public static int getAdditionalElementWidth(int width) {
+        return getAdditionalElementWidth(width, 3);
+    }
+
+    public static int getAdditionalElementWidth(int width, int smallElements) {
         return (int) (width * SMALL_ELEMENT_WIDTH_PERCENT) - GAP;
     }
 
@@ -79,7 +94,6 @@ public class CompoundOptionWidget extends AbstractWidget {
         if (tertiary != null) {
             tertiary.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
         }
-        
         if (additional != null) {
             additional.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
         }
@@ -93,7 +107,6 @@ public class CompoundOptionWidget extends AbstractWidget {
         if (tertiary != null) {
             tertiary.render(guiGraphics, mouseX, mouseY, partialTick);
         }
-        
         if (additional != null) {
             additional.render(guiGraphics, mouseX, mouseY, partialTick);
         }
@@ -104,11 +117,9 @@ public class CompoundOptionWidget extends AbstractWidget {
         updateLayout();
         primary.render(guiGraphics, mouseX, mouseY, partialTick);
         secondary.render(guiGraphics, mouseX, mouseY, partialTick);
-        
         if (tertiary != null) {
             tertiary.render(guiGraphics, mouseX, mouseY, partialTick);
         }
-        
         if (additional != null) {
             additional.render(guiGraphics, mouseX, mouseY, partialTick);
         }
