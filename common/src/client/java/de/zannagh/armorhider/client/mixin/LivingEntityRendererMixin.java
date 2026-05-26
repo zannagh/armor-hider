@@ -1,5 +1,6 @@
 package de.zannagh.armorhider.client.mixin;
 
+import de.zannagh.armorhider.CompatFlags;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.scopes.ActiveModification;
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
@@ -103,6 +104,11 @@ public abstract class LivingEntityRendererMixin
 
     @Unique
     private static void armorHider$clearHiddenEquipment(IdentityCarrier carrier, AvatarRenderState avRenderState) {
+        // When EMF is loaded, skip clearing equipment from the render state.
+        // Fresh Animations reads equipment state to determine arm/body poses;
+        // clearing it causes arms to separate from the torso (#217).
+        // Armor rendering is already prevented at the layer level by other mixins.
+        if (CompatFlags.EMF_LOADED) return;
         if (carrier.armorHider$getHeadMod() instanceof ActiveModification mod && mod.shouldHide()) {
             avRenderState.headEquipment.copyAndClear();
         }
