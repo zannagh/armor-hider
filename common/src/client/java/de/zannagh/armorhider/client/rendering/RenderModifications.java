@@ -2,6 +2,7 @@ package de.zannagh.armorhider.client.rendering;
 
 import de.zannagh.armorhider.client.scopes.RenderContext;
 import de.zannagh.armorhider.util.ItemsUtil;
+import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.Sheets;
 import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.NotNull;
@@ -202,4 +203,36 @@ public final class RenderModifications {
         solidToTranslucent.putIfAbsent(solid, translucent);
     }
     *///? }
+
+    private static final String[] humanoidModelPartNames = {
+            "head", "hat", "body", "right_arm", "left_arm", "right_leg", "left_leg"
+    };
+
+    /**
+     * Synchronizes the pose of the given model part and it's children (when humanoid).
+     * @param from The model part to synchronize.
+     * @param to The model part to synchronize to.
+     */
+    public static void synchronisePoses(ModelPart from, ModelPart to) {
+        copyPose(from, to);
+        for (String name : humanoidModelPartNames) {
+            if (from.hasChild(name) && to.hasChild(name)) {
+                copyPose(from.getChild(name), to.getChild(name));
+            }
+        }
+    }
+    
+    private static void copyPose(ModelPart from, ModelPart to){
+        to.x = from.x;
+        to.y = from.y;
+        to.z = from.z;
+        to.xRot = from.xRot;
+        to.yRot = from.yRot;
+        to.zRot = from.zRot;
+        to.xScale = from.xScale;
+        to.yScale = from.yScale;
+        to.zScale = from.zScale;
+        to.visible = from.visible;
+        to.skipDraw = from.skipDraw;
+    }
 }

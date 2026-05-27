@@ -207,4 +207,13 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
         ServerConfiguration serverConfig = getServerConfig();
         return serverConfig != null && serverConfig.serverWideSettings.forceArmorHiderOff.getValue();
     }
+    
+    public boolean shouldApplyCombatDetection(PlayerConfig config) {
+        if (config.enableCombatDetection.getValue()) {
+            return true;
+        }
+        var serverConfig = getServerConfig();
+        return serverConfig != null
+                && serverConfig.serverWideSettings.enableCombatDetection.getValue();
+    }
 }

@@ -38,7 +38,7 @@ public final class VanillaArmorTextureManager {
     private VanillaArmorTextureManager() {}
 
     public static Identifier resolveArmorTexture(RenderContext ctx, Identifier texture) {
-        String playerName = null;
+        String playerName;
         ActiveModification mod = ctx.activeModification();
         if (mod != null) {
             playerName = mod.playerName();
@@ -46,8 +46,12 @@ public final class VanillaArmorTextureManager {
             playerName = ctx.currentPlayerName();
         }
 
-        if (playerName == null) return texture;
-        if (!shouldUseCombatVanillaTexture(playerName)) return texture;
+        if (playerName == null) {
+            return texture;
+        }
+        if (!shouldUseCombatVanillaTexture(playerName)) {
+            return texture;
+        }
 
         Identifier fallback = getVanillaFallback(texture);
 
@@ -63,16 +67,24 @@ public final class VanillaArmorTextureManager {
         invalidateCacheIfNeeded();
 
         Identifier cached = fallbackCache.get(original);
-        if (cached != null) return cached;
-        if (negativeLookupCache.containsKey(original)) return null;
+        if (cached != null) {
+            return cached;
+        }
+        if (negativeLookupCache.containsKey(original)) {
+            return null;
+        }
 
         return loadVanillaFallback(original);
     }
 
     private static synchronized @Nullable Identifier loadVanillaFallback(Identifier original) {
         Identifier cached = fallbackCache.get(original);
-        if (cached != null) return cached;
-        if (negativeLookupCache.containsKey(original)) return null;
+        if (cached != null) {
+            return cached;
+        }
+        if (negativeLookupCache.containsKey(original)) {
+            return null;
+        }
 
         ResourceManager resourceManager = Minecraft.getInstance().getResourceManager();
         List<Resource> stack = resourceManager.getResourceStack(original);
@@ -91,7 +103,7 @@ public final class VanillaArmorTextureManager {
             return null;
         }
 
-        Resource vanillaResource = stack.getFirst();
+        Resource vanillaResource = stack.get(0);
 
         //? if >= 1.21 {
         Identifier fallbackId = Identifier.fromNamespaceAndPath("armor_hider",
@@ -152,7 +164,11 @@ public final class VanillaArmorTextureManager {
     ) {
         invalidateCacheIfNeeded();
 
+        //? if >= 1.21.11 {
         Identifier assetLocation = assetKey.identifier();
+        //?} else {
+        /*Identifier assetLocation = assetKey.location();
+        *///?}
         //? if >= 1.21 {
         Identifier vanillaTexturePath = Identifier.fromNamespaceAndPath(
                 assetLocation.getNamespace(),
@@ -200,7 +216,7 @@ public final class VanillaArmorTextureManager {
             return vanillaTexturePath;
         }
 
-        Resource vanillaResource = stack.getFirst();
+        Resource vanillaResource = stack.get(0);
 
         //? if >= 1.21 {
         Identifier fallbackId = Identifier.fromNamespaceAndPath("armor_hider",
@@ -233,9 +249,13 @@ public final class VanillaArmorTextureManager {
     //?}
 
     private static boolean shouldUseCombatVanillaTexture(String playerName) {
-        if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.isArmorHiderDisabled()) return false;
+        if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.isArmorHiderDisabled()) {
+            return false;
+        }
         PlayerConfig config = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getConfigForPlayer(playerName);
-        if (!config.inCombatUseDefaultModel.getValue()) return false;
+        if (!config.inCombatUseDefaultModel.getValue()) {
+            return false;
+        }
         if (!config.enableCombatDetection.getValue()) {
             var serverConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getServerConfig();
             if (serverConfig == null || !serverConfig.serverWideSettings.enableCombatDetection.getValue()) {

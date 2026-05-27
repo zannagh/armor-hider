@@ -1,16 +1,15 @@
-//? if iris {
 package de.zannagh.armorhider.client.compat.iris;
 
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.client.rendering.ArmorHiderRenderTypes;
-import net.irisshaders.iris.api.v0.IrisApi;
-import net.irisshaders.iris.api.v0.IrisProgram;
+import net.irisshaders.iris.api.v0.*;
 
 public final class IrisCompat {
 
     private IrisCompat() {}
 
     public static void registerPipelines() {
+        //? if >= 1.21.5 {
         var api = IrisApi.getInstance();
         if (api.getMinorApiRevision() < 3) {
             ArmorHider.LOGGER.warn("Iris API revision {} does not support pipeline registration, skipping",
@@ -21,6 +20,6 @@ public final class IrisCompat {
             api.assignPipeline(pipeline, IrisProgram.ENTITIES_TRANSLUCENT);
         }
         ArmorHider.LOGGER.debug("Registered custom pipelines with Iris");
+        //?}
     }
 }
-//?}

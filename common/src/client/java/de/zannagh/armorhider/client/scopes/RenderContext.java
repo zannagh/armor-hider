@@ -1,5 +1,7 @@
 package de.zannagh.armorhider.client.scopes;
 
+import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.combat.CombatManager;
 import de.zannagh.armorhider.log.DebugTracer;
 import net.minecraft.world.entity.EquipmentSlot;
 import org.jetbrains.annotations.NotNull;
@@ -101,6 +103,36 @@ public final class RenderContext {
     public boolean hasActiveModification(@NotNull EquipmentSlot slot) {
         var mod = activeModification.get();
         return mod != null && mod.slot() == slot;
+    }
+    
+    /**
+    Checks whether the current render context should force vanilla textures.
+    This checks for the following:
+     <ul>
+        <li>If armor hider is disabled globally</li>
+        <li>If combat detection is enabled at all for the player (or disabled on server)</li>
+        <li>If the player actually is in combat (only use vanilla textures when in combat)</li>
+        <li>Whether the player's config wants to use vanilla textures in combat</li>
+     </ul>
+     */
+    public boolean shouldForceVanilla() {
+        if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.isArmorHiderDisabled()) {
+            return false;
+        }
+        String playerName = currentPlayerName();
+        if (playerName == null) {
+            return false;
+        }
+        var config = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getConfigForPlayer(playerName);
+        
+        if (!ArmorHiderClient.CLIENT_CONFIG_MANAGER.shouldApplyCombatDetection(config)) {
+            return false;
+        }
+        if (!CombatManager.isInCombat(playerName)) {
+            return false;
+        }
+        return config.inCombatUseDefaultModel.getValue();
+        
     }
 
 }

@@ -36,10 +36,7 @@ public final class MixinUtil {
     public static void setCompatFlags(ClassLoader cl) {
         CompatFlags.ET_LOADED = isModPresent(cl, "dev.kikugie.elytratrims.ep.ETClientEntrypoint");
         CompatFlags.EMF_LOADED = isModPresent(cl, "traben.entity_model_features.EMFManager");
-        //? if >= 1.21.9
         CompatFlags.GECKOLIB_LOADED = isModPresent(cl, "com.geckolib.renderer.GeoArmorRenderer");
-        //? if < 1.21.9
-        //CompatFlags.GECKOLIB_LOADED = isModPresent(cl, "com.geckolib.renderer.GeoArmorRenderer");
         CompatFlags.FA_LOADED = isModPresent(cl, "net.kenddie.fantasyarmor.FantasyArmor");
         CompatFlags.WFGM_LOADED = isModPresent(cl, "com.wildfire.render.GenderArmorLayer");
     }

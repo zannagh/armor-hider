@@ -1,4 +1,3 @@
-//? if emf {
 package de.zannagh.armorhider.client.compat.emf;
 
 import de.zannagh.armorhider.ArmorHider;
@@ -19,12 +18,14 @@ public final class EmfCompat {
         try {
             EMFAnimationApi.registerVanillaModelCondition(emfEntity -> {
                 var playerName = PlayerNameUtil.getPlayerName(emfEntity);
-                if (playerName == null) return false;
-
-                if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.isArmorHiderDisabled()) return false;
+                if (playerName == null || ArmorHiderClient.CLIENT_CONFIG_MANAGER.isArmorHiderDisabled()) {
+                    return false;
+                }
 
                 PlayerConfig config = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getConfigForPlayer(playerName);
-                if (!shouldApplyCombatDetection(config)) return false;
+                if (!shouldApplyCombatDetection(config)) {
+                    return false;
+                }
                 boolean inCombat = CombatManager.isInCombat(playerName);
                 boolean useDefault = config.inCombatUseDefaultModel.getValue();
 
@@ -33,7 +34,9 @@ public final class EmfCompat {
                             playerName, inCombat, useDefault, emfEntity.getClass().getSimpleName());
                 }
 
-                if (!inCombat) return false;
+                if (!inCombat) {
+                    return false;
+                }
                 return useDefault;
             });
             ArmorHider.LOGGER.debug("Registered vanilla model condition with EMF");
@@ -49,4 +52,3 @@ public final class EmfCompat {
                 && serverConfig.serverWideSettings.enableCombatDetection.getValue();
     }
 }
-//?}
