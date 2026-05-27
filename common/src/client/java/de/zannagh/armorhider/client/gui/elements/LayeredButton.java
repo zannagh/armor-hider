@@ -163,10 +163,6 @@ public abstract class LayeredButton extends Button {
         super.setMessage(Component.empty());
         super.renderWidget(guiGraphics, mouseX, mouseY, partialTick);
         super.setMessage(message);
-        var bgTexture = getTextureId(spriteBg());
-        if (bgTexture != null) {
-            guiGraphics.blit(bgTexture, this.getX() + (this.width - 15) / 2, this.getY() + (this.height - 15) / 2, 15, 15, 0, 0, 16, 16, 16, 16);
-        }
         var texture = getTextureId(midLayerSprite(isEnabled));
         if (texture != null) {
             guiGraphics.blit(texture, this.getX() + (this.width - 15) / 2, this.getY() + (this.height - 15) / 2, 15, 15, 0, 0, 16, 16, 16, 16);
