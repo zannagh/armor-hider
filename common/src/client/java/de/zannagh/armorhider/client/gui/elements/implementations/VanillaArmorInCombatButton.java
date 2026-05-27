@@ -13,13 +13,13 @@ public class VanillaArmorInCombatButton extends SquareLayeredButton {
 
 
     @Override
-    protected @Nullable Identifier midLayerSprite(boolean enabled) {
-        return enabled ? modSprite("in_combat_button_icon_enabled") : modSprite("in_combat_button_icon_disabled");
+    protected @Nullable Identifier spriteForeground(boolean enabled) {
+        return enabled ? modSprite("in_combat_vanilla_icon_enabled") : modSprite("in_combat_vanilla_icon_disabled");
     }
 
     @Override
-    protected @Nullable Identifier spriteForeground(boolean enabled) {
-        return null;
+    protected @Nullable Identifier midLayerSprite(boolean enabled) {
+        return enabled ? modSprite("accept_highlighted") : null;
     }
 
     @Override
