@@ -40,7 +40,9 @@ public final class DebugLogger {
 
     // Guarded by LOCK
     private static BufferedWriter activeWriter;
+    private static String activeFileBaseName;
     private static int linesSinceFlush;
+    private static String lastMessage;
 
     private static final Object LOCK = new Object();
 
@@ -48,14 +50,17 @@ public final class DebugLogger {
 
     public static void enable() {
         synchronized (LOCK) {
-            BufferedWriter writer = openLogFile();
+            String baseName = LocalDateTime.now().format(FILE_TIMESTAMP);
+            BufferedWriter writer = openLogFile(baseName);
             if (writer == null) {
                 LOGGER.error(PREFIX + "Failed to open debug log file — debug logging NOT enabled");
                 return;
             }
             closeQuietly(activeWriter);
             activeWriter = writer;
+            activeFileBaseName = baseName;
             linesSinceFlush = 0;
+            lastMessage = null;
             enabledUntilMillis.set(System.currentTimeMillis() + DURATION_MS);
         }
         LOGGER.info(PREFIX + "Debug logging ENABLED for 5 minutes — writing to logs/armorHiderLog/");
@@ -111,19 +116,35 @@ public final class DebugLogger {
         }
     }
 
+    public static void writeConfig(String configContent) {
+        synchronized (LOCK) {
+            if (activeFileBaseName == null) return;
+            Path configFile = LOG_DIR.resolve(activeFileBaseName + ".config.txt");
+            try {
+                Files.writeString(configFile, configContent, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+            } catch (IOException e) {
+                LOGGER.warn(PREFIX + "Failed to write config snapshot", e);
+            }
+        }
+    }
+
     private static void writeLine(String message, Throwable throwable) {
         synchronized (LOCK) {
             if (activeWriter == null) {
                 return;
             }
 
-            // Check expiry while we hold the lock
             if (!isEnabled()) {
                 enabledUntilMillis.set(0);
                 closeQuietly(activeWriter);
                 activeWriter = null;
                 return;
             }
+
+            if (throwable == null && message.equals(lastMessage)) {
+                return;
+            }
+            lastMessage = message;
 
             try {
                 String timestamp = LocalDateTime.now().format(LINE_TIMESTAMP);
@@ -147,11 +168,10 @@ public final class DebugLogger {
         }
     }
 
-    private static BufferedWriter openLogFile() {
+    private static BufferedWriter openLogFile(String baseName) {
         try {
             Files.createDirectories(LOG_DIR);
-            String filename = LocalDateTime.now().format(FILE_TIMESTAMP) + ".log";
-            Path file = LOG_DIR.resolve(filename);
+            Path file = LOG_DIR.resolve(baseName + ".log");
             return Files.newBufferedWriter(file, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
         } catch (IOException e) {
             LOGGER.error(PREFIX + "Failed to create debug log file", e);

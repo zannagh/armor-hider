@@ -11,6 +11,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.rendering.RenderModifications;
+import de.zannagh.armorhider.client.rendering.VanillaArmorTextureManager;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.resources.Identifier;
@@ -55,7 +56,8 @@ public class HumanoidArmorLayerRenderMixin
             )
     )
     private RenderType modifyArmorRenderLayer(Identifier texture, Operation<RenderType> original) {
-        return RenderModifications.getTranslucentArmorRenderType(ArmorHiderClient.RENDER_CONTEXT, texture, original.call(texture));
+        Identifier resolved = VanillaArmorTextureManager.resolveArmorTexture(ArmorHiderClient.RENDER_CONTEXT, texture);
+        return RenderModifications.getTranslucentArmorRenderType(ArmorHiderClient.RENDER_CONTEXT, resolved, original.call(resolved));
     }
     *///?}
 

@@ -4,11 +4,14 @@ package de.zannagh.armorhider.client.compat.emf;
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.combat.CombatManager;
+import de.zannagh.armorhider.log.DebugLogger;
 import de.zannagh.armorhider.net.packets.PlayerConfig;
 import de.zannagh.armorhider.util.PlayerNameUtil;
 import traben.entity_model_features.EMFAnimationApi;
 
 public final class EmfCompat {
+
+    private static int callbackLogCounter = 0;
 
     private EmfCompat() {}
 
@@ -22,9 +25,16 @@ public final class EmfCompat {
 
                 PlayerConfig config = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getConfigForPlayer(playerName);
                 if (!shouldApplyCombatDetection(config)) return false;
-                if (!CombatManager.isInCombat(playerName)) return false;
+                boolean inCombat = CombatManager.isInCombat(playerName);
+                boolean useDefault = config.inCombatUseDefaultModel.getValue();
 
-                return config.inCombatUseDefaultModel.getValue();
+                if (DebugLogger.isEnabled() && callbackLogCounter++ % 60 == 0) {
+                    DebugLogger.log("[EMF callback] player={} | inCombat={} | useDefaultModel={} | entityClass={}",
+                            playerName, inCombat, useDefault, emfEntity.getClass().getSimpleName());
+                }
+
+                if (!inCombat) return false;
+                return useDefault;
             });
             ArmorHider.LOGGER.debug("Registered vanilla model condition with EMF");
         } catch (Exception e) {

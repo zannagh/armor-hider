@@ -55,7 +55,8 @@ public class MixinPlugin implements IMixinConfigPlugin {
             "compat.wildfiregender.GenderArmorLayerMixin",
             "compat.geckolib.GeckoLibArmorMixin",
             "compat.waveycapes.WaveyCapesMixin",
-            "compat.emf.EmfModelPartMixin"
+            "compat.emf.EmfModelPartMixin",
+            "compat.emf.EmfModelPartRootMixin"
     };
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {

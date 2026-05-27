@@ -7,6 +7,10 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.rendering.RenderModifications;
+import de.zannagh.armorhider.client.rendering.VanillaArmorTextureManager;
+import de.zannagh.armorhider.combat.CombatManager;
+import de.zannagh.armorhider.log.DebugLogger;
+import de.zannagh.armorhider.net.packets.PlayerConfig;
 import net.minecraft.client.model.Model;
 import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.entity.layers.EquipmentLayerRenderer;
@@ -44,6 +48,15 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 @Mixin(EquipmentLayerRenderer.class)
 public class EquipmentRenderMixin {
 
+    @Unique
+    private static final ThreadLocal<Boolean> armorHider$combatSingleLayer = new ThreadLocal<>();
+
+    @Unique
+    private static final ThreadLocal<ResourceKey<EquipmentAsset>> armorHider$combatAssetKey = new ThreadLocal<>();
+
+    @Unique
+    private static final ThreadLocal<EquipmentClientInfo.LayerType> armorHider$combatLayerType = new ThreadLocal<>();
+
     //? if >= 1.21.9
     @Unique private static final String RENDER_LAYERS_ENTRY = "renderLayers(Lnet/minecraft/client/resources/model/EquipmentClientInfo$LayerType;Lnet/minecraft/resources/ResourceKey;Lnet/minecraft/client/model/Model;Ljava/lang/Object;Lnet/minecraft/world/item/ItemStack;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;II)V";
     //? if < 1.21.9
@@ -78,12 +91,21 @@ public class EquipmentRenderMixin {
             return;
         }
 
+        ArmorHiderClient.RENDER_CONTEXT.setCurrentPlayer(carrier.armorHider$playerName());
+
         if (ItemsUtil.itemStackContainsElytra(itemStack) && carrier.isPlayerFlying()) {
             return;
         }
 
         var slot = equippable.slot();
         var mod = carrier.createModification(slot, itemStack);
+
+        String playerName = carrier.armorHider$playerName();
+        if (playerName != null && armorHider$shouldForceVanillaCombatModel(playerName)) {
+            armorHider$combatSingleLayer.set(Boolean.FALSE);
+            armorHider$combatAssetKey.set(resourceKey);
+            armorHider$combatLayerType.set(layerType);
+        }
         //?}
         //? if < 1.21.9 {
         /*var ctx = ArmorHiderClient.RENDER_CONTEXT;
@@ -97,6 +119,10 @@ public class EquipmentRenderMixin {
         if (mod != null) {
             ctx.setActiveModification(mod);
         }
+
+        if (playerName != null && armorHider$shouldForceVanillaCombatModel(playerName)) {
+            armorHider$combatSingleLayer.set(Boolean.FALSE);
+        }
         *///?}
 
         if (mod == null) {
@@ -106,6 +132,7 @@ public class EquipmentRenderMixin {
         if (mod.shouldHide() && ci != null) {
             ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
             ci.cancel();
+            return;
         }
     }
 
@@ -117,6 +144,9 @@ public class EquipmentRenderMixin {
     /*private static void resetContext(EquipmentClientInfo.LayerType layerType, ResourceKey<EquipmentAsset> resourceKey, Model model, ItemStack itemStack, PoseStack poseStack, MultiBufferSource multiBufferSource, int i, CallbackInfo ci) {
     *///?}
         ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
+        armorHider$combatSingleLayer.remove();
+        armorHider$combatAssetKey.remove();
+        armorHider$combatLayerType.remove();
     }
 
     @ModifyExpressionValue(
@@ -145,7 +175,17 @@ public class EquipmentRenderMixin {
             )
     )
     private RenderType modifyArmorRenderLayer(Identifier texture, Operation<RenderType> original) {
-        return RenderModifications.getTranslucentArmorRenderType(ArmorHiderClient.RENDER_CONTEXT, texture, original.call(texture));
+        ResourceKey<EquipmentAsset> assetKey = armorHider$combatAssetKey.get();
+        EquipmentClientInfo.LayerType layerType = armorHider$combatLayerType.get();
+        if (assetKey != null && layerType != null) {
+            Identifier vanillaTexture = VanillaArmorTextureManager.resolveVanillaEquipmentTexture(assetKey, layerType);
+            if (vanillaTexture != null) {
+                return original.call(vanillaTexture);
+            }
+        }
+
+        Identifier resolved = VanillaArmorTextureManager.resolveArmorTexture(ArmorHiderClient.RENDER_CONTEXT, texture);
+        return RenderModifications.getTranslucentArmorRenderType(ArmorHiderClient.RENDER_CONTEXT, resolved, original.call(resolved));
     }
 
     @WrapOperation(
@@ -171,6 +211,19 @@ public class EquipmentRenderMixin {
             )
     )
     private <S> void modifyArmorColor(OrderedSubmitNodeCollector collector, Model<? super S> model, S state, PoseStack poseStack, RenderType renderType, int light, int overlay, int color, TextureAtlasSprite sprite, int param9, ModelFeatureRenderer.CrumblingOverlay crumblingOverlay, Operation<Void> original) {
+        Boolean singleLayer = armorHider$combatSingleLayer.get();
+        if (singleLayer != null) {
+            if (singleLayer) {
+                if (DebugLogger.isEnabled()) {
+                    DebugLogger.log("[CombatSingleLayer] Blocked extra layer submit | renderType={}", renderType);
+                }
+                return;
+            }
+            armorHider$combatSingleLayer.set(Boolean.TRUE);
+            if (DebugLogger.isEnabled()) {
+                DebugLogger.log("[CombatSingleLayer] Allowed first layer submit | renderType={}", renderType);
+            }
+        }
         var modifiedColor = RenderModifications.applyArmorTransparency(ArmorHiderClient.RENDER_CONTEXT, color);
         original.call(collector, model, state, poseStack, renderType, light, overlay, modifiedColor, sprite, param9, crumblingOverlay);
     }
@@ -185,6 +238,11 @@ public class EquipmentRenderMixin {
             )
     )
     private <S> int modifyArmorColor(EquipmentClientInfo.Layer layer, int i, Operation<Integer> original) {
+        Boolean singleLayer = armorHider$combatSingleLayer.get();
+        if (singleLayer != null) {
+            if (singleLayer) { return 0; }
+            armorHider$combatSingleLayer.set(Boolean.TRUE);
+        }
         int originalColor = original.call(layer, i);
         return RenderModifications.applyArmorTransparency(ArmorHiderClient.RENDER_CONTEXT, originalColor);
     }
@@ -199,9 +257,27 @@ public class EquipmentRenderMixin {
             )
     )
     private int modifyArmorColor(EquipmentClientInfo.Layer layer, int i, Operation<Integer> original) {
+        Boolean singleLayer = armorHider$combatSingleLayer.get();
+        if (singleLayer != null) {
+            if (singleLayer) { return 0; }
+            armorHider$combatSingleLayer.set(Boolean.TRUE);
+        }
         int originalColor = original.call(layer, i);
         return RenderModifications.applyArmorTransparency(ArmorHiderClient.RENDER_CONTEXT, originalColor);
     }
     *///?}
+    @Unique
+    private static boolean armorHider$shouldForceVanillaCombatModel(String playerName) {
+        if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.isArmorHiderDisabled()) return false;
+        PlayerConfig config = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getConfigForPlayer(playerName);
+        if (!config.enableCombatDetection.getValue()) {
+            var serverConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getServerConfig();
+            if (serverConfig == null || !serverConfig.serverWideSettings.enableCombatDetection.getValue()) {
+                return false;
+            }
+        }
+        if (!CombatManager.isInCombat(playerName)) return false;
+        return config.inCombatUseDefaultModel.getValue();
+    }
 }
 //?}

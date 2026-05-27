@@ -34,6 +34,7 @@ Armor Hider has explicit compatibility with some major mods focused around visua
 - [Fantasy Armor](https://github.com/kend1e/FANTASY-ARMOR)
 - [LuckPerms](https://luckperms.net/)
 - [Iris](https://github.com/IrisShaders/Iris)
+- [EMF](https://github.com/Traben-0/Entity_Model_Features) (most custom armor resource packs using EMF for rendering work right out of the box)
 
 *If you're using a mod not yet supported, please open an issue on GitHub to let me know or drop a message on Discord.*
 
@@ -60,10 +61,12 @@ Find Armor Hider's settings integrated into the game via "Skin Customization" in
 <img alt="Armor Hider Ingame Settings" src="https://github.com/user-attachments/assets/a8d15a03-bfd8-4fb1-a166-6d6118e523e2" />
 </p>
 
-### Armor Opacity
+### Armor Opacity and Adjustments
 The mod allows you to define an opacity between 0% (hidden, cancelling the rendering) and 100% (the mod doesn't do anything) for each armor item slot. In addition, it's possible to specify whether skull items (skeleton/wither/... skull) should be affected by the helmet setting and if Elytras should be affected by the chestslot setting.
 Furthermore, you can selectively hide the enchantment glint on any of the slots.
 If you'd like to have armors visible in combat, you can choose whether combat will temporarily show your armor or not, see [Combat Detection](#combat-detection) below.
+
+When armor resource packs using EMF are installed, you can choose to have armor hider switch to the vanilla armor model once you enter combat.
 
 ### Offhand Opacity
 Armor Hider additionally offers to hide the offhand slot if you don't want your fancy skin obstructed by a shield or other items.
