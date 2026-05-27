@@ -1,6 +1,8 @@
 package de.zannagh.armorhider.client.gui.elements;
 
+import com.mojang.datafixers.util.Pair;
 import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.client.gui.elements.factories.OptionElementFactory;
 import de.zannagh.armorhider.client.gui.screens.AdvancedArmorHiderSettingsScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
@@ -19,6 +21,7 @@ import net.minecraft.world.entity.EquipmentSlot;
 import org.jspecify.annotations.NonNull;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 
+import java.util.ArrayList;
 import java.util.function.Consumer;
 
 public class ArmorHiderOptionsPanelWidget extends AbstractWidget {
@@ -44,15 +47,13 @@ public class ArmorHiderOptionsPanelWidget extends AbstractWidget {
         var factory = new OptionElementFactory(widgetList::addWidget, gameOptions, widgetList.getRowWidth());
         var config = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue();
 
-        var inCombatDefaultModel = factory.buildBooleanOption(
-                Component.translatable("armorhider.options.in_combat_default_model.title"),
-                Component.translatable("armorhider.options.in_combat_default_model.tooltip"),
-                Component.translatable("armorhider.options.in_combat_default_model.tooltip_narration"),
-                config.inCombatUseDefaultModel.getValue(),
-                val -> setSetting(val, config.inCombatUseDefaultModel::setValue)
-        );
-        factory.addSimpleOptionAsWidget(inCombatDefaultModel);
-
+        ArrayList<Pair<Boolean, Consumer<Boolean>>> configs = new ArrayList<>();
+        configs.add(new Pair<>(config.inCombatUseDefaultModel.getValue(), val -> setSetting(val, config.inCombatUseDefaultModel::setValue)));
+        configs.add(new Pair<>(config.enableCombatDetection.getValue(), val -> setSetting(val, config.enableCombatDetection::setValue)));
+        // TODO: Here will be 5 presets in the future + whatever we come up with
+        var generalSettingsButtons = factory.createCompoundButtonWidget(configs);
+        factory.addElementAsWidget(generalSettingsButtons);
+        
         var helmetOption = factory.buildDoubleOption(
                 "armorhider.helmet.transparency",
                 Component.translatable("armorhider.options.helmet.tooltip"),
@@ -143,15 +144,6 @@ public class ArmorHiderOptionsPanelWidget extends AbstractWidget {
                 null
         );
 
-        var enableCombatDetection = factory.buildBooleanOption(
-                Component.translatable("armorhider.options.combat_detection.title"),
-                Component.translatable("armorhider.options.combat_detection.tooltip"),
-                Component.translatable("armorhider.options.combat_detection.tooltip_narration"),
-                config.enableCombatDetection.getValue(),
-                val -> setSetting(val, config.enableCombatDetection::setValue)
-        );
-        factory.addSimpleOptionAsWidget(enableCombatDetection);
-
         factory.addElementAsWidget(Button.builder(
                 Component.translatable("armorhider.options.regular.title"),
                 btn -> Minecraft.getInstance().setScreenAndShow(new AdvancedArmorHiderSettingsScreen(this.hostScreen, this.gameOptions, this.hostScreen.getTitle()))
@@ -211,19 +203,16 @@ public class ArmorHiderOptionsPanelWidget extends AbstractWidget {
     @Override
     //? if >= 26.1-1.pre.1 {
     protected void extractWidgetRenderState(@NonNull GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
-        updateLayout();
         widgetList.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
     }
     //?}
     //? if >= 1.21 && < 26.1-1.pre.1 {
     /*protected void renderWidget(@NonNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        updateLayout();
         widgetList.render(guiGraphics, mouseX, mouseY, partialTick);
     }
     *///?}
     //? if < 1.21 {
     /*public void renderWidget(@NonNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        updateLayout();
         widgetList.render(guiGraphics, mouseX, mouseY, partialTick);
     }
     *///?}

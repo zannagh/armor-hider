@@ -1,5 +1,6 @@
-package de.zannagh.armorhider.client.gui.elements;
+package de.zannagh.armorhider.client.gui.elements.implementations;
 
+import de.zannagh.armorhider.client.gui.elements.LayeredButton;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -9,23 +10,14 @@ public class GlintSlotOnOffButton extends LayeredButton {
     @Nullable private final Identifier slotSprite;
 
     @Override
-    protected @Nullable Identifier midLayerSprite() {
+    protected @Nullable Identifier spriteForeground(boolean enabled) {
         return slotSprite;
     }
 
-    //? if < 1.21 {
-    /*@Override
-    protected int statusBorderColor() {
-        return isEnabled ? 0xCCFFFF00 : 0;
-    }
-    *///?}
-
-    //? if >= 1.21 {
     @Override
-    protected @Nullable Identifier spriteForeground(boolean enabled) {
+    protected @Nullable Identifier midLayerSprite(boolean enabled) {
         return enabled ? modSprite("glint_button_icon") : null;
     }
-    //?}
 
     @Override
     protected Component enabledMessage() {

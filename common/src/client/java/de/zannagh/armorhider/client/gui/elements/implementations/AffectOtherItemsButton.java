@@ -1,5 +1,6 @@
-package de.zannagh.armorhider.client.gui.elements;
+package de.zannagh.armorhider.client.gui.elements.implementations;
 
+import de.zannagh.armorhider.client.gui.elements.LayeredButton;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -12,23 +13,14 @@ public class AffectOtherItemsButton extends LayeredButton {
     @Nullable private final Identifier slotSprite;
 
     @Override
-    protected @Nullable Identifier midLayerSprite() {
+    protected @Nullable Identifier spriteForeground(boolean enabled) {
         return slotSprite;
     }
 
-    //? if < 1.21 {
-    /*@Override
-    protected @Nullable Component statusOverlay() {
-        return isEnabled ? Component.literal("\u2713").withStyle(ChatFormatting.GREEN) : Component.literal("\u2717").withStyle(ChatFormatting.RED);
-    }
-    *///?}
-
-    //? if >= 1.21 {
     @Override
-    protected @Nullable Identifier spriteForeground(boolean enabled) {
+    protected @Nullable Identifier midLayerSprite(boolean enabled) {
         return enabled ? modSprite("accept_highlighted") : modSprite("reject_highlighted");
     }
-    //?}
 
     @Override
     protected Component enabledMessage() {

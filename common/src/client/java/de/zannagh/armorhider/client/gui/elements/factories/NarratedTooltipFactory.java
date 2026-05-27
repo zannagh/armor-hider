@@ -1,4 +1,4 @@
-package de.zannagh.armorhider.client.gui.elements;
+package de.zannagh.armorhider.client.gui.elements.factories;
 
 import net.minecraft.client.OptionInstance;
 import net.minecraft.client.gui.components.Tooltip;

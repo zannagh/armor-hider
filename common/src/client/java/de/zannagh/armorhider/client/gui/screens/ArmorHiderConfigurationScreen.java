@@ -1,9 +1,8 @@
 package de.zannagh.armorhider.client.gui.screens;
 
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.gui.elements.OptionElementFactory;
+import de.zannagh.armorhider.client.gui.elements.factories.OptionElementFactory;
 import de.zannagh.armorhider.client.gui.elements.WidgetList;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;

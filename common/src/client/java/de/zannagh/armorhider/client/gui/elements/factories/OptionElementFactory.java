@@ -1,6 +1,10 @@
-package de.zannagh.armorhider.client.gui.elements;
+package de.zannagh.armorhider.client.gui.elements.factories;
 
+import com.mojang.datafixers.util.Pair;
 import de.zannagh.armorhider.client.gui.UiConstants;
+import de.zannagh.armorhider.client.gui.elements.CompoundButtonWidget;
+import de.zannagh.armorhider.client.gui.elements.CompoundOptionWidget;
+import de.zannagh.armorhider.client.gui.elements.implementations.*;
 import de.zannagh.armorhider.client.gui.screens.ItemExclusionScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.OptionInstance;
@@ -12,6 +16,7 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.entity.EquipmentSlot;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -42,6 +47,38 @@ public class OptionElementFactory {
         var textWidget = new MultiLineTextWidget(text, Minecraft.getInstance().font).setCentered(true);
         widgetAdder.accept(textWidget);
     }
+
+    /**
+     * Adds a compound widget consisting of up to 8 buttons (square layer buttons), which get evenly
+     * spaced within our available row width.
+     */
+    @SuppressWarnings("SequencedCollectionMethodCanBeUsed")
+    public AbstractWidget createCompoundButtonWidget(
+            ArrayList<Pair<Boolean, Consumer<Boolean>>> configs
+    ){
+        var first = new CombatDetectionButton(
+                configs.get(0).getFirst(),
+                onPress -> {
+                    if (onPress instanceof CombatDetectionButton btn) {
+                        var newValue = btn.toggle();
+                        configs.get(0).getSecond().accept(newValue);
+                    }
+                }
+        );
+        var second = new VanillaArmorInCombatButton(
+                configs.get(1).getFirst(),
+                onPress -> {
+                    if (onPress instanceof VanillaArmorInCombatButton btn) {
+                        var newValue = btn.toggle();
+                        configs.get(1).getSecond().accept(newValue);
+                    }
+                }
+        );
+        var allButtons = new AbstractWidget[]{first, second};
+        return new CompoundButtonWidget(
+                allButtons,
+                rowWidth, 20);
+    }
     
     public void addSliderWithToggles(EquipmentSlot slot,
                                      OptionInstance<Double> slider,
@@ -53,7 +90,7 @@ public class OptionElementFactory {
         var widget = createSliderWithToggleForSlot(slot, slider, options, initialGlint, initialOtherAffect, glintConsumer, additionalAffectConsumer);
         addElementAsWidget(widget);
     }
-
+    
     public AbstractWidget createSliderWithToggleForSlot(EquipmentSlot slot,
                                                        OptionInstance<Double> slider,
                                                        Options options,
