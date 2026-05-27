@@ -1,7 +1,6 @@
 package de.zannagh.armorhider.client.gui.elements.implementations;
 
 import de.zannagh.armorhider.client.gui.elements.SquareLayeredButton;
-import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.Nullable;

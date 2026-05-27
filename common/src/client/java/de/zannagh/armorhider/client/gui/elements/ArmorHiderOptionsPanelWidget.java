@@ -48,8 +48,8 @@ public class ArmorHiderOptionsPanelWidget extends AbstractWidget {
         var config = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue();
 
         ArrayList<Pair<Boolean, Consumer<Boolean>>> configs = new ArrayList<>();
-        configs.add(new Pair<>(config.inCombatUseDefaultModel.getValue(), val -> setSetting(val, config.inCombatUseDefaultModel::setValue)));
         configs.add(new Pair<>(config.enableCombatDetection.getValue(), val -> setSetting(val, config.enableCombatDetection::setValue)));
+        configs.add(new Pair<>(config.inCombatUseDefaultModel.getValue(), val -> setSetting(val, config.inCombatUseDefaultModel::setValue)));
         // TODO: Here will be 5 presets in the future + whatever we come up with
         var generalSettingsButtons = factory.createCompoundButtonWidget(configs);
         factory.addElementAsWidget(generalSettingsButtons);

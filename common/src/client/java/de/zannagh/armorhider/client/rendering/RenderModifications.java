@@ -209,7 +209,7 @@ public final class RenderModifications {
     };
 
     /**
-     * Synchronizes the pose of the given model part and it's children (when humanoid).
+     * Synchronizes the pose of the given model part and its children (when humanoid).
      * @param from The model part to synchronize.
      * @param to The model part to synchronize to.
      */
