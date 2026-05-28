@@ -112,7 +112,10 @@ public class PresetManager {
 
     private void save() {
         try {
-            Files.createDirectories(file.getParent());
+            Path parent = file.getParent();
+            if (parent != null) {
+                Files.createDirectories(parent);
+            }
             try (Writer w = Files.newBufferedWriter(file)) {
                 var storage = new PresetStorage();
                 storage.presets = presets.clone();
