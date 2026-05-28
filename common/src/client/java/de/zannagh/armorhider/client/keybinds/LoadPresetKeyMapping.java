@@ -50,11 +50,12 @@ public class LoadPresetKeyMapping extends CustomKeyMapping {
         if (!presetManager.hasPreset(presetIndex)) {
             return;
         }
-        var config = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue();
-        presetManager.setActiveIndex(presetIndex);
-        if (!(presetManager.getPreset(presetIndex) instanceof ConfigPreset preset)) {
+        var preset = presetManager.getPreset(presetIndex);
+        if (preset == null) {
             return;
         }
+        var config = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue();
+        presetManager.setActiveIndex(presetIndex);
         preset.applyTo(config);
         ArmorHiderClient.CLIENT_CONFIG_MANAGER.saveCurrent();
         ArmorHider.LOGGER.info("Loaded preset {} via keybind.", presetIndex + 1);
