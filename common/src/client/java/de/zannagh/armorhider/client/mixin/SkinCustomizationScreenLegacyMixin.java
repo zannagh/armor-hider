@@ -3,6 +3,7 @@
 
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.gui.elements.ArmorHiderOptionsPanelWidget;
+import de.zannagh.armorhider.client.gui.elements.ElementSpacingOptions;
 import de.zannagh.armorhider.client.gui.elements.PlayerPreviewWidget;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
@@ -62,18 +63,22 @@ public abstract class SkinCustomizationScreenLegacyMixin extends OptionsSubScree
         boolean inGame = Minecraft.getInstance().player != null;
         int sectionWidth = 310;
         int sectionLeft = this.width / 2 - sectionWidth / 2;
-        int panelWidth = inGame ? (sectionWidth * 3) / 5 : sectionWidth;
+        var spacing = new ElementSpacingOptions(sectionWidth)
+                .forVaryingElements(1, inGame ? 1 : 0)
+                .withPercentageWidthForPrimaryElement(60)
+                .withGap(0);
+        int panelWidth = spacing.getWidth(0);
 
         this.armorHider$panel = new ArmorHiderOptionsPanelWidget(
                 sectionLeft, panelY, panelWidth, panelHeight,
-                this, this.options, () -> this.armorHider$settingsChanged = true
+                this, this.options, () -> this.armorHider$settingsChanged = true,
+                ArmorHiderClient.PRESET_MANAGER
         );
         this.addRenderableWidget(this.armorHider$panel);
 
         if (inGame) {
-            int optionsPanelWidth = (sectionWidth * 3) / 5;
-            int previewAreaWidth = sectionWidth - optionsPanelWidth;
-            int previewAreaLeft = sectionLeft + optionsPanelWidth;
+            int previewAreaWidth = spacing.getWidth(1);
+            int previewAreaLeft = sectionLeft + spacing.getX(1);
             int contentHeight = this.armorHider$panel.getContentHeight();
             int squareSize = Math.min(contentHeight, Math.min(previewAreaWidth, panelHeight));
             int previewX = previewAreaLeft + (previewAreaWidth - squareSize) / 2;

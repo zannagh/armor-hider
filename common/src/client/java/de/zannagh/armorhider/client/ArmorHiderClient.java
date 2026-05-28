@@ -5,6 +5,7 @@ import de.zannagh.armorhider.CompatFlags;
 import de.zannagh.armorhider.client.gui.screens.ArmorHiderOptionsScreen;
 import de.zannagh.armorhider.client.net.ClientCommunicationManager;
 import de.zannagh.armorhider.client.scopes.RenderContext;
+import de.zannagh.armorhider.configuration.PresetManager;
 import de.zannagh.armorhider.log.DebugLogger;
 import de.zannagh.armorhider.util.PlayerNameUtil;
 import net.minecraft.client.Minecraft;
@@ -26,6 +27,7 @@ public class ArmorHiderClient {
 
     public static int permissionLevel = 0; // Default to lowest.
     public static ClientConfigManager CLIENT_CONFIG_MANAGER = new ClientConfigManager();
+    public static PresetManager PRESET_MANAGER = new PresetManager();
     public static RenderContext RENDER_CONTEXT = new RenderContext();
 
     public static final boolean FA_LOADED = CompatFlags.FA_LOADED || classExists("net.kenddie.fantasyarmor.FantasyArmor");

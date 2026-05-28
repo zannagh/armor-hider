@@ -17,23 +17,29 @@ import net.minecraft.client.input.MouseButtonEvent;
 public class CompoundButtonWidget extends AbstractWidget {
     private final AbstractWidget[] buttons;
     @Nullable private AbstractWidget activeChild;
-    private static final int BUTTON_SIZE = UiConstants.SQUARE_BUTTON_WIDTH;
+    private final ElementSpacingOptions spacing;
 
     public CompoundButtonWidget(AbstractWidget[] buttons,
                                 int width, int height) {
         super(0, 0, width, height, Component.empty());
         this.buttons = buttons;
+        this.spacing = new ElementSpacingOptions(width)
+                .forEvenElements(UiConstants.SQUARE_BUTTON_WIDTH, buttons.length);
+    }
+
+    public CompoundButtonWidget(AbstractWidget[] buttons,
+                                int width, int height,
+                                ElementSpacingOptions spacing) {
+        super(0, 0, width, height, Component.empty());
+        this.buttons = buttons;
+        this.spacing = spacing;
     }
 
     private void updateLayout() {
-        int n = buttons.length;
-        int totalSpace = this.width - n * BUTTON_SIZE;
-        int gap = totalSpace / (n + 1);
-
-        for (int i = 0; i < n; i++) {
-            buttons[i].setX(this.getX() + gap + i * (BUTTON_SIZE + gap));
+        for (int i = 0; i < buttons.length; i++) {
+            buttons[i].setX(this.getX() + spacing.getX(i));
             buttons[i].setY(this.getY());
-            buttons[i].setWidth(BUTTON_SIZE);
+            buttons[i].setWidth(spacing.getWidth(i));
         }
     }
 

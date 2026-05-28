@@ -18,10 +18,12 @@ A mod to alter the transparency or fully hide armor and equipment with multiplay
 - **Per-slot opacity sliders** for helmet, chestplate, leggings, boots and offhand
 - **Enchantment glint control** to selectively hide the glint on any slot
 - **Combat detection** lets you automatically show armor when in combat - with full synchronization in multiplayer
+- **Resource pack compatibility** for armor non-EMF or EMF armor models, with the option to use vanilla's armor in combat
 - **Full multiplayer sync** so other players see your settings when the server has the mod
 - **Works client-side only** too without  server mod required
 - **Live in-game preview** of your changes
 - **Keybindings** to quickly toggle Armor Hider or open the settings screen
+- **Presets** to store your favorite configurations - including quick-loading by a keybind you can define yourself
 - **Admin controls** for server operators (force armor visible, server-wide combat detection)
 
 #### Compatibility
@@ -66,7 +68,12 @@ The mod allows you to define an opacity between 0% (hidden, cancelling the rende
 Furthermore, you can selectively hide the enchantment glint on any of the slots.
 If you'd like to have armors visible in combat, you can choose whether combat will temporarily show your armor or not, see [Combat Detection](#combat-detection) below.
 
-When armor resource packs using EMF are installed, you can choose to have armor hider switch to the vanilla armor model once you enter combat.
+When armor resource packs using EMF (or not, default resource packs work out of the box) are installed, you can choose to have armor hider switch to the vanilla armor model once you enter combat.
+
+### Presets
+Armor Hider comes with five presets which you can load by clicking the corresponding button in the settings screen. Alternatively, define a keybind for 'Armor Hider - Load Preset' and afterward pressing this button and any number key between 1 and 5 anywhere in the game.
+
+To change a preset, select it (as described above) and adjust the settings as you like. The preset automatically saves when the options screen gets closed.
 
 ### Offhand Opacity
 Armor Hider additionally offers to hide the offhand slot if you don't want your fancy skin obstructed by a shield or other items.

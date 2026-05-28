@@ -1,6 +1,5 @@
 package de.zannagh.armorhider.client.gui.elements;
 
-import de.zannagh.armorhider.client.gui.UiConstants;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 //? if > 1.21.8
@@ -20,7 +19,7 @@ public class CompoundOptionWidget extends AbstractWidget {
     @Nullable private final AbstractWidget tertiary;
     @Nullable private final AbstractWidget additional;
     @Nullable private AbstractWidget activeChild;
-    private static final int GAP = UiConstants.DEFAULT_BUTTON_SPACING / 2;
+    private final ElementSpacingOptions spacing;
 
     public CompoundOptionWidget(AbstractWidget primary, AbstractWidget secondary, @Nullable AbstractWidget tertiary, @Nullable AbstractWidget additional, int width, int height) {
         super(0, 0, width, height, Component.empty());
@@ -28,6 +27,8 @@ public class CompoundOptionWidget extends AbstractWidget {
         this.secondary = secondary;
         this.tertiary = tertiary;
         this.additional = additional;
+        this.spacing = new ElementSpacingOptions(width)
+                .forVaryingElements(1, smallElementCount());
     }
 
     private int smallElementCount() {
@@ -38,43 +39,36 @@ public class CompoundOptionWidget extends AbstractWidget {
     }
 
     private void updateLayout() {
-        int count = smallElementCount();
-        int additionalElementWidth = getAdditionalElementWidth(this.width, count);
-        int primaryWidth = getPrimaryWidth(this.width, count);
-
-        primary.setX(this.getX());
+        primary.setX(this.getX() + spacing.getX(0));
         primary.setY(this.getY());
-        primary.setWidth(primaryWidth);
+        primary.setWidth(spacing.getWidth(0));
 
-        int buttonX = this.getX() + primaryWidth + GAP;
-
-        secondary.setX(buttonX);
+        int idx = 1;
+        secondary.setX(this.getX() + spacing.getX(idx));
         secondary.setY(this.getY());
-        secondary.setWidth(additionalElementWidth);
-        buttonX += additionalElementWidth + GAP;
+        secondary.setWidth(spacing.getWidth(idx));
+        idx++;
 
         if (additional != null) {
-            additional.setX(buttonX);
+            additional.setX(this.getX() + spacing.getX(idx));
             additional.setY(this.getY());
-            additional.setWidth(additionalElementWidth);
-            buttonX += additionalElementWidth + GAP;
+            additional.setWidth(spacing.getWidth(idx));
+            idx++;
         }
 
         if (tertiary != null) {
-            tertiary.setX(buttonX);
+            tertiary.setX(this.getX() + spacing.getX(idx));
             tertiary.setY(this.getY());
-            tertiary.setWidth(additionalElementWidth);
+            tertiary.setWidth(spacing.getWidth(idx));
         }
     }
-
-    private static final double SMALL_ELEMENT_WIDTH_PERCENT = 0.1;
 
     public static int getPrimaryWidth(int width) {
         return getPrimaryWidth(width, 3);
     }
 
     public static int getPrimaryWidth(int width, int smallElements) {
-        return (int) (width * (1 - smallElements * SMALL_ELEMENT_WIDTH_PERCENT)) - GAP;
+        return new ElementSpacingOptions(width).forVaryingElements(1, smallElements).getWidth(0);
     }
 
     public static int getAdditionalElementWidth(int width) {
@@ -82,7 +76,7 @@ public class CompoundOptionWidget extends AbstractWidget {
     }
 
     public static int getAdditionalElementWidth(int width, int smallElements) {
-        return (int) (width * SMALL_ELEMENT_WIDTH_PERCENT) - GAP;
+        return new ElementSpacingOptions(width).forVaryingElements(1, smallElements).getWidth(1);
     }
 
     @Override

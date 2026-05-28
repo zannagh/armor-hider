@@ -35,6 +35,10 @@ public class WidgetList extends ContainerObjectSelectionList<WidgetList.WidgetEn
         addEntry(new WidgetEntry(widget));
     }
 
+    public void clearWidgets() {
+        clearEntries();
+    }
+
     public int getRowHeight() {
         return itemHeight;
     }

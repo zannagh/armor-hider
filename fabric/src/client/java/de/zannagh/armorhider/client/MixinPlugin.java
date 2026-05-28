@@ -48,6 +48,7 @@ public class MixinPlugin implements IMixinConfigPlugin {
             "networking.ClientPacketListenerMixin",
             "networking.ClientPlayNetworkHandlerMixin",
             "OptionsMixin",
+            "MinecraftClientMixin",
             "PlayerModelMixin",
             // Compat — @Pseudo, auto-skipped if target mod absent
             "compat.wildfiregender.GenderArmorLayerMixin",

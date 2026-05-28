@@ -3,6 +3,7 @@ package de.zannagh.armorhider.client.gui.screens;
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.gui.elements.ArmorHiderOptionsPanelWidget;
+import de.zannagh.armorhider.client.gui.elements.ElementSpacingOptions;
 import de.zannagh.armorhider.client.gui.elements.PlayerPreviewWidget;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
@@ -23,33 +24,42 @@ public class ArmorHiderOptionsScreen extends ArmorHiderConfigurationScreen {
     @Override
     protected void init() {
         //? if >= 1.21.9 {
-        int panelWidth = super.isPlayerInGame() ? (this.width * 3) / 5 : this.width;
+        boolean inGame = super.isPlayerInGame();
+        var spacing = new ElementSpacingOptions(this.width)
+                .forVaryingElements(1, inGame ? 1 : 0)
+                .withPercentageWidthForPrimaryElement(60)
+                .withGap(0);
+        int panelWidth = spacing.getWidth(0);
         int panelHeight = this.height - topMargin - bottomMargin;
-        this.addRenderableWidget(new ArmorHiderOptionsPanelWidget(0, topMargin, panelWidth, panelHeight, this, this.gameOptions, 
-                () -> { 
-            this.settingsChanged = true; 
+        this.addRenderableWidget(new ArmorHiderOptionsPanelWidget(0, topMargin, panelWidth, panelHeight, this, this.gameOptions,
+                () -> {
+            this.settingsChanged = true;
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.markLocalDirty();
-        }));
+        }, ArmorHiderClient.PRESET_MANAGER));
         this.addRenderableWidget(Button.builder(net.minecraft.network.chat.CommonComponents.GUI_DONE, btn -> onClose())
                 .bounds(this.width / 2 - 100, this.height - 27, 200, 20).build());
 
-        if (super.isPlayerInGame()) {
-            int previewWidth = this.width * 2 / 5 - previewMargin;
+        if (inGame) {
+            int previewWidth = spacing.getWidth(1) - previewMargin;
             int previewHeight = this.height - topMargin - bottomMargin - previewMargin;
-            int previewX = panelWidth + previewMargin / 2;
+            int previewX = spacing.getX(1) + previewMargin / 2;
             int previewY = topMargin + previewMargin / 2;
             addRenderableWidget(new PlayerPreviewWidget(previewX, previewY, previewWidth, previewHeight));
         }
         //?}
         //? if < 1.21.9 {
-        /*int listWidth = super.isPlayerInGame() ? (this.width * 3) / 5 : this.width;
-        super.initWidgetList(listWidth);
+        /*boolean inGameLegacy = super.isPlayerInGame();
+        var spacingLegacy = new ElementSpacingOptions(this.width)
+                .forVaryingElements(1, inGameLegacy ? 1 : 0)
+                .withPercentageWidthForPrimaryElement(60)
+                .withGap(0);
+        super.initWidgetList(spacingLegacy.getWidth(0));
         super.init();
 
-        if (super.isPlayerInGame()) {
-            int previewWidth = (this.width * 2) / 5 - previewMargin;
+        if (inGameLegacy) {
+            int previewWidth = spacingLegacy.getWidth(1) - previewMargin;
             int previewHeight = this.height - topMargin - bottomMargin - previewMargin * 2;
-            int previewX = listWidth + previewMargin / 2;
+            int previewX = spacingLegacy.getX(1) + previewMargin / 2;
             int previewY = topMargin + previewMargin / 2;
             addRenderableWidget(new PlayerPreviewWidget(previewX, previewY, previewWidth, previewHeight));
         }

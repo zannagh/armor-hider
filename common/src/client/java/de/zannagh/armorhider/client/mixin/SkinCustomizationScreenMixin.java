@@ -4,6 +4,7 @@ import de.zannagh.armorhider.client.ArmorHiderClient;
 //? if >= 1.21 {
 import de.zannagh.armorhider.client.gui.UiConstants;
 import de.zannagh.armorhider.client.gui.elements.ArmorHiderOptionsPanelWidget;
+import de.zannagh.armorhider.client.gui.elements.ElementSpacingOptions;
 import de.zannagh.armorhider.client.gui.elements.PlayerPreviewWidget;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.OptionsList;
@@ -68,15 +69,20 @@ public abstract class SkinCustomizationScreenMixin extends Screen {
 
         boolean inGame = Minecraft.getInstance().player != null;
         int sectionWidth = this.list.getWidth();
-        int panelWidth = inGame ? (sectionWidth * 3) / 5 : sectionWidth;
+        var spacing = new ElementSpacingOptions(sectionWidth)
+                .forVaryingElements(1, inGame ? 1 : 0)
+                .withPercentageWidthForPrimaryElement(60)
+                .withGap(0);
+        int panelWidth = spacing.getWidth(0);
 
         this.armorHider$panel = new ArmorHiderOptionsPanelWidget(
                 0, 0, panelWidth, 100,
-                this, this.options, () -> 
+                this, this.options, () ->
                 {
                     this.armorHider$settingsChanged = true;
                     ArmorHiderClient.CLIENT_CONFIG_MANAGER.markLocalDirty();
-                }
+                },
+                ArmorHiderClient.PRESET_MANAGER
         );
         this.addRenderableWidget(this.armorHider$panel);
 
@@ -110,8 +116,12 @@ public abstract class SkinCustomizationScreenMixin extends Screen {
         this.list.setHeight(listBottom - this.list.getY());
 
         if (this.armorHider$preview != null) {
-            int optionsPanelWidth = (sectionWidth * 3) / 5;
-            int previewAreaWidth = sectionWidth - optionsPanelWidth;
+            var layoutSpacing = new ElementSpacingOptions(sectionWidth)
+                    .forVaryingElements(1, 1)
+                    .withPercentageWidthForPrimaryElement(60)
+                    .withGap(0);
+            int optionsPanelWidth = layoutSpacing.getWidth(0);
+            int previewAreaWidth = layoutSpacing.getWidth(1);
 
             this.armorHider$panel.setX(sectionLeft);
             this.armorHider$panel.setY(panelY);
@@ -119,7 +129,7 @@ public abstract class SkinCustomizationScreenMixin extends Screen {
             this.armorHider$panel.setHeight(panelHeight);
 
             int contentHeight = this.armorHider$panel.getContentHeight();
-            int previewAreaLeft = sectionLeft + optionsPanelWidth + 40;
+            int previewAreaLeft = sectionLeft + layoutSpacing.getX(1) + 40;
             int squareSize = Math.min(contentHeight, Math.min(previewAreaWidth, panelHeight));
             this.armorHider$preview.setX(previewAreaLeft);
             this.armorHider$preview.setY(panelY);

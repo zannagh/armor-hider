@@ -4,6 +4,7 @@ import com.mojang.datafixers.util.Pair;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.gui.elements.factories.OptionElementFactory;
 import de.zannagh.armorhider.client.gui.screens.AdvancedArmorHiderSettingsScreen;
+import de.zannagh.armorhider.configuration.PresetManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -30,13 +31,15 @@ public class ArmorHiderOptionsPanelWidget extends AbstractWidget {
     private final Screen hostScreen;
     private final Options gameOptions;
     private final Runnable onDirty;
+    private final PresetManager presetManager;
     public final WidgetList widgetList;
 
-    public ArmorHiderOptionsPanelWidget(int x, int y, int width, int height, Screen hostScreen, Options gameOptions, Runnable onDirty) {
+    public ArmorHiderOptionsPanelWidget(int x, int y, int width, int height, Screen hostScreen, Options gameOptions, Runnable onDirty, PresetManager presetManager) {
         super(x, y, width, height, Component.translatable("armorhider.options.mod_title"));
         this.hostScreen = hostScreen;
         this.gameOptions = gameOptions;
         this.onDirty = onDirty;
+        this.presetManager = presetManager;
         this.widgetList = new WidgetList(Minecraft.getInstance(), width, height, y, ITEM_HEIGHT);
 
         populateOptions();
@@ -50,8 +53,10 @@ public class ArmorHiderOptionsPanelWidget extends AbstractWidget {
         ArrayList<Pair<Boolean, Consumer<Boolean>>> configs = new ArrayList<>();
         configs.add(new Pair<>(config.enableCombatDetection.getValue(), val -> setSetting(val, config.enableCombatDetection::setValue)));
         configs.add(new Pair<>(config.inCombatUseDefaultModel.getValue(), val -> setSetting(val, config.inCombatUseDefaultModel::setValue)));
-        // TODO: Here will be 5 presets in the future + whatever we come up with
-        var generalSettingsButtons = factory.createCompoundButtonWidget(configs);
+
+        var generalSettingsButtons = factory.createCompoundButtonWidget(
+                configs, presetManager, presetManager.getActiveIndex(), this::onPresetActivated
+        );
         factory.addElementAsWidget(generalSettingsButtons);
         
         var helmetOption = factory.buildDoubleOption(
@@ -154,8 +159,34 @@ public class ArmorHiderOptionsPanelWidget extends AbstractWidget {
         return this.widgetList.children().size() * this.widgetList.getRowHeight();
     }
 
+    private void onPresetActivated(int presetIndex) {
+        var config = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue();
+        if (presetManager.isActive(presetIndex)) {
+            presetManager.deactivate();
+            rebuildOptions();
+            return;
+        }
+        if (presetManager.hasPreset(presetIndex)) {
+            presetManager.setActiveIndex(presetIndex);
+            presetManager.getPreset(presetIndex).applyTo(config);
+            onDirty.run();
+            rebuildOptions();
+        } else {
+            presetManager.saveFromCurrentConfig(presetIndex, config);
+            presetManager.setActiveIndex(presetIndex);
+            rebuildOptions();
+        }
+    }
+
+    private void rebuildOptions() {
+        widgetList.clearWidgets();
+        populateOptions();
+        updateLayout();
+    }
+
     private <T> void setSetting(T value, Consumer<T> setter) {
         setter.accept(value);
+        presetManager.updateActivePreset(ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue());
         onDirty.run();
     }
 

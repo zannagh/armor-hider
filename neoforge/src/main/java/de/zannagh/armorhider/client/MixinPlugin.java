@@ -51,6 +51,7 @@ public class MixinPlugin implements IMixinConfigPlugin {
             "bodyKneesAndToes.NeoForgeArmorColorMixin",
             "bodyKneesAndToes.NeoForgeHumanoidArmorLayerMixin",
             "OptionsMixin",
+            "MinecraftClientMixin",
             // Compat — @Pseudo, auto-skipped if target mod absent
             "compat.wildfiregender.GenderArmorLayerMixin",
             "compat.geckolib.GeckoLibArmorMixin",

@@ -4,8 +4,11 @@ import com.mojang.datafixers.util.Pair;
 import de.zannagh.armorhider.client.gui.UiConstants;
 import de.zannagh.armorhider.client.gui.elements.CompoundButtonWidget;
 import de.zannagh.armorhider.client.gui.elements.CompoundOptionWidget;
+import de.zannagh.armorhider.client.gui.elements.ElementSpacingOptions;
 import de.zannagh.armorhider.client.gui.elements.implementations.*;
 import de.zannagh.armorhider.client.gui.screens.ItemExclusionScreen;
+import de.zannagh.armorhider.configuration.ConfigPreset;
+import de.zannagh.armorhider.configuration.PresetManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.OptionInstance;
 import net.minecraft.client.Options;
@@ -49,12 +52,15 @@ public class OptionElementFactory {
     }
 
     /**
-     * Adds a compound widget consisting of up to 8 buttons (square layer buttons), which get evenly
-     * spaced within our available row width.
+     * Adds a compound widget consisting of global option buttons (left group) and preset buttons
+     * (right group), using a 50/50 split of the available row width.
      */
     @SuppressWarnings("SequencedCollectionMethodCanBeUsed")
     public AbstractWidget createCompoundButtonWidget(
-            ArrayList<Pair<Boolean, Consumer<Boolean>>> configs
+            ArrayList<Pair<Boolean, Consumer<Boolean>>> configs,
+            PresetManager presetManager,
+            int activePresetIndex,
+            Consumer<Integer> onPresetActivated
     ){
         var first = new CombatDetectionButton(
                 configs.get(0).getFirst(),
@@ -74,10 +80,37 @@ public class OptionElementFactory {
                     }
                 }
         );
-        var allButtons = new AbstractWidget[]{first, second};
-        return new CompoundButtonWidget(
-                allButtons,
-                rowWidth, 20);
+
+        int totalButtons = 2 + PresetManager.PRESET_COUNT;
+        var allButtons = new AbstractWidget[totalButtons];
+        allButtons[0] = first;
+        allButtons[1] = second;
+
+        var presetButtons = new PresetButton[PresetManager.PRESET_COUNT];
+        for (int i = 0; i < PresetManager.PRESET_COUNT; i++) {
+            final int presetIndex = i;
+            boolean hasPreset = presetManager.hasPreset(i);
+            boolean isActive = i == activePresetIndex;
+            var btn = new PresetButton(i, !hasPreset, isActive, onPress -> {
+                if (onPress instanceof PresetButton pb) {
+                    onPresetActivated.accept(pb.getPresetIndex());
+                }
+            });
+            presetButtons[i] = btn;
+            allButtons[2 + i] = btn;
+        }
+
+        var groups = new ArrayList<Pair<Integer, Integer>>();
+        groups.add(new Pair<>(0, 1));
+        groups.add(new Pair<>(2, totalButtons - 1));
+
+        int halfWidth = rowWidth / 2;
+        var spacing = new ElementSpacingOptions(rowWidth)
+                .forEvenElements(UiConstants.SQUARE_BUTTON_WIDTH, totalButtons)
+                .withGroups(groups)
+                .withSizesForGroups(new int[]{halfWidth, rowWidth - halfWidth});
+
+        return new CompoundButtonWidget(allButtons, rowWidth, 20, spacing);
     }
     
     public void addSliderWithToggles(EquipmentSlot slot,
