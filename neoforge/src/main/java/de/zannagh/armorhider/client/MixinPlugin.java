@@ -56,7 +56,9 @@ public class MixinPlugin implements IMixinConfigPlugin {
             "compat.wildfiregender.GenderArmorLayerMixin",
             "compat.geckolib.GeckoLibArmorMixin",
             "compat.waveycapes.WaveyCapesMixin",
+            // Compat - Pseudo and guarded in source for mekanism constant only (1.21.1 Neo)
             "compat.mekanism.MekanismArmorMixin",
+            "compat.mekanism.MekaSuitArmorMixin",
             "compat.emf.EmfModelPartMixin",
             "compat.emf.EmfModelPartRootMixin"
     };
@@ -73,15 +75,15 @@ public class MixinPlugin implements IMixinConfigPlugin {
     @Override
     public List<String> getMixins() {
         //? if >= 1.21.9 {
-        if (FMLEnvironment.getDist() == Dist.DEDICATED_SERVER) {
+        /*if (FMLEnvironment.getDist() == Dist.DEDICATED_SERVER) {
             return List.of();
         }
-        //?} else {
-        /*
+        *///?} else {
+        
         if (FMLEnvironment.dist == Dist.DEDICATED_SERVER) { 
             return List.of();
         }
-        *///?}
+        //?}
         var mixinsToAdd = new ArrayList<>(List.of(MIXINS));
         return MixinUtil.getMixinClassesWherePresent(PACKAGE, mixinsToAdd);
     }

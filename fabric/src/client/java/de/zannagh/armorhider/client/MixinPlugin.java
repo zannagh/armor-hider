@@ -54,7 +54,6 @@ public class MixinPlugin implements IMixinConfigPlugin {
             "compat.wildfiregender.GenderArmorLayerMixin",
             "compat.geckolib.GeckoLibArmorMixin",
             "compat.waveycapes.WaveyCapesMixin",
-            "compat.mekanism.MekanismArmorMixin",
             "compat.emf.EmfModelPartMixin",
             "compat.emf.EmfModelPartRootMixin"
     };

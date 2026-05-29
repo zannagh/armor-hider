@@ -33,7 +33,6 @@ import net.minecraft.client.renderer.entity.state.AvatarRenderState;
 @Pseudo
 @Mixin(targets = "dev.tr7zw.waveycapes.renderlayers.CustomCapeRenderLayer", remap = false)
 public class WaveyCapesMixin {
-
     @Unique
     //? if >= 1.21.9
     private static final String CAPE_METHOD = "submit";

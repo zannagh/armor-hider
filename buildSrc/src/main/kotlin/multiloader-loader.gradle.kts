@@ -36,6 +36,9 @@ dependencies {
     if (hasProperty("etf.version")) {
         add("compileOnly", "maven.modrinth:entitytexturefeatures:${findProperty("etf.version")}")
     }
+    if (hasProperty("mekanism.version")) {
+        add("compileOnly", "maven.modrinth:mekanism:${findProperty("mekanism.version")}")
+    }
 }
 
 // Include common's sources in the loader's source sets for IntelliJ

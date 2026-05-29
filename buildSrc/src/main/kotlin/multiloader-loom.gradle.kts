@@ -39,6 +39,7 @@ repositories {
 with(sc) {
     constants["fabric"] = current.project.contains("fabric")
     constants["neoforge"] = current.project.contains("neoforge")
+    constants["mekanism"] = hasProperty("mekanism.version")
 }
 
 // ── Common branch ──
@@ -85,6 +86,9 @@ if (branch == "common") {
         }
         if (hasProperty("etf.version")) {
             add(modClientDep, "maven.modrinth:entitytexturefeatures:${findProperty("etf.version")}")
+        }
+        if (hasProperty("mekanism.version")) {
+            add(modClientDep, "maven.modrinth:mekanism:${findProperty("mekanism.version")}")
         }
         add("compileOnly", "net.luckperms:api:5.4")
         add("compileOnly", "org.jspecify:jspecify:1.0.0")

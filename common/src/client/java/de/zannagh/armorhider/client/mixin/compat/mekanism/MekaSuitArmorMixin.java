@@ -1,0 +1,25 @@
+//? if mekanism {
+/*package de.zannagh.armorhider.client.mixin.compat.mekanism;
+
+import de.zannagh.armorhider.client.ArmorHiderClient;
+import mekanism.client.render.armor.MekaSuitArmor;
+import mekanism.common.lib.Color;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Pseudo;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
+
+@Pseudo
+@Mixin(value = MekaSuitArmor.class, remap = false)
+public class MekaSuitArmorMixin {
+
+    @ModifyVariable(method = "renderMekaSuit", at = @At("HEAD"), ordinal = 0, argsOnly = true, require = 0)
+    private Color applyTransparencyToColor(Color color) {
+        var mod = ArmorHiderClient.RENDER_CONTEXT.activeModification();
+        if (mod != null && mod.transparency() < 1.0) {
+            return color.alpha(color.ad() * mod.transparency());
+        }
+        return color;
+    }
+}
+*///?}
