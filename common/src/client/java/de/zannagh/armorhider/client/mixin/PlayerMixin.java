@@ -7,10 +7,10 @@
 package de.zannagh.armorhider.client.mixin;
 
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
+import de.zannagh.armorhider.api.ArmorHiderApi;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.scopes.ActiveModification;
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
-import de.zannagh.armorhider.combat.CombatManager;
 import de.zannagh.armorhider.log.DebugLogger;
 import de.zannagh.armorhider.log.DebugTracer;
 import de.zannagh.armorhider.util.PlayerNameUtil;
@@ -101,7 +101,7 @@ public abstract class PlayerMixin
     @Unique
     private boolean armorHider$isCombatActive() {
         String name = armorHider$playerName();
-        return name != null && CombatManager.isInCombat(name);
+        return name != null && ArmorHiderApi.getInstance().getCombatManagement().isInCombat(name);
     }
 
     @Nullable
@@ -187,18 +187,17 @@ public abstract class PlayerMixin
             return original;
         }
 
+        var playerName = armorHider$playerName();
         // During entity rendering (extractRenderState + layer rendering), return the
         // real item so that renderArmorPiece is called (for downstream render processing).
-        if (ctx.isInEntityRender()) {
+        if (ctx.isInEntityRender() || playerName == null) {
             return original;
         }
 
-        if (ActiveModification.isSlotFullyHidden(armorHider$playerName(), slot, original)) {
-            DebugTracer.equipmentSlotHidingFired(armorHider$playerName(), slot, true, "isSlotFullyHidden");
+        if (ActiveModification.isSlotFullyHidden(playerName, slot, original)) {
+            DebugTracer.equipmentSlotHidingFired(playerName, slot, true, "isSlotFullyHidden");
             return ItemStack.EMPTY;
         }
         return original;
     }
-    
-    
 }

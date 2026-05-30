@@ -5,10 +5,10 @@ import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
+import de.zannagh.armorhider.api.ArmorHiderApi;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.rendering.RenderModifications;
 import de.zannagh.armorhider.client.rendering.VanillaArmorTextureManager;
-import de.zannagh.armorhider.combat.CombatManager;
 import de.zannagh.armorhider.log.DebugLogger;
 import de.zannagh.armorhider.net.packets.PlayerConfig;
 import net.minecraft.client.model.Model;
@@ -268,7 +268,9 @@ public class EquipmentRenderMixin {
     *///?}
     @Unique
     private static boolean armorHider$shouldForceVanillaCombatModel(String playerName) {
-        if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.isArmorHiderDisabled()) return false;
+        if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.isArmorHiderDisabled()) {
+            return false;
+        }
         PlayerConfig config = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getConfigForPlayer(playerName);
         if (!config.enableCombatDetection.getValue()) {
             var serverConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getServerConfig();
@@ -276,7 +278,9 @@ public class EquipmentRenderMixin {
                 return false;
             }
         }
-        if (!CombatManager.isInCombat(playerName)) return false;
+        if (!ArmorHiderApi.getInstance().getCombatManagement().isInCombat(playerName)) {
+            return false;
+        }
         return config.inCombatUseDefaultModel.getValue();
     }
 }

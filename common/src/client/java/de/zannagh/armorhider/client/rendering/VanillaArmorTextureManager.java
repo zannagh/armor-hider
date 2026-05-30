@@ -2,8 +2,8 @@ package de.zannagh.armorhider.client.rendering;
 
 import com.mojang.blaze3d.platform.NativeImage;
 import de.zannagh.armorhider.ArmorHider;
+import de.zannagh.armorhider.api.ArmorHiderApi;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.combat.CombatManager;
 import de.zannagh.armorhider.client.scopes.ActiveModification;
 import de.zannagh.armorhider.client.scopes.RenderContext;
 import de.zannagh.armorhider.log.DebugLogger;
@@ -262,6 +262,6 @@ public final class VanillaArmorTextureManager {
                 return false;
             }
         }
-        return CombatManager.isInCombat(playerName);
+        return ArmorHiderApi.getInstance().getCombatManagement().isInCombat(playerName);
     }
 }

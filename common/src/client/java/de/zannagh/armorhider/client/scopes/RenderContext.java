@@ -1,7 +1,7 @@
 package de.zannagh.armorhider.client.scopes;
 
+import de.zannagh.armorhider.api.ArmorHiderApi;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.combat.CombatManager;
 import de.zannagh.armorhider.log.DebugTracer;
 import net.minecraft.world.entity.EquipmentSlot;
 import org.jetbrains.annotations.NotNull;
@@ -128,7 +128,7 @@ public final class RenderContext {
         if (!ArmorHiderClient.CLIENT_CONFIG_MANAGER.shouldApplyCombatDetection(config)) {
             return false;
         }
-        if (!CombatManager.isInCombat(playerName)) {
+        if (!ArmorHiderApi.getInstance().getCombatManagement().isInCombat(playerName)) {
             return false;
         }
         return config.inCombatUseDefaultModel.getValue();

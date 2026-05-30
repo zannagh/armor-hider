@@ -28,7 +28,8 @@
     ],
     "client": [
       "de.zannagh.armorhider.client.FabricArmorHiderClient"
-    ]
+    ],
+    "armor-hider": []
   },
   "mixins": [
     "armor-hider.mixins.json",
