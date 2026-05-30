@@ -11,28 +11,27 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.player.Player;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class ClientCombatManager implements ArmorHiderClientCombatApi {
     public void handleCombat(DamageSource damageSource, @Nullable Player victim) {
         
         if (victim != null && shouldLogCombatForPlayer(victim)) {
-            var victimName = PlayerNameUtil.getPlayerName(victim);
-            if (victimName != null) {
-                ArmorHiderApi.getInstance().getCombatManagement().registerCombatEvent(new DefaultCombatEvent(victimName, System.currentTimeMillis()));
-                if (Minecraft.getInstance().player != null) {
-                    ClientPacketSender.sendToServer(new CombatLogEventPacket(victim, Minecraft.getInstance().player.getUUID()));
-                }
-            }
+            handleCombatFor(victim);
         }
 
         if (damageSource.getEntity() instanceof AbstractClientPlayer attacker && shouldLogCombatForPlayer(attacker)) {
-            var attackerName = PlayerNameUtil.getPlayerName(attacker);
-            if (attackerName != null) {
-                ArmorHiderApi.getInstance().getCombatManagement().registerCombatEvent(new DefaultCombatEvent(attackerName, System.currentTimeMillis()));
-                if (Minecraft.getInstance().player != null) {
-                    ClientPacketSender.sendToServer(new CombatLogEventPacket(attacker, Minecraft.getInstance().player.getUUID()));
-                }
+            handleCombatFor(attacker);
+        }
+    }
+
+    private void handleCombatFor(@NotNull Player victim) {
+        var victimName = PlayerNameUtil.getPlayerName(victim);
+        if (victimName != null) {
+            ArmorHiderApi.getInstance().getCombatManagement().registerCombatEvent(new DefaultCombatEvent(victimName, System.currentTimeMillis()));
+            if (Minecraft.getInstance().player != null) {
+                ClientPacketSender.sendToServer(new CombatLogEventPacket(victim, Minecraft.getInstance().player.getUUID()));
             }
         }
     }
