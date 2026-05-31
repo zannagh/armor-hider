@@ -15,7 +15,8 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import net.minecraft.client.renderer.MultiBufferSource;
+//? if < 1.21.9
+//import net.minecraft.client.renderer.MultiBufferSource;
 
 // Conditional imports
 //? if >= 1.21.9
