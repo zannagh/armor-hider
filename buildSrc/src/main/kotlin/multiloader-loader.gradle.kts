@@ -39,6 +39,9 @@ dependencies {
     if (hasProperty("mekanism.version")) {
         add("compileOnly", "maven.modrinth:mekanism:${findProperty("mekanism.version")}")
     }
+    if (hasProperty("figura.version")) {
+        add("compileOnly", "maven.modrinth:figura:${findProperty("figura.version")}")
+    }
 }
 
 // Include common's sources in the loader's source sets for IntelliJ
