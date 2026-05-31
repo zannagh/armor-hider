@@ -39,6 +39,7 @@ public final class MixinUtil {
         CompatFlags.GECKOLIB_LOADED = isModPresent(cl, "com.geckolib.renderer.GeoArmorRenderer");
         CompatFlags.FA_LOADED = isModPresent(cl, "net.kenddie.fantasyarmor.FantasyArmor");
         CompatFlags.WFGM_LOADED = isModPresent(cl, "com.wildfire.render.GenderArmorLayer");
+        CompatFlags.FIGURA_LOADED = isModPresent(cl, "org.figuramc.figura.FiguraMod");
     }
 
     /**

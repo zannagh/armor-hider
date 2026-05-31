@@ -50,6 +50,9 @@ public final class MekanismRenderCompat {
             || !(parentModel instanceof PlayerModel<?> model)) {
             return;
         }
+        if (ArmorHiderClient.FIGURA_LOADED) {
+            return;
+        }
         var skin = player.getSkin().texture();
         var vc = bufferSource.getBuffer(RenderType.entityCutoutNoCull(skin));
 
