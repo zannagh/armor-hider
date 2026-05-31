@@ -82,16 +82,20 @@ public class ArmorHiderClient {
                 || Minecraft.getInstance().getCurrentServer() != null
                 || (Minecraft.getInstance().getConnection() != null && Minecraft.getInstance().getConnection().getServerData() != null);
     }
-
-    public static void openPreferredSettingsScreen(Screen parent, net.minecraft.client.Options options) {
-        var minecraft = Minecraft.getInstance();
+    
+    public static Screen getPreferredSettingsScreen(Screen parent, net.minecraft.client.Options options) {
         //? if >= 1.21.9 {
-        Screen target = CLIENT_CONFIG_MANAGER.getValue().showSettingsInSkinCustomization.getValue()
+        return CLIENT_CONFIG_MANAGER.getValue().showSettingsInSkinCustomization.getValue()
                 ? new SkinCustomizationScreen(parent, options)
                 : new ArmorHiderOptionsScreen(parent, options);
         //?}
         //? if < 1.21.9
-        //Screen target = new ArmorHiderOptionsScreen(parent, options);
+        //return new ArmorHiderOptionsScreen(parent, options);
+    }
+
+    public static void openPreferredSettingsScreen(Screen parent, net.minecraft.client.Options options) {
+        var minecraft = Minecraft.getInstance();
+        var target = getPreferredSettingsScreen(parent, options);
         minecraft.setScreenAndShow(target);
     }
 

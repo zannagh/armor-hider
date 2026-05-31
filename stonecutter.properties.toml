@@ -98,6 +98,7 @@ geckolib.version = "V5QnDeov"
 iris.version = "s5eFLITc"
 emf.version = "HLnLv1St"
 etf.version = "v0btz5GE"
+modmenu.version = "lEkperf6"
 
 ["fabric-1.21.1"]
 "fabric.minecraft_version" = "1.21.1"
@@ -107,6 +108,7 @@ geckolib.version = "11VBhLU2"
 iris.version = "zsoi0dso"
 emf.version = "NLDNY8vg"
 etf.version = "udcdeUXw"
+modmenu.version = "v6Xx3fbU"
 
 ["fabric-1.21.4"]
 "fabric.minecraft_version" = "1.21.4"
@@ -116,6 +118,7 @@ geckolib.version = "HFSs3Co0"
 iris.version = "Ca054sTe"
 emf.version = "egL7U2Fa"
 etf.version = "sXFmuZiZ"
+modmenu.version = "qEKKsTqd"
 
 ["fabric-1.21.8"]
 "fabric.minecraft_version" = "1.21.8"
@@ -125,6 +128,7 @@ geckolib.version = "k4Azk0wN"
 iris.version = "Rhzf61g1"
 emf.version = "rPlvbW7d"
 etf.version = "LhiABkEc"
+modmenu.version = "ku5NivOP"
 
 ["fabric-1.21.10"]
 "fabric.minecraft_version" = "1.21.10"
@@ -134,6 +138,7 @@ geckolib.version = "7qjQQSWv"
 iris.version = "a98UkgML"
 emf.version = "q5SsVEBz"
 etf.version = "yW674mc9"
+modmenu.version = "pYbFlVtR"
 
 ["fabric-1.21.11"]
 "fabric.minecraft_version" = "1.21.11"
@@ -143,6 +148,7 @@ geckolib.version = "G1BvHQDL"
 iris.version = "fDpuVzVr"
 emf.version = "CWZPvNbk"
 etf.version = "rAQimlSn"
+modmenu.version = "Tyk71iSw"
 
 ["fabric-26.1-snapshot-11"]
 "fabric.minecraft_version" = "26.1-alpha.11"
@@ -152,6 +158,7 @@ geckolib.version = "yUpAp23B"
 iris.version = "MwcLS51S"
 emf.version = "3AWXQABp"
 etf.version = "pzW03Rc5"
+modmenu.version = "p7gjPPpV"
 
 ["fabric-26.1-pre-2"]
 "fabric.minecraft_version" = "26.1-pre.2"
@@ -161,6 +168,7 @@ geckolib.version = "yUpAp23B"
 iris.version = "MwcLS51S"
 emf.version = "3AWXQABp"
 etf.version = "pzW03Rc5"
+modmenu.version = "p7gjPPpV"
 
 ["fabric-26.1-rc-1"]
 "fabric.minecraft_version" = "26.1-rc.1"
@@ -170,6 +178,7 @@ geckolib.version = "yUpAp23B"
 iris.version = "MwcLS51S"
 emf.version = "3AWXQABp"
 etf.version = "pzW03Rc5"
+modmenu.version = "p7gjPPpV"
 
 ["fabric-26.1-rc-2"]
 "fabric.minecraft_version" = "26.1-rc.2"
@@ -179,6 +188,7 @@ geckolib.version = "yUpAp23B"
 iris.version = "MwcLS51S"
 emf.version = "3AWXQABp"
 etf.version = "pzW03Rc5"
+modmenu.version = "p7gjPPpV"
 
 ["fabric-26.1.2"]
 "fabric.minecraft_version" = "26.1.2"
@@ -189,6 +199,7 @@ geckolib.version = "yUpAp23B"
 iris.version = "MwcLS51S"
 emf.version = "3AWXQABp"
 etf.version = "pzW03Rc5"
+modmenu.version = "p7gjPPpV"
 
 ["fabric-26.2-snapshot-3"]
 "fabric.minecraft_version" = "26.2-alpha.3"
@@ -198,6 +209,7 @@ geckolib.version = "yUpAp23B"
 iris.version = "MwcLS51S"
 emf.version = "3AWXQABp"
 etf.version = "pzW03Rc5"
+modmenu.version = "A1KYIXpK"
 
 # ── NeoForge ──────────────────────────────────────────────────────────────────
 
