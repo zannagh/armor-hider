@@ -1,8 +1,8 @@
 package de.zannagh.armorhider.client.compat.emf;
 
 import de.zannagh.armorhider.ArmorHider;
+import de.zannagh.armorhider.api.ArmorHiderApi;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.combat.CombatManager;
 import de.zannagh.armorhider.log.DebugLogger;
 import de.zannagh.armorhider.net.packets.PlayerConfig;
 import de.zannagh.armorhider.util.PlayerNameUtil;
@@ -26,7 +26,7 @@ public final class EmfCompat {
                 if (!shouldApplyCombatDetection(config)) {
                     return false;
                 }
-                boolean inCombat = CombatManager.isInCombat(playerName);
+                boolean inCombat = ArmorHiderApi.getInstance().getCombatManagement().isInCombat(playerName);
                 boolean useDefault = config.inCombatUseDefaultModel.getValue();
 
                 if (DebugLogger.isEnabled() && callbackLogCounter++ % 60 == 0) {

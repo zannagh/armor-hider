@@ -2,6 +2,7 @@ package de.zannagh.armorhider;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import de.zannagh.armorhider.api.ArmorHiderApiImpl;
 import de.zannagh.armorhider.log.EnrichedLogger;
 import de.zannagh.armorhider.configuration.serialization.*;
 import de.zannagh.armorhider.net.*;
@@ -34,6 +35,7 @@ public class ArmorHider {
     public static void init() {
         LOGGER.info("Initializing...");
 
+        ArmorHiderApiImpl.init();
         PayloadRegistry.init();
         
         // Register server lifecycle events

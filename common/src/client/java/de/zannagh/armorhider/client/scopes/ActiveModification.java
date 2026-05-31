@@ -1,8 +1,8 @@
 package de.zannagh.armorhider.client.scopes;
 
+import de.zannagh.armorhider.api.ArmorHiderApi;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.rendering.ColorMath;
-import de.zannagh.armorhider.combat.CombatManager;
 import de.zannagh.armorhider.configuration.items.ArmorOpacity;
 import de.zannagh.armorhider.net.packets.PlayerConfig;
 import de.zannagh.armorhider.util.ItemsUtil;
@@ -81,7 +81,7 @@ public record ActiveModification(
         double transparency = getTransparencyForSlot(config, resolvedSlot);
         boolean inCombat = shouldApplyCombatTransformation(config);
         if (inCombat) {
-            transparency = CombatManager.transformTransparencyBasedOnCombat(playerName, transparency);
+            transparency = ArmorHiderApi.getInstance().getCombatManagement().getCombatFade(playerName, transparency);
         }
         boolean disableGlint = getDisableGlintForSlot(config, resolvedSlot);
 

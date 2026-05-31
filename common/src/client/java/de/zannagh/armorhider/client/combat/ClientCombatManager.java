@@ -1,37 +1,37 @@
 package de.zannagh.armorhider.client.combat;
 
+import de.zannagh.armorhider.api.ArmorHiderApi;
 import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.client.api.combat.ArmorHiderClientCombatApi;
 import de.zannagh.armorhider.client.net.ClientPacketSender;
-import de.zannagh.armorhider.combat.CombatManager;
+import de.zannagh.armorhider.combat.DefaultCombatEvent;
 import de.zannagh.armorhider.net.packets.CombatLogEventPacket;
 import de.zannagh.armorhider.util.PlayerNameUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.player.Player;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.function.Function;
-
-public final class ClientCombatManager {
-    public static void handleCombat(Function<Player, Boolean> shouldLogCombat, DamageSource damageSource, @Nullable Player victim) {
-        if (victim != null && shouldLogCombat.apply(victim)) {
-            var victimName = PlayerNameUtil.getPlayerName(victim);
-            if (victimName != null) {
-                CombatManager.logCombat(victimName);
-                if (Minecraft.getInstance().player != null) {
-                    ClientPacketSender.sendToServer(new CombatLogEventPacket(victim, Minecraft.getInstance().player.getUUID()));
-                }
-            }
+public class ClientCombatManager implements ArmorHiderClientCombatApi {
+    public void handleCombat(DamageSource damageSource, @Nullable Player victim) {
+        
+        if (victim != null && shouldLogCombatForPlayer(victim)) {
+            handleCombatFor(victim);
         }
 
-        if (damageSource.getEntity() instanceof AbstractClientPlayer attacker && shouldLogCombat.apply(attacker)) {
-            var attackerName = PlayerNameUtil.getPlayerName(attacker);
-            if (attackerName != null) {
-                CombatManager.logCombat(attackerName);
-                if (Minecraft.getInstance().player != null) {
-                    ClientPacketSender.sendToServer(new CombatLogEventPacket(attacker, Minecraft.getInstance().player.getUUID()));
-                }
+        if (damageSource.getEntity() instanceof AbstractClientPlayer attacker && shouldLogCombatForPlayer(attacker)) {
+            handleCombatFor(attacker);
+        }
+    }
+
+    private void handleCombatFor(@NotNull Player victim) {
+        var victimName = PlayerNameUtil.getPlayerName(victim);
+        if (victimName != null) {
+            ArmorHiderApi.getInstance().getCombatManagement().registerCombatEvent(new DefaultCombatEvent(victimName, System.currentTimeMillis()));
+            if (Minecraft.getInstance().player != null) {
+                ClientPacketSender.sendToServer(new CombatLogEventPacket(victim, Minecraft.getInstance().player.getUUID()));
             }
         }
     }
@@ -47,7 +47,7 @@ public final class ClientCombatManager {
      * @param player The player entity to check.
      * @return true if combat should be logged for this player
      */
-    public static boolean shouldLogCombatForPlayer(Player player) {
+    public boolean shouldLogCombatForPlayer(Player player) {
         var serverConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getServerConfig();
         boolean serverUsesCombatDetection = serverConfig != null
                 && serverConfig.serverWideSettings.enableCombatDetection.getValue();

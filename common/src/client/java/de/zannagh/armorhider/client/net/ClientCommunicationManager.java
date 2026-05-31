@@ -1,8 +1,9 @@
 package de.zannagh.armorhider.client.net;
 
 import de.zannagh.armorhider.ArmorHider;
+import de.zannagh.armorhider.api.ArmorHiderApi;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.combat.CombatManager;
+import de.zannagh.armorhider.combat.DefaultCombatEvent;
 import de.zannagh.armorhider.log.DebugLogger;
 import de.zannagh.armorhider.net.packets.CombatLogNotificationPacket;
 import de.zannagh.armorhider.net.packets.PermissionPacket;
@@ -109,6 +110,6 @@ public final class ClientCommunicationManager {
                 return;
             }
         }
-        CombatManager.logCombat(ctx.playerName, ctx.timestamp);
+        ArmorHiderApi.getInstance().getCombatManagement().registerCombatEvent(new DefaultCombatEvent(ctx.playerName, ctx.timestamp));
     }
 }
