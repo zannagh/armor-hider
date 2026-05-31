@@ -93,12 +93,4 @@ public abstract class ArmorHiderConfigurationScreen extends Screen {
         settingsChanged = true;
         ArmorHiderClient.CLIENT_CONFIG_MANAGER.markLocalDirty();
     }
-
-    public void addWidget(AbstractWidget widget){
-        addRenderableWidget(widget);
-    }
-    
-    void removeWidget(AbstractWidget widget) {
-        removeWidget((GuiEventListener) widget);
-    }
 }
