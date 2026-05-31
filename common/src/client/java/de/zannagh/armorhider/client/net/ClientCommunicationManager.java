@@ -70,7 +70,10 @@ public final class ClientCommunicationManager {
             ServerData serverData = client.getCurrentServer();
             if (serverData != null) {
                 try {
-                    boolean isSinglePlayer = client.isSingleplayer();
+                    //? if >= 26.2-1.pre
+                    boolean isSinglePlayer = client.hasSingleplayerServer();
+                    //? if < 26.2-1.pre
+                    /*boolean isSinglePlayer = client.isSingleplayer();*/
                     if (isSinglePlayer) {
                         ArmorHiderClient.permissionLevel = 4;
                     } 

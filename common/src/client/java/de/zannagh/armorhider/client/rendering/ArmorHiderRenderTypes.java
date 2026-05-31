@@ -61,7 +61,32 @@ public final class ArmorHiderRenderTypes {
 
     // --- Pipelines (>= 1.21.5) ---
 
-    //? if >= 26.2-0.snapshot {
+    //? if >= 26.2-1.pre {
+    /*private static RenderPipeline clonePipelineNoDepthWrite(RenderPipeline src, Identifier location) {
+        var srcDss = src.getDepthStencilState();
+        var noDss = new DepthStencilState(srcDss.depthTest(), false, srcDss.depthBiasScaleFactor(), srcDss.depthBiasConstant());
+        var snippet = new RenderPipeline.Snippet(
+                Optional.of(src.getVertexShader()), Optional.of(src.getFragmentShader()),
+                Optional.of(src.getShaderDefines()), Optional.of(src.getBindGroupLayouts()),
+                src.getColorTargetStates(), src.getColorTargetStates().length,
+                Optional.of(noDss), Optional.of(src.getPolygonMode()),
+                Optional.of(src.isCull()), src.getVertexFormatBindings(),
+                Optional.of(src.getPrimitiveTopology()));
+        return RenderPipeline.builder(snippet).withLocation(location).build();
+    }
+
+    private static final RenderPipeline ARMOR_TRANSLUCENT_NO_DEPTH = clonePipelineNoDepthWrite(
+            RenderPipelines.ARMOR_TRANSLUCENT,
+            Identifier.fromNamespaceAndPath("armor_hider", "pipeline/armor_translucent_no_depth"));
+
+    private static final RenderPipeline ENTITY_TRANSLUCENT_NO_DEPTH = clonePipelineNoDepthWrite(
+            RenderPipelines.ENTITY_TRANSLUCENT,
+            Identifier.fromNamespaceAndPath("armor_hider", "pipeline/entity_translucent_no_depth"));
+
+    private static final RenderPipeline ITEM_ENTITY_TRANSLUCENT_CULL_NO_DEPTH = clonePipelineNoDepthWrite(
+            RenderPipelines.ITEM_TRANSLUCENT,
+            Identifier.fromNamespaceAndPath("armor_hider", "pipeline/item_translucent_no_depth"));
+    *///?} elif >= 26.2-0.snapshot {
     /*private static RenderPipeline clonePipelineNoDepthWrite(RenderPipeline src, Identifier location) {
         var srcDss = src.getDepthStencilState();
         var noDss = new DepthStencilState(srcDss.depthTest(), false, srcDss.depthBiasScaleFactor(), srcDss.depthBiasConstant());
