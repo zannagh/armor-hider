@@ -104,11 +104,18 @@ public class OptionElementFactory {
         groups.add(new Pair<>(0, 1));
         groups.add(new Pair<>(2, totalButtons - 1));
 
-        int halfWidth = rowWidth / 2;
+        int sq = UiConstants.SQUARE_BUTTON_WIDTH;
+        int g = UiConstants.DEFAULT_BUTTON_SPACING / 2;
+        int presetCount = PresetManager.PRESET_COUNT;
+        int groupBWidth = presetCount * sq + (presetCount - 1) * g;
+        int groupAWidth = rowWidth - groupBWidth - g;
+        int minGroupA = 2 * sq + g;
         var spacing = new ElementSpacingOptions(rowWidth)
-                .forEvenElements(UiConstants.SQUARE_BUTTON_WIDTH, totalButtons)
+                .forEvenElements(sq, totalButtons)
                 .withGroups(groups)
-                .withSizesForGroups(new int[]{halfWidth, rowWidth - halfWidth});
+                .withMinSizesForGroups(new int[]{minGroupA, groupBWidth})
+                .withSizesForGroups(new int[]{groupAWidth, groupBWidth})
+                .withRightAlignmentForGroup(1);
 
         return new CompoundButtonWidget(allButtons, rowWidth, 20, spacing);
     }
