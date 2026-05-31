@@ -3,7 +3,7 @@
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.rendering.MekanismRenderCompat;
+import de.zannagh.armorhider.client.compat.mekanism.MekanismRenderCompat;
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
 import mekanism.client.render.layer.MekanismArmorLayer;
 import net.minecraft.client.renderer.MultiBufferSource;

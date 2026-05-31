@@ -90,6 +90,9 @@ if (branch == "common") {
         if (hasProperty("mekanism.version")) {
             add(modClientDep, "maven.modrinth:mekanism:${findProperty("mekanism.version")}")
         }
+        if (hasProperty("figura.version")) {
+            add(modClientDep, "maven.modrinth:figura:${findProperty("figura.version")}")
+        }
         add("compileOnly", "net.luckperms:api:5.4")
         add("compileOnly", "org.jspecify:jspecify:1.0.0")
         add("testImplementation", platform("org.junit:junit-bom:6.0.1"))

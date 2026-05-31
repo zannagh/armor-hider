@@ -1,7 +1,9 @@
 //? if mekanism {
-/*package de.zannagh.armorhider.client.rendering;
+/*package de.zannagh.armorhider.client.compat.mekanism;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.client.compat.figura.FiguraCompat;
 import mekanism.client.render.MekanismRenderType;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.player.PlayerModel;
@@ -50,7 +52,7 @@ public final class MekanismRenderCompat {
             || !(parentModel instanceof PlayerModel<?> model)) {
             return;
         }
-        if (ArmorHiderClient.FIGURA_LOADED) {
+        if (ArmorHiderClient.FIGURA_LOADED && FiguraCompat.hasAvatar(player)) {
             return;
         }
         var skin = player.getSkin().texture();
