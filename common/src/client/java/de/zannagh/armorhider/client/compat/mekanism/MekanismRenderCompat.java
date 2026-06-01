@@ -3,17 +3,22 @@
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.compat.figura.FiguraCompat;
 import mekanism.client.render.MekanismRenderType;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.player.PlayerModel;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
+import org.figuramc.figura.avatar.Avatar;
+import org.figuramc.figura.avatar.AvatarManager;
+import org.figuramc.figura.model.rendering.PartFilterScheme;
 
 public final class MekanismRenderCompat {
 
@@ -40,19 +45,32 @@ public final class MekanismRenderCompat {
         };
     }
 
-    @SuppressWarnings("unchecked")
     public static <T extends LivingEntity> void renderBodyUnderArmor(
-            EntityModel<?> parentModel,
+            EntityModel<T> parentModel,
             PoseStack poseStack,
             MultiBufferSource bufferSource,
             T entity,
             EquipmentSlot slot,
-            int light) {
+            int light,
+            float partialTicks) {
         if (!(entity instanceof AbstractClientPlayer player)
-            || !(parentModel instanceof PlayerModel<?> model)) {
+            || !(parentModel instanceof PlayerModel<T> model)) {
             return;
         }
-        if (ArmorHiderClient.FIGURA_LOADED && FiguraCompat.hasAvatar(player)) {
+        if (ArmorHiderClient.FIGURA_LOADED && AvatarManager.getAvatar(player) instanceof Avatar avatar) {
+            if (slot == EquipmentSlot.HEAD && avatar.renderer != null) {
+                var entityRenderer = Minecraft.getInstance().getEntityRenderDispatcher().getRenderer(player);
+                if (entityRenderer instanceof LivingEntityRenderer<?, ?> livingRenderer) {
+                    float yaw = Mth.lerp(partialTicks, player.yBodyRotO, player.yBodyRot);
+                    avatar.renderer.ignoreVanillaVisibility = true;
+                    try {
+                        avatar.render(player, yaw, partialTicks, 1f, poseStack, bufferSource, light,
+                                OverlayTexture.NO_OVERLAY, livingRenderer, PartFilterScheme.HEAD, false, false);
+                    } finally {
+                        avatar.renderer.ignoreVanillaVisibility = false;
+                    }
+                }
+            }
             return;
         }
         var skin = player.getSkin().texture();
