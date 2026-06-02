@@ -21,6 +21,8 @@ public interface IdentityCarrier {
     @Nullable ItemStack customHeadItem();
 
     boolean isPlayerFlying();
+
+    default boolean isPlayerBlocking() { return false; }
     
     @Nullable ActiveModification armorHider$getHeadMod();
     @Nullable ActiveModification armorHider$getChestMod();

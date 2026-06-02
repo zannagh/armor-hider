@@ -38,6 +38,7 @@ public class ConfigurationItemFactoryRegistry {
         registerFactoriesForClass(EnableGlint.class);
         registerFactoriesForClass(ShowSettingsInSkinCustomization.class);
         registerFactoriesForClass(InCombatUseDefaultArmorSkin.class);
+        registerFactoriesForClass(ShowShieldWhenBlocking.class);
 
         initialized = true;
     }

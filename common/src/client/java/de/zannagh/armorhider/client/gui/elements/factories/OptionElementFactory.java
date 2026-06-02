@@ -127,7 +127,18 @@ public class OptionElementFactory {
                                      @Nullable Boolean initialOtherAffect,
                                      @Nullable Consumer<Boolean> glintConsumer,
                                      @Nullable Consumer<Boolean> additionalAffectConsumer){
-        var widget = createSliderWithToggleForSlot(slot, slider, options, initialGlint, initialOtherAffect, glintConsumer, additionalAffectConsumer);
+        addSliderWithToggles(slot, slider, options, initialGlint, initialOtherAffect, glintConsumer, additionalAffectConsumer, null);
+    }
+
+    public void addSliderWithToggles(EquipmentSlot slot,
+                                     OptionInstance<Double> slider,
+                                     Options options,
+                                     @Nullable Boolean initialGlint,
+                                     @Nullable Boolean initialOtherAffect,
+                                     @Nullable Consumer<Boolean> glintConsumer,
+                                     @Nullable Consumer<Boolean> additionalAffectConsumer,
+                                     @Nullable AbstractWidget customToggle){
+        var widget = createSliderWithToggleForSlot(slot, slider, options, initialGlint, initialOtherAffect, glintConsumer, additionalAffectConsumer, customToggle);
         addElementAsWidget(widget);
     }
     
@@ -138,9 +149,21 @@ public class OptionElementFactory {
                                                        @Nullable Boolean initialOtherAffect,
                                                        @Nullable Consumer<Boolean> glintConsumer,
                                                        @Nullable Consumer<Boolean> additionalAffectConsumer) {
+        return createSliderWithToggleForSlot(slot, slider, options, initialGlint, initialOtherAffect, glintConsumer, additionalAffectConsumer, null);
+    }
+
+    public AbstractWidget createSliderWithToggleForSlot(EquipmentSlot slot,
+                                                       OptionInstance<Double> slider,
+                                                       Options options,
+                                                       @Nullable Boolean initialGlint,
+                                                       @Nullable Boolean initialOtherAffect,
+                                                       @Nullable Consumer<Boolean> glintConsumer,
+                                                       @Nullable Consumer<Boolean> additionalAffectConsumer,
+                                                       @Nullable AbstractWidget customToggle) {
         int smallCount = 1; // secondary always present
         if (initialGlint != null && glintConsumer != null) smallCount++;
         if (initialOtherAffect != null && additionalAffectConsumer != null) smallCount++;
+        if (customToggle != null) smallCount++;
         int sliderWidth = CompoundOptionWidget.getPrimaryWidth(rowWidth, smallCount);
         int buttonWidth = CompoundOptionWidget.getAdditionalElementWidth(rowWidth, smallCount);
 
@@ -191,7 +214,12 @@ public class OptionElementFactory {
                     });
         }
 
-        return new CompoundOptionWidget(sliderWidget, button, toggleGlintButton, affectOtherItemsButton, rowWidth, 20);
+        AbstractWidget tertiary = toggleGlintButton;
+        if (tertiary == null) {
+            tertiary = customToggle;
+        }
+
+        return new CompoundOptionWidget(sliderWidget, button, tertiary, affectOtherItemsButton, rowWidth, 20);
     }
 
     public OptionInstance<Double> buildDoubleOption(String key,

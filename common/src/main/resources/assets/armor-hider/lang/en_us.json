@@ -29,6 +29,8 @@
   "armorhider.options.offhand.button_text": "Offhand: %s",
   "armorhider.options.offhand.tooltip": "Adjusts the offhand item opacity for your model between 0 (transparent) and 100% (visible).",
   "armorhider.options.offhand.tooltip_narration": "Adjusts the offhand item opacity for your model between 0 (transparent) and 100% (visible).",
+  "armorhider.options.shield_blocking.tooltip.enabled": "Disable showing the shield at full opacity while blocking.",
+  "armorhider.options.shield_blocking.tooltip.disabled": "Enable showing the shield at full opacity while blocking.",
   "armorhider.options.combat_detection.tooltip.enabled": "Disables detection of combat to show your armor when you are in combat.",
   "armorhider.options.combat_detection.tooltip.disabled": "Enables detection of combat to show your armor when you are in combat.",
   "armorhider.options.combat_detection.title": "Combat Detection",

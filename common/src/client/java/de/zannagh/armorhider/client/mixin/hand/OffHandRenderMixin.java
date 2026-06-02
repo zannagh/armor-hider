@@ -54,6 +54,10 @@ public class OffHandRenderMixin {
         if (interactionHand == InteractionHand.MAIN_HAND){
             return;
         }
+        if (carrier.isPlayerBlocking()
+                && ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().showShieldWhenBlocking.getValue()) {
+            return;
+        }
         carrier.createModification(EquipmentSlot.OFFHAND, itemStack);
     }
 
@@ -80,7 +84,8 @@ public class OffHandRenderMixin {
     //? if 1.21.5
     //private void modifyItemSubmit(ItemRenderer instance, LivingEntity livingEntity, ItemStack itemStack, ItemDisplayContext itemDisplayContext, PoseStack poseStack, MultiBufferSource multiBufferSource, Level level, int i, int j, int k, Operation<Void> original) {
         var ctx = ArmorHiderClient.RENDER_CONTEXT;
-        if (ctx.hasActiveModification(EquipmentSlot.OFFHAND) && ctx.activeModification().shouldHide()) {
+        if (ctx.hasActiveModification(EquipmentSlot.OFFHAND) 
+                && ctx.activeModification().shouldHide()) {
             return;
         }
         //? if >= 1.21.9

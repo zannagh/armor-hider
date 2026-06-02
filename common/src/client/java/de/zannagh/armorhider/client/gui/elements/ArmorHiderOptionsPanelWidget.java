@@ -2,7 +2,9 @@ package de.zannagh.armorhider.client.gui.elements;
 
 import com.mojang.datafixers.util.Pair;
 import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.client.gui.UiConstants;
 import de.zannagh.armorhider.client.gui.elements.factories.OptionElementFactory;
+import de.zannagh.armorhider.client.gui.elements.implementations.ShowShieldWhenBlockingButton;
 import de.zannagh.armorhider.client.gui.screens.AdvancedArmorHiderSettingsScreen;
 import de.zannagh.armorhider.configuration.PresetManager;
 import net.minecraft.client.Minecraft;
@@ -139,6 +141,15 @@ public class ArmorHiderOptionsPanelWidget extends AbstractWidget {
                 config.offHandOpacity.getValue(),
                 val -> setSetting(val, config.offHandOpacity::setValue)
         );
+        var shieldButton = new ShowShieldWhenBlockingButton(
+                config.showShieldWhenBlocking.getValue(),
+                UiConstants.SQUARE_BUTTON_WIDTH,
+                UiConstants.DEFAULT_BUTTON_HEIGHT,
+                onPress -> {
+                    if (onPress instanceof ShowShieldWhenBlockingButton btn) {
+                        setSetting(btn.toggle(), config.showShieldWhenBlocking::setValue);
+                    }
+                });
         factory.addSliderWithToggles(
                 EquipmentSlot.OFFHAND,
                 offhandOption,
@@ -146,7 +157,8 @@ public class ArmorHiderOptionsPanelWidget extends AbstractWidget {
                 null,
                 null,
                 null,
-                null
+                null,
+                shieldButton
         );
 
         factory.addElementAsWidget(Button.builder(

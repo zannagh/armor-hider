@@ -101,6 +101,8 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
     public @NonNull ShowSettingsInSkinCustomization showSettingsInSkinCustomization;
     @SerializedName(value = "offHandOpacity")
     public @NonNull OffHandOpacity offHandOpacity;
+    @SerializedName(value = "showShieldWhenBlocking")
+    public @NonNull ShowShieldWhenBlocking showShieldWhenBlocking;
 
     public @NonNull PlayerUuid playerId;
 
@@ -134,6 +136,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         usePlayerSettingsWhenUndeterminable = new UsePlayerSettingsWhenUndeterminable();
         showSettingsInSkinCustomization = new ShowSettingsInSkinCustomization();
         offHandOpacity = new OffHandOpacity();
+        showShieldWhenBlocking = new ShowShieldWhenBlocking();
         helmetGlint = new EnableGlint();
         chestGlint = new EnableGlint();
         legsGlint = new EnableGlint();
