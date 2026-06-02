@@ -194,6 +194,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         fresh.usePlayerSettingsWhenUndeterminable.setValue(old.usePlayerSettingsWhenUndeterminable.getValue());
         fresh.showSettingsInSkinCustomization.setValue(old.showSettingsInSkinCustomization.getValue());
         fresh.offHandOpacity.setValue(old.offHandOpacity.getValue());
+        fresh.showShieldWhenBlocking.setValue(old.showShieldWhenBlocking.getValue());
         fresh.exclusionItems = old.exclusionItems.deepCopy();
 
         fresh.setHasChangedFromSerializedContent();
@@ -229,6 +230,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         newConfig.usePlayerSettingsWhenUndeterminable.setValue(this.usePlayerSettingsWhenUndeterminable.getValue());
         newConfig.showSettingsInSkinCustomization.setValue(this.showSettingsInSkinCustomization.getValue());
         newConfig.offHandOpacity.setValue(this.offHandOpacity.getValue());
+        newConfig.showShieldWhenBlocking.setValue(this.showShieldWhenBlocking.getValue());
         newConfig.helmetGlint.setValue(this.helmetGlint.getValue());
         newConfig.chestGlint.setValue(this.chestGlint.getValue());
         newConfig.legsGlint.setValue(this.legsGlint.getValue());

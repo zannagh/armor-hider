@@ -161,9 +161,16 @@ public class OptionElementFactory {
                                                        @Nullable Consumer<Boolean> additionalAffectConsumer,
                                                        @Nullable AbstractWidget customToggle) {
         int smallCount = 1; // secondary always present
-        if (initialGlint != null && glintConsumer != null) smallCount++;
-        if (initialOtherAffect != null && additionalAffectConsumer != null) smallCount++;
-        if (customToggle != null) smallCount++;
+        boolean hasGlint = initialGlint != null && glintConsumer != null;
+        if (hasGlint) {
+            smallCount++;
+        }
+        if (initialOtherAffect != null && additionalAffectConsumer != null) {
+            smallCount++;
+        }
+        if (customToggle != null && !hasGlint) {
+            smallCount++;
+        }
         int sliderWidth = CompoundOptionWidget.getPrimaryWidth(rowWidth, smallCount);
         int buttonWidth = CompoundOptionWidget.getAdditionalElementWidth(rowWidth, smallCount);
 
