@@ -74,7 +74,7 @@ public class ItemInHandLayerMixin {
         }
         var ctx = ArmorHiderClient.RENDER_CONTEXT;
         //? if >= 1.21.11
-        var mod = carrier.createModification(EquipmentSlot.OFFHAND, itemStack);
+        var mod = carrier.createModificationAndSetContext(EquipmentSlot.OFFHAND, itemStack);
         //? if >= 1.21.4 && < 1.21.11
         //var mod = carrier.createModification(EquipmentSlot.OFFHAND, null);
         //? if < 1.21.4

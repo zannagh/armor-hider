@@ -1,7 +1,5 @@
 package de.zannagh.armorhider.client.mixin.hand;
 
-import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.scopes.ActiveModification;
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
 import net.minecraft.client.renderer.entity.ItemEntityRenderer;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -39,7 +37,7 @@ public class ItemEntityRendererMixin {
         if (slot != EquipmentSlot.OFFHAND) {
             return;
         }
-        carrier.createModification(slot, itemEntity.getItem());
+        carrier.createModificationAndSetContext(slot, itemEntity.getItem());
     }
 
     // For < 1.21.4, exit the item scope at render() RETURN (same method as entry).

@@ -42,7 +42,7 @@ public class GeckoLibArmorMixin {
             HumanoidRenderState renderState,
             CallbackInfoReturnable<Boolean> cir) {
         if (!(renderState instanceof IdentityCarrier carrier)
-                || !(carrier.createModification(slot, stack) instanceof ActiveModification mod)) {
+                || !(carrier.createModificationAndSetContext(slot, stack) instanceof ActiveModification mod)) {
             return;
         }
 

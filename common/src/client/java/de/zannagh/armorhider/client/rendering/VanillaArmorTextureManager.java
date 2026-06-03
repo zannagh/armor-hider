@@ -4,8 +4,9 @@ import com.mojang.blaze3d.platform.NativeImage;
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.api.ArmorHiderApi;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.scopes.ActiveModification;
-import de.zannagh.armorhider.client.scopes.RenderContext;
+import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
+import de.zannagh.armorhider.client.api.configuration.SlotModification;
+import de.zannagh.armorhider.client.api.render.ArmorHiderRenderingScopeApi;
 import de.zannagh.armorhider.log.DebugLogger;
 import de.zannagh.armorhider.net.packets.PlayerConfig;
 import net.minecraft.client.Minecraft;
@@ -37,19 +38,13 @@ public final class VanillaArmorTextureManager {
 
     private VanillaArmorTextureManager() {}
 
-    public static Identifier resolveArmorTexture(RenderContext ctx, Identifier texture) {
+    public static Identifier resolveArmorTexture(Identifier texture) {
         String playerName;
-        ActiveModification mod = ctx.activeModification();
-        if (mod != null) {
-            playerName = mod.playerName();
-        } else {
-            playerName = ctx.currentPlayerName();
-        }
-
-        if (playerName == null) {
+        SlotModification mod = ArmorHiderClientApi.getInstance().getRenderingScopeApi().currentlyActiveModification();
+        if (mod.isEmpty() || mod.playerName().isBlank()) {
             return texture;
         }
-        if (!shouldUseCombatVanillaTexture(playerName)) {
+        if (!shouldUseCombatVanillaTexture(mod.playerName())) {
             return texture;
         }
 
@@ -57,7 +52,7 @@ public final class VanillaArmorTextureManager {
 
         if (DebugLogger.isEnabled() && logCounter++ % 60 == 0) {
             DebugLogger.log("[VanillaTexture] player={} | texture={} | fallback={} | hasMod={}",
-                    playerName, texture, fallback, mod != null);
+                    mod.playerName(), texture, fallback, !mod.isEmpty());
         }
 
         return fallback != null ? fallback : texture;

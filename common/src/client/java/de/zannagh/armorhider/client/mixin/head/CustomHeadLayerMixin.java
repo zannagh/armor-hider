@@ -6,14 +6,11 @@ import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.scopes.ActiveModification;
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
 import de.zannagh.armorhider.constants.MixinConstants;
-import de.zannagh.armorhider.util.ItemsUtil;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.layers.CustomHeadLayer;
-import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.SkullBlock;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -81,7 +78,7 @@ public abstract class CustomHeadLayerMixin {
         if (headItem.isEmpty()) {
             return null;
         }
-        return carrier.createModification(EquipmentSlot.HEAD, headItem);
+        return carrier.createModificationAndSetContext(EquipmentSlot.HEAD, headItem);
     }
 }
 //?}

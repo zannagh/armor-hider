@@ -3,9 +3,9 @@ package de.zannagh.armorhider.api.combat;
 /**
  * @since 0.12.0
  */
-public interface ArmorHiderCombatManagement {
+public interface ArmorHiderCombatManagementApi {
 
-    void overrideDefaultBehavior(ArmorHiderCombatManagement customManagement, int priority);
+    void overrideDefaultBehavior(ArmorHiderCombatManagementApi customManagement, int priority);
     
     /**
      * Registers a combat event consumer with custom behavior about whether combat events should be

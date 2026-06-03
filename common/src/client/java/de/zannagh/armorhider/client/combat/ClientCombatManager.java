@@ -26,16 +26,6 @@ public class ClientCombatManager implements ArmorHiderClientCombatApi {
         }
     }
 
-    private void handleCombatFor(@NotNull Player victim) {
-        var victimName = PlayerNameUtil.getPlayerName(victim);
-        if (victimName != null) {
-            ArmorHiderApi.getInstance().getCombatManagement().registerCombatEvent(new DefaultCombatEvent(victimName, System.currentTimeMillis()));
-            if (Minecraft.getInstance().player != null) {
-                ClientPacketSender.sendToServer(new CombatLogEventPacket(victim, Minecraft.getInstance().player.getUUID()));
-            }
-        }
-    }
-
     /**
      * Determines if combat should be logged for a specific player.
      * <p>
@@ -59,5 +49,15 @@ public class ClientCombatManager implements ArmorHiderClientCombatApi {
         var playerName = PlayerNameUtil.getPlayerName(player);
         var config = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getConfigForPlayer(playerName);
         return config.enableCombatDetection.getValue();
+    }
+
+    private void handleCombatFor(@NotNull Player victim) {
+        var victimName = PlayerNameUtil.getPlayerName(victim);
+        if (victimName != null) {
+            ArmorHiderApi.getInstance().getCombatManagement().registerCombatEvent(new DefaultCombatEvent(victimName, System.currentTimeMillis()));
+            if (Minecraft.getInstance().player != null) {
+                ClientPacketSender.sendToServer(new CombatLogEventPacket(victim, Minecraft.getInstance().player.getUUID()));
+            }
+        }
     }
 }

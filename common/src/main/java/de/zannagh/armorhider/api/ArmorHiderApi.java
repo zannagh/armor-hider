@@ -1,6 +1,6 @@
 package de.zannagh.armorhider.api;
 
-import de.zannagh.armorhider.api.combat.ArmorHiderCombatManagement;
+import de.zannagh.armorhider.api.combat.ArmorHiderCombatManagementApi;
 
 public interface ArmorHiderApi {
 
@@ -15,7 +15,7 @@ public interface ArmorHiderApi {
 
     /**
      * @since 0.12.0
-     * @return An instance of {@link ArmorHiderCombatManagement} to register or change in-combat behavior.
+     * @return An instance of {@link ArmorHiderCombatManagementApi} to register or change in-combat behavior.
      */
-    ArmorHiderCombatManagement getCombatManagement();
+    ArmorHiderCombatManagementApi getCombatManagement();
 }

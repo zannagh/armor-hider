@@ -38,7 +38,7 @@ public class PlayerModelMixin {
         if (!(state instanceof IdentityCarrier carrier)) {
             return;
         }
-        var mod = carrier.createModification(EquipmentSlot.CHEST, null);
+        var mod = carrier.createModificationAndSetContext(EquipmentSlot.CHEST, null);
         try {
             if (mod == null || !mod.shouldModify()) {
                 return;

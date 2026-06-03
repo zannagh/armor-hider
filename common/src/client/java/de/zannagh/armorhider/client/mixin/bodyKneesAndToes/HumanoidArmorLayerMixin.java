@@ -116,7 +116,7 @@ public class HumanoidArmorLayerMixin
                 || (ItemsUtil.itemStackContainsElytra(itemStack) && identityCarrier.isPlayerFlying())) {
             return;
         }
-        var mod = identityCarrier.createModification(equipmentSlot, itemStack);
+        var mod = identityCarrier.createModificationAndSetContext(equipmentSlot, itemStack);
 
         if (mod != null && mod.shouldHide()) {
             ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();

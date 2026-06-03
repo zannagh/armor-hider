@@ -4,7 +4,6 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.scopes.ActiveModification;
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.ItemInHandRenderer;
@@ -54,7 +53,7 @@ public class OffHandRenderMixin {
         if (interactionHand == InteractionHand.MAIN_HAND){
             return;
         }
-        carrier.createModification(EquipmentSlot.OFFHAND, itemStack);
+        carrier.createModificationAndSetContext(EquipmentSlot.OFFHAND, itemStack);
     }
 
     @WrapOperation(

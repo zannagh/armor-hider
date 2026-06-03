@@ -1,100 +1,58 @@
 package de.zannagh.armorhider.client.rendering;
 
-import de.zannagh.armorhider.client.scopes.RenderContext;
-import de.zannagh.armorhider.util.ItemsUtil;
+import de.zannagh.armorhider.client.api.configuration.SlotModification;
+import de.zannagh.armorhider.common.ItemInfo;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.Sheets;
-import net.minecraft.world.item.Items;
-import org.jetbrains.annotations.NotNull;
 
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.resources.Identifier;
 
 /**
  * Applies visual modifications (transparency, render type swaps, color changes)
- * based on the active modification in the render context.
- *
+ * based on the active modification in the render context.<br>
+ * <br>
  * All methods are "pass-through safe": if no active modification exists,
  * they return the original values unchanged.
  */
-public final class RenderModifications {
+public class RenderModifications {
 
     public static final int ELYTRA_RENDER_PRIORITY = 100;
     public static final int SKULL_RENDER_PRIORITY = 99;
 
-    private RenderModifications() {}
+    private final SlotModification slotModification;
+    private final ItemInfo itemInfo;
+
+    public RenderModifications(SlotModification slotModification) {
+        this.slotModification = slotModification;
+        this.itemInfo = new ItemInfo(slotModification.item());
+    }
 
     // --- Render type modifications ---
 
-    //? if >= 1.21.11
-    public static RenderType getSkullRenderLayer(@NotNull RenderContext ctx, Identifier texture, RenderType originalLayer) {
-    //? if >= 1.21.4 && < 1.21.11
-    //public static RenderType getSkullRenderLayer(@NotNull RenderContext ctx, Identifier texture, RenderType originalLayer) {
-    //? if < 1.21.4
-    //public static RenderType getSkullRenderLayer(@NotNull RenderContext ctx, Identifier texture, RenderType originalLayer) {
-        var mod = ctx.activeModification();
-        if (mod == null) {
+    public RenderType getSkullRenderLayer(Identifier texture, RenderType originalLayer) {
+        if (slotModification.isEmpty() || !slotModification.needsModification()) {
             return originalLayer;
         }
-        double transparency = mod.transparency();
-        if (transparency < 1.0 && transparency >= 0) {
-            return RenderTypeFactory.translucentEntity(texture);
-        }
-        return originalLayer;
+        return RenderTypeFactory.translucentEntity(texture);
     }
 
-    //? if >= 1.21.11
-    public static RenderType getTranslucentArmorRenderType(@NotNull RenderContext ctx, Identifier texture, RenderType originalLayer) {
-    //? if >= 1.21.4 && < 1.21.11
-    //public static RenderType getTranslucentArmorRenderType(@NotNull RenderContext ctx, Identifier texture, RenderType originalLayer) {
-    //? if < 1.21.4
-    //public static RenderType getTranslucentArmorRenderType(@NotNull RenderContext ctx, Identifier texture, RenderType originalLayer) {
-        var mod = ctx.activeModification();
-        if (mod == null) {
-            return originalLayer;
-        }
-        double transparency = mod.transparency();
-        if (transparency >= 1.0 || transparency <= 0) {
+    public RenderType getTranslucentArmorRenderType(Identifier texture, RenderType originalLayer) {
+        if (slotModification.isEmpty() || !slotModification.needsModification()) {
             return originalLayer;
         }
         return RenderTypeFactory.translucentArmor(texture);
     }
 
-    //? if >= 1.21.4 {
-    public static RenderType getTrimRenderLayer(@NotNull RenderContext ctx, boolean decal, RenderType originalLayer) {
-        var mod = ctx.activeModification();
-        if (mod == null) {
-            return originalLayer;
-        }
-        double transparency = mod.transparency();
-        if (transparency >= 1.0 || transparency <= 0) {
+    public RenderType getTrimRenderLayer(boolean decal, RenderType originalLayer) {
+        if (slotModification.isEmpty() || !slotModification.needsModification()) {
             return originalLayer;
         }
         return RenderTypeFactory.translucentArmorTrim();
     }
-    //?}
 
-    //? if < 1.21.4 {
-    /*public static RenderType getTrimRenderLayer(@NotNull RenderContext ctx, boolean decal, RenderType originalLayer) {
-        var mod = ctx.activeModification();
-        if (mod == null) {
-            return originalLayer;
-        }
-        double transparency = mod.transparency();
-        if (transparency >= 1.0 || transparency <= 0) {
-            return originalLayer;
-        }
-        return RenderTypeFactory.translucentArmorTrim();
-    }
-    *///?}
-
-    public static RenderType getTranslucentItemRenderType(@NotNull RenderContext ctx, RenderType originalLayer) {
-        var mod = ctx.activeModification();
-        if (mod == null) {
-            return originalLayer;
-        }
-        double transparency = mod.transparency();
-        if (transparency >= 1.0 || transparency <= 0) {
+    public RenderType getTranslucentItemRenderType(RenderType originalLayer) {
+        if (slotModification.isEmpty() || !slotModification.needsModification()) {
             return originalLayer;
         }
         //? if <= 26.1.2
@@ -108,43 +66,39 @@ public final class RenderModifications {
 
     // --- Color modifications ---
 
-    public static int applyArmorTransparency(@NotNull RenderContext ctx, int originalColor) {
-        var mod = ctx.activeModification();
-        if (mod == null) {
+    public int applyArmorTransparency(int originalColor) {
+        if (slotModification.isEmpty() || !slotModification.needsModification()) {
             return originalColor;
         }
-        int alpha = (int) (mod.transparency() * 255);
+        int alpha = (int) (slotModification.transparency() * 255);
         return ColorMath.withAlpha(originalColor, alpha);
     }
 
-    public static int applyTransparencyFromWhite(@NotNull RenderContext ctx, int original) {
-        var mod = ctx.activeModification();
-        if (mod == null) {
+    public int applyTransparencyFromWhite(int original) {
+        if (slotModification.isEmpty() || !slotModification.needsModification()) {
             return original;
         }
-        int alpha = (int) (mod.transparency() * 255);
+        int alpha = (int) (slotModification.transparency() * 255);
         return ColorMath.whiteWithAlpha(alpha);
     }
 
-    public static float getTransparencyAlpha(@NotNull RenderContext ctx) {
-        var mod = ctx.activeModification();
-        if (mod == null) {
+    public float getTransparencyAlpha() {
+        if (slotModification.isEmpty() || !slotModification.needsModification()) {
             return 1.0f;
         }
-        return (float) mod.transparency();
+        return (float) slotModification.transparency();
     }
 
     // --- Priority modifications ---
 
-    public static int modifyRenderPriority(@NotNull RenderContext ctx, int originalPriority) {
-        var mod = ctx.activeModification();
-        if (mod == null) {
+    public int modifyRenderPriority(int originalPriority) {
+        if (slotModification.isEmpty() || !slotModification.needsModification()) {
             return originalPriority;
         }
-        if (mod.item().is(Items.ELYTRA)) {
+        if (itemInfo.isElytra()) {
             return ELYTRA_RENDER_PRIORITY;
         }
-        if (ItemsUtil.isSkullBlockItem(mod.item().getItem())) {
+        if (itemInfo.isVanillaSkullItem()) {
             return SKULL_RENDER_PRIORITY;
         }
         return originalPriority;

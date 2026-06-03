@@ -7,7 +7,6 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.rendering.RenderModifications;
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
-import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.state.AvatarRenderState;
 import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
@@ -49,7 +48,7 @@ public class GenderArmorLayerMixin {
             @Coerce Object side, int color, boolean glint, CallbackInfo ci) {
         if (!(state instanceof IdentityCarrier carrier)) return;
         ItemStack chestItem = (state instanceof AvatarRenderState avatar) ? avatar.chestEquipment : null;
-        var mod = carrier.createModification(EquipmentSlot.CHEST, chestItem);
+        var mod = carrier.createModificationAndSetContext(EquipmentSlot.CHEST, chestItem);
         if (mod != null && mod.shouldHide()) {
             ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
             ci.cancel();
@@ -102,7 +101,7 @@ public class GenderArmorLayerMixin {
             @Coerce Object trim, @Coerce Object side, boolean glint, CallbackInfo ci) {
         if (!(state instanceof IdentityCarrier carrier)) return;
         ItemStack chestItem = (state instanceof AvatarRenderState avatar) ? avatar.chestEquipment : null;
-        var mod = carrier.createModification(EquipmentSlot.CHEST, chestItem);
+        var mod = carrier.createModificationAndSetContext(EquipmentSlot.CHEST, chestItem);
         if (mod != null && mod.shouldHide()) {
             ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
             ci.cancel();
@@ -142,7 +141,7 @@ public class GenderArmorLayerMixin {
             HumanoidRenderState state, @Coerce Object box, CallbackInfo ci) {
         if (!(state instanceof IdentityCarrier carrier)) return;
         ItemStack chestItem = (state instanceof AvatarRenderState avatar) ? avatar.chestEquipment : null;
-        var mod = carrier.createModification(EquipmentSlot.CHEST, chestItem);
+        var mod = carrier.createModificationAndSetContext(EquipmentSlot.CHEST, chestItem);
         if (mod != null && (mod.shouldHide() || mod.shouldDisableGlint())) {
             ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
             ci.cancel();

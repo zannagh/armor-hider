@@ -1,6 +1,7 @@
 package de.zannagh.armorhider.client.api;
 
 import de.zannagh.armorhider.client.api.combat.ArmorHiderClientCombatApi;
+import de.zannagh.armorhider.client.api.render.ArmorHiderRenderingScopeApi;
 
 /**
  * @since 0.12.0
@@ -21,4 +22,10 @@ public interface ArmorHiderClientApi {
      * @return An instance of {@link ArmorHiderClientCombatApi} for client-side combat handling.
      */
     ArmorHiderClientCombatApi getClientCombatApi();
+
+    /**
+     * @since 0.12.0
+     * @return An instance of {@link ArmorHiderRenderingScopeApi} for managing rendering scopes.
+     */
+    ArmorHiderRenderingScopeApi getRenderingScopeApi();
 }

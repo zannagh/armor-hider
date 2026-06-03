@@ -1,6 +1,6 @@
 package de.zannagh.armorhider.api;
 
-import de.zannagh.armorhider.api.combat.ArmorHiderCombatManagement;
+import de.zannagh.armorhider.api.combat.ArmorHiderCombatManagementApi;
 import de.zannagh.armorhider.combat.CombatManager;
 
 public final class ArmorHiderApiImpl implements ArmorHiderApi {
@@ -33,7 +33,7 @@ public final class ArmorHiderApiImpl implements ArmorHiderApi {
     }
 
     @Override
-    public ArmorHiderCombatManagement getCombatManagement() {
+    public ArmorHiderCombatManagementApi getCombatManagement() {
         return combatManager;
     }
 

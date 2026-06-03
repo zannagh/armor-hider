@@ -56,7 +56,7 @@ public class WaveyCapesMixin {
         var renderState = player;
     *///?}
         if (renderState instanceof IdentityCarrier carrier) {
-            var mod = carrier.createModification(EquipmentSlot.CHEST, chestEquipment);
+            var mod = carrier.createModificationAndSetContext(EquipmentSlot.CHEST, chestEquipment);
             if (mod != null
                     && mod.shouldHide()
                     && itemStackContainsElytra(chestEquipment)

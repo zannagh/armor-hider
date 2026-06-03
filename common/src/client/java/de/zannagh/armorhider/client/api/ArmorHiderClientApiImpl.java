@@ -1,6 +1,8 @@
 package de.zannagh.armorhider.client.api;
 
 import de.zannagh.armorhider.client.api.combat.ArmorHiderClientCombatApi;
+import de.zannagh.armorhider.client.api.render.ArmorHiderRenderingScopeApi;
+import de.zannagh.armorhider.client.api.render.ArmorHiderRenderingScopeApiImpl;
 import de.zannagh.armorhider.client.combat.ClientCombatManager;
 
 public final class ArmorHiderClientApiImpl implements ArmorHiderClientApi {
@@ -8,6 +10,8 @@ public final class ArmorHiderClientApiImpl implements ArmorHiderClientApi {
     private static ArmorHiderClientApiImpl instance;
 
     private final ClientCombatManager clientCombatManager = new ClientCombatManager();
+
+    private final ArmorHiderRenderingScopeApiImpl renderingScopeApi = new ArmorHiderRenderingScopeApiImpl();
 
     static ArmorHiderClientApiImpl getInstance() {
         if (instance == null) {
@@ -30,5 +34,10 @@ public final class ArmorHiderClientApiImpl implements ArmorHiderClientApi {
     @Override
     public ArmorHiderClientCombatApi getClientCombatApi() {
         return clientCombatManager;
+    }
+
+    @Override
+    public ArmorHiderRenderingScopeApi getRenderingScopeApi() {
+        return renderingScopeApi;
     }
 }

@@ -1,6 +1,8 @@
 package de.zannagh.armorhider.client.scopes;
 
-import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
+import de.zannagh.armorhider.client.api.configuration.PlayerModificationInfo;
+import de.zannagh.armorhider.client.api.configuration.SlotModification;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -11,7 +13,7 @@ import org.jetbrains.annotations.Nullable;
  * {@code LivingEntityRenderState} (>= 1.21.4, via {@link IdentityStateCarrier}).
  * <p>
  * Carries player identity and produces {@link ActiveModification} instances
- * for the rendering pipeline. Layer mixins call {@link #createModification}
+ * for the rendering pipeline. Layer mixins call {@link #createModificationAndSetContext}
  * to get the pre-computed modification, then store it in {@code RenderContext}
  * for downstream render interceptors.
  */
@@ -21,11 +23,8 @@ public interface IdentityCarrier {
     @Nullable ItemStack customHeadItem();
 
     boolean isPlayerFlying();
-    
-    @Nullable ActiveModification armorHider$getHeadMod();
-    @Nullable ActiveModification armorHider$getChestMod();
-    @Nullable ActiveModification armorHider$getLegsMod();
-    @Nullable ActiveModification armorHider$getFeetMod();
+
+    PlayerModificationInfo armorHider$getPlayerModifications();
 
     /**
      * Creates a rendering modification for the given equipment slot and item without setting the render context.
@@ -38,26 +37,26 @@ public interface IdentityCarrier {
     /**
      * Creates a rendering modification for the given equipment slot and item.
      * Returns {@code null} when no modification is needed.
-     * Also sets the active context if the modification is not null via {@link RenderContext#setActiveModification(ActiveModification)} 
+     * Also sets the active context if the modification is not null via {@link de.zannagh.armorhider.client.api.render.ArmorHiderRenderingScopeApi#setActiveModification(SlotModification)}
      */
-    default @Nullable ActiveModification createModification(@NotNull EquipmentSlot slot, @Nullable ItemStack item) {
-        ActiveModification cached = switch (slot) {
-            case HEAD -> armorHider$getHeadMod();
-            case CHEST -> armorHider$getChestMod();
-            case LEGS -> armorHider$getLegsMod();
-            case FEET -> armorHider$getFeetMod();
+    default SlotModification createModificationAndSetContext(@NotNull EquipmentSlot slot, @Nullable ItemStack item) {
+        SlotModification cached = switch (slot) {
+            case HEAD -> armorHider$getPlayerModifications().head();
+            case CHEST -> armorHider$getPlayerModifications().chest();
+            case LEGS -> armorHider$getPlayerModifications().legs();
+            case FEET -> armorHider$getPlayerModifications().feet();
             default -> null;
         };
-        ActiveModification modification;
-        if (cached != null && item != null && ItemStack.matches(cached.item(), item)) {
+        SlotModification modification;
+        if (cached != null && cached.item() != null && item != null && ItemStack.matches(cached.item(), item)) {
             modification = cached;
         } else {
-            modification = ActiveModification.create(armorHider$playerName(), slot, item);
+            modification = SlotModification.of(armorHider$playerName(), slot, item);
         }
-        if (modification != null) {
-            ArmorHiderClient.RENDER_CONTEXT.setActiveModification(modification);
+        if (!modification.isEmpty()) {
+            ArmorHiderClientApi.getInstance().getRenderingScopeApi().setActiveModification(modification);
         } else {
-            ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
+            ArmorHiderClientApi.getInstance().getRenderingScopeApi().clearActiveModification();
         }
         return modification;
     }

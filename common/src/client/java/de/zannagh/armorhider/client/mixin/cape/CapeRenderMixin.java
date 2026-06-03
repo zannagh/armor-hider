@@ -70,7 +70,7 @@ public class CapeRenderMixin {
         //var chestEquipment = avatarRenderState.getItemBySlot(EquipmentSlot.CHEST);
         if (avatarRenderState instanceof IdentityCarrier carrier)
         {
-            var mod = carrier.createModification(EquipmentSlot.CHEST, chestEquipment);
+            var mod = carrier.createModificationAndSetContext(EquipmentSlot.CHEST, chestEquipment);
             if (mod != null 
                     && mod.shouldHide() 
                     && itemStackContainsElytra(chestEquipment) 

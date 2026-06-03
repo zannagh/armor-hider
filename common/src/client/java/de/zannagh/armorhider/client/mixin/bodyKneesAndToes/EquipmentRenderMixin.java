@@ -7,8 +7,10 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.api.ArmorHiderApi;
 import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
 import de.zannagh.armorhider.client.rendering.RenderModifications;
 import de.zannagh.armorhider.client.rendering.VanillaArmorTextureManager;
+import de.zannagh.armorhider.common.ItemInfo;
 import de.zannagh.armorhider.log.DebugLogger;
 import de.zannagh.armorhider.net.packets.PlayerConfig;
 import net.minecraft.client.model.Model;
@@ -16,7 +18,6 @@ import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.entity.layers.EquipmentLayerRenderer;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.resources.model.EquipmentClientInfo;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.ItemStack;
@@ -29,9 +30,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 //? if >= 1.21.9 {
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
-import de.zannagh.armorhider.util.ItemsUtil;
 import net.minecraft.client.renderer.SubmitNodeCollector;
-import net.minecraft.world.entity.EquipmentSlot;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 //?}
 //? if < 1.21.9 {
@@ -81,24 +80,20 @@ public class EquipmentRenderMixin {
     //? if < 1.21.9 {
     /*private static void interceptRender(EquipmentClientInfo.LayerType layerType, ResourceKey<EquipmentAsset> resourceKey, Model model, ItemStack itemStack, PoseStack poseStack, MultiBufferSource multiBufferSource, int i, CallbackInfo ci) {
     *///?}
-        var equippable = itemStack.get(DataComponents.EQUIPPABLE);
-        if (equippable == null) {
+        var itemInfo = new ItemInfo(itemStack);
+        var slot = itemInfo.getEquippableSlot();
+        if (slot == null) {
             return;
         }
 
         //? if >= 1.21.9 {
-        if (!(object instanceof IdentityCarrier carrier)) {
+        if (!(object instanceof IdentityCarrier carrier) || (itemInfo.isElytra() && carrier.isPlayerFlying())) {
             return;
         }
 
-        ArmorHiderClient.RENDER_CONTEXT.setCurrentPlayer(carrier.armorHider$playerName());
+        ArmorHiderClientApi.getInstance().getRenderingScopeApi().setCurrentPlayer(carrier.armorHider$playerName());
 
-        if (ItemsUtil.itemStackContainsElytra(itemStack) && carrier.isPlayerFlying()) {
-            return;
-        }
-
-        var slot = equippable.slot();
-        var mod = carrier.createModification(slot, itemStack);
+        var mod = carrier.createModificationAndSetContext(slot, itemStack);
 
         String playerName = carrier.armorHider$playerName();
         if (playerName != null && armorHider$shouldForceVanillaCombatModel(playerName)) {
@@ -125,14 +120,9 @@ public class EquipmentRenderMixin {
         }
         *///?}
 
-        if (mod == null) {
-            return;
-        }
-
-        if (mod.shouldHide() && ci != null) {
-            ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
+        if (mod.shouldHide()) {
+            ArmorHiderClientApi.getInstance().getRenderingScopeApi().clearActiveModification();
             ci.cancel();
-            return;
         }
     }
 
@@ -143,7 +133,7 @@ public class EquipmentRenderMixin {
     //? if < 1.21.9 {
     /*private static void resetContext(EquipmentClientInfo.LayerType layerType, ResourceKey<EquipmentAsset> resourceKey, Model model, ItemStack itemStack, PoseStack poseStack, MultiBufferSource multiBufferSource, int i, CallbackInfo ci) {
     *///?}
-        ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
+        ArmorHiderClientApi.getInstance().getRenderingScopeApi().clearActiveModification();
         armorHider$combatSingleLayer.remove();
         armorHider$combatAssetKey.remove();
         armorHider$combatLayerType.remove();
@@ -154,12 +144,9 @@ public class EquipmentRenderMixin {
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;hasFoil()Z")
     )
     private boolean modifyGlint(boolean original) {
-        var ctx = ArmorHiderClient.RENDER_CONTEXT;
-        var mod = ctx.activeModification();
-        if (mod != null) {
-            if (mod.shouldDisableGlint() || mod.shouldHide()) {
-                return false;
-            }
+        var mod = ArmorHiderClientApi.getInstance().getRenderingScopeApi().currentlyActiveModification();
+        if (mod.shouldDisableGlint() || mod.shouldHide()) {
+            return false;
         }
         return original;
     }
@@ -184,7 +171,7 @@ public class EquipmentRenderMixin {
             }
         }
 
-        Identifier resolved = VanillaArmorTextureManager.resolveArmorTexture(ArmorHiderClient.RENDER_CONTEXT, texture);
+        Identifier resolved = VanillaArmorTextureManager.resolveArmorTexture(texture);
         return RenderModifications.getTranslucentArmorRenderType(ArmorHiderClient.RENDER_CONTEXT, resolved, original.call(resolved));
     }
 

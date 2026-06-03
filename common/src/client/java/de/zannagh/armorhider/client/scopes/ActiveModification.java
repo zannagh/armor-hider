@@ -2,6 +2,7 @@ package de.zannagh.armorhider.client.scopes;
 
 import de.zannagh.armorhider.api.ArmorHiderApi;
 import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.client.api.configuration.SlotModification;
 import de.zannagh.armorhider.client.rendering.ColorMath;
 import de.zannagh.armorhider.configuration.items.ArmorOpacity;
 import de.zannagh.armorhider.net.packets.PlayerConfig;
@@ -26,6 +27,13 @@ public record ActiveModification(
         boolean shouldHide,
         boolean shouldDisableGlint
 ) {
+
+    public SlotModification toSlotModification() {
+        var mod = SlotModification.of(ArmorHiderClient.CLIENT_CONFIG_MANAGER.getConfigForPlayer(playerName), slot);
+        mod.addItemInformation(item);
+        return mod;
+    }
+
     /**
      * Core factory. Returns {@code null} when no modification is needed:
      * <ul>

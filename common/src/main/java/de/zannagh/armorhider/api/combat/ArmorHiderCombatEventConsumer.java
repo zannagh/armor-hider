@@ -1,20 +1,12 @@
 package de.zannagh.armorhider.api.combat;
 
+import de.zannagh.armorhider.common.PrioritizedHandler;
+
 /**
  * @since 0.12.0
  */
-public interface ArmorHiderCombatEventConsumer {
-    
-    int getPriority();
-    
-    boolean shouldConsume(ArmorHiderCombatEvent event);
-    
-    boolean shouldConsumeExclusively(ArmorHiderCombatEvent event);
+public interface ArmorHiderCombatEventConsumer extends PrioritizedHandler<ArmorHiderCombatEvent> {
+    double getFadeFor(String playerDisplayName, double originalTransparency);
 
-    /**
-     * Applies the consumer to the event. The consumer can decide internally to change fadeoff time.
-     * @param event The event to apply the consumer to.
-     * @return The modified event after applying the consumer.
-     */
-    ArmorHiderCombatEvent apply(ArmorHiderCombatEvent event);
+    boolean isPlayerConsideredInCombat(String playerDisplayName);
 }
