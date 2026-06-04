@@ -38,9 +38,7 @@ public final class VanillaArmorTextureManager {
 
     private VanillaArmorTextureManager() {}
 
-    public static Identifier resolveArmorTexture(Identifier texture) {
-        String playerName;
-        SlotModification mod = ArmorHiderClientApi.getInstance().getRenderingScopeApi().currentlyActiveModification();
+    public static Identifier resolveArmorTexture(SlotModification mod, Identifier texture) {
         if (mod.isEmpty() || mod.playerName().isBlank()) {
             return texture;
         }

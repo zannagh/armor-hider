@@ -2,6 +2,7 @@ package de.zannagh.armorhider.client.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -46,19 +47,19 @@ public class EntityRenderDispatcherMixin {
     //? if >= 1.21.9 {
     private <S extends EntityRenderState> void enterEntityRendering(S entityRenderState, CameraRenderState cameraRenderState, double d, double e, double f, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, CallbackInfo ci) {
         if (entityRenderState instanceof AvatarRenderState) {
-            ArmorHiderClient.RENDER_CONTEXT.enterEntityRender();
+            ArmorHiderClientApi.getInstance().getRenderingScopeApi().setInEntityRender(true);
         }
     }
     //?} else if >= 1.21.4 {
     /*private <E extends Entity> void enterEntityRendering(E entity, double x, double y, double z, float yRot, PoseStack poseStack, MultiBufferSource bufferSource, int light, CallbackInfo ci) {
         if (entity instanceof Player) {
-            ArmorHiderClient.RENDER_CONTEXT.enterEntityRender();
+            ArmorHiderClientApi.getInstance().getRenderingScopeApi().setInEntityRender(true);
         }
     }
     *///?} else {
     /*private <E extends Entity> void enterEntityRendering(E entity, double x, double y, double z, float yRot, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int light, CallbackInfo ci) {
         if (entity instanceof Player) {
-            ArmorHiderClient.RENDER_CONTEXT.enterEntityRender();
+            ArmorHiderClientApi.getInstance().getRenderingScopeApi().setInEntityRender(true);
         }
     }
     *///?}
@@ -71,6 +72,6 @@ public class EntityRenderDispatcherMixin {
     *///?} else {
     /*private <E extends Entity> void exitEntityRendering(E entity, double x, double y, double z, float yRot, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int light, CallbackInfo ci) {
     *///?}
-        ArmorHiderClient.RENDER_CONTEXT.exitEntityRender();
+        ArmorHiderClientApi.getInstance().getRenderingScopeApi().setInEntityRender(false);
     }
 }

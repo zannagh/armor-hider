@@ -8,7 +8,6 @@ public record PlayerModificationInfo(
         SlotModification chest,
         SlotModification legs,
         SlotModification feet,
-        boolean shouldForceVanilla,
         @Nullable ItemStack customHeadItem
 ) {
 }

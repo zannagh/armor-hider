@@ -1,22 +1,33 @@
 package de.zannagh.armorhider.client.mixin.cape;
 
+import com.llamalad7.mixinextras.sugar.Share;
+import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
+import de.zannagh.armorhider.client.api.configuration.ScopeHandover;
+import de.zannagh.armorhider.client.api.render.AhRenderInterceptionApi;
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
 import de.zannagh.armorhider.util.ItemsUtil;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.client.model.EntityModel;
+import de.zannagh.armorhider.client.rendering.RenderModifications;
 import net.minecraft.client.renderer.entity.layers.WingsLayer;
 import net.minecraft.world.entity.EquipmentSlot;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import net.minecraft.client.renderer.MultiBufferSource;
 
 // Conditional imports
 //? if >= 1.21.9
 import net.minecraft.client.renderer.SubmitNodeCollector;
 //? if >= 1.21.4
-
+import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 //? if <= 1.21.4 {
 
 /*import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
@@ -36,7 +47,12 @@ public class ElytraRenderMixin
     //? if < 1.21.4
         //<S extends LivingEntity, M extends EntityModel<S>>
     {
-        
+
+    @Unique
+    @Final
+    private final AhRenderInterceptionApi renderApi = ArmorHiderClientApi.getInstance().getRenderApi();
+
+
     //? if >= 1.21.9
     @Unique private static final String ENTRY_METHOD = "submit(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/client/renderer/entity/state/HumanoidRenderState;FF)V";
     
@@ -53,35 +69,28 @@ public class ElytraRenderMixin
                                        SubmitNodeCollector submitNodeCollector,
                                        //? if < 1.21.9
                                        //MultiBufferSource multiBufferSource,
-                                       int i, S humanoidRenderState, float f, float g, CallbackInfo ci) {
+                                       int i, S humanoidRenderState, float f, float g, CallbackInfo ci,
+                                       @Share(value = "scopeHandover") LocalRef<ScopeHandover> scopeHandover) {
     //? }
     //? if < 1.21.4 {
-    /*private void interceptElytraRender(PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, S humanoidRenderState, float limbSwing, float limbSwingAmount, float partialTick, float ageInTicks, float netHeadYaw, float headPitch, CallbackInfo ci) {
+    /*private void interceptElytraRender(PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, S humanoidRenderState, float limbSwing, float limbSwingAmount, float partialTick, float ageInTicks, float netHeadYaw, float headPitch, CallbackInfo ci,
+                                        @Share(value = "scopeHandover") LocalRef<ScopeHandover> scopeHandover) {
     *///?}
-        if (!(humanoidRenderState instanceof IdentityCarrier carrier)) {
+        var interceptionResult = renderApi.interceptRenderCallAndResolveCarrier(AhRenderInterceptionApi.InterceptionContext.PER_PLAYER_CAPTURE, humanoidRenderState, EquipmentSlot.CHEST, ItemsUtil.ELYTRA_ITEM_STACK, scopeHandover);
+        if (!interceptionResult.shouldIntercept()) {
             return;
         }
-        
-        if (carrier.isPlayerFlying()) {
-            ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
-            return;
-        }
-        
-        var mod = carrier.createModificationAndSetContext(EquipmentSlot.CHEST, ItemsUtil.ELYTRA_ITEM_STACK);
-
-        // 1.21.4 and above has the elytra handled in the equipment render mixins.
-        
-        if (mod == null) {
+        if (interceptionResult.carrier().isPlayerFlying()) {
+            renderApi.releaseContext();
             return;
         }
 
-        if (mod.shouldHide()) {
-            ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
-            ci.cancel();
+        if (interceptionResult.shouldCancel()) {
+            renderApi.wrapAndCancelRenderCall(ci);
             return;
         }
         if (ArmorHiderClient.ET_LOADED) {
-            ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
+            renderApi.releaseContext();
             // Suppress transparency on ElytraTrims by clearing the context, only allow full hide/show.
         }
     }
@@ -100,7 +109,7 @@ public class ElytraRenderMixin
     
     /*private void releaseContext(PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, S humanoidRenderState, float limbSwing, float limbSwingAmount, float partialTick, float ageInTicks, float netHeadYaw, float headPitch, CallbackInfo ci) {
      *///?}
-        ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
+        renderApi.releaseContext();
     }
     
     // 1.21.4 has to render type swap and all that within this mixin as downstream mixins don't catch the rendering.
@@ -113,8 +122,9 @@ public class ElytraRenderMixin
                     target = "Lnet/minecraft/client/renderer/RenderType;armorCutoutNoCull(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/RenderType;"
             )
     )
-    private RenderType modifyElytraRenderType(Identifier texture, Operation<RenderType> original) {
-        return RenderModifications.getTranslucentArmorRenderType(ArmorHiderClient.RENDER_CONTEXT, texture, original.call(texture));
+    private RenderType modifyElytraRenderType(Identifier texture, Operation<RenderType> original,
+                                        @Share(value = "scopeHandover") LocalRef<ScopeHandover> scopeHandover) {
+        return new RenderModifications(scopeHandover.get().modification()).getTranslucentArmorRenderType(texture, original.call(texture));
     }
 
     // --- Elytra transparency: color alpha modification ---
@@ -130,8 +140,8 @@ public class ElytraRenderMixin
                     target = "Lnet/minecraft/client/model/ElytraModel;renderToBuffer(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;II)V"
             )
     )
-    private void modifyElytraColor(ElytraModel<?> model, PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, Operation<Void> original) {
-        int color = RenderModifications.applyArmorTransparency(ArmorHiderClient.RENDER_CONTEXT, 0xFFFFFFFF);
+    private void modifyElytraColor(ElytraModel<?> model, PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, Operation<Void> original, @Share(value = "scopeHandover") LocalRef<ScopeHandover> scopeHandover) {
+        int color = new RenderModifications(scopeHandover.get().modification()).applyArmorTransparency(0xFFFFFFFF);
         if (color != 0xFFFFFFFF) {
             model.renderToBuffer(poseStack, vertexConsumer, packedLight, packedOverlay, color);
         } else {
@@ -148,8 +158,8 @@ public class ElytraRenderMixin
                     target = "Lnet/minecraft/client/model/ElytraModel;renderToBuffer(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;IIFFFF)V"
             )
     )
-    private void modifyElytraColor(ElytraModel<?> model, PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, float red, float green, float blue, float alpha, Operation<Void> original) {
-        float modifiedAlpha = alpha * RenderModifications.getTransparencyAlpha(ArmorHiderClient.RENDER_CONTEXT);
+    private void modifyElytraColor(ElytraModel<?> model, PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, float red, float green, float blue, float alpha, Operation<Void> original, @Share(value = "scopeHandover") LocalRef<ScopeHandover> scopeHandover) {
+        float modifiedAlpha = alpha * new RenderModifications(scopeHandover.get().modification()).getTransparencyAlpha();
         original.call(model, poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, modifiedAlpha);
     }
     ^///?}

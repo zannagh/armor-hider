@@ -25,7 +25,7 @@ public class RenderModifications {
 
     public RenderModifications(SlotModification slotModification) {
         this.slotModification = slotModification;
-        this.itemInfo = new ItemInfo(slotModification.item());
+        this.itemInfo = slotModification.itemInfo();
     }
 
     // --- Render type modifications ---

@@ -2,6 +2,7 @@ package de.zannagh.armorhider.client.mixin;
 
 import de.zannagh.armorhider.CompatFlags;
 import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
 import de.zannagh.armorhider.client.scopes.ActiveModification;
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
 import de.zannagh.armorhider.client.scopes.IdentityStateCarrier;
@@ -81,7 +82,7 @@ public abstract class LivingEntityRendererMixin
         if (!(state instanceof AvatarRenderState)) {
             return;
         }
-        ArmorHiderClient.RENDER_CONTEXT.enterEntityRender();
+        ArmorHiderClientApi.getInstance().getRenderingScopeApi().setInEntityRender(true);
     }
 
     /**
@@ -108,17 +109,19 @@ public abstract class LivingEntityRendererMixin
         // Fresh Animations reads equipment state to determine arm/body poses;
         // clearing it causes arms to separate from the torso (#217).
         // Armor rendering is already prevented at the layer level by other mixins.
-        if (CompatFlags.EMF_LOADED) return;
-        if (carrier.armorHider$getHeadMod() instanceof ActiveModification mod && mod.shouldHide()) {
+        if (CompatFlags.EMF_LOADED) {
+            return;
+        }
+        if (carrier.armorHider$getPlayerModifications().head().shouldHide()) {
             avRenderState.headEquipment.copyAndClear();
         }
-        if (carrier.armorHider$getChestMod() instanceof ActiveModification mod && mod.shouldHide()) {
+        if (carrier.armorHider$getPlayerModifications().chest().shouldHide()) {
             avRenderState.chestEquipment.copyAndClear();
         }
-        if (carrier.armorHider$getLegsMod() instanceof ActiveModification mod && mod.shouldHide()) {
+        if (carrier.armorHider$getPlayerModifications().legs().shouldHide()) {
             avRenderState.legsEquipment.copyAndClear();
         }
-        if (carrier.armorHider$getFeetMod() instanceof ActiveModification mod && mod.shouldHide()) {
+        if (carrier.armorHider$getPlayerModifications().feet().shouldHide()) {
             avRenderState.feetEquipment.copyAndClear();
         }
     }

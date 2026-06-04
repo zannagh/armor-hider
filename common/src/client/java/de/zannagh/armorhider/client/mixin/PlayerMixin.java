@@ -9,6 +9,7 @@ package de.zannagh.armorhider.client.mixin;
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import de.zannagh.armorhider.api.ArmorHiderApi;
 import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.client.api.ArmorHiderClientApi;import de.zannagh.armorhider.client.api.configuration.PlayerModificationInfo;
 import de.zannagh.armorhider.client.scopes.ActiveModification;
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
 import de.zannagh.armorhider.log.DebugLogger;
@@ -38,18 +39,12 @@ public abstract class PlayerMixin
 
     @Unique
     private boolean armorHider$modsDirty = true;
-
     @Unique
-    private ActiveModification armorHider$headMod;
+    private PlayerModificationInfo armorHider$playerModInfo;
 
-    @Unique
-    private ActiveModification armorHider$chestMod;
-
-    @Unique
-    private ActiveModification armorHider$legsMod;
-
-    @Unique
-    private ActiveModification armorHider$bootsMod;
+    public PlayerModificationInfo armorHider$getPlayerModifications(){
+        return armorHider$playerModInfo;
+    }
 
     @Unique
     private Consumer<@Nullable String> armorHider$configListener = (changedPlayerName) -> {
@@ -92,51 +87,19 @@ public abstract class PlayerMixin
         }
         DebugLogger.log("Rebuilding armor mods for " + armorHider$playerName());
         armorHider$modsDirty = false;
-        armorHider$headMod = getModification(EquipmentSlot.HEAD, getItemBySlot(EquipmentSlot.HEAD));
-        armorHider$chestMod = getModification(EquipmentSlot.CHEST, getItemBySlot(EquipmentSlot.CHEST));
-        armorHider$legsMod = getModification(EquipmentSlot.LEGS, getItemBySlot(EquipmentSlot.LEGS));
-        armorHider$bootsMod = getModification(EquipmentSlot.FEET, getItemBySlot(EquipmentSlot.FEET));
+        armorHider$playerModInfo = new PlayerModificationInfo(
+                getModification(EquipmentSlot.HEAD, getItemBySlot(EquipmentSlot.HEAD)),
+                getModification(EquipmentSlot.CHEST, getItemBySlot(EquipmentSlot.CHEST)),
+                getModification(EquipmentSlot.LEGS, getItemBySlot(EquipmentSlot.LEGS)),
+                getModification(EquipmentSlot.FEET, getItemBySlot(EquipmentSlot.FEET)),
+                customHeadItem()
+        );
     }
 
     @Unique
     private boolean armorHider$isCombatActive() {
         String name = armorHider$playerName();
         return name != null && ArmorHiderApi.getInstance().getCombatManagement().isInCombat(name);
-    }
-
-    @Nullable
-    @Override
-    public ActiveModification armorHider$getHeadMod() {
-        if (armorHider$isCombatActive()) armorHider$modsDirty = true;
-        armorHider$rebuildModsIfDirty();
-        return armorHider$headMod;
-    }
-
-    @Nullable
-    @Override
-    public ActiveModification armorHider$getChestMod() {
-        if (armorHider$isCombatActive()) armorHider$modsDirty = true;
-        armorHider$rebuildModsIfDirty();
-        if (this.isPlayerFlying() && de.zannagh.armorhider.util.ItemsUtil.itemStackContainsElytra(getItemBySlot(EquipmentSlot.CHEST))) {
-            return null;
-        }
-        return armorHider$chestMod;
-    }
-
-    @Override
-    @Nullable
-    public ActiveModification armorHider$getLegsMod() {
-        if (armorHider$isCombatActive()) armorHider$modsDirty = true;
-        armorHider$rebuildModsIfDirty();
-        return armorHider$legsMod;
-    }
-
-    @Override
-    @Nullable
-    public ActiveModification armorHider$getFeetMod() {
-        if (armorHider$isCombatActive()) armorHider$modsDirty = true;
-        armorHider$rebuildModsIfDirty();
-        return armorHider$bootsMod;
     }
 
     @Override
@@ -175,7 +138,7 @@ public abstract class PlayerMixin
             return original;
         }
 
-        var ctx = ArmorHiderClient.RENDER_CONTEXT;
+        var ctx = ArmorHiderClientApi.getInstance().getRenderingScopeApi();
 
         if (ctx.hasActiveModification()) {
             return original;

@@ -2,7 +2,7 @@
 package de.zannagh.armorhider.client.mixin;
 
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.scopes.IdentityCarrier;
+import de.zannagh.armorhider.client.api.ArmorHiderClientApi;import de.zannagh.armorhider.client.scopes.IdentityCarrier;
 //? if > 1.21.10
 import net.minecraft.client.model.player.PlayerModel;
 //? if <= 1.21.10
@@ -40,7 +40,7 @@ public class PlayerModelMixin {
         }
         var mod = carrier.createModificationAndSetContext(EquipmentSlot.CHEST, null);
         try {
-            if (mod == null || !mod.shouldModify()) {
+            if (mod == null || !mod.needsModification()) {
                 return;
             }
 
@@ -50,7 +50,7 @@ public class PlayerModelMixin {
             model.rightSleeve.visible = true;
             model.leftSleeve.visible = true;
         } finally {
-            ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
+            ArmorHiderClientApi.getInstance().getRenderingScopeApi().clearActiveModification();
         }
     }
 }

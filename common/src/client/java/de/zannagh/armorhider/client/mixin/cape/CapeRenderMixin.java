@@ -2,15 +2,24 @@ package de.zannagh.armorhider.client.mixin.cape;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.llamalad7.mixinextras.sugar.Share;
+import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
+import de.zannagh.armorhider.client.api.configuration.ScopeHandover;
+import de.zannagh.armorhider.client.api.render.AhRenderInterceptionApi;
 import de.zannagh.armorhider.client.scopes.ActiveModification;
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
+import de.zannagh.armorhider.common.ItemInfo;
 import de.zannagh.armorhider.log.DebugLogger;
+import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.entity.layers.CapeLayer;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -38,6 +47,10 @@ import net.minecraft.world.item.Items;
 public class CapeRenderMixin {
 
     @Unique
+    @Final
+    private final AhRenderInterceptionApi renderApi = ArmorHiderClientApi.getInstance().getRenderApi();
+
+    @Unique
     //? if >= 1.21.9
     private static final String CAPE_CONTEXT_METHOD = "submit(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/client/renderer/entity/state/AvatarRenderState;FF)V";
     //? if >= 1.21.4 && < 1.21.9
@@ -60,24 +73,26 @@ public class CapeRenderMixin {
                                         AvatarRenderState avatarRenderState,
                                         float f,
                                         float g,
-                                        CallbackInfo ci) {
+                                        CallbackInfo ci,
+                                        @Share(value = "scopeHandover") LocalRef<ScopeHandover> scopeHandover) {
         //?} else {
-    /*private void setupCapeRenderContext(PoseStack poseStack, MultiBufferSource multiBufferSource, int light, AbstractClientPlayer avatarRenderState, float limbSwing, float limbSwingAmount, float partialTick, float ageInTicks, float netHeadYaw, float headPitch, CallbackInfo ci) {
+    /*private void setupCapeRenderContext(PoseStack poseStack, MultiBufferSource multiBufferSource, int light, AbstractClientPlayer avatarRenderState, float limbSwing, float limbSwingAmount, float partialTick, float ageInTicks, float netHeadYaw, float headPitch, CallbackInfo ci,
+                                        @Share(value = "scopeHandover") LocalRef<ScopeHandover> scopeHandover) {
      *///?}
+
         //? if >= 1.21.4
         var chestEquipment = avatarRenderState.chestEquipment;
         //? if < 1.21.4
         //var chestEquipment = avatarRenderState.getItemBySlot(EquipmentSlot.CHEST);
-        if (avatarRenderState instanceof IdentityCarrier carrier)
-        {
-            var mod = carrier.createModificationAndSetContext(EquipmentSlot.CHEST, chestEquipment);
-            if (mod != null 
-                    && mod.shouldHide() 
-                    && itemStackContainsElytra(chestEquipment) 
-                    && carrier.isPlayerFlying()) {
+
+        var interceptionResult = renderApi.interceptRenderCallAndResolveCarrier(AhRenderInterceptionApi.InterceptionContext.PER_PLAYER_CAPTURE, avatarRenderState, EquipmentSlot.CHEST, chestEquipment, scopeHandover);
+        if (!interceptionResult.shouldIntercept()) {
+            return;
+        }
+        if (scopeHandover.get() != null && scopeHandover.get().modification().shouldHide()) {
+            if (new ItemInfo(interceptionResult.itemStack()).isElytra() && interceptionResult.carrier().isPlayerFlying()) {
                 DebugLogger.log("CapeRendering: Player is flying with hidden elytra, suppressing cape rendering temporarily.");
-                    ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
-                    ci.cancel();
+                renderApi.wrapAndCancelRenderCall(ci);
             }
         }
     }
@@ -91,11 +106,12 @@ public class CapeRenderMixin {
                     target = "Lcom/mojang/blaze3d/vertex/PoseStack;translate(FFF)V"
             )
     )
-    private void moveCapeWhenArmorHidden(PoseStack instance, float f, float g, float h, Operation<Void> original) {
-        var mod = ArmorHiderClient.RENDER_CONTEXT.activeModification();
-
-        if (mod != null && mod.shouldHide()) {
-            DebugLogger.log("CapeRendering: Player mod is for slot {}. Slot will be hidden downstream, moving cape back to body.", mod.slot());
+    private void moveCapeWhenArmorHidden(PoseStack instance, float f, float g, float h, Operation<Void> original, @Share(value = "scopeHandover") LocalRef<ScopeHandover> scopeHandover) {
+        if (scopeHandover.get() == null || scopeHandover.get().modification() == null) {
+            return;
+        }
+        if (scopeHandover.get().modification().shouldHide()) {
+            DebugLogger.log("CapeRendering: Player mod is for slot {}. Slot will be hidden downstream, moving cape back to body.", scopeHandover.get().modification().slot());
             original.call(instance, 0F, 0F, 0F);
         } else {
             DebugLogger.log("CapeRendering: Player mod is not present. Will not change cape rendering.");
@@ -115,7 +131,7 @@ public class CapeRenderMixin {
     private boolean bypassWingsWhenElytraHidden(CapeLayer instance,
                                                 ItemStack item,
                                                 EquipmentClientInfo.LayerType layerType,
-                                                Operation<Boolean> original) {
+                                                Operation<Boolean> original, @Share(value = "scopeHandover") LocalRef<ScopeHandover> scopeHandover) {
         boolean result = original.call(instance, item, layerType);
     //?} else {
     /*@WrapOperation(
@@ -127,18 +143,12 @@ public class CapeRenderMixin {
     )
     private boolean bypassWingsWhenElytraHidden(ItemStack instance,
                                                 Item item,
-                                                Operation<Boolean> original) {
+                                                Operation<Boolean> original, @Share(value = "scopeHandover") LocalRef<ScopeHandover> scopeHandover) {
         boolean result = original.call(instance, item);
     *///?}
         if (result) {
-            var mod = ArmorHiderClient.RENDER_CONTEXT.activeModification();
-            if (mod != null
-                    && ActiveModification.isSlotFullyHidden(mod.playerName(), EquipmentSlot.CHEST,
-                    //? if >= 1.21.4
-                    item
-                    //? if < 1.21.4
-                    //instance
-                    )) {
+            var mod = scopeHandover.get() == null ? null : scopeHandover.get().modification();
+            if (mod != null && mod.shouldHide()) {
                 return false;
             }
         }
@@ -159,10 +169,13 @@ public class CapeRenderMixin {
                                     AvatarRenderState avatarRenderState,
                                     float f,
                                     float g,
-                                    CallbackInfo ci) {
+                                    CallbackInfo ci,
+                                    @Share(value = "identityCarrier") LocalRef<IdentityCarrier> identityCarrier) {
     //?} else {
-    /*private void releaseCapeContext(PoseStack poseStack, MultiBufferSource multiBufferSource, int light, AbstractClientPlayer player, float limbSwing, float limbSwingAmount, float partialTick, float ageInTicks, float netHeadYaw, float headPitch, CallbackInfo ci) {
+    /*private void releaseCapeContext(PoseStack poseStack, MultiBufferSource multiBufferSource, int light, AbstractClientPlayer player, float limbSwing, float limbSwingAmount, float partialTick, float ageInTicks, float netHeadYaw, float headPitch, CallbackInfo ci,
+                                    @Share(value = "identityCarrier") LocalRef<IdentityCarrier> identityCarrier) {
     *///?}
-        ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
+        identityCarrier.set(null);
+        renderApi.releaseContext();
     }
 }
