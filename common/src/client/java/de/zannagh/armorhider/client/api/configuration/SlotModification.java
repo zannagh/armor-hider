@@ -25,7 +25,7 @@ public record SlotModification(
         double transparency,
         String playerName,
         PlayerConfig config,
-        @Nullable ItemStack item
+        ItemInfo itemInfo
 ) {
 
     /**
@@ -49,11 +49,11 @@ public record SlotModification(
      * @return An empty slot modification.
      */
     public static SlotModification empty(){
-        return new SlotModification(EquipmentSlot.MAINHAND, false, false, false, 1.0, "", PlayerConfig.empty(), null);
+        return new SlotModification(EquipmentSlot.MAINHAND, false, false, false, 1.0, "", PlayerConfig.empty(), ItemInfo.empty());
     }
 
     public static SlotModification empty(EquipmentSlot slot){
-        return new SlotModification(slot, false, false, false, 1.0, "", PlayerConfig.empty(), null);
+        return new SlotModification(slot, false, false, false, 1.0, "", PlayerConfig.empty(), ItemInfo.empty());
     }
 
     public boolean isEmpty(){
@@ -110,7 +110,8 @@ public record SlotModification(
      */
     public SlotModification addItemInformation(@Nullable ItemStack item) {
         ItemStack resolvedItem = item != null ? item : ItemStack.EMPTY;
-        if (!resolvedItem.isEmpty()) {
+        ItemInfo resolvedItemInfo = new ItemInfo(resolvedItem);
+        if (!resolvedItemInfo.isEmpty()) {
             var exclusionConfig = config.getExclusionItems();
             exclusionConfig.discoverItem(slot, resolvedItem.getItem(), resolvedItem.getHoverName().getString());
 
@@ -130,6 +131,6 @@ public record SlotModification(
             return empty(slot);
         }
 
-        return new SlotModification(slot, needsModification, shouldHide, shouldDisableGlint, transparency, playerName, config, item);
+        return new SlotModification(slot, needsModification, shouldHide, shouldDisableGlint, transparency, playerName, config, resolvedItemInfo);
     }
 }

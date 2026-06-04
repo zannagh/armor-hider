@@ -1,15 +1,12 @@
 package de.zannagh.armorhider.client.mixin.bodyKneesAndToes;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.scopes.ActiveModification;
-import de.zannagh.armorhider.client.scopes.IdentityCarrier;
-import de.zannagh.armorhider.util.ItemsUtil;
-import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
+import com.llamalad7.mixinextras.sugar.Share;import com.llamalad7.mixinextras.sugar.ref.LocalRef;import com.mojang.blaze3d.vertex.PoseStack;
+import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
+import de.zannagh.armorhider.client.api.render.AhRenderInterceptionApi;
+import de.zannagh.armorhider.client.scopes.IdentityCarrier;import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
 import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ItemStack;
-import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Final;import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -38,178 +35,75 @@ public class HumanoidArmorLayerMixin
 //<T extends LivingEntity, M extends HumanoidModel<T>, A extends HumanoidModel<T>>
 {
     @Unique
-    private static boolean armorHider$allSlotsFullyHidden(IdentityCarrier carrier) {
-        return armorHider$shouldSkipSlot(carrier.armorHider$getHeadMod())
-                && armorHider$shouldSkipSlot(carrier.armorHider$getChestMod())
-                && armorHider$shouldSkipSlot(carrier.armorHider$getLegsMod())
-                && armorHider$shouldSkipSlot(carrier.armorHider$getFeetMod());
-    }
+    @Final
+    private final AhRenderInterceptionApi renderApi = ArmorHiderClientApi.getInstance().getRenderApi();
 
-    @Unique
-    private static boolean armorHider$shouldSkipSlot(ActiveModification mod) {
-        if (mod == null) {
-            return false;
-        }
-        return mod.shouldHide();
-    }
-    
     // ===== Player/state capture + early-out (render HEAD) =====
 
+    //? if < 1.21.9 {
+    /*
     //? if >= 1.21.4 && < 1.21.9 {
-    /*@Inject(
+    @Inject(
             method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/renderer/entity/state/HumanoidRenderState;FF)V",
             at = @At("HEAD"),
             cancellable = true
     )
-    private <S extends HumanoidRenderState> void captureRenderState(PoseStack poseStack, MultiBufferSource multiBufferSource, int i, S humanoidRenderState, float f, float g, CallbackInfo ci) {
-        if (humanoidRenderState instanceof IdentityCarrier carrier) {
-            ArmorHiderClient.RENDER_CONTEXT.setCurrentPlayer(carrier.armorHider$playerName());
-            if (armorHider$allSlotsFullyHidden(carrier)) {
-                ci.cancel();
-            }
-        }
-    }
-    *///?}
-
+    private <S extends HumanoidRenderState> void captureRenderState(PoseStack poseStack, MultiBufferSource multiBufferSource, int i, S entity, float f, float g, CallbackInfo ci, @Share(value = "identityCarrier") LocalRef<IdentityCarrier> identityCarrier) {
+    //? }
     //? if >= 1.21 && < 1.21.4 {
-    /*@Inject(
+    @Inject(
             method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/world/entity/LivingEntity;FFFFFF)V",
             at = @At("HEAD"),
             cancellable = true
     )
-    private void capturePlayerName(PoseStack poseStack, MultiBufferSource bufferSource, int light, T entity, float f1, float f2, float f3, float f4, float f5, float f6, CallbackInfo ci) {
-        if (entity instanceof IdentityCarrier carrier) {
-            ArmorHiderClient.RENDER_CONTEXT.setCurrentPlayer(carrier.armorHider$playerName());
-            if (armorHider$allSlotsFullyHidden(carrier)) {
-                ci.cancel();
-            }
-        }
-    }
-    *///?}
-
+    private void capturePlayerName(PoseStack poseStack, MultiBufferSource bufferSource, int light, T entity, float f1, float f2, float f3, float f4, float f5, float f6, CallbackInfo ci, @Share(value = "identityCarrier") LocalRef<IdentityCarrier> identityCarrier) {
+    //? }
     //? if < 1.21 {
-    /*@Inject(
+    @Inject(
             method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/world/entity/LivingEntity;FFFFFF)V",
             at = @At("HEAD"),
             cancellable = true
     )
-    private void skipIfAllHidden(PoseStack poseStack, MultiBufferSource bufferSource, int light, T entity, float f1, float f2, float f3, float f4, float f5, float f6, CallbackInfo ci) {
-        if (entity instanceof IdentityCarrier carrier) {
-            ArmorHiderClient.RENDER_CONTEXT.setCurrentPlayer(carrier.armorHider$playerName());
-            if (armorHider$allSlotsFullyHidden(carrier)) {
-                ci.cancel();
-            }
+    private void skipIfAllHidden(PoseStack poseStack, MultiBufferSource bufferSource, int light, T entity, float f1, float f2, float f3, float f4, float f5, float f6, CallbackInfo ci, @Share(value = "identityCarrier") LocalRef<IdentityCarrier> identityCarrier) {
+    //?}
+
+        var result = renderApi.interceptRenderCall(AhRenderInterceptionApi.InterceptionContext.PER_PLAYER_CAPTURE, entity);
+        if (result.shouldCancel()) {
+            renderApi.wrapAndCancelRenderCall(ci);
         }
     }
     *///?}
 
     // ===== Per-piece scope setup (renderArmorPiece HEAD) =====
 
-    //? if >= 1.21.9 {
     @Inject(method = "renderArmorPiece", at = @At("HEAD"), cancellable = true)
-    private <S extends HumanoidRenderState> void captureContext(
-            PoseStack poseStack, SubmitNodeCollector submitNodeCollector, ItemStack itemStack, EquipmentSlot equipmentSlot, int i, S humanoidRenderState, CallbackInfo ci) {
-        if (!(humanoidRenderState instanceof IdentityCarrier identityCarrier)) {
+    //? if >= 1.21.9
+    private <S extends HumanoidRenderState> void captureContext(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, ItemStack itemStack, EquipmentSlot slot, int i, S humanoidRenderState, CallbackInfo ci, @Share(value = "identityCarrier") LocalRef<IdentityCarrier> identityCarrier) {
+    //? if >= 1.21.4 && < 1.21.9
+    //private void captureContext(PoseStack poseStack, MultiBufferSource multiBufferSource, ItemStack itemStack, EquipmentSlot slot, int i, HumanoidModel<?> humanoidRenderState, CallbackInfo ci, @Share(value = "identityCarrier") LocalRef<IdentityCarrier> identityCarrier) {
+    //? if < 1.21.4
+    //private void onRenderArmorPiece(PoseStack poseStack, MultiBufferSource bufferSource, T humanoidRenderState, EquipmentSlot slot, int packedLight, A itemStack, CallbackInfo ci, @Share(value = "identityCarrier") LocalRef<IdentityCarrier> identityCarrier) {
+        var handover = identityCarrier.get() == null ? humanoidRenderState : identityCarrier.get();
+        var interceptionResult = renderApi.interceptRenderCall(AhRenderInterceptionApi.InterceptionContext.PER_PIECE_LAYER, handover, slot, itemStack);
+        if (!interceptionResult.shouldIntercept()) {
             return;
         }
-        if (itemStack.is(Items.AIR) 
-                || (ItemsUtil.itemStackContainsElytra(itemStack) && identityCarrier.isPlayerFlying())) {
-            return;
-        }
-        var mod = identityCarrier.createModificationAndSetContext(equipmentSlot, itemStack);
-
-        if (mod != null && mod.shouldHide()) {
-            ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
-            ci.cancel();
+        if (interceptionResult.shouldCancel()) {
+            renderApi.wrapAndCancelRenderCall(ci);
         }
     }
-    //?}
-
-    //? if >= 1.21.4 && < 1.21.9 {
-    /*@Inject(method = "renderArmorPiece", at = @At("HEAD"), cancellable = true)
-    private void captureContext(PoseStack poseStack, MultiBufferSource multiBufferSource, ItemStack itemStack, EquipmentSlot equipmentSlot, int i, HumanoidModel<?> model, CallbackInfo ci) {
-        var ctx = ArmorHiderClient.RENDER_CONTEXT;
-        String playerName = ctx.currentPlayerName();
-        if (playerName == null) {
-            return;
-        }
-        if (itemStack.is(Items.AIR)) {
-            return;
-        }
-        var mod = ActiveModification.create(playerName, equipmentSlot, itemStack);
-        if (mod != null) {
-            ctx.setActiveModification(mod);
-        }
-        if (mod != null && mod.shouldHide()) {
-            ctx.clearActiveModification();
-            ci.cancel();
-        }
-    }
-    *///?}
-
-    //? if >= 1.21 && < 1.21.4 {
-    /*@Inject(
-            method = "renderArmorPiece",
-            at = @At("HEAD"),
-            cancellable = true
-    )
-    private void onRenderArmorPiece(PoseStack poseStack, MultiBufferSource bufferSource, T entity, EquipmentSlot slot, int packedLight, A armorModel, CallbackInfo ci) {
-        if (!(entity instanceof IdentityCarrier carrier)) {
-            return;
-        }
-        ItemStack itemStack = entity.getItemBySlot(slot);
-        if (itemStack.is(Items.AIR)) {
-            return;
-        }
-
-        var mod = carrier.createModification(slot, itemStack);
-        if (mod != null && mod.shouldHide()) {
-            ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
-            ci.cancel();
-        }
-    }
-    *///?}
-
-    //? if < 1.21 {
-    /*@Inject(
-            method = "renderArmorPiece",
-            at = @At("HEAD"),
-            cancellable = true
-    )
-    private void onRenderArmorPiece(PoseStack poseStack, MultiBufferSource bufferSource, T entity, EquipmentSlot slot, int packedLight, A armorModel, CallbackInfo ci) {
-        if (!(entity instanceof IdentityCarrier carrier)) {
-            return;
-        }
-        if (entity.getItemBySlot(slot).is(Items.AIR)) {
-            return;
-        }
-        var mod = carrier.createModification(slot, entity.getItemBySlot(slot));
-        if (mod != null && mod.shouldHide()) {
-            ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
-            ci.cancel();
-        }
-    }
-    *///?}
 
     // ===== Per-piece scope cleanup (renderArmorPiece RETURN) =====
     // In 1.21.4–1.21.8 this is handled by EquipmentRenderMixin.resetContext at the renderLayers level.
 
-    //? if >= 1.21.9 {
+    //? if >= 1.21.9 || < 1.21.4 {
     @Inject(method = "renderArmorPiece", at = @At("RETURN"))
-    private <S extends HumanoidRenderState> void onRenderArmorPieceReturn(
-            PoseStack poseStack, SubmitNodeCollector submitNodeCollector, ItemStack itemStack, EquipmentSlot equipmentSlot, int i, S humanoidRenderState, CallbackInfo ci) {
-        ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
+    //? if >= 1.21.9
+    private <S extends HumanoidRenderState> void onRenderArmorPieceReturn(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, ItemStack itemStack, EquipmentSlot equipmentSlot, int i, S humanoidRenderState, CallbackInfo ci, @Share(value = "identityCarrier") LocalRef<IdentityCarrier> identityCarrier) {
+    //? if < 1.21.4
+    //private void onRenderArmorPieceReturn(PoseStack poseStack, MultiBufferSource bufferSource, T entity, EquipmentSlot slot, int packedLight, A armorModel, CallbackInfo ci, @Share(value = "identityCarrier") LocalRef<IdentityCarrier> identityCarrier) {
+        identityCarrier.set(null);
+        renderApi.releaseContext();
     }
     //?}
-
-    //? if < 1.21.4 {
-    /*@Inject(
-            method = "renderArmorPiece",
-            at = @At("RETURN")
-    )
-    private void onRenderArmorPieceReturn(PoseStack poseStack, MultiBufferSource bufferSource, T entity, EquipmentSlot slot, int packedLight, A armorModel, CallbackInfo ci) {
-        ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
-    }
-    *///?}
-
 }

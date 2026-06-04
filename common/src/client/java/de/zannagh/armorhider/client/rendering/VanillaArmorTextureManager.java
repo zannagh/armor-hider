@@ -85,7 +85,7 @@ public final class VanillaArmorTextureManager {
         List<Resource> stack = resourceManager.getResourceStack(original);
 
         if (DebugLogger.isEnabled()) {
-            DebugLogger.log("[VanillaTexture] Loading fallback for {} | resource stack size={} | sources={}",
+            DebugLogger.log("[VanillaTexture] Loading fallback for {} | resource itemStack size={} | sources={}",
                     original, stack.size(),
                     stack.stream().map(Resource::sourcePackId).toList());
         }
@@ -193,7 +193,7 @@ public final class VanillaArmorTextureManager {
         List<Resource> stack = resourceManager.getResourceStack(vanillaTexturePath);
 
         if (DebugLogger.isEnabled()) {
-            DebugLogger.log("[VanillaTexture] Resolving vanilla equipment texture {} | stack size={} | sources={}",
+            DebugLogger.log("[VanillaTexture] Resolving vanilla equipment texture {} | itemStack size={} | sources={}",
                     vanillaTexturePath, stack.size(),
                     stack.stream().map(Resource::sourcePackId).toList());
         }

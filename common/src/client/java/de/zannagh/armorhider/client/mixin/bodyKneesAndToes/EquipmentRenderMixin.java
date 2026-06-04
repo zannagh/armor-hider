@@ -91,8 +91,6 @@ public class EquipmentRenderMixin {
             return;
         }
 
-        ArmorHiderClientApi.getInstance().getRenderingScopeApi().setCurrentPlayer(carrier.armorHider$playerName());
-
         var mod = carrier.createModificationAndSetContext(slot, itemStack);
 
         String playerName = carrier.armorHider$playerName();

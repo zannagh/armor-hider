@@ -1,9 +1,9 @@
-package de.zannagh.armorhider.client.api.render;
+package de.zannagh.armorhider.client.api.implementations;
 
 import de.zannagh.armorhider.api.ArmorHiderApi;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.api.configuration.SlotModification;
-import de.zannagh.armorhider.client.scopes.ActiveModification;
+import de.zannagh.armorhider.client.api.render.ArmorHiderRenderingScopeApi;
 import de.zannagh.armorhider.log.DebugTracer;
 import net.minecraft.world.entity.EquipmentSlot;
 import org.jspecify.annotations.NonNull;

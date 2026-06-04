@@ -41,6 +41,8 @@ public class ItemInfo {
         this.itemStack = itemStack;
     }
 
+    public static ItemInfo empty() { return new ItemInfo(ItemStack.EMPTY); }
+
     public static ItemInfo of(@Nullable SkullBlock.Type skullBlockType){
         if (skullBlockType == null) {
             return null;
@@ -95,6 +97,8 @@ public class ItemInfo {
         }
         return SKULL_BLOCK_ITEMS.contains(itemStack.getItem());
     }
+
+    public boolean isEmpty() { return itemStack.isEmpty(); }
 
     public Item getItem() {
         return itemStack.getItem();

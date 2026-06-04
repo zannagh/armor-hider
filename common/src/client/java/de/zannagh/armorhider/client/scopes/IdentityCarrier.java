@@ -6,7 +6,7 @@ import de.zannagh.armorhider.client.api.configuration.SlotModification;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;import org.jspecify.annotations.NonNull;
 
 /**
  * Duck interface injected onto {@code Player} (all versions) and
@@ -26,12 +26,34 @@ public interface IdentityCarrier {
 
     PlayerModificationInfo armorHider$getPlayerModifications();
 
+    default boolean armorHider$allSlotsFullyHidden() {
+        return armorHider$getPlayerModifications().head().shouldHide()
+                && armorHider$getPlayerModifications().chest().shouldHide()
+                && armorHider$getPlayerModifications().legs().shouldHide()
+                && armorHider$getPlayerModifications().feet().shouldHide();
+    }
+
+    @NonNull ItemStack getItemBySlot(EquipmentSlot slot);
+
     /**
      * Creates a rendering modification for the given equipment slot and item without setting the render context.
      * Returns {@code null} when no modification is needed.
      */
-    default @Nullable ActiveModification getModification(@NotNull EquipmentSlot slot, @Nullable ItemStack item) {
-        return ActiveModification.create(armorHider$playerName(), slot, item);
+    default SlotModification getModification(@NotNull EquipmentSlot slot, @Nullable ItemStack item) {
+        var slotInfo = SlotModification.empty();
+        if (slot == EquipmentSlot.HEAD) {
+            slotInfo = armorHider$getPlayerModifications().head();
+        } else if (slot == EquipmentSlot.CHEST) {
+            slotInfo = armorHider$getPlayerModifications().chest();
+        } else if (slot == EquipmentSlot.LEGS) {
+            slotInfo = armorHider$getPlayerModifications().legs();
+        } else if (slot == EquipmentSlot.FEET) {
+            slotInfo = armorHider$getPlayerModifications().feet();
+        }
+        if (item != null) {
+            slotInfo.addItemInformation(item);
+        }
+        return slotInfo;
     }
 
     /**
@@ -48,13 +70,15 @@ public interface IdentityCarrier {
             default -> null;
         };
         SlotModification modification;
-        if (cached != null && cached.item() != null && item != null && ItemStack.matches(cached.item(), item)) {
+        if (cached != null && item != null && ItemStack.matches(cached.itemInfo().getStack(), item)) {
             modification = cached;
         } else {
             modification = SlotModification.of(armorHider$playerName(), slot, item);
         }
         if (!modification.isEmpty()) {
+            ArmorHiderClientApi.getInstance().getRenderingScopeApi().setCurrentPlayer(armorHider$playerName());
             ArmorHiderClientApi.getInstance().getRenderingScopeApi().setActiveModification(modification);
+
         } else {
             ArmorHiderClientApi.getInstance().getRenderingScopeApi().clearActiveModification();
         }
