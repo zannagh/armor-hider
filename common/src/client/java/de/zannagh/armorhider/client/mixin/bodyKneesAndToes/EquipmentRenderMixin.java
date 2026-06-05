@@ -4,15 +4,12 @@ package de.zannagh.armorhider.client.mixin.bodyKneesAndToes;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import com.llamalad7.mixinextras.sugar.Share;
-import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.api.ArmorHiderApi;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
 import de.zannagh.armorhider.client.api.render.ArmorHiderRenderingScopeApi;
 import de.zannagh.armorhider.client.api.render.RenderScope;
-import de.zannagh.armorhider.client.api.render.ScopeContext;
 import de.zannagh.armorhider.client.rendering.VanillaArmorTextureManager;
 import de.zannagh.armorhider.common.ItemInfo;
 import de.zannagh.armorhider.log.DebugLogger;
@@ -39,6 +36,8 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 //?}
 //? if < 1.21.9 {
 /*import de.zannagh.armorhider.client.api.configuration.SlotModification;
+import de.zannagh.armorhider.client.api.render.ScopeContext;
+import de.zannagh.armorhider.client.rendering.RenderModifications;
 import net.minecraft.client.renderer.MultiBufferSource;
 *///?}
 
@@ -75,28 +74,26 @@ public class EquipmentRenderMixin {
 
     //? if >= 1.21.9 {
     @ModifyVariable(method = RENDER_LAYERS_DETAIL, at = @At("HEAD"), ordinal = 2, argsOnly = true)
-    private int modifyRenderOrder(int value, @Share(value = "scopeHandover") LocalRef<ScopeContext> scopeHandover) {
-        return renderApi.getModApiFromLocalRefOrScope(RenderScope.ARMOR_PIECE, scopeHandover).modifyRenderPriority(value);
+    private int modifyRenderOrder(int value) {
+        return renderApi.getActiveScope(RenderScope.ARMOR_PIECE).renderModificationApi().modifyRenderPriority(value);
     }
     //?}
 
     @Inject(method = RENDER_LAYERS_ENTRY, at = @At("HEAD"), cancellable = true)
     //? if >= 1.21.9 {
-    private <S> void interceptRender(EquipmentClientInfo.LayerType layerType, ResourceKey<EquipmentAsset> resourceKey, Model<? super S> model, S object, ItemStack itemStack, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int i, int j, CallbackInfo ci, @Share(value = "scopeHandover") LocalRef<ScopeContext> scopeHandover) {
+    private <S> void interceptRender(EquipmentClientInfo.LayerType layerType, ResourceKey<EquipmentAsset> resourceKey, Model<? super S> model, S object, ItemStack itemStack, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int i, int j, CallbackInfo ci) {
     //?}
     //? if < 1.21.9 {
-    /*private void interceptRender(EquipmentClientInfo.LayerType layerType, ResourceKey<EquipmentAsset> resourceKey, Model model, ItemStack itemStack, PoseStack poseStack, MultiBufferSource multiBufferSource, int i, CallbackInfo ci, @Share(value = "scopeHandover") LocalRef<ScopeContext> scopeHandover) {
+    /*private void interceptRender(EquipmentClientInfo.LayerType layerType, ResourceKey<EquipmentAsset> resourceKey, Model model, ItemStack itemStack, PoseStack poseStack, MultiBufferSource multiBufferSource, int i, CallbackInfo ci) {
     *///?}
         var itemInfo = new ItemInfo(itemStack);
         var slot = itemInfo.getEquippableSlot();
         if (slot == null) {
-            scopeHandover.set(null);
             return;
         }
 
         //? if >= 1.21.9 {
         if (!(object instanceof IdentityCarrier carrier) || (itemInfo.isElytra() && carrier.isPlayerFlying())) {
-            scopeHandover.set(null);
             return;
         }
 
@@ -112,9 +109,8 @@ public class EquipmentRenderMixin {
         //?}
         //? if < 1.21.9 {
         /*
-        String playerName = ArmorHiderClientApi.getInstance().getRenderingScopeApi().currentlyHandledPlayerName();
+        String playerName = renderApi.currentlyHandledPlayerName();
         if (playerName == null || playerName.isBlank()) {
-            scopeHandover.set(null);
             return;
         }
 
@@ -122,7 +118,6 @@ public class EquipmentRenderMixin {
         if (mod.needsModification()) {
             renderApi.setActiveModification(mod);
         }
-        var ctx = new ScopeContext(RenderScope.ARMOR_PIECE, null, mod, new de.zannagh.armorhider.client.rendering.RenderModifications(mod));
 
         if (armorHider$shouldForceVanillaCombatModel(playerName)) {
             armorHider$combatSingleLayer.set(Boolean.FALSE);
@@ -131,23 +126,18 @@ public class EquipmentRenderMixin {
 
         if (mod.shouldHide()) {
             renderApi.exitScope(RenderScope.ARMOR_PIECE);
-            scopeHandover.set(null);
             ci.cancel();
-        }
-        else {
-            scopeHandover.set(ctx);
         }
     }
 
     @Inject(method = RENDER_LAYERS_ENTRY, at = @At("RETURN"))
     //? if >= 1.21.9 {
-    private static <S> void resetContext(EquipmentClientInfo.LayerType layerType, ResourceKey<EquipmentAsset> resourceKey, Model<? super S> model, S object, ItemStack itemStack, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int i, int j, CallbackInfo ci, @Share(value = "scopeHandover") LocalRef<ScopeContext> scopeHandover) {
+    private static <S> void resetContext(EquipmentClientInfo.LayerType layerType, ResourceKey<EquipmentAsset> resourceKey, Model<? super S> model, S object, ItemStack itemStack, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int i, int j, CallbackInfo ci) {
     //?}
     //? if < 1.21.9 {
-    /*private static void resetContext(EquipmentClientInfo.LayerType layerType, ResourceKey<EquipmentAsset> resourceKey, Model model, ItemStack itemStack, PoseStack poseStack, MultiBufferSource multiBufferSource, int i, CallbackInfo ci, @Share(value = "scopeHandover") LocalRef<ScopeContext> scopeHandover) {
+    /*private static void resetContext(EquipmentClientInfo.LayerType layerType, ResourceKey<EquipmentAsset> resourceKey, Model model, ItemStack itemStack, PoseStack poseStack, MultiBufferSource multiBufferSource, int i, CallbackInfo ci) {
     *///?}
         ArmorHiderClientApi.getInstance().getRenderingScopeApi().exitScope(RenderScope.ARMOR_PIECE);
-        scopeHandover.set(null);
         armorHider$combatSingleLayer.remove();
         armorHider$combatAssetKey.remove();
         armorHider$combatLayerType.remove();
@@ -157,9 +147,8 @@ public class EquipmentRenderMixin {
             method = RENDER_LAYERS_DETAIL,
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;hasFoil()Z")
     )
-    private boolean modifyGlint(boolean original, @Share(value = "scopeHandover") LocalRef<ScopeContext> scopeHandover) {
-        var mod = renderApi.getModApiFromLocalRefOrScope(RenderScope.ARMOR_PIECE, scopeHandover);
-        return mod.getHasFoil(original);
+    private boolean modifyGlint(boolean original) {
+        return renderApi.getActiveScope(RenderScope.ARMOR_PIECE).renderModificationApi().getHasFoil(original);
     }
 
     @WrapOperation(
@@ -172,7 +161,7 @@ public class EquipmentRenderMixin {
                     //target = "Lnet/minecraft/client/renderer/RenderType;armorCutoutNoCull(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/RenderType;"
             )
     )
-    private RenderType modifyArmorRenderLayer(Identifier texture, Operation<RenderType> original, @Share(value = "scopeHandover") LocalRef<ScopeContext> scopeHandover) {
+    private RenderType modifyArmorRenderLayer(Identifier texture, Operation<RenderType> original) {
         ResourceKey<EquipmentAsset> assetKey = armorHider$combatAssetKey.get();
         EquipmentClientInfo.LayerType layerType = armorHider$combatLayerType.get();
         if (assetKey != null && layerType != null) {
@@ -181,11 +170,14 @@ public class EquipmentRenderMixin {
                 return original.call(vanillaTexture);
             }
         }
-        var mod = renderApi.getModApiFromLocalRefOrScope(RenderScope.ARMOR_PIECE, scopeHandover);
+        var ctx = renderApi.getActiveScope(RenderScope.ARMOR_PIECE);
+        if (ctx.isEmpty()) {
+            return original.call(texture);
+        }
 
-        Identifier resolved = VanillaArmorTextureManager.resolveArmorTexture(scopeHandover.get().modification(), texture);
+        Identifier resolved = VanillaArmorTextureManager.resolveArmorTexture(ctx.modification(), texture);
 
-        if (mod.getTranslucentRenderType(texture, original.call(resolved)) instanceof RenderType renderType) {
+        if (ctx.renderModificationApi().getTranslucentArmorRenderType(resolved, original.call(resolved)) instanceof RenderType renderType) {
             return renderType;
         }
         return original.call(resolved);
@@ -201,9 +193,9 @@ public class EquipmentRenderMixin {
                     //target = "Lnet/minecraft/client/renderer/Sheets;armorTrimsSheet(Z)Lnet/minecraft/client/renderer/RenderType;"
             )
     )
-    private RenderType modifyTrimRenderLayer(boolean decal, Operation<RenderType> original, @Share(value = "scopeHandover") LocalRef<ScopeContext> scopeHandover) {
-        var mod = renderApi.getModApiFromLocalRefOrScope(RenderScope.ARMOR_PIECE, scopeHandover);
-        if (mod.getTranslucentArmorRenderType(Sheets.ARMOR_TRIMS_SHEET, original.call(decal)) instanceof RenderType renderType) {
+    private RenderType modifyTrimRenderLayer(boolean decal, Operation<RenderType> original) {
+        var modApi = renderApi.getActiveScope(RenderScope.ARMOR_PIECE).renderModificationApi();
+        if (modApi.getTrimRenderLayer(decal, original.call(decal)) instanceof RenderType renderType) {
             return renderType;
         }
         return original.call(decal);
@@ -217,7 +209,7 @@ public class EquipmentRenderMixin {
                     target = "Lnet/minecraft/client/renderer/OrderedSubmitNodeCollector;submitModel(Lnet/minecraft/client/model/Model;Ljava/lang/Object;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/rendertype/RenderType;IIILnet/minecraft/client/renderer/texture/TextureAtlasSprite;ILnet/minecraft/client/renderer/feature/ModelFeatureRenderer$CrumblingOverlay;)V"
             )
     )
-    private <S> void modifyArmorColor(OrderedSubmitNodeCollector collector, Model<? super S> model, S state, PoseStack poseStack, RenderType renderType, int light, int overlay, int color, TextureAtlasSprite sprite, int param9, ModelFeatureRenderer.CrumblingOverlay crumblingOverlay, Operation<Void> original, @Share(value = "scopeHandover") LocalRef<ScopeContext> scopeHandover) {
+    private <S> void modifyArmorColor(OrderedSubmitNodeCollector collector, Model<? super S> model, S state, PoseStack poseStack, RenderType renderType, int light, int overlay, int color, TextureAtlasSprite sprite, int param9, ModelFeatureRenderer.CrumblingOverlay crumblingOverlay, Operation<Void> original) {
         Boolean singleLayer = armorHider$combatSingleLayer.get();
         if (singleLayer != null) {
             if (singleLayer) {
@@ -231,8 +223,7 @@ public class EquipmentRenderMixin {
                 DebugLogger.log("[CombatSingleLayer] Allowed first layer submit | renderType={}", renderType);
             }
         }
-        var mod = renderApi.getModApiFromLocalRefOrScope(RenderScope.ARMOR_PIECE, scopeHandover);
-        var modifiedColor = mod.applyArmorTransparency(color);
+        var modifiedColor = renderApi.getActiveScope(RenderScope.ARMOR_PIECE).renderModificationApi().applyArmorTransparency(color);
         original.call(collector, model, state, poseStack, renderType, light, overlay, modifiedColor, sprite, param9, crumblingOverlay);
     }
     //?}

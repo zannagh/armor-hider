@@ -4,7 +4,7 @@ package de.zannagh.armorhider.client.api.render;
  * Version-independent interface for applying render modifications.
  * <p>
  * Returned by {@link ScopeContext#renderModificationApi()} and available from
- * the scope API via {@link ArmorHiderRenderingScopeApi#getModApiFromLocalRefOrScope}.
+ * the scope API via {@link ArmorHiderRenderingScopeApi#getActiveScope(RenderScope)}.
  * All methods are pass-through safe: if no modification is active, original values are returned unchanged.
  * <p>
  * Render type methods use {@code Object} to avoid game-version dependencies in the API.

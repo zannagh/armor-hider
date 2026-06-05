@@ -9,7 +9,9 @@ package de.zannagh.armorhider.client.mixin;
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import de.zannagh.armorhider.api.ArmorHiderApi;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.api.ArmorHiderClientApi;import de.zannagh.armorhider.client.api.configuration.PlayerModificationInfo;
+import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
+import de.zannagh.armorhider.client.api.configuration.PlayerModificationInfo;
+import de.zannagh.armorhider.client.api.configuration.SlotModification;
 import de.zannagh.armorhider.client.scopes.ActiveModification;
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
 import de.zannagh.armorhider.log.DebugLogger;
@@ -88,11 +90,12 @@ public abstract class PlayerMixin
         }
         DebugLogger.log("Rebuilding armor mods for " + armorHider$playerName());
         armorHider$modsDirty = false;
+        var name = armorHider$playerName();
         armorHider$playerModInfo = new PlayerModificationInfo(
-                getModification(EquipmentSlot.HEAD, getItemBySlot(EquipmentSlot.HEAD)),
-                getModification(EquipmentSlot.CHEST, getItemBySlot(EquipmentSlot.CHEST)),
-                getModification(EquipmentSlot.LEGS, getItemBySlot(EquipmentSlot.LEGS)),
-                getModification(EquipmentSlot.FEET, getItemBySlot(EquipmentSlot.FEET)),
+                SlotModification.of(name, EquipmentSlot.HEAD, getItemBySlot(EquipmentSlot.HEAD)),
+                SlotModification.of(name, EquipmentSlot.CHEST, getItemBySlot(EquipmentSlot.CHEST)),
+                SlotModification.of(name, EquipmentSlot.LEGS, getItemBySlot(EquipmentSlot.LEGS)),
+                SlotModification.of(name, EquipmentSlot.FEET, getItemBySlot(EquipmentSlot.FEET)),
                 customHeadItem()
         );
     }
@@ -133,15 +136,8 @@ public abstract class PlayerMixin
         return player.isFallFlying() || player.getAbilities().flying;
     }
 
-    //? if >= 1.21.11 {
-    @Override
-    public ItemStack getItemBySlot(@NonNull EquipmentSlot slot) {
-        var original = super.getItemBySlot(slot);
-    //?}
-    //? if < 1.21.11 {
-    /*@ModifyReturnValue(method = "getItemBySlot", at = @At("RETURN"))
-    private ItemStack armorHider$modifyGetItemBySlot(ItemStack original, @NonNull EquipmentSlot slot) {
-    *///?}
+    @ModifyReturnValue(method = "getItemBySlot", at = @At("RETURN"))
+    private ItemStack hideFullyHiddenSlot(ItemStack original, EquipmentSlot slot) {
         if (original.isEmpty()) {
             return original;
         }

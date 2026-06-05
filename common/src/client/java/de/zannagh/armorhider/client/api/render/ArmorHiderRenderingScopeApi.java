@@ -1,9 +1,6 @@
 package de.zannagh.armorhider.client.api.render;
 
-import com.llamalad7.mixinextras.sugar.ref.LocalRef;
-import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
 import de.zannagh.armorhider.client.api.configuration.SlotModification;
-import de.zannagh.armorhider.client.rendering.RenderModifications;
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
@@ -150,24 +147,4 @@ public interface ArmorHiderRenderingScopeApi {
     void clearActiveModification();
 
     boolean shouldEnforceVanillaRendering();
-
-    default RenderModificationApi getModApiFromLocalRefOrScope(RenderScope scope, LocalRef<ScopeContext> context) {
-        if (context.get() == null) {
-            if (ArmorHiderClientApi.getInstance().getRenderingScopeApi().getActiveScope(scope).renderModificationApi() != null) {
-                context.set(ArmorHiderClientApi.getInstance().getRenderingScopeApi().getActiveScope(scope));
-                return ArmorHiderClientApi.getInstance().getRenderingScopeApi().getActiveScope(scope).renderModificationApi();
-            }
-            return RenderModifications.empty();
-        }
-        return context.get().renderModificationApi();
-    }
-
-    default ScopeContext getScopeContextFromLocalRefOrScope(LocalRef<ScopeContext> context, RenderScope scope) {
-        if (context.get() == null) {
-            var activeScope = ArmorHiderClientApi.getInstance().getRenderingScopeApi().getActiveScope(scope);
-            context.set(activeScope);
-            return activeScope;
-        }
-        return context.get();
-    }
 }
