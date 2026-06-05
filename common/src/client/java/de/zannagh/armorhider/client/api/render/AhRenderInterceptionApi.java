@@ -1,6 +1,5 @@
 package de.zannagh.armorhider.client.api.render;
 
-import com.llamalad7.mixinextras.expression.impl.ast.expressions.NullLiteralExpression;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
 import de.zannagh.armorhider.client.api.configuration.ScopeHandover;

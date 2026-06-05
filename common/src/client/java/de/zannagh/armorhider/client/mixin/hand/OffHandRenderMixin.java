@@ -4,6 +4,8 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
+import de.zannagh.armorhider.client.api.render.RenderScope;
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.ItemInHandRenderer;
@@ -24,6 +26,7 @@ import net.minecraft.client.renderer.item.ItemStackRenderState;
 /*import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import de.zannagh.armorhider.client.rendering.RenderModifications;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.level.Level;
@@ -46,14 +49,14 @@ public class OffHandRenderMixin {
         if (!(abstractClientPlayer instanceof IdentityCarrier carrier)) {
             return;
         }
-        
+
         if (itemStack.is(Items.AIR)) {
             return;
         }
         if (interactionHand == InteractionHand.MAIN_HAND){
             return;
         }
-        carrier.createModificationAndSetContext(EquipmentSlot.OFFHAND, itemStack);
+        ArmorHiderClientApi.getInstance().getRenderingScopeApi().enterScope(RenderScope.OFFHAND, carrier, EquipmentSlot.OFFHAND, itemStack);
     }
 
     @WrapOperation(
@@ -78,8 +81,10 @@ public class OffHandRenderMixin {
     //private void modifyItemSubmit(ItemRenderer instance, LivingEntity livingEntity, ItemStack itemStack, ItemDisplayContext itemDisplayContext, boolean b, PoseStack poseStack, MultiBufferSource multiBufferSource, Level level, int i, int j, int k, Operation<Void> original) {
     //? if 1.21.5
     //private void modifyItemSubmit(ItemRenderer instance, LivingEntity livingEntity, ItemStack itemStack, ItemDisplayContext itemDisplayContext, PoseStack poseStack, MultiBufferSource multiBufferSource, Level level, int i, int j, int k, Operation<Void> original) {
-        var ctx = ArmorHiderClient.RENDER_CONTEXT;
-        if (ctx.hasActiveModification(EquipmentSlot.OFFHAND) && ctx.activeModification().shouldHide()) {
+        
+        var scopeApi = ArmorHiderClientApi.getInstance().getRenderingScopeApi();
+        var offhandCtx = scopeApi.getActiveScope(RenderScope.OFFHAND);
+        if (!offhandCtx.isEmpty() && offhandCtx.shouldCancel()) {
             return;
         }
         //? if >= 1.21.9
@@ -87,11 +92,11 @@ public class OffHandRenderMixin {
         //? if < 1.21.9 {
         /*// Wrap buffer source for transparency: swap opaque render types to translucent
         MultiBufferSource source = multiBufferSource;
-        if (ctx.hasActiveModification(EquipmentSlot.OFFHAND)
-                && ctx.activeModification().transparency() < 1.0
-                && ctx.activeModification().transparency() > 0) {
+        if (!offhandCtx.isEmpty()
+                && offhandCtx.modification().transparency() < 1.0
+                && offhandCtx.modification().transparency() > 0) {
             source = RenderModifications.wrapTranslucentBufferSource(multiBufferSource,
-                    RenderModifications.getTransparencyAlpha(ctx));
+                    offhandCtx.renderModificationApi().getTransparencyAlpha());
         }
         *///? }
         //? if >= 1.21.6 && < 1.21.9
@@ -110,6 +115,6 @@ public class OffHandRenderMixin {
     private void releaseContext(AbstractClientPlayer abstractClientPlayer, float f, float g, InteractionHand interactionHand, float h, ItemStack itemStack, float i, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int j, CallbackInfo ci) {
     //? if < 1.21.9
     //private void releaseContext(AbstractClientPlayer abstractClientPlayer, float f, float g, InteractionHand interactionHand, float h, ItemStack itemStack, float i, PoseStack poseStack, MultiBufferSource multiBufferSource, int j, CallbackInfo ci) {
-        ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
+        ArmorHiderClientApi.getInstance().getRenderingScopeApi().exitScope(RenderScope.OFFHAND);
     }
 }

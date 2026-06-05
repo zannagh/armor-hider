@@ -4,10 +4,9 @@ package de.zannagh.armorhider.client.mixin.hand;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
-import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.rendering.RenderModifications;
+import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
+import de.zannagh.armorhider.client.api.render.RenderScope;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemDisplayContext;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -54,15 +53,18 @@ public class ItemRenderStateMixin {
     //private void wrapSubmitItem(SubmitNodeCollector instance, PoseStack poseStack, ItemDisplayContext itemDisplayContext, int light, int overlay, int color, int[] tintLayers, List<BakedQuad> quads, RenderType renderType, ItemStackRenderState.FoilType foilType, Operation<Void> original) {
     //? if 1.21.9 || 1.21.10
     //private void wrapSubmitItem(SubmitNodeCollector instance, PoseStack poseStack, ItemDisplayContext itemDisplayContext, int light, int overlay, int color, int[] tintLayers, List<BakedQuad> quads, RenderType renderType, ItemStackRenderState.FoilType foilType, Operation<Void> original) {
-        var ctx = ArmorHiderClient.RENDER_CONTEXT;
         
-        boolean shouldInterceptOffHandRender = ctx.hasActiveModification(EquipmentSlot.OFFHAND);
-        boolean shouldInterceptCustomHeadRender = ctx.hasActiveModification(EquipmentSlot.HEAD);
-        if (shouldInterceptOffHandRender || shouldInterceptCustomHeadRender) {
+        
+        var scopeApi = ArmorHiderClientApi.getInstance().getRenderingScopeApi();
+        var offhandCtx = scopeApi.getActiveScope(RenderScope.OFFHAND);
+        var headCtx = scopeApi.getActiveScope(RenderScope.HEAD);
+        var activeCtx = !offhandCtx.isEmpty() ? offhandCtx : headCtx;
+        if (!activeCtx.isEmpty()) {
             // Note to future me: This can actually hide main hands.
-            float alpha = RenderModifications.getTransparencyAlpha(ctx);
+            var modApi = activeCtx.renderModificationApi();
+            float alpha = modApi.getTransparencyAlpha();
             //? if < 26.1-0.snapshot.7
-            //RenderType translucentType = RenderModifications.getTranslucentItemRenderType(ctx, renderType);
+            //RenderType translucentType = modApi.getTranslucentItemRenderType(renderType) instanceof RenderType rt ? rt : renderType;
 
             // Use one extra slot for non-tinted quads: white with our alpha
             int syntheticTintIndex = tintLayers.length;

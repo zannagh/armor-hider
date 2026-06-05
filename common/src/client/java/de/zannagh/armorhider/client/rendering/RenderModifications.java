@@ -1,6 +1,7 @@
 package de.zannagh.armorhider.client.rendering;
 
 import de.zannagh.armorhider.client.api.configuration.SlotModification;
+import de.zannagh.armorhider.client.api.render.RenderModificationApi;
 import de.zannagh.armorhider.common.ItemInfo;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.Sheets;
@@ -15,7 +16,7 @@ import net.minecraft.resources.Identifier;
  * All methods are "pass-through safe": if no active modification exists,
  * they return the original values unchanged.
  */
-public class RenderModifications {
+public class RenderModifications implements RenderModificationApi {
 
     public static final int ELYTRA_RENDER_PRIORITY = 100;
     public static final int SKULL_RENDER_PRIORITY = 99;
@@ -26,6 +27,10 @@ public class RenderModifications {
     public RenderModifications(SlotModification slotModification) {
         this.slotModification = slotModification;
         this.itemInfo = slotModification.itemInfo();
+    }
+
+    public static RenderModifications empty() {
+        return new RenderModifications(SlotModification.empty());
     }
 
     // --- Render type modifications ---
@@ -87,6 +92,55 @@ public class RenderModifications {
             return 1.0f;
         }
         return (float) slotModification.transparency();
+    }
+
+    public boolean getHasFoil(boolean original) {
+        if (slotModification.isEmpty() || !slotModification.needsModification()) {
+            return original;
+        }
+        return !slotModification.shouldDisableGlint();
+    }
+
+    // --- API bridge methods (Object-typed for version independence) ---
+
+    @Override
+    public Object getTranslucentArmorRenderType(Object textureIdentifier, Object originalRenderType) {
+        if (textureIdentifier instanceof Identifier texture && originalRenderType instanceof RenderType original) {
+            return getTranslucentArmorRenderType(texture, original);
+        }
+        return originalRenderType;
+    }
+
+    @Override
+    public Object getTranslucentRenderType(Object textureIdentifier, Object originalRenderType) {
+        if (textureIdentifier instanceof Identifier texture && originalRenderType instanceof RenderType original) {
+            return getTranslucentArmorRenderType(texture, original);
+        }
+        return originalRenderType;
+    }
+
+    @Override
+    public Object getTrimRenderLayer(boolean decal, Object originalRenderType) {
+        if (originalRenderType instanceof RenderType original) {
+            return getTrimRenderLayer(decal, original);
+        }
+        return originalRenderType;
+    }
+
+    @Override
+    public Object getTranslucentItemRenderType(Object originalRenderType) {
+        if (originalRenderType instanceof RenderType original) {
+            return getTranslucentItemRenderType(original);
+        }
+        return originalRenderType;
+    }
+
+    @Override
+    public Object getSkullRenderLayer(Object textureIdentifier, Object originalRenderType) {
+        if (textureIdentifier instanceof Identifier texture && originalRenderType instanceof RenderType original) {
+            return getSkullRenderLayer(texture, original);
+        }
+        return originalRenderType;
     }
 
     // --- Priority modifications ---

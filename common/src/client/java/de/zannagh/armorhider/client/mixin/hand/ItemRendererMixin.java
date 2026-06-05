@@ -5,8 +5,8 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.rendering.RenderModifications;
+import de.zannagh.armorhider.client.api.render.RenderScope;
+import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
 import de.zannagh.armorhider.client.rendering.RenderTypeFactory;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.rendertype.RenderType;
@@ -16,7 +16,6 @@ import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.entity.EquipmentSlot;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
@@ -32,12 +31,16 @@ public class ItemRendererMixin {
             argsOnly = true
     )
     private MultiBufferSource wrapBufferSourceForTransparency(MultiBufferSource bufferSource) {
-        var ctx = ArmorHiderClient.RENDER_CONTEXT;
-        if (!ctx.hasActiveModification(EquipmentSlot.OFFHAND) && !ctx.hasActiveModification(EquipmentSlot.HEAD)) {
+        
+        var scopeApi = ArmorHiderClientApi.getInstance().getRenderingScopeApi();
+        var offCtx = scopeApi.getActiveScope(RenderScope.OFFHAND);
+        var hdCtx = scopeApi.getActiveScope(RenderScope.HEAD);
+        var activeCtx = !offCtx.isEmpty() ? offCtx : hdCtx;
+        if (activeCtx.isEmpty()) {
             return bufferSource;
         }
-        var mod = ctx.activeModification();
-        if (mod == null || mod.transparency() >= 1.0 || mod.transparency() <= 0) {
+        var mod = activeCtx.modification();
+        if (mod.transparency() >= 1.0 || mod.transparency() <= 0) {
             return bufferSource;
         }
         // Wrap to swap cutout render types to translucent equivalents
@@ -63,8 +66,9 @@ public class ItemRendererMixin {
             )
     )
     private void wrapShieldRender(BlockEntityWithoutLevelRenderer instance, ItemStack itemStack, ItemDisplayContext displayCtx, PoseStack poseStack, MultiBufferSource bufferSource, int light, int overlay, Operation<Void> original) {
-        var ctx = ArmorHiderClient.RENDER_CONTEXT;
-        if (ctx.hasActiveModification(EquipmentSlot.OFFHAND) || ctx.hasActiveModification(EquipmentSlot.HEAD)) {
+        
+        var scopeApi2 = ArmorHiderClientApi.getInstance().getRenderingScopeApi();
+        if (scopeApi2.hasScopeModification(RenderScope.OFFHAND) || scopeApi2.hasScopeModification(RenderScope.HEAD)) {
             MultiBufferSource wrappedSource = renderType -> {
                 if (renderType == Sheets.shieldSheet()) {
                     return bufferSource.getBuffer(RenderTypeFactory.translucentEntity(Sheets.SHIELD_SHEET));
@@ -89,9 +93,15 @@ public class ItemRendererMixin {
     )
     private RenderType wrapGetRenderType(ItemStack itemStack, boolean fabulous, Operation<RenderType> original) {
         RenderType type = original.call(itemStack, fabulous);
-        var ctx = ArmorHiderClient.RENDER_CONTEXT;
-        if (ctx.hasActiveModification(EquipmentSlot.OFFHAND) || ctx.hasActiveModification(EquipmentSlot.HEAD)) {
-            return RenderModifications.getTranslucentItemRenderType(ctx, type);
+        
+        var scopeApi3 = ArmorHiderClientApi.getInstance().getRenderingScopeApi();
+        var offCtx3 = scopeApi3.getActiveScope(RenderScope.OFFHAND);
+        var hdCtx3 = scopeApi3.getActiveScope(RenderScope.HEAD);
+        var activeCtx3 = !offCtx3.isEmpty() ? offCtx3 : hdCtx3;
+        if (!activeCtx3.isEmpty()) {
+            if (activeCtx3.renderModificationApi().getTranslucentItemRenderType(type) instanceof RenderType rt) {
+                return rt;
+            }
         }
         return type;
     }
@@ -105,9 +115,13 @@ public class ItemRendererMixin {
             )
     )
     private void wrapPutBulkData(VertexConsumer instance, PoseStack.Pose pose, BakedQuad quad, float r, float g, float b, float alpha, int light, int overlay, Operation<Void> original) {
-        var ctx = ArmorHiderClient.RENDER_CONTEXT;
-        if (ctx.hasActiveModification(EquipmentSlot.OFFHAND) || ctx.hasActiveModification(EquipmentSlot.HEAD)) {
-            float modifiedAlpha = alpha * RenderModifications.getTransparencyAlpha(ctx);
+        
+        var scopeApi4 = ArmorHiderClientApi.getInstance().getRenderingScopeApi();
+        var offCtx4 = scopeApi4.getActiveScope(RenderScope.OFFHAND);
+        var hdCtx4 = scopeApi4.getActiveScope(RenderScope.HEAD);
+        var activeCtx4 = !offCtx4.isEmpty() ? offCtx4 : hdCtx4;
+        if (!activeCtx4.isEmpty()) {
+            float modifiedAlpha = alpha * activeCtx4.renderModificationApi().getTransparencyAlpha();
             original.call(instance, pose, quad, r, g, b, modifiedAlpha, light, overlay);
         } else {
             original.call(instance, pose, quad, r, g, b, alpha, light, overlay);
@@ -125,9 +139,13 @@ public class ItemRendererMixin {
             )
     )
     private void wrapPutBulkData(VertexConsumer instance, PoseStack.Pose pose, BakedQuad quad, float r, float g, float b, float alpha, int light, int overlay, boolean useBlockLight, Operation<Void> original) {
-        var ctx = ArmorHiderClient.RENDER_CONTEXT;
-        if (ctx.hasActiveModification(EquipmentSlot.OFFHAND) || ctx.hasActiveModification(EquipmentSlot.HEAD)) {
-            float modifiedAlpha = alpha * RenderModifications.getTransparencyAlpha(ctx);
+        
+        var scopeApi5 = ArmorHiderClientApi.getInstance().getRenderingScopeApi();
+        var offCtx5 = scopeApi5.getActiveScope(RenderScope.OFFHAND);
+        var hdCtx5 = scopeApi5.getActiveScope(RenderScope.HEAD);
+        var activeCtx5 = !offCtx5.isEmpty() ? offCtx5 : hdCtx5;
+        if (!activeCtx5.isEmpty()) {
+            float modifiedAlpha = alpha * activeCtx5.renderModificationApi().getTransparencyAlpha();
             original.call(instance, pose, quad, r, g, b, modifiedAlpha, light, overlay, useBlockLight);
         } else {
             original.call(instance, pose, quad, r, g, b, alpha, light, overlay, useBlockLight);
@@ -144,12 +162,11 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.rendering.RenderModifications;
+import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
+import de.zannagh.armorhider.client.api.render.RenderScope;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.entity.ItemRenderer;
-import net.minecraft.world.entity.EquipmentSlot;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
@@ -168,9 +185,15 @@ public class ItemRendererMixin {
             argsOnly = true
     )
     private static RenderType modifyRenderType(RenderType renderType) {
-        var ctx = ArmorHiderClient.RENDER_CONTEXT;
-        if (ctx.hasActiveModification(EquipmentSlot.OFFHAND) || ctx.hasActiveModification(EquipmentSlot.HEAD)) {
-            return RenderModifications.getTranslucentItemRenderType(ctx, renderType);
+        
+        var scopeApi = ArmorHiderClientApi.getInstance().getRenderingScopeApi();
+        var offCtx = scopeApi.getActiveScope(RenderScope.OFFHAND);
+        var hdCtx = scopeApi.getActiveScope(RenderScope.HEAD);
+        var activeCtx = !offCtx.isEmpty() ? offCtx : hdCtx;
+        if (!activeCtx.isEmpty()) {
+            if (activeCtx.renderModificationApi().getTranslucentItemRenderType(renderType) instanceof RenderType rt) {
+                return rt;
+            }
         }
         return renderType;
     }
@@ -183,9 +206,13 @@ public class ItemRendererMixin {
             )
     )
     private static void wrapPutBulkData(VertexConsumer instance, PoseStack.Pose pose, BakedQuad quad, float r, float g, float b, float alpha, int light, int overlay, Operation<Void> original) {
-        var ctx = ArmorHiderClient.RENDER_CONTEXT;
-        if (ctx.hasActiveModification(EquipmentSlot.OFFHAND) || ctx.hasActiveModification(EquipmentSlot.HEAD)) {
-            float modifiedAlpha = alpha * RenderModifications.getTransparencyAlpha(ctx);
+        
+        var scopeApi2 = ArmorHiderClientApi.getInstance().getRenderingScopeApi();
+        var offCtx2 = scopeApi2.getActiveScope(RenderScope.OFFHAND);
+        var hdCtx2 = scopeApi2.getActiveScope(RenderScope.HEAD);
+        var activeCtx2 = !offCtx2.isEmpty() ? offCtx2 : hdCtx2;
+        if (!activeCtx2.isEmpty()) {
+            float modifiedAlpha = alpha * activeCtx2.renderModificationApi().getTransparencyAlpha();
             original.call(instance, pose, quad, r, g, b, modifiedAlpha, light, overlay);
         } else {
             original.call(instance, pose, quad, r, g, b, alpha, light, overlay);

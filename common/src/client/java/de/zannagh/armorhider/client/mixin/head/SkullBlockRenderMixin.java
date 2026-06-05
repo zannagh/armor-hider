@@ -4,7 +4,8 @@ package de.zannagh.armorhider.client.mixin.head;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
-import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.client.api.render.RenderScope;
+import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
 import de.zannagh.armorhider.client.rendering.RenderModifications;
 import net.minecraft.client.model.Model;
 import net.minecraft.client.renderer.SubmitNodeCollector;
@@ -41,21 +42,16 @@ public abstract class SkullBlockRenderMixin {
     private static <S> void modifyTransparency(SubmitNodeCollector instance, Model<? super S> model, S o, PoseStack poseStack, RenderType renderType, int i, int j, int k, ModelFeatureRenderer.CrumblingOverlay crumblingOverlay, Operation<Void> original) {
     //? if < 1.21.11
     //private static <S> void modifyTransparency(SubmitNodeCollector instance, Model<? super S> model, S o, PoseStack poseStack, RenderType renderType, int i, int j, int k, ModelFeatureRenderer.CrumblingOverlay crumblingOverlay, Operation<Void> original) {
-        try {
-            var ctx = ArmorHiderClient.RENDER_CONTEXT;
-            if (!ctx.hasActiveModification()) {
-                original.call(instance, model, o, poseStack, renderType, i, j, k, crumblingOverlay);
-                return;
-            }
-            var mod = ctx.activeModification();
-            if (mod != null && mod.shouldHide()) {
-                return;
-            }
-            var modifiedColor = RenderModifications.applyTransparencyFromWhite(ctx, 255);
-            instance.order(RenderModifications.SKULL_RENDER_PRIORITY).submitModel(model, o, poseStack, renderType, i, j, modifiedColor, null, k, crumblingOverlay);
-        } finally {
-            ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
+        var headCtx = ArmorHiderClientApi.getInstance().getRenderingScopeApi().getActiveScope(RenderScope.HEAD);
+        if (headCtx.isEmpty()) {
+            original.call(instance, model, o, poseStack, renderType, i, j, k, crumblingOverlay);
+            return;
         }
+        if (headCtx.shouldCancel()) {
+            return;
+        }
+        var modifiedColor = headCtx.renderModificationApi().applyTransparencyFromWhite(255);
+        instance.order(RenderModifications.SKULL_RENDER_PRIORITY).submitModel(model, o, poseStack, renderType, i, j, modifiedColor, null, k, crumblingOverlay);
     }
 
     @WrapOperation(
@@ -73,7 +69,11 @@ public abstract class SkullBlockRenderMixin {
      private static RenderType getSkullRenderType(SkullBlock.Type type, Identifier identifier, Operation<RenderType> original) {
     //? if < 1.21.11
     //private static RenderType getSkullRenderType(SkullBlock.Type type, Identifier identifier, Operation<RenderType> original) {
-        return RenderModifications.getSkullRenderLayer(ArmorHiderClient.RENDER_CONTEXT, identifier, original.call(type, identifier));
+        var headCtx2 = ArmorHiderClientApi.getInstance().getRenderingScopeApi().getActiveScope(RenderScope.HEAD);
+        if (!headCtx2.isEmpty() && headCtx2.renderModificationApi().getSkullRenderLayer(identifier, original.call(type, identifier)) instanceof RenderType rt) {
+            return rt;
+        }
+        return original.call(type, identifier);
     }
 
     @WrapOperation(
@@ -92,7 +92,11 @@ public abstract class SkullBlockRenderMixin {
     private static RenderType getCutoutRenderLayer(Identifier texture, Operation<RenderType> original) {
     //? if < 1.21.11
     //private static RenderType getCutoutRenderLayer(Identifier texture, Operation<RenderType> original) {
-        return RenderModifications.getSkullRenderLayer(ArmorHiderClient.RENDER_CONTEXT, texture, original.call(texture));
+        var headCtx3 = ArmorHiderClientApi.getInstance().getRenderingScopeApi().getActiveScope(RenderScope.HEAD);
+        if (!headCtx3.isEmpty() && headCtx3.renderModificationApi().getSkullRenderLayer(texture, original.call(texture)) instanceof RenderType rt) {
+            return rt;
+        }
+        return original.call(texture);
     }
 }
 //?}
@@ -104,8 +108,8 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.rendering.RenderModifications;
+import de.zannagh.armorhider.client.api.render.RenderScope;
+import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
 import net.minecraft.client.model.SkullModelBase;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.blockentity.SkullBlockRenderer;
@@ -123,13 +127,13 @@ public abstract class SkullBlockRenderMixin {
             )
     )
     private static void modifyTransparency(SkullModelBase instance, PoseStack poseStack, VertexConsumer vertexConsumer, int light, int overlay, Operation<Void> original) {
-        var ctx = ArmorHiderClient.RENDER_CONTEXT;
-        if (ctx.hasActiveModification()) {
-            var mod = ctx.activeModification();
-            if (mod != null && mod.shouldHide()) {
+
+        var headCtx = ArmorHiderClientApi.getInstance().getRenderingScopeApi().getActiveScope(RenderScope.HEAD);
+        if (!headCtx.isEmpty()) {
+            if (headCtx.shouldCancel()) {
                 return;
             }
-            int modifiedColor = RenderModifications.applyTransparencyFromWhite(ctx, -1);
+            int modifiedColor = headCtx.renderModificationApi().applyTransparencyFromWhite(-1);
             instance.renderToBuffer(poseStack, vertexConsumer, light, overlay, modifiedColor);
         } else {
             original.call(instance, poseStack, vertexConsumer, light, overlay);
@@ -144,7 +148,11 @@ public abstract class SkullBlockRenderMixin {
             )
     )
     private static RenderType modifySkullTransparency(Identifier resourceLocation, Operation<RenderType> original) {
-        return RenderModifications.getSkullRenderLayer(ArmorHiderClient.RENDER_CONTEXT, resourceLocation, original.call(resourceLocation));
+        var headCtx = ArmorHiderClientApi.getInstance().getRenderingScopeApi().getActiveScope(RenderScope.HEAD);
+        if (!headCtx.isEmpty() && headCtx.renderModificationApi().getSkullRenderLayer(resourceLocation, original.call(resourceLocation)) instanceof RenderType rt) {
+            return rt;
+        }
+        return original.call(resourceLocation);
     }
 }
 *///?}
@@ -156,8 +164,8 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.rendering.RenderModifications;
+import de.zannagh.armorhider.client.api.render.RenderScope;
+import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
 import net.minecraft.client.model.SkullModelBase;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.blockentity.SkullBlockRenderer;
@@ -175,13 +183,13 @@ public abstract class SkullBlockRenderMixin {
             )
     )
     private static void modifyTransparency(SkullModelBase instance, PoseStack poseStack, VertexConsumer vertexConsumer, int light, int overlay, Operation<Void> original) {
-        var ctx = ArmorHiderClient.RENDER_CONTEXT;
-        if (ctx.hasActiveModification()) {
-            var mod = ctx.activeModification();
-            if (mod != null && mod.shouldHide()) {
+
+        var headCtx = ArmorHiderClientApi.getInstance().getRenderingScopeApi().getActiveScope(RenderScope.HEAD);
+        if (!headCtx.isEmpty()) {
+            if (headCtx.shouldCancel()) {
                 return;
             }
-            int modifiedColor = RenderModifications.applyTransparencyFromWhite(ctx, -1);
+            int modifiedColor = headCtx.renderModificationApi().applyTransparencyFromWhite(-1);
             instance.renderToBuffer(poseStack, vertexConsumer, light, overlay, modifiedColor);
         } else {
             original.call(instance, poseStack, vertexConsumer, light, overlay);
@@ -199,7 +207,11 @@ public abstract class SkullBlockRenderMixin {
             )
     )
     private static RenderType modifySkullTransparency(Identifier texture, Operation<RenderType> original) {
-        return RenderModifications.getSkullRenderLayer(ArmorHiderClient.RENDER_CONTEXT, texture, original.call(texture));
+        var headCtx = ArmorHiderClientApi.getInstance().getRenderingScopeApi().getActiveScope(RenderScope.HEAD);
+        if (!headCtx.isEmpty() && headCtx.renderModificationApi().getSkullRenderLayer(texture, original.call(texture)) instanceof RenderType rt) {
+            return rt;
+        }
+        return original.call(texture);
     }
 
     @WrapOperation(
@@ -213,7 +225,11 @@ public abstract class SkullBlockRenderMixin {
             )
     )
     private static RenderType getCutoutRenderLayer(Identifier texture, Operation<RenderType> original) {
-        return RenderModifications.getSkullRenderLayer(ArmorHiderClient.RENDER_CONTEXT, texture, original.call(texture));
+        var headCtx = ArmorHiderClientApi.getInstance().getRenderingScopeApi().getActiveScope(RenderScope.HEAD);
+        if (!headCtx.isEmpty() && headCtx.renderModificationApi().getSkullRenderLayer(texture, original.call(texture)) instanceof RenderType rt) {
+            return rt;
+        }
+        return original.call(texture);
     }
 }
 *///?}
@@ -225,8 +241,8 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.rendering.RenderModifications;
+import de.zannagh.armorhider.client.api.render.RenderScope;
+import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
 import net.minecraft.client.model.SkullModelBase;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.blockentity.SkullBlockRenderer;
@@ -244,14 +260,13 @@ public abstract class SkullBlockRenderMixin {
             )
     )
     private static void modifyTransparency(SkullModelBase instance, PoseStack poseStack, VertexConsumer vertexConsumer, int light, int overlay, float red, float green, float blue, float alpha, Operation<Void> original) {
-        var ctx = ArmorHiderClient.RENDER_CONTEXT;
-        if (ctx.hasActiveModification()) {
-            var mod = ctx.activeModification();
-            if (mod != null && mod.shouldHide()) {
+
+        var headCtx = ArmorHiderClientApi.getInstance().getRenderingScopeApi().getActiveScope(RenderScope.HEAD);
+        if (!headCtx.isEmpty()) {
+            if (headCtx.shouldCancel()) {
                 return;
             }
-
-            float newAlpha = RenderModifications.getTransparencyAlpha(ctx);
+            float newAlpha = headCtx.renderModificationApi().getTransparencyAlpha();
             instance.renderToBuffer(poseStack, vertexConsumer, light, overlay, red, green, blue, newAlpha);
         } else {
             original.call(instance, poseStack, vertexConsumer, light, overlay, red, green, blue, alpha);
@@ -266,7 +281,11 @@ public abstract class SkullBlockRenderMixin {
             )
     )
     private static RenderType modifySkullTransparency(Identifier texture, Operation<RenderType> original) {
-        return RenderModifications.getSkullRenderLayer(ArmorHiderClient.RENDER_CONTEXT, texture, original.call(texture));
+        var headCtx = ArmorHiderClientApi.getInstance().getRenderingScopeApi().getActiveScope(RenderScope.HEAD);
+        if (!headCtx.isEmpty() && headCtx.renderModificationApi().getSkullRenderLayer(texture, original.call(texture)) instanceof RenderType rt) {
+            return rt;
+        }
+        return original.call(texture);
     }
 
     @WrapOperation(
@@ -277,7 +296,11 @@ public abstract class SkullBlockRenderMixin {
             )
     )
     private static RenderType getCutoutRenderLayer(Identifier texture, Operation<RenderType> original) {
-        return RenderModifications.getSkullRenderLayer(ArmorHiderClient.RENDER_CONTEXT, texture, original.call(texture));
+        var headCtx = ArmorHiderClientApi.getInstance().getRenderingScopeApi().getActiveScope(RenderScope.HEAD);
+        if (!headCtx.isEmpty() && headCtx.renderModificationApi().getSkullRenderLayer(texture, original.call(texture)) instanceof RenderType rt) {
+            return rt;
+        }
+        return original.call(texture);
     }
 }
 *///?}

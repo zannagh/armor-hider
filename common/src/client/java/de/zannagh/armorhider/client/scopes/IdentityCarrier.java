@@ -27,10 +27,12 @@ public interface IdentityCarrier {
     PlayerModificationInfo armorHider$getPlayerModifications();
 
     default boolean armorHider$allSlotsFullyHidden() {
-        return armorHider$getPlayerModifications().head().shouldHide()
-                && armorHider$getPlayerModifications().chest().shouldHide()
-                && armorHider$getPlayerModifications().legs().shouldHide()
-                && armorHider$getPlayerModifications().feet().shouldHide();
+        var mods = armorHider$getPlayerModifications();
+        if (mods == null) return false;
+        return mods.head().shouldHide()
+                && mods.chest().shouldHide()
+                && mods.legs().shouldHide()
+                && mods.feet().shouldHide();
     }
 
     @NonNull ItemStack getItemBySlot(EquipmentSlot slot);
@@ -40,18 +42,19 @@ public interface IdentityCarrier {
      * Returns {@code null} when no modification is needed.
      */
     default SlotModification getModification(@NotNull EquipmentSlot slot, @Nullable ItemStack item) {
-        var slotInfo = SlotModification.empty();
-        if (slot == EquipmentSlot.HEAD) {
-            slotInfo = armorHider$getPlayerModifications().head();
-        } else if (slot == EquipmentSlot.CHEST) {
-            slotInfo = armorHider$getPlayerModifications().chest();
-        } else if (slot == EquipmentSlot.LEGS) {
-            slotInfo = armorHider$getPlayerModifications().legs();
-        } else if (slot == EquipmentSlot.FEET) {
-            slotInfo = armorHider$getPlayerModifications().feet();
+        var mods = armorHider$getPlayerModifications();
+        if (mods == null) {
+            return SlotModification.empty();
         }
+        var slotInfo = switch (slot) {
+            case HEAD -> mods.head();
+            case CHEST -> mods.chest();
+            case LEGS -> mods.legs();
+            case FEET -> mods.feet();
+            default -> SlotModification.empty();
+        };
         if (item != null) {
-            slotInfo.addItemInformation(item);
+            slotInfo = slotInfo.addItemInformation(item);
         }
         return slotInfo;
     }
@@ -62,11 +65,12 @@ public interface IdentityCarrier {
      * Also sets the active context if the modification is not null via {@link de.zannagh.armorhider.client.api.render.ArmorHiderRenderingScopeApi#setActiveModification(SlotModification)}
      */
     default SlotModification createModificationAndSetContext(@NotNull EquipmentSlot slot, @Nullable ItemStack item) {
-        SlotModification cached = switch (slot) {
-            case HEAD -> armorHider$getPlayerModifications().head();
-            case CHEST -> armorHider$getPlayerModifications().chest();
-            case LEGS -> armorHider$getPlayerModifications().legs();
-            case FEET -> armorHider$getPlayerModifications().feet();
+        var mods = armorHider$getPlayerModifications();
+        SlotModification cached = mods == null ? null : switch (slot) {
+            case HEAD -> mods.head();
+            case CHEST -> mods.chest();
+            case LEGS -> mods.legs();
+            case FEET -> mods.feet();
             default -> null;
         };
         SlotModification modification;

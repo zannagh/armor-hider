@@ -3,7 +3,8 @@ package de.zannagh.armorhider.client.mixin.compat.waveycapes;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
-import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
+import de.zannagh.armorhider.client.api.render.RenderScope;
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
 import net.minecraft.world.entity.EquipmentSlot;
 import org.spongepowered.asm.mixin.Mixin;
@@ -56,12 +57,12 @@ public class WaveyCapesMixin {
         var renderState = player;
     *///?}
         if (renderState instanceof IdentityCarrier carrier) {
-            var mod = carrier.createModificationAndSetContext(EquipmentSlot.CHEST, chestEquipment);
-            if (mod != null
-                    && mod.shouldHide()
+            var api = ArmorHiderClientApi.getInstance().getRenderingScopeApi();
+            var ctx = api.enterScope(RenderScope.CAPE, carrier, EquipmentSlot.CHEST, chestEquipment);
+            if (ctx.shouldCancel()
                     && itemStackContainsElytra(chestEquipment)
                     && carrier.isPlayerFlying()) {
-                ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
+                api.exitScope(RenderScope.CAPE);
                 ci.cancel();
             }
         }
@@ -77,8 +78,8 @@ public class WaveyCapesMixin {
             )
     )
     private void moveCapeWhenArmorHidden(PoseStack instance, float f, float g, float h, Operation<Void> original) {
-        var mod = ArmorHiderClient.RENDER_CONTEXT.activeModification();
-        if (mod != null && mod.shouldHide()) {
+        var capeCtx = ArmorHiderClientApi.getInstance().getRenderingScopeApi().getActiveScope(RenderScope.CAPE);
+        if (!capeCtx.isEmpty() && capeCtx.modification().shouldHide()) {
             original.call(instance, 0F, 0F, 0F);
         } else {
             original.call(instance, f, g, h);
@@ -98,6 +99,6 @@ public class WaveyCapesMixin {
     //?} else {
     /*private void releaseCapeContext(PoseStack poseStack, MultiBufferSource multiBufferSource, int light, AbstractClientPlayer player, float limbSwing, float limbSwingAmount, float partialTick, float ageInTicks, float netHeadYaw, float headPitch, CallbackInfo ci) {
     *///?}
-        ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
+        ArmorHiderClientApi.getInstance().getRenderingScopeApi().exitScope(RenderScope.CAPE);
     }
 }

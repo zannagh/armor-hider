@@ -20,7 +20,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
-import org.spongepowered.asm.mixin.Mixin;
+import org.jspecify.annotations.NonNull;import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -42,7 +42,8 @@ public abstract class PlayerMixin
     @Unique
     private PlayerModificationInfo armorHider$playerModInfo;
 
-    public PlayerModificationInfo armorHider$getPlayerModifications(){
+    public PlayerModificationInfo armorHider$getPlayerModifications() {
+        armorHider$rebuildModsIfDirty();
         return armorHider$playerModInfo;
     }
 
@@ -132,12 +133,18 @@ public abstract class PlayerMixin
         return player.isFallFlying() || player.getAbilities().flying;
     }
 
-    @ModifyReturnValue(method = "getItemBySlot", at = @At("RETURN"))
-    private ItemStack hideFullyHiddenSlot(ItemStack original, EquipmentSlot slot) {
+    //? if >= 1.21.11 {
+    @Override
+    public ItemStack getItemBySlot(@NonNull EquipmentSlot slot) {
+        var original = super.getItemBySlot(slot);
+    //?}
+    //? if < 1.21.11 {
+    /*@ModifyReturnValue(method = "getItemBySlot", at = @At("RETURN"))
+    private ItemStack armorHider$modifyGetItemBySlot(ItemStack original, @NonNull EquipmentSlot slot) {
+    *///?}
         if (original.isEmpty()) {
             return original;
         }
-
         var ctx = ArmorHiderClientApi.getInstance().getRenderingScopeApi();
 
         if (ctx.hasActiveModification()) {
@@ -163,4 +170,6 @@ public abstract class PlayerMixin
         }
         return original;
     }
+
+
 }

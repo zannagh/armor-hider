@@ -4,9 +4,10 @@ package de.zannagh.armorhider.client.mixin.compat.geckolib;
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.rendering.GeckoLibRenderState;
-import de.zannagh.armorhider.client.rendering.RenderModifications;
+import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
+import de.zannagh.armorhider.client.api.render.RenderScope;
 import de.zannagh.armorhider.client.rendering.RenderTypeFactory;
-import de.zannagh.armorhider.client.scopes.ActiveModification;
+import de.zannagh.armorhider.client.api.configuration.SlotModification;
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.SubmitNodeCollector;
@@ -41,14 +42,19 @@ public class GeckoLibArmorMixin {
             int packedLight,
             HumanoidRenderState renderState,
             CallbackInfoReturnable<Boolean> cir) {
-        if (!(renderState instanceof IdentityCarrier carrier)
-                || !(carrier.createModificationAndSetContext(slot, stack) instanceof ActiveModification mod)) {
+        if (!(renderState instanceof IdentityCarrier carrier)) {
+            return;
+        }
+        var api = ArmorHiderClientApi.getInstance().getRenderingScopeApi();
+        var ctx = api.enterScope(RenderScope.ARMOR_PIECE, carrier, slot, stack);
+        var mod = ctx.modification();
+        if (!mod.needsModification()) {
             return;
         }
 
         if (mod.shouldHide()) {
             // Cancel GeckoLib rendering entirely, so rendering is delegated down the vanilla pipeline.
-            ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
+            api.exitScope(RenderScope.ARMOR_PIECE);
             cir.setReturnValue(false);
             return;
         }
@@ -58,8 +64,7 @@ public class GeckoLibArmorMixin {
             if (perSlotState != null) {
                 int originalColor = GeckoLibRenderState.getRenderColor(perSlotState);
                 carrier.saveGeckoLibColor(originalColor);
-                int modifiedColor = RenderModifications.applyArmorTransparency(
-                        ArmorHiderClient.RENDER_CONTEXT, originalColor);
+                int modifiedColor = ctx.renderModificationApi().applyArmorTransparency(originalColor);
                 GeckoLibRenderState.setRenderColor(perSlotState, modifiedColor);
             }
         }
@@ -85,7 +90,7 @@ public class GeckoLibArmorMixin {
                 }
             }
         }
-        ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
+        ArmorHiderClientApi.getInstance().getRenderingScopeApi().exitScope(RenderScope.ARMOR_PIECE);
     }
 
     // ========================
@@ -97,13 +102,11 @@ public class GeckoLibArmorMixin {
     @Inject(method = "getRenderType", at = @At("HEAD"), cancellable = true, require = 0)
     private void modifyRenderType(@Coerce Object renderState, Identifier texture,
             CallbackInfoReturnable<RenderType> cir) {
-        var mod = ArmorHiderClient.RENDER_CONTEXT.activeModification();
-        if (mod == null) {
+        var armorCtx = ArmorHiderClientApi.getInstance().getRenderingScopeApi().getActiveScope(RenderScope.ARMOR_PIECE);
+        if (armorCtx.isEmpty()) {
             return;
         }
-        // Force translucent render type for partial transparency.
-        // shouldHide is handled earlier by cancelling tryRenderGeoArmorPiece entirely.
-        if (mod.transparency() < 1.0) {
+        if (armorCtx.modification().transparency() < 1.0) {
             cir.setReturnValue(RenderTypeFactory.translucentArmor(texture));
         }
     }
@@ -114,8 +117,8 @@ public class GeckoLibArmorMixin {
 //? if >= 1.21 && < 1.21.9 {
 /*package de.zannagh.armorhider.client.mixin.compat.geckolib;
 
-import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.rendering.RenderModifications;
+import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
+import de.zannagh.armorhider.client.api.render.RenderScope;
 import de.zannagh.armorhider.client.rendering.RenderTypeFactory;
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
 import net.minecraft.client.renderer.rendertype.RenderType;
@@ -152,17 +155,17 @@ public class GeckoLibArmorMixin {
     private void modifyRenderType(@Coerce Object animatable, Identifier texture,
             @Coerce Object bufferSource, float partialTick,
             CallbackInfoReturnable<RenderType> cir) {
-        // Clear any stale modification from a previous slot — createModification only
-        // sets the context when non-null (100% opacity returns null and would leak).
-        ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
+        // Clear any stale modification from a previous slot
+        var api = ArmorHiderClientApi.getInstance().getRenderingScopeApi();
+        api.exitScope(RenderScope.ARMOR_PIECE);
         if (currentEntity instanceof IdentityCarrier carrier && currentSlot != null) {
-            carrier.createModification(currentSlot, currentStack);
+            api.enterScope(RenderScope.ARMOR_PIECE, carrier, currentSlot, currentStack);
         }
-        var mod = ArmorHiderClient.RENDER_CONTEXT.activeModification();
-        if (mod == null) {
+        var armorCtx = ArmorHiderClientApi.getInstance().getRenderingScopeApi().getActiveScope(RenderScope.ARMOR_PIECE);
+        if (armorCtx.isEmpty()) {
             return;
         }
-        if (mod.shouldHide() || mod.transparency() < 1.0) {
+        if (armorCtx.modification().shouldHide() || armorCtx.modification().transparency() < 1.0) {
             cir.setReturnValue(RenderTypeFactory.translucentArmor(texture));
         }
     }
@@ -173,7 +176,7 @@ public class GeckoLibArmorMixin {
 
     @ModifyVariable(method = "actuallyRender", at = @At("HEAD"), ordinal = 2, argsOnly = true, require = 0)
     private int modifyRenderColor(int renderColor) {
-        return RenderModifications.applyArmorTransparency(ArmorHiderClient.RENDER_CONTEXT, renderColor);
+        return ArmorHiderClientApi.getInstance().getRenderingScopeApi().getActiveScope(RenderScope.ARMOR_PIECE).renderModificationApi().applyArmorTransparency(renderColor);
     }
 }
 *///?}
@@ -183,8 +186,8 @@ public class GeckoLibArmorMixin {
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.rendering.RenderModifications;
+import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
+import de.zannagh.armorhider.client.api.render.RenderScope;
 import de.zannagh.armorhider.client.rendering.RenderTypeFactory;
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
 import net.minecraft.client.renderer.rendertype.RenderType;
@@ -221,15 +224,15 @@ public class GeckoLibArmorMixin {
     private void modifyRenderType(@Coerce Object animatable, Identifier texture,
             @Coerce Object bufferSource, float partialTick,
             CallbackInfoReturnable<RenderType> cir) {
-        // Clear any stale modification from a previous slot — createModification only
-        // sets the context when non-null (100% opacity returns null and would leak).
-        ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
+        // Clear any stale modification from a previous slot
+        var api = ArmorHiderClientApi.getInstance().getRenderingScopeApi();
+        api.exitScope(RenderScope.ARMOR_PIECE);
         if (currentEntity instanceof IdentityCarrier carrier && currentSlot != null) {
-            carrier.createModification(currentSlot, currentStack);
+            api.enterScope(RenderScope.ARMOR_PIECE, carrier, currentSlot, currentStack);
         }
-        var mod = ArmorHiderClient.RENDER_CONTEXT.activeModification();
-        if (mod == null) return;
-        if (mod.shouldHide() || mod.transparency() < 1.0) {
+        var armorCtx = ArmorHiderClientApi.getInstance().getRenderingScopeApi().getActiveScope(RenderScope.ARMOR_PIECE);
+        if (armorCtx.isEmpty()) return;
+        if (armorCtx.modification().shouldHide() || armorCtx.modification().transparency() < 1.0) {
             cir.setReturnValue(RenderTypeFactory.translucentArmor(texture));
         }
     }
@@ -240,9 +243,9 @@ public class GeckoLibArmorMixin {
 
     @ModifyVariable(method = "actuallyRender", at = @At("HEAD"), ordinal = 4, argsOnly = true, require = 0)
     private float modifyAlpha(float alpha) {
-        var mod = ArmorHiderClient.RENDER_CONTEXT.activeModification();
-        if (mod != null && mod.transparency() < 1.0) {
-            return (float) (mod.transparency() * alpha);
+        var armorCtx = ArmorHiderClientApi.getInstance().getRenderingScopeApi().getActiveScope(RenderScope.ARMOR_PIECE);
+        if (!armorCtx.isEmpty() && armorCtx.modification().transparency() < 1.0) {
+            return (float) (armorCtx.modification().transparency() * alpha);
         }
         return alpha;
     }
@@ -262,8 +265,8 @@ public class GeckoLibArmorMixin {
     private boolean modifyGlint(ItemStack instance, Operation<Boolean> original) {
         boolean result = original.call(instance);
         if (result) {
-            var mod = ArmorHiderClient.RENDER_CONTEXT.activeModification();
-            if (mod != null && (mod.shouldDisableGlint() || mod.shouldHide())) {
+            var armorCtx = ArmorHiderClientApi.getInstance().getRenderingScopeApi().getActiveScope(RenderScope.ARMOR_PIECE);
+            if (!armorCtx.isEmpty() && (armorCtx.modification().shouldDisableGlint() || armorCtx.modification().shouldHide())) {
                 return false;
             }
         }

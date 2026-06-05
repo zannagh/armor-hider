@@ -1,5 +1,7 @@
 package de.zannagh.armorhider.client.mixin.hand;
 
+import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
+import de.zannagh.armorhider.client.api.render.RenderScope;
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
 import net.minecraft.client.renderer.entity.ItemEntityRenderer;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -37,7 +39,7 @@ public class ItemEntityRendererMixin {
         if (slot != EquipmentSlot.OFFHAND) {
             return;
         }
-        carrier.createModificationAndSetContext(slot, itemEntity.getItem());
+        ArmorHiderClientApi.getInstance().getRenderingScopeApi().enterScope(RenderScope.OFFHAND, carrier, slot, itemEntity.getItem());
     }
 
     // For < 1.21.4, exit the item scope at render() RETURN (same method as entry).
@@ -48,7 +50,7 @@ public class ItemEntityRendererMixin {
     //? if < 1.21.4 {
     /*@Inject(method = "render(Lnet/minecraft/world/entity/item/ItemEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V", at = @At("RETURN"))
     private void releaseContext(ItemEntity itemEntity, float f, float g, PoseStack poseStack, MultiBufferSource multiBufferSource, int i, CallbackInfo ci) {
-        ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
+        ArmorHiderClientApi.getInstance().getRenderingScopeApi().exitScope(RenderScope.OFFHAND);
     }
     *///?}
 }

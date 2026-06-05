@@ -3,6 +3,7 @@ package de.zannagh.armorhider.client.mixin.compat.emf;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
 import de.zannagh.armorhider.client.rendering.RenderModifications;
 import de.zannagh.armorhider.client.scopes.VanillaRootAccessor;
 import de.zannagh.armorhider.log.DebugLogger;
@@ -42,7 +43,7 @@ public abstract class EmfModelPartMixin {
 
         @SuppressWarnings("deprecation")
         boolean emfForced = EMFAnimationEntityContext.isEntityForcedToVanillaModel();
-        boolean playerForced = ArmorHiderClient.RENDER_CONTEXT.shouldForceVanilla();
+        boolean playerForced = ArmorHiderClientApi.getInstance().getRenderingScopeApi().shouldEnforceVanillaRendering();
         if (!emfForced && !playerForced) {
             return;
         }
@@ -58,7 +59,7 @@ public abstract class EmfModelPartMixin {
                 int id = System.identityHashCode(vanilla);
                 if (armorHider$renderedVanillaRoots.add(id)) {
                     if (DebugLogger.isEnabled() && armorHider$logCounter++ % 600 == 0) {
-                        DebugLogger.log("[EMF mixin] REDIRECT to vanillaRoot | id={} | player={} | class={}", id, ArmorHiderClient.RENDER_CONTEXT.currentPlayerName(), this.getClass().getSimpleName());
+                        DebugLogger.log("[EMF mixin] REDIRECT to vanillaRoot | id={} | player={} | class={}", id, ArmorHiderClientApi.getInstance().getRenderingScopeApi().currentlyHandledPlayerName(), this.getClass().getSimpleName());
                     }
                     RenderModifications.synchronisePoses(thisAsPart(), vanilla);
                     
@@ -67,7 +68,7 @@ public abstract class EmfModelPartMixin {
                     //? } else
                     // vanilla.render(matrices, vertices, light, overlay, red, green, blue, alpha);
                 } else if (DebugLogger.isEnabled() && armorHider$logCounter++ % 600 == 0) {
-                    DebugLogger.log("[EMF mixin] DEDUP vanillaRoot | id={} | player={} | class={}", id, ArmorHiderClient.RENDER_CONTEXT.currentPlayerName(), this.getClass().getSimpleName());
+                    DebugLogger.log("[EMF mixin] DEDUP vanillaRoot | id={} | player={} | class={}", id, ArmorHiderClientApi.getInstance().getRenderingScopeApi().currentlyHandledPlayerName(), this.getClass().getSimpleName());
                 }
                 ci.cancel();
                 return;
@@ -75,7 +76,7 @@ public abstract class EmfModelPartMixin {
         }
 
         if (DebugLogger.isEnabled() && armorHider$logCounter++ % 600 == 0) {
-            DebugLogger.log("[EMF mixin] CANCEL (non-root) | player={} | class={}", ArmorHiderClient.RENDER_CONTEXT.currentPlayerName(), this.getClass().getSimpleName());
+            DebugLogger.log("[EMF mixin] CANCEL (non-root) | player={} | class={}", ArmorHiderClientApi.getInstance().getRenderingScopeApi().currentlyHandledPlayerName(), this.getClass().getSimpleName());
         }
         ci.cancel();
     }

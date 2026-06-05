@@ -82,7 +82,10 @@ public abstract class LivingEntityRendererMixin
         if (!(state instanceof AvatarRenderState)) {
             return;
         }
-        ArmorHiderClientApi.getInstance().getRenderingScopeApi().setInEntityRender(true);
+        ArmorHiderClientApi.getInstance().getRenderingScopeApi().setInEntityRender();
+        if (entity instanceof IdentityCarrier carrier) {
+            ArmorHiderClientApi.getInstance().getRenderingScopeApi().setCurrentPlayer(carrier.armorHider$playerName());
+        }
     }
 
     /**

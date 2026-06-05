@@ -3,6 +3,7 @@ package de.zannagh.armorhider.client.mixin;
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
+import de.zannagh.armorhider.client.scopes.IdentityCarrier;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -43,26 +44,30 @@ public class EntityRenderDispatcherMixin {
     //? if < 1.21.4
     //private static final String RENDER_METHOD = "render(Lnet/minecraft/world/entity/Entity;DDDFFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V";
 
+    @Unique
+    private static boolean isPlayerEntity(Object entity) {
+        //? if >= 1.21.9
+        return entity instanceof AvatarRenderState;
+        //? if >= 1.21.4 && < 1.21.9
+        //return entity instanceof Player;
+        //? if < 1.21.4
+        //return entity instanceof Player;
+    }
+
     @Inject(method = RENDER_METHOD, at = @At("HEAD"))
-    //? if >= 1.21.9 {
-    private <S extends EntityRenderState> void enterEntityRendering(S entityRenderState, CameraRenderState cameraRenderState, double d, double e, double f, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, CallbackInfo ci) {
-        if (entityRenderState instanceof AvatarRenderState) {
-            ArmorHiderClientApi.getInstance().getRenderingScopeApi().setInEntityRender(true);
+    //? if >= 1.21.9
+    private <S extends EntityRenderState> void enterEntityRendering(S entity, CameraRenderState cameraRenderState, double d, double e, double f, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, CallbackInfo ci) {
+    //? if < 1.21.9 && >= 1.21.4
+    //private <E extends Entity> void enterEntityRendering(E entity, double x, double y, double z, float yRot, PoseStack poseStack, MultiBufferSource bufferSource, int light, CallbackInfo ci) {
+    //? if < 1.21.4
+    //private <E extends Entity> void enterEntityRendering(E entity, double x, double y, double z, float yRot, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int light, CallbackInfo ci) {
+        if (isPlayerEntity(entity)) {
+            ArmorHiderClientApi.getInstance().getRenderingScopeApi().setInEntityRender();
+            if (entity instanceof IdentityCarrier carrier) {
+                ArmorHiderClientApi.getInstance().getRenderingScopeApi().setCurrentPlayer(carrier.armorHider$playerName());
+            }
         }
     }
-    //?} else if >= 1.21.4 {
-    /*private <E extends Entity> void enterEntityRendering(E entity, double x, double y, double z, float yRot, PoseStack poseStack, MultiBufferSource bufferSource, int light, CallbackInfo ci) {
-        if (entity instanceof Player) {
-            ArmorHiderClientApi.getInstance().getRenderingScopeApi().setInEntityRender(true);
-        }
-    }
-    *///?} else {
-    /*private <E extends Entity> void enterEntityRendering(E entity, double x, double y, double z, float yRot, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int light, CallbackInfo ci) {
-        if (entity instanceof Player) {
-            ArmorHiderClientApi.getInstance().getRenderingScopeApi().setInEntityRender(true);
-        }
-    }
-    *///?}
 
     @Inject(method = RENDER_METHOD, at = @At("RETURN"))
     //? if >= 1.21.9 {
@@ -72,6 +77,6 @@ public class EntityRenderDispatcherMixin {
     *///?} else {
     /*private <E extends Entity> void exitEntityRendering(E entity, double x, double y, double z, float yRot, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int light, CallbackInfo ci) {
     *///?}
-        ArmorHiderClientApi.getInstance().getRenderingScopeApi().setInEntityRender(false);
+        ArmorHiderClientApi.getInstance().getRenderingScopeApi().exitEntityRender();
     }
 }

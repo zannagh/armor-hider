@@ -5,7 +5,9 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.rendering.RenderModifications;
+import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
+import de.zannagh.armorhider.client.api.render.RenderScope;
+
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.state.AvatarRenderState;
@@ -48,9 +50,10 @@ public class GenderArmorLayerMixin {
             @Coerce Object side, int color, boolean glint, CallbackInfo ci) {
         if (!(state instanceof IdentityCarrier carrier)) return;
         ItemStack chestItem = (state instanceof AvatarRenderState avatar) ? avatar.chestEquipment : null;
-        var mod = carrier.createModificationAndSetContext(EquipmentSlot.CHEST, chestItem);
-        if (mod != null && mod.shouldHide()) {
-            ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
+        var api = ArmorHiderClientApi.getInstance().getRenderingScopeApi();
+        var ctx = api.enterScope(RenderScope.ARMOR_PIECE, carrier, EquipmentSlot.CHEST, chestItem);
+        if (!ctx.isEmpty() && ctx.shouldCancel()) {
+            api.exitScope(RenderScope.ARMOR_PIECE);
             ci.cancel();
         }
     }
@@ -59,7 +62,7 @@ public class GenderArmorLayerMixin {
     private void clearBreastArmorContext(Identifier texture, PoseStack poseStack,
             SubmitNodeCollector queue, HumanoidRenderState state,
             @Coerce Object side, int color, boolean glint, CallbackInfo ci) {
-        ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
+        ArmorHiderClientApi.getInstance().getRenderingScopeApi().exitScope(RenderScope.ARMOR_PIECE);
     }
 
     @WrapOperation(
@@ -71,7 +74,7 @@ public class GenderArmorLayerMixin {
     )
     private int modifyBreastArmorColor(int color, Operation<Integer> original) {
         int opaqueColor = original.call(color);
-        return RenderModifications.applyArmorTransparency(ArmorHiderClient.RENDER_CONTEXT, opaqueColor);
+        return ArmorHiderClientApi.getInstance().getRenderingScopeApi().getActiveScope(RenderScope.ARMOR_PIECE).renderModificationApi().applyArmorTransparency(opaqueColor);
     }
 
     @WrapOperation(
@@ -88,7 +91,11 @@ public class GenderArmorLayerMixin {
     private RenderType modifyBreastArmorRenderType(Identifier texture, Operation<RenderType> original) {
     //? if >= 1.21.9 && < 1.21.11
     //private RenderType modifyBreastArmorRenderType(Identifier texture, Operation<RenderType> original) {
-        return RenderModifications.getTranslucentArmorRenderType(ArmorHiderClient.RENDER_CONTEXT, texture, original.call(texture));
+        var modApi = ArmorHiderClientApi.getInstance().getRenderingScopeApi().getActiveScope(RenderScope.ARMOR_PIECE).renderModificationApi();
+        if (modApi.getTranslucentArmorRenderType(texture, original.call(texture)) instanceof RenderType rt) {
+            return rt;
+        }
+        return original.call(texture);
     }
 
     // ========================
@@ -101,9 +108,10 @@ public class GenderArmorLayerMixin {
             @Coerce Object trim, @Coerce Object side, boolean glint, CallbackInfo ci) {
         if (!(state instanceof IdentityCarrier carrier)) return;
         ItemStack chestItem = (state instanceof AvatarRenderState avatar) ? avatar.chestEquipment : null;
-        var mod = carrier.createModificationAndSetContext(EquipmentSlot.CHEST, chestItem);
-        if (mod != null && mod.shouldHide()) {
-            ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
+        var api = ArmorHiderClientApi.getInstance().getRenderingScopeApi();
+        var ctx = api.enterScope(RenderScope.ARMOR_PIECE, carrier, EquipmentSlot.CHEST, chestItem);
+        if (!ctx.isEmpty() && ctx.shouldCancel()) {
+            api.exitScope(RenderScope.ARMOR_PIECE);
             ci.cancel();
         }
     }
@@ -112,7 +120,7 @@ public class GenderArmorLayerMixin {
     private void clearArmorTrimContext(@Coerce Object armorModel, PoseStack poseStack,
             SubmitNodeCollector queue, HumanoidRenderState state,
             @Coerce Object trim, @Coerce Object side, boolean glint, CallbackInfo ci) {
-        ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
+        ArmorHiderClientApi.getInstance().getRenderingScopeApi().exitScope(RenderScope.ARMOR_PIECE);
     }
 
     @WrapOperation(
@@ -129,7 +137,11 @@ public class GenderArmorLayerMixin {
     private RenderType modifyTrimRenderType(boolean decal, Operation<RenderType> original) {
     //? if >= 1.21.9 && < 1.21.11
     //private RenderType modifyTrimRenderType(boolean decal, Operation<RenderType> original) {
-        return RenderModifications.getTrimRenderLayer(ArmorHiderClient.RENDER_CONTEXT, decal, original.call(decal));
+        var trimModApi = ArmorHiderClientApi.getInstance().getRenderingScopeApi().getActiveScope(RenderScope.ARMOR_PIECE).renderModificationApi();
+        if (trimModApi.getTrimRenderLayer(decal, original.call(decal)) instanceof RenderType rt) {
+            return rt;
+        }
+        return original.call(decal);
     }
 
     // ========================
@@ -141,13 +153,14 @@ public class GenderArmorLayerMixin {
             HumanoidRenderState state, @Coerce Object box, CallbackInfo ci) {
         if (!(state instanceof IdentityCarrier carrier)) return;
         ItemStack chestItem = (state instanceof AvatarRenderState avatar) ? avatar.chestEquipment : null;
-        var mod = carrier.createModificationAndSetContext(EquipmentSlot.CHEST, chestItem);
-        if (mod != null && (mod.shouldHide() || mod.shouldDisableGlint())) {
-            ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
+        var api = ArmorHiderClientApi.getInstance().getRenderingScopeApi();
+        var ctx = api.enterScope(RenderScope.ARMOR_PIECE, carrier, EquipmentSlot.CHEST, chestItem);
+        if (ctx.shouldCancel() || ctx.modification().shouldDisableGlint()) {
+            api.exitScope(RenderScope.ARMOR_PIECE);
             ci.cancel();
             return;
         }
-        ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
+        api.exitScope(RenderScope.ARMOR_PIECE);
     }
 }
 //?}
@@ -158,9 +171,10 @@ public class GenderArmorLayerMixin {
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
-import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.rendering.RenderModifications;
-import de.zannagh.armorhider.client.scopes.ActiveModification;
+import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
+import de.zannagh.armorhider.client.api.configuration.SlotModification;
+import de.zannagh.armorhider.client.api.render.RenderScope;
+
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.Sheets;
@@ -185,15 +199,14 @@ public class GenderArmorLayerMixin {
     private void interceptBreastArmor(Identifier texture, PoseStack poseStack,
             MultiBufferSource bufferSource, int light,
             @Coerce Object side, int color, boolean glint, CallbackInfo ci) {
-        var ctx = ArmorHiderClient.RENDER_CONTEXT;
-        String playerName = ctx.currentPlayerName();
-        if (playerName == null) return;
-        var mod = ActiveModification.create(playerName, EquipmentSlot.CHEST, null);
-        if (mod != null) {
-            ctx.setActiveModification(mod);
+        String playerName = ArmorHiderClientApi.getInstance().getRenderingScopeApi().currentlyHandledPlayerName();
+        if (playerName == null || playerName.isBlank()) return;
+        var mod = SlotModification.of(playerName, EquipmentSlot.CHEST, null);
+        if (mod.needsModification()) {
+            ArmorHiderClientApi.getInstance().getRenderingScopeApi().setActiveModification(mod);
         }
-        if (mod != null && mod.shouldHide()) {
-            ctx.clearActiveModification();
+        if (mod.shouldHide()) {
+            ArmorHiderClientApi.getInstance().getRenderingScopeApi().exitScope(RenderScope.ARMOR_PIECE);
             ci.cancel();
         }
     }
@@ -202,7 +215,7 @@ public class GenderArmorLayerMixin {
     private void clearBreastArmorContext(Identifier texture, PoseStack poseStack,
             MultiBufferSource bufferSource, int light,
             @Coerce Object side, int color, boolean glint, CallbackInfo ci) {
-        ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
+        ArmorHiderClientApi.getInstance().getRenderingScopeApi().exitScope(RenderScope.ARMOR_PIECE);
     }
 
     // Target ARGB.opaque (1.21.4+) — silently skipped on older versions via require = 0
@@ -215,7 +228,7 @@ public class GenderArmorLayerMixin {
     )
     private int modifyBreastArmorColor(int color, Operation<Integer> original) {
         int opaqueColor = original.call(color);
-        return RenderModifications.applyArmorTransparency(ArmorHiderClient.RENDER_CONTEXT, opaqueColor);
+        return ArmorHiderClientApi.getInstance().getRenderingScopeApi().getActiveScope(RenderScope.ARMOR_PIECE).renderModificationApi().applyArmorTransparency(opaqueColor);
     }
 
     // Target FastColor.ARGB32.opaque (1.21–1.21.1) — silently skipped on newer versions via require = 0
@@ -228,7 +241,7 @@ public class GenderArmorLayerMixin {
     )
     private int modifyBreastArmorColorLegacy(int color, Operation<Integer> original) {
         int opaqueColor = original.call(color);
-        return RenderModifications.applyArmorTransparency(ArmorHiderClient.RENDER_CONTEXT, opaqueColor);
+        return ArmorHiderClientApi.getInstance().getRenderingScopeApi().getActiveScope(RenderScope.ARMOR_PIECE).renderModificationApi().applyArmorTransparency(opaqueColor);
     }
 
     @WrapOperation(
@@ -239,7 +252,11 @@ public class GenderArmorLayerMixin {
                     remap = true)
     )
     private RenderType modifyBreastArmorRenderType(Identifier texture, Operation<RenderType> original) {
-        return RenderModifications.getTranslucentArmorRenderType(ArmorHiderClient.RENDER_CONTEXT, texture, original.call(texture));
+        var modApi = ArmorHiderClientApi.getInstance().getRenderingScopeApi().getActiveScope(RenderScope.ARMOR_PIECE).renderModificationApi();
+        if (modApi.getTranslucentArmorRenderType(texture, original.call(texture)) instanceof RenderType rt) {
+            return rt;
+        }
+        return original.call(texture);
     }
 
     // ========================
@@ -250,15 +267,14 @@ public class GenderArmorLayerMixin {
     private void interceptArmorTrim(@Coerce Object armorModel, PoseStack poseStack,
             MultiBufferSource bufferSource, int light,
             @Coerce Object trim, boolean glint, @Coerce Object side, CallbackInfo ci) {
-        var ctx = ArmorHiderClient.RENDER_CONTEXT;
-        String playerName = ctx.currentPlayerName();
-        if (playerName == null) return;
-        var mod = ActiveModification.create(playerName, EquipmentSlot.CHEST, null);
-        if (mod != null) {
-            ctx.setActiveModification(mod);
+        String playerName = ArmorHiderClientApi.getInstance().getRenderingScopeApi().currentlyHandledPlayerName();
+        if (playerName == null || playerName.isBlank()) return;
+        var mod = SlotModification.of(playerName, EquipmentSlot.CHEST, null);
+        if (mod.needsModification()) {
+            ArmorHiderClientApi.getInstance().getRenderingScopeApi().setActiveModification(mod);
         }
-        if (mod != null && mod.shouldHide()) {
-            ctx.clearActiveModification();
+        if (mod.shouldHide()) {
+            ArmorHiderClientApi.getInstance().getRenderingScopeApi().exitScope(RenderScope.ARMOR_PIECE);
             ci.cancel();
         }
     }
@@ -267,7 +283,7 @@ public class GenderArmorLayerMixin {
     private void clearArmorTrimContext(@Coerce Object armorModel, PoseStack poseStack,
             MultiBufferSource bufferSource, int light,
             @Coerce Object trim, boolean glint, @Coerce Object side, CallbackInfo ci) {
-        ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
+        ArmorHiderClientApi.getInstance().getRenderingScopeApi().exitScope(RenderScope.ARMOR_PIECE);
     }
 
     @WrapOperation(
@@ -278,7 +294,11 @@ public class GenderArmorLayerMixin {
                     remap = true)
     )
     private RenderType modifyTrimRenderType(boolean decal, Operation<RenderType> original) {
-        return RenderModifications.getTrimRenderLayer(ArmorHiderClient.RENDER_CONTEXT, decal, original.call(decal));
+        var trimModApi = ArmorHiderClientApi.getInstance().getRenderingScopeApi().getActiveScope(RenderScope.ARMOR_PIECE).renderModificationApi();
+        if (trimModApi.getTrimRenderLayer(decal, original.call(decal)) instanceof RenderType rt) {
+            return rt;
+        }
+        return original.call(decal);
     }
 }
 *///?}
@@ -290,8 +310,9 @@ import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
-import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.rendering.RenderModifications;
+import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
+import de.zannagh.armorhider.client.api.render.RenderScope;
+
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.rendertype.RenderType;
@@ -326,8 +347,10 @@ public class GenderArmorLayerMixin {
             MultiBufferSource bufferSource, ArmorItem armorItem, ItemStack itemStack,
             int light, boolean isLeft, CallbackInfo ci) {
         if (!(player instanceof IdentityCarrier carrier)) return;
-        var mod = carrier.createModification(EquipmentSlot.CHEST, itemStack);
-        if (mod != null && mod.shouldHide()) {
+        var api = ArmorHiderClientApi.getInstance().getRenderingScopeApi();
+        var ctx = api.enterScope(RenderScope.ARMOR_PIECE, carrier, EquipmentSlot.CHEST, itemStack);
+        if (!ctx.isEmpty() && ctx.shouldCancel()) {
+            api.exitScope(RenderScope.ARMOR_PIECE);
             ci.cancel();
             return;
         }
@@ -337,7 +360,7 @@ public class GenderArmorLayerMixin {
     private void clearBreastArmorContext(Player player, PoseStack poseStack,
             MultiBufferSource bufferSource, ArmorItem armorItem, ItemStack itemStack,
             int light, boolean isLeft, CallbackInfo ci) {
-        ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
+        ArmorHiderClientApi.getInstance().getRenderingScopeApi().exitScope(RenderScope.ARMOR_PIECE);
     }
 
     @WrapOperation(
@@ -348,7 +371,11 @@ public class GenderArmorLayerMixin {
                     remap = true)
     )
     private RenderType modifyBreastArmorRenderType(Identifier texture, Operation<RenderType> original) {
-        return RenderModifications.getTranslucentArmorRenderType(ArmorHiderClient.RENDER_CONTEXT, texture, original.call(texture));
+        var modApi = ArmorHiderClientApi.getInstance().getRenderingScopeApi().getActiveScope(RenderScope.ARMOR_PIECE).renderModificationApi();
+        if (modApi.getTranslucentArmorRenderType(texture, original.call(texture)) instanceof RenderType rt) {
+            return rt;
+        }
+        return original.call(texture);
     }
 
     @ModifyExpressionValue(
@@ -359,8 +386,8 @@ public class GenderArmorLayerMixin {
                     remap = true)
     )
     private boolean modifyGlint(boolean original) {
-        var mod = ArmorHiderClient.RENDER_CONTEXT.activeModification();
-        if (mod != null && (mod.shouldDisableGlint() || mod.shouldHide())) {
+        var armorCtx = ArmorHiderClientApi.getInstance().getRenderingScopeApi().getActiveScope(RenderScope.ARMOR_PIECE);
+        if (!armorCtx.isEmpty() && (armorCtx.modification().shouldDisableGlint() || armorCtx.modification().shouldHide())) {
             return false;
         }
         return original;
@@ -374,8 +401,8 @@ public class GenderArmorLayerMixin {
     private void interceptArmorTrim(ArmorMaterial material, PoseStack poseStack,
             MultiBufferSource bufferSource, int light,
             ArmorTrim trim, boolean glint, boolean isLeft, CallbackInfo ci) {
-        var mod = ArmorHiderClient.RENDER_CONTEXT.activeModification();
-        if (mod != null && mod.shouldHide()) {
+        var armorCtx = ArmorHiderClientApi.getInstance().getRenderingScopeApi().getActiveScope(RenderScope.ARMOR_PIECE);
+        if (!armorCtx.isEmpty() && armorCtx.modification().shouldHide()) {
             ci.cancel();
         }
     }
@@ -384,7 +411,7 @@ public class GenderArmorLayerMixin {
     private void clearArmorTrimContext(ArmorMaterial material, PoseStack poseStack,
             MultiBufferSource bufferSource, int light,
             ArmorTrim trim, boolean glint, boolean isLeft, CallbackInfo ci) {
-        ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
+        ArmorHiderClientApi.getInstance().getRenderingScopeApi().exitScope(RenderScope.ARMOR_PIECE);
     }
 
     @WrapOperation(
@@ -395,7 +422,11 @@ public class GenderArmorLayerMixin {
                     remap = true)
     )
     private RenderType modifyTrimRenderType(boolean decal, Operation<RenderType> original) {
-        return RenderModifications.getTrimRenderLayer(ArmorHiderClient.RENDER_CONTEXT, decal, original.call(decal));
+        var trimModApi = ArmorHiderClientApi.getInstance().getRenderingScopeApi().getActiveScope(RenderScope.ARMOR_PIECE).renderModificationApi();
+        if (trimModApi.getTrimRenderLayer(decal, original.call(decal)) instanceof RenderType rt) {
+            return rt;
+        }
+        return original.call(decal);
     }
 }
 *///?}

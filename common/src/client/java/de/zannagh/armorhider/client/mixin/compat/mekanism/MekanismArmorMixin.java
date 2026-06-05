@@ -2,7 +2,8 @@
 /*package de.zannagh.armorhider.client.mixin.compat.mekanism;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
+import de.zannagh.armorhider.client.api.render.RenderScope;
 import de.zannagh.armorhider.client.rendering.MekanismRenderCompat;
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
 import mekanism.client.render.layer.MekanismArmorLayer;
@@ -33,8 +34,10 @@ public class MekanismArmorMixin {
         if (!(entity instanceof IdentityCarrier carrier)) {
             return;
         }
-        var mod = carrier.createModification(slot, entity.getItemBySlot(slot));
-        
+        var api = ArmorHiderClientApi.getInstance().getRenderingScopeApi();
+        var ctx = api.enterScope(RenderScope.ARMOR_PIECE, carrier, slot, entity.getItemBySlot(slot));
+        var mod = ctx.modification();
+
         if (mod != null && mod.transparency() < 1.0) {
             @SuppressWarnings("unchecked")
             var parentModel = ((RenderLayer<LivingEntity, ?>) (Object) this).getParentModel();
@@ -42,7 +45,7 @@ public class MekanismArmorMixin {
         }
         
         if (mod != null && mod.shouldHide()) {
-            ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
+            api.exitScope(RenderScope.ARMOR_PIECE);
             ci.cancel();
         }
     }
@@ -54,8 +57,8 @@ public class MekanismArmorMixin {
             index = 2,
             require = 0)
     private MultiBufferSource wrapBufferForTransparency(MultiBufferSource original) {
-        var mod = ArmorHiderClient.RENDER_CONTEXT.activeModification();
-        if (mod != null && mod.transparency() < 1.0) {
+        var armorCtx = ArmorHiderClientApi.getInstance().getRenderingScopeApi().getActiveScope(RenderScope.ARMOR_PIECE);
+        if (!armorCtx.isEmpty() && armorCtx.modification().transparency() < 1.0) {
             return MekanismRenderCompat.wrapForTransparency(original);
         }
         return original;
@@ -70,7 +73,7 @@ public class MekanismArmorMixin {
             int light,
             float partialTicks,
             CallbackInfo ci) {
-        ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
+        ArmorHiderClientApi.getInstance().getRenderingScopeApi().exitScope(RenderScope.ARMOR_PIECE);
     }
 }
 *///?}

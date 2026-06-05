@@ -3,13 +3,12 @@
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.rendering.RenderModifications;
+import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
+import de.zannagh.armorhider.client.api.render.RenderScope;
 import net.minecraft.client.renderer.SubmitNodeCollection;
 import net.minecraft.client.renderer.SubmitNodeStorage;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
 import net.minecraft.client.renderer.feature.ModelPartFeatureRenderer;
-import net.minecraft.world.entity.EquipmentSlot;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
@@ -48,8 +47,8 @@ public class NeoForgeArmorColorMixin {
     //? if 1.21.9 || 1.21.10
     //private void wrapArmorModelPartAdd(ModelPartFeatureRenderer.Storage storage, RenderType renderType, SubmitNodeStorage.ModelPartSubmit submit, Operation<Void> original) {
         if (shouldApplyArmorTransparency()) {
-            var scopes = ArmorHiderClient.RENDER_CONTEXT;
-            float alpha = RenderModifications.getTransparencyAlpha(scopes);
+            
+            float alpha = ArmorHiderClientApi.getInstance().getRenderingScopeApi().getActiveScope(RenderScope.ARMOR_PIECE).renderModificationApi().getTransparencyAlpha();
 
             int origColor = submit.tintedColor();
             int origAlpha = (origColor >> 24) & 0xFF;
@@ -92,8 +91,8 @@ public class NeoForgeArmorColorMixin {
     //? if 1.21.9 || 1.21.10
     //private <S> void wrapArmorModelAdd(ModelFeatureRenderer.Storage storage, RenderType renderType, SubmitNodeStorage.ModelSubmit<S> submit, Operation<Void> original) {
         if (shouldApplyArmorTransparency()) {
-            var scopes = ArmorHiderClient.RENDER_CONTEXT;
-            float alpha = RenderModifications.getTransparencyAlpha(scopes);
+            
+            float alpha = ArmorHiderClientApi.getInstance().getRenderingScopeApi().getActiveScope(RenderScope.ARMOR_PIECE).renderModificationApi().getTransparencyAlpha();
 
             int origColor = submit.tintedColor();
             int origAlpha = (origColor >> 24) & 0xFF;
@@ -121,9 +120,8 @@ public class NeoForgeArmorColorMixin {
     }
 
     private static boolean shouldApplyArmorTransparency() {
-        var ctx = ArmorHiderClient.RENDER_CONTEXT;
-        var mod = ctx.activeModification();
-        return mod != null && mod.slot() != EquipmentSlot.OFFHAND;
+        
+        return ArmorHiderClientApi.getInstance().getRenderingScopeApi().hasScopeModification(RenderScope.ARMOR_PIECE);
     }
 }
 *///?}

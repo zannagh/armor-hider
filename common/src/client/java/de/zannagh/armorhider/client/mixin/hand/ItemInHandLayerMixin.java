@@ -2,6 +2,8 @@ package de.zannagh.armorhider.client.mixin.hand;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
+import de.zannagh.armorhider.client.api.render.RenderScope;
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
 import net.minecraft.client.renderer.entity.layers.ItemInHandLayer;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -16,8 +18,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import de.zannagh.armorhider.client.rendering.RenderModifications;
 import net.minecraft.client.renderer.ItemInHandRenderer;
-import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.client.renderer.Sheets;
 *///? }
 
 //? if >= 1.21.4 {
@@ -72,16 +72,17 @@ public class ItemInHandLayerMixin {
         if (!(humanoidState instanceof IdentityCarrier carrier)) {
             return;
         }
-        var ctx = ArmorHiderClient.RENDER_CONTEXT;
-        //? if >= 1.21.11
-        var mod = carrier.createModificationAndSetContext(EquipmentSlot.OFFHAND, itemStack);
-        //? if >= 1.21.4 && < 1.21.11
-        //var mod = carrier.createModification(EquipmentSlot.OFFHAND, null);
-        //? if < 1.21.4
-        //var mod = carrier.createModification(EquipmentSlot.OFFHAND, itemState);
         
-        if (mod != null && mod.shouldHide()) {
-            ctx.clearActiveModification();
+        var api = ArmorHiderClientApi.getInstance().getRenderingScopeApi();
+        //? if >= 1.21.11
+        var ctx = api.enterScope(RenderScope.OFFHAND, carrier, EquipmentSlot.OFFHAND, itemStack);
+        //? if >= 1.21.4 && < 1.21.11
+        //var ctx = api.enterScope(RenderScope.OFFHAND, carrier, EquipmentSlot.OFFHAND, null);
+        //? if < 1.21.4
+        //var ctx = api.enterScope(RenderScope.OFFHAND, carrier, EquipmentSlot.OFFHAND, itemState);
+
+        if (ctx.shouldCancel()) {
+            api.exitScope(RenderScope.OFFHAND);
             ci.cancel();
         }
     }
@@ -95,11 +96,13 @@ public class ItemInHandLayerMixin {
             )
     )
     private void wrapOffhandRenderItem(ItemInHandRenderer renderer, LivingEntity entity, ItemStack itemStack, ItemDisplayContext displayContext, boolean isLeftHand, PoseStack poseStack, MultiBufferSource bufferSource, int light, Operation<Void> original) {
-        var ctx = ArmorHiderClient.RENDER_CONTEXT;
-        if (ctx.hasActiveModification(EquipmentSlot.OFFHAND)
-                && ctx.activeModification().transparency() < 1.0
-                && ctx.activeModification().transparency() > 0) {
-            float alpha = RenderModifications.getTransparencyAlpha(ctx);
+        
+        var scopeApi = ArmorHiderClientApi.getInstance().getRenderingScopeApi();
+        var offhandCtx = scopeApi.getActiveScope(RenderScope.OFFHAND);
+        if (!offhandCtx.isEmpty()
+                && offhandCtx.modification().transparency() < 1.0
+                && offhandCtx.modification().transparency() > 0) {
+            float alpha = offhandCtx.renderModificationApi().getTransparencyAlpha();
             MultiBufferSource wrapped = RenderModifications.wrapTranslucentBufferSource(bufferSource, alpha);
             original.call(renderer, entity, itemStack, displayContext, isLeftHand, poseStack, wrapped, light);
         } else {
@@ -124,7 +127,7 @@ public class ItemInHandLayerMixin {
         if (arm != renderState.mainArm) {
         //? if < 1.21.4
         //if (arm != livingEntity.getMainArm()) {
-            ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
+            ArmorHiderClientApi.getInstance().getRenderingScopeApi().exitScope(RenderScope.OFFHAND);
         }
     }
 }

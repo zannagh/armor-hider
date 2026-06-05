@@ -65,7 +65,7 @@ public class LivingEntityRenderStateMixin implements IdentityStateCarrier {
 
     @Override
     public PlayerModificationInfo armorHider$getPlayerModifications() {
-        return null;
+        return armorHider$carrier != null ? armorHider$carrier.armorHider$getPlayerModifications() : null;
     }
 
     @Override

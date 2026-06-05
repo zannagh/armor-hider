@@ -4,8 +4,9 @@ package de.zannagh.armorhider.client.mixin.hand;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.rendering.RenderModifications;
+import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
+import de.zannagh.armorhider.client.api.render.RenderScope;
+import de.zannagh.armorhider.client.api.render.ScopeContext;
 import de.zannagh.armorhider.client.rendering.RenderTypeFactory;
 
 import net.minecraft.client.renderer.SubmitNodeCollection;
@@ -13,7 +14,6 @@ import net.minecraft.client.renderer.SubmitNodeStorage;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
 //? if <= 26.1.2
 import net.minecraft.client.renderer.feature.ModelPartFeatureRenderer;
-import net.minecraft.world.entity.EquipmentSlot;
 //? if <= 26.1.2 {
 import org.jspecify.annotations.NonNull;
 import org.spongepowered.asm.mixin.Unique;
@@ -47,9 +47,13 @@ public class SubmitNodeCollectorMixin {
     private void wrapModelPartAdd(ModelPartFeatureRenderer.Storage storage, RenderType renderType, SubmitNodeStorage.ModelPartSubmit submit, Operation<Void> original) {
     //? if 1.21.9 || 1.21.10
     //private void wrapModelPartAdd(ModelPartFeatureRenderer.Storage storage, RenderType renderType, SubmitNodeStorage.ModelPartSubmit submit, Operation<Void> original) {
-        var ctx = ArmorHiderClient.RENDER_CONTEXT;
-        if (ctx.hasActiveModification(EquipmentSlot.OFFHAND) || ctx.hasActiveModification(EquipmentSlot.HEAD)) {
-            float alpha = RenderModifications.getTransparencyAlpha(ctx);
+        
+        var api = ArmorHiderClientApi.getInstance().getRenderingScopeApi();
+        var offhandCtx = api.getActiveScope(RenderScope.OFFHAND);
+        var headCtx = api.getActiveScope(RenderScope.HEAD);
+        var ctx = !offhandCtx.isEmpty() ? offhandCtx : headCtx;
+        if (!ctx.isEmpty()) {
+            float alpha = ctx.renderModificationApi().getTransparencyAlpha();
 
             SubmitNodeStorage.ModelPartSubmit modified = getModelPartSubmit(submit, alpha);
 
@@ -94,9 +98,13 @@ public class SubmitNodeCollectorMixin {
     private <S> void wrapModelAdd(ModelFeatureRenderer.Storage storage, RenderType renderType, SubmitNodeStorage.ModelSubmit<S> submit, Operation<Void> original) {
     //? if 1.21.9 || 1.21.10
     //private <S> void wrapModelAdd(ModelFeatureRenderer.Storage storage, RenderType renderType, SubmitNodeStorage.ModelSubmit<S> submit, Operation<Void> original) {
-        var ctx = ArmorHiderClient.RENDER_CONTEXT;
-        if (ctx.hasActiveModification(EquipmentSlot.OFFHAND) || ctx.hasActiveModification(EquipmentSlot.HEAD)) {
-            float alpha = RenderModifications.getTransparencyAlpha(ctx);
+        
+        var api2 = ArmorHiderClientApi.getInstance().getRenderingScopeApi();
+        var offCtx = api2.getActiveScope(RenderScope.OFFHAND);
+        var hdCtx = api2.getActiveScope(RenderScope.HEAD);
+        var activeCtx = !offCtx.isEmpty() ? offCtx : hdCtx;
+        if (!activeCtx.isEmpty()) {
+            float alpha = activeCtx.renderModificationApi().getTransparencyAlpha();
 
             int origColor = submit.tintedColor();
             int origAlpha = (origColor >> 24) & 0xFF;
