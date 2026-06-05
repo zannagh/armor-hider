@@ -2,7 +2,7 @@ package de.zannagh.armorhider.client.combat;
 
 import de.zannagh.armorhider.api.ArmorHiderApi;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.api.combat.ArmorHiderClientCombatApi;
+import de.zannagh.armorhider.client.api.ArmorHiderClientCombatApi;
 import de.zannagh.armorhider.client.net.ClientPacketSender;
 import de.zannagh.armorhider.combat.DefaultCombatEvent;
 import de.zannagh.armorhider.net.packets.CombatLogEventPacket;

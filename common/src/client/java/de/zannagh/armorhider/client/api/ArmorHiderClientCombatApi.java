@@ -1,6 +1,5 @@
-package de.zannagh.armorhider.client.api.combat;
+package de.zannagh.armorhider.client.api;
 
-import de.zannagh.armorhider.api.combat.ArmorHiderCombatEventConsumer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.Nullable;

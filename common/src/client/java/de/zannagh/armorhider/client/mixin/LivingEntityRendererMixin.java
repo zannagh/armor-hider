@@ -1,19 +1,14 @@
 package de.zannagh.armorhider.client.mixin;
 
 import de.zannagh.armorhider.CompatFlags;
-import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
-import de.zannagh.armorhider.client.scopes.ActiveModification;
-import de.zannagh.armorhider.client.scopes.IdentityCarrier;
-import de.zannagh.armorhider.client.scopes.IdentityStateCarrier;
-import de.zannagh.armorhider.log.DebugLogger;
+import de.zannagh.armorhider.client.common.IdentityCarrier;
+import de.zannagh.armorhider.client.common.IdentityStateCarrier;
 import net.minecraft.client.model.EntityModel;
-import net.minecraft.client.model.player.PlayerModel;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -24,8 +19,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 //? if >= 1.21.4 {
 import net.minecraft.client.renderer.entity.state.AvatarRenderState;
-import net.minecraft.client.renderer.entity.state.EntityRenderState;
-import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 //?}
 
@@ -155,7 +148,7 @@ public abstract class LivingEntityRendererMixin
             return;
         }
 
-        if (ActiveModification.isSlotModified(name, EquipmentSlot.CHEST, humanoidState.chestEquipment)) {
+        if (SlotModification.isSlotModified(name, EquipmentSlot.CHEST, humanoidState.chestEquipment)) {
             var model = ((LivingEntityRenderer<?, ?, ?>) (Object) this).getModel();
             if (model instanceof PlayerModel humanoid) {
                 humanoid.leftArm.visible = true;
@@ -186,7 +179,7 @@ public abstract class LivingEntityRendererMixin
             return;
         }
 
-        if (ActiveModification.isSlotModified(name, EquipmentSlot.CHEST, entity.getItemBySlot(EquipmentSlot.CHEST))) {
+        if (SlotModification.isSlotModified(name, EquipmentSlot.CHEST, entity.getItemBySlot(EquipmentSlot.CHEST))) {
             var model = ((LivingEntityRenderer<?, ?>) (Object) this).getModel();
             if (model instanceof HumanoidModel<?> humanoid) {
                 humanoid.leftArm.visible = true;

@@ -1,8 +1,7 @@
-package de.zannagh.armorhider.client.scopes;
+package de.zannagh.armorhider.client.common;
 
 import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
-import de.zannagh.armorhider.client.api.configuration.PlayerModificationInfo;
-import de.zannagh.armorhider.client.api.configuration.SlotModification;
+import de.zannagh.armorhider.client.api.ArmorHiderRenderApi;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -62,7 +61,7 @@ public interface IdentityCarrier {
     /**
      * Creates a rendering modification for the given equipment slot and item.
      * Returns {@code null} when no modification is needed.
-     * Also sets the active context if the modification is not null via {@link de.zannagh.armorhider.client.api.render.ArmorHiderRenderingScopeApi#setActiveModification(SlotModification)}
+     * Also sets the active context if the modification is not null via {@link ArmorHiderRenderApi#setActiveModification(SlotModification)}
      */
     default SlotModification createModificationAndSetContext(@NotNull EquipmentSlot slot, @Nullable ItemStack item) {
         var mods = armorHider$getPlayerModifications();

@@ -2,10 +2,9 @@ package de.zannagh.armorhider.client.mixin.compat.emf;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
-import de.zannagh.armorhider.client.rendering.RenderModifications;
-import de.zannagh.armorhider.client.scopes.VanillaRootAccessor;
+import de.zannagh.armorhider.client.api.implementations.RenderModifications;
+import de.zannagh.armorhider.client.common.VanillaRootAccessor;
 import de.zannagh.armorhider.log.DebugLogger;
 import net.minecraft.client.model.geom.ModelPart;
 import org.jspecify.annotations.NonNull;

@@ -1,7 +1,9 @@
-package de.zannagh.armorhider.client.api.render;
+package de.zannagh.armorhider.client.api;
 
-import de.zannagh.armorhider.client.api.configuration.SlotModification;
-import de.zannagh.armorhider.client.scopes.IdentityCarrier;
+import de.zannagh.armorhider.client.common.GlobalRenderScope;
+import de.zannagh.armorhider.client.common.RenderScope;
+import de.zannagh.armorhider.client.common.RenderScopeContext;
+import de.zannagh.armorhider.client.common.IdentityCarrier;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import org.jspecify.annotations.NonNull;
@@ -24,7 +26,7 @@ import java.util.EnumSet;
  *
  * @since 0.12.0
  */
-public interface ArmorHiderRenderingScopeApi {
+public interface ArmorHiderRenderApi {
 
     // region Global phase flags
 
@@ -114,7 +116,7 @@ public interface ArmorHiderRenderingScopeApi {
      * @return The scope context with the resolved modification. Never null.
      *         Returns an empty context if the carrier has no modification for this slot.
      */
-    ScopeContext enterScope(RenderScope scope, @Nullable IdentityCarrier carrier,
+    RenderScopeContext enterScope(RenderScope scope, @Nullable IdentityCarrier carrier,
                             @Nullable EquipmentSlot slot, @Nullable ItemStack item);
 
     /**
@@ -125,26 +127,12 @@ public interface ArmorHiderRenderingScopeApi {
     /**
      * Query the active context for a specific scope.
      *
-     * @return The active scope context, or {@link ScopeContext#empty(RenderScope)} if none is active.
+     * @return The active scope context, or {@link RenderScopeContext#empty(RenderScope)} if none is active.
      */
-    @NonNull ScopeContext getActiveScope(RenderScope scope);
+    @NonNull RenderScopeContext getActiveScope(RenderScope scope);
 
     /**
      * @return True if the given scope has an active, non-empty modification.
      */
     boolean hasScopeModification(RenderScope scope);
-
-    // --- Legacy convenience (scan all scopes) ---
-
-    boolean hasActiveModification();
-
-    boolean hasActiveModificationFor(EquipmentSlot slot);
-
-    @NonNull SlotModification currentlyActiveModification();
-
-    void setActiveModification(SlotModification modification);
-
-    void clearActiveModification();
-
-    boolean shouldEnforceVanillaRendering();
 }

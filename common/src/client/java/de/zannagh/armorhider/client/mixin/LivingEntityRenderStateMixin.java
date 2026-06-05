@@ -1,10 +1,9 @@
 //? if >= 1.21.4 {
 package de.zannagh.armorhider.client.mixin;
 
-import de.zannagh.armorhider.client.api.configuration.PlayerModificationInfo;
-import de.zannagh.armorhider.client.scopes.ActiveModification;
-import de.zannagh.armorhider.client.scopes.IdentityCarrier;
-import de.zannagh.armorhider.client.scopes.IdentityStateCarrier;
+import de.zannagh.armorhider.client.common.PlayerModificationInfo;
+import de.zannagh.armorhider.client.common.IdentityCarrier;
+import de.zannagh.armorhider.client.common.IdentityStateCarrier;
 import de.zannagh.armorhider.util.ItemsUtil;
 import net.minecraft.client.renderer.entity.state.AvatarRenderState;
 import net.minecraft.client.renderer.entity.state.HumanoidRenderState;

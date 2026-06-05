@@ -2,14 +2,16 @@ package de.zannagh.armorhider.client.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-//? if >= 1.21
-import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
-import net.minecraft.client.DeltaTracker;
+
 import net.minecraft.client.renderer.GameRenderer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
+
+//? if >= 1.21
+import net.minecraft.client.DeltaTracker;
 
 /**
  * Sets scope flags around GameRenderer.renderLevel()

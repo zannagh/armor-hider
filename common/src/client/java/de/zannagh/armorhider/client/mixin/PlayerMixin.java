@@ -10,11 +10,11 @@ import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import de.zannagh.armorhider.api.ArmorHiderApi;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
-import de.zannagh.armorhider.client.api.configuration.PlayerModificationInfo;
-import de.zannagh.armorhider.client.api.configuration.SlotModification;
-import de.zannagh.armorhider.client.scopes.ActiveModification;
-import de.zannagh.armorhider.client.scopes.IdentityCarrier;
-import de.zannagh.armorhider.log.DebugLogger;
+import de.zannagh.armorhider.client.common.PlayerModificationInfo;
+import de.zannagh.armorhider.client.common.SlotModification;
+import de.zannagh.armorhider.client.common.RenderScope;
+import de.zannagh.armorhider.client.common.IdentityCarrier;
+import de.zannagh.armorhider.common.ItemInfo;import de.zannagh.armorhider.log.DebugLogger;
 import de.zannagh.armorhider.log.DebugTracer;
 import de.zannagh.armorhider.util.PlayerNameUtil;
 import net.minecraft.world.entity.*;
@@ -22,7 +22,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
-import org.jspecify.annotations.NonNull;import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -95,8 +95,7 @@ public abstract class PlayerMixin
                 SlotModification.of(name, EquipmentSlot.HEAD, getItemBySlot(EquipmentSlot.HEAD)),
                 SlotModification.of(name, EquipmentSlot.CHEST, getItemBySlot(EquipmentSlot.CHEST)),
                 SlotModification.of(name, EquipmentSlot.LEGS, getItemBySlot(EquipmentSlot.LEGS)),
-                SlotModification.of(name, EquipmentSlot.FEET, getItemBySlot(EquipmentSlot.FEET)),
-                customHeadItem()
+                SlotModification.of(name, EquipmentSlot.FEET, getItemBySlot(EquipmentSlot.FEET))
         );
     }
 
@@ -160,7 +159,7 @@ public abstract class PlayerMixin
             return original;
         }
 
-        if (ActiveModification.isSlotFullyHidden(playerName, slot, original)) {
+        if (ctx.getActiveScope(RenderScope.of(slot, new ItemInfo(original))).renderModificationApi().isSlotFullyHiddenForPlayer(playerName, slot, original)) {
             DebugTracer.equipmentSlotHidingFired(playerName, slot, true, "isSlotFullyHidden");
             return ItemStack.EMPTY;
         }

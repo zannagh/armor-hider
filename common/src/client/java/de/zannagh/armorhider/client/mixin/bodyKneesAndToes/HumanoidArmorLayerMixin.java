@@ -4,17 +4,13 @@ import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
-import de.zannagh.armorhider.client.api.configuration.*;
-import de.zannagh.armorhider.client.api.render.RenderScope;
-import de.zannagh.armorhider.client.api.render.ScopeContext;
-import de.zannagh.armorhider.client.rendering.RenderModifications;
-import de.zannagh.armorhider.client.rendering.VanillaArmorTextureManager;
-import de.zannagh.armorhider.client.scopes.IdentityCarrier;
+import de.zannagh.armorhider.client.common.RenderScope;
+import de.zannagh.armorhider.client.common.RenderScopeContext;
+import de.zannagh.armorhider.client.common.IdentityCarrier;
 import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -102,7 +98,7 @@ public class HumanoidArmorLayerMixin
 
     @Inject(method = "renderArmorPiece", at = @At("HEAD"), cancellable = true)
     //? if >= 1.21.9
-    private <S extends HumanoidRenderState> void captureContext(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, ItemStack itemStack, EquipmentSlot slot, int i, S humanoidRenderState, CallbackInfo ci, @Share(value = "scopeContext") LocalRef<ScopeContext> scopeContext) {
+    private <S extends HumanoidRenderState> void captureContext(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, ItemStack itemStack, EquipmentSlot slot, int i, S humanoidRenderState, CallbackInfo ci, @Share(value = "scopeContext") LocalRef<RenderScopeContext> scopeContext) {
     //? if >= 1.21.4 && < 1.21.9
     //private void captureContext(PoseStack poseStack, MultiBufferSource multiBufferSource, ItemStack itemStack, EquipmentSlot slot, int i, HumanoidModel<?> humanoidRenderState, CallbackInfo ci, @Share(value = "scopeContext") LocalRef<ScopeContext> scopeContext) {
     //? if < 1.21.4
@@ -135,7 +131,7 @@ public class HumanoidArmorLayerMixin
     //? if >= 1.21.9 || < 1.21.4 {
     @Inject(method = "renderArmorPiece", at = @At("RETURN"))
     //? if >= 1.21.9
-    private <S extends HumanoidRenderState> void onRenderArmorPieceReturn(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, ItemStack itemStack, EquipmentSlot equipmentSlot, int i, S humanoidRenderState, CallbackInfo ci, @Share(value = "scopeContext") LocalRef<ScopeContext> scopeContext) {
+    private <S extends HumanoidRenderState> void onRenderArmorPieceReturn(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, ItemStack itemStack, EquipmentSlot equipmentSlot, int i, S humanoidRenderState, CallbackInfo ci, @Share(value = "scopeContext") LocalRef<RenderScopeContext> scopeContext) {
     //? if < 1.21.4
     //private void onRenderArmorPieceReturn(PoseStack poseStack, MultiBufferSource bufferSource, T entity, EquipmentSlot slot, int packedLight, A armorModel, CallbackInfo ci, @Share(value = "scopeContext") LocalRef<ScopeContext> scopeContext) {
         scopeContext.set(null);

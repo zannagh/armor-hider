@@ -1,4 +1,4 @@
-package de.zannagh.armorhider.client.api.render;
+package de.zannagh.armorhider.client.common;
 
 /**
  * Defines global rendering scopes that determine the context in which specific

@@ -1,7 +1,9 @@
-package de.zannagh.armorhider.client.rendering;
+package de.zannagh.armorhider.client.api.implementations;
 
-import de.zannagh.armorhider.client.api.configuration.SlotModification;
-import de.zannagh.armorhider.client.api.render.RenderModificationApi;
+import de.zannagh.armorhider.client.common.SlotModification;
+import de.zannagh.armorhider.client.api.ArmorHiderRenderModificationApi;
+import de.zannagh.armorhider.client.rendering.ColorMath;
+import de.zannagh.armorhider.client.rendering.RenderTypeFactory;
 import de.zannagh.armorhider.common.ItemInfo;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.Sheets;
@@ -16,7 +18,7 @@ import net.minecraft.resources.Identifier;
  * All methods are "pass-through safe": if no active modification exists,
  * they return the original values unchanged.
  */
-public class RenderModifications implements RenderModificationApi {
+public class RenderModifications implements ArmorHiderRenderModificationApi {
 
     public static final int ELYTRA_RENDER_PRIORITY = 100;
     public static final int SKULL_RENDER_PRIORITY = 99;

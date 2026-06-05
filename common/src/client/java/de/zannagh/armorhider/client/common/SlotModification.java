@@ -1,4 +1,4 @@
-package de.zannagh.armorhider.client.api.configuration;
+package de.zannagh.armorhider.client.common;
 
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.common.ItemInfo;
@@ -7,6 +7,7 @@ import de.zannagh.armorhider.net.packets.PlayerConfig;
 import de.zannagh.armorhider.util.ItemsUtil;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -132,5 +133,10 @@ public record SlotModification(
         }
 
         return new SlotModification(slot, needsModification, shouldHide, shouldDisableGlint, transparency, playerName, config, resolvedItemInfo);
+    }
+
+    public static boolean isSlotModified(@NotNull String playerName, @NotNull EquipmentSlot slot, @NotNull ItemStack item) {
+        var mod = of(playerName, slot, item);
+        return mod.needsModification();
     }
 }

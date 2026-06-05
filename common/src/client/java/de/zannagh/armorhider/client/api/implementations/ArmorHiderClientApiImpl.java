@@ -1,8 +1,8 @@
-package de.zannagh.armorhider.client.api;
+package de.zannagh.armorhider.client.api.implementations;
 
-import de.zannagh.armorhider.client.api.combat.ArmorHiderClientCombatApi;
-import de.zannagh.armorhider.client.api.render.ArmorHiderRenderingScopeApi;
-import de.zannagh.armorhider.client.api.implementations.ArmorHiderRenderingScopeApiImpl;
+import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
+import de.zannagh.armorhider.client.api.ArmorHiderClientCombatApi;
+import de.zannagh.armorhider.client.api.ArmorHiderRenderApi;
 import de.zannagh.armorhider.client.combat.ClientCombatManager;
 
 public final class ArmorHiderClientApiImpl implements ArmorHiderClientApi {
@@ -11,9 +11,11 @@ public final class ArmorHiderClientApiImpl implements ArmorHiderClientApi {
 
     private final ClientCombatManager clientCombatManager = new ClientCombatManager();
 
-    private final ArmorHiderRenderingScopeApiImpl renderingScopeApi = new ArmorHiderRenderingScopeApiImpl();
+    private final ArmorHiderRenderApiImpl renderingScopeApi = new ArmorHiderRenderApiImpl();
 
-    static ArmorHiderClientApiImpl getInstance() {
+
+
+    public static ArmorHiderClientApiImpl getInstance() {
         if (instance == null) {
             throw new IllegalStateException("ArmorHiderClientApi has not been initialized yet.");
         }
@@ -37,7 +39,7 @@ public final class ArmorHiderClientApiImpl implements ArmorHiderClientApi {
     }
 
     @Override
-    public ArmorHiderRenderingScopeApi getRenderingScopeApi() {
+    public ArmorHiderRenderApi getRenderingScopeApi() {
         return renderingScopeApi;
     }
 }

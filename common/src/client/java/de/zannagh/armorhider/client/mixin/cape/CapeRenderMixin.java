@@ -6,9 +6,9 @@ import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
-import de.zannagh.armorhider.client.api.render.RenderScope;
-import de.zannagh.armorhider.client.api.render.ScopeContext;
-import de.zannagh.armorhider.client.scopes.IdentityCarrier;
+import de.zannagh.armorhider.client.common.RenderScope;
+import de.zannagh.armorhider.client.common.RenderScopeContext;
+import de.zannagh.armorhider.client.common.IdentityCarrier;
 import de.zannagh.armorhider.common.ItemInfo;
 import de.zannagh.armorhider.log.DebugLogger;
 import net.minecraft.client.renderer.entity.layers.CapeLayer;
@@ -61,7 +61,7 @@ public class CapeRenderMixin {
                                         float f,
                                         float g,
                                         CallbackInfo ci,
-                                        @Share(value = "scopeContext") LocalRef<ScopeContext> scopeContext) {
+                                        @Share(value = "scopeContext") LocalRef<RenderScopeContext> scopeContext) {
         //?} else {
     /*private void setupCapeRenderContext(PoseStack poseStack, MultiBufferSource multiBufferSource, int light, AbstractClientPlayer avatarRenderState, float limbSwing, float limbSwingAmount, float partialTick, float ageInTicks, float netHeadYaw, float headPitch, CallbackInfo ci,
                                         @Share(value = "scopeContext") LocalRef<ScopeContext> scopeContext) {
@@ -102,7 +102,7 @@ public class CapeRenderMixin {
                     target = "Lcom/mojang/blaze3d/vertex/PoseStack;translate(FFF)V"
             )
     )
-    private void moveCapeWhenArmorHidden(PoseStack instance, float f, float g, float h, Operation<Void> original, @Share(value = "scopeContext") LocalRef<ScopeContext> scopeContext) {
+    private void moveCapeWhenArmorHidden(PoseStack instance, float f, float g, float h, Operation<Void> original, @Share(value = "scopeContext") LocalRef<RenderScopeContext> scopeContext) {
         if (scopeContext.get() == null || scopeContext.get().isEmpty()) {
             original.call(instance, f, g, h);
             return;
@@ -127,7 +127,7 @@ public class CapeRenderMixin {
     private boolean bypassWingsWhenElytraHidden(CapeLayer instance,
                                                 net.minecraft.world.item.ItemStack item,
                                                 EquipmentClientInfo.LayerType layerType,
-                                                Operation<Boolean> original, @Share(value = "scopeContext") LocalRef<ScopeContext> scopeContext) {
+                                                Operation<Boolean> original, @Share(value = "scopeContext") LocalRef<RenderScopeContext> scopeContext) {
         boolean result = original.call(instance, item, layerType);
     //?} else {
     /*@WrapOperation(
@@ -166,7 +166,7 @@ public class CapeRenderMixin {
                                     float f,
                                     float g,
                                     CallbackInfo ci,
-                                    @Share(value = "scopeContext") LocalRef<ScopeContext> scopeContext) {
+                                    @Share(value = "scopeContext") LocalRef<RenderScopeContext> scopeContext) {
     //?} else {
     /*private void releaseCapeContext(PoseStack poseStack, MultiBufferSource multiBufferSource, int light, AbstractClientPlayer player, float limbSwing, float limbSwingAmount, float partialTick, float ageInTicks, float netHeadYaw, float headPitch, CallbackInfo ci,
                                     @Share(value = "scopeContext") LocalRef<ScopeContext> scopeContext) {

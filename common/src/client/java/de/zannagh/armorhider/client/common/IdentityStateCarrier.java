@@ -1,4 +1,4 @@
-package de.zannagh.armorhider.client.scopes;
+package de.zannagh.armorhider.client.common;
 
 import org.jetbrains.annotations.Nullable;
 

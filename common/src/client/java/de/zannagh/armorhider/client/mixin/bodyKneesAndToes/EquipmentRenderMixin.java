@@ -8,14 +8,13 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.api.ArmorHiderApi;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
-import de.zannagh.armorhider.client.api.render.ArmorHiderRenderingScopeApi;
-import de.zannagh.armorhider.client.api.render.RenderScope;
+import de.zannagh.armorhider.client.api.ArmorHiderRenderApi;
+import de.zannagh.armorhider.client.common.RenderScope;
 import de.zannagh.armorhider.client.rendering.VanillaArmorTextureManager;
 import de.zannagh.armorhider.common.ItemInfo;
 import de.zannagh.armorhider.log.DebugLogger;
 import de.zannagh.armorhider.net.packets.PlayerConfig;
 import net.minecraft.client.model.Model;
-import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.entity.layers.EquipmentLayerRenderer;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.resources.model.EquipmentClientInfo;
@@ -30,14 +29,14 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 //? if >= 1.21.9 {
-import de.zannagh.armorhider.client.scopes.IdentityCarrier;
+import de.zannagh.armorhider.client.common.IdentityCarrier;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 //?}
 //? if < 1.21.9 {
-/*import de.zannagh.armorhider.client.api.configuration.SlotModification;
-import de.zannagh.armorhider.client.api.render.ScopeContext;
-import de.zannagh.armorhider.client.rendering.RenderModifications;
+/*import de.zannagh.armorhider.client.common.SlotModification;
+import de.zannagh.armorhider.client.common.ScopeContext;
+import de.zannagh.armorhider.client.api.implementations.RenderModifications;
 import net.minecraft.client.renderer.MultiBufferSource;
 *///?}
 
@@ -51,7 +50,7 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 public class EquipmentRenderMixin {
 
     @Unique
-    private final ArmorHiderRenderingScopeApi renderApi = ArmorHiderClientApi.getInstance().getRenderingScopeApi();
+    private final ArmorHiderRenderApi renderApi = ArmorHiderClientApi.getInstance().getRenderingScopeApi();
 
     @Unique
     private static final ThreadLocal<Boolean> armorHider$combatSingleLayer = new ThreadLocal<>();

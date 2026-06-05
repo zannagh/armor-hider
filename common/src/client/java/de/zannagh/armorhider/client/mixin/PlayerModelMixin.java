@@ -2,7 +2,7 @@
 package de.zannagh.armorhider.client.mixin;
 
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.api.ArmorHiderClientApi;import de.zannagh.armorhider.client.scopes.IdentityCarrier;
+import de.zannagh.armorhider.client.api.ArmorHiderClientApi;import de.zannagh.armorhider.client.common.IdentityCarrier;
 //? if > 1.21.10
 import net.minecraft.client.model.player.PlayerModel;
 //? if <= 1.21.10

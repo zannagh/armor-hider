@@ -2,13 +2,12 @@ package de.zannagh.armorhider.client.api.implementations;
 
 import de.zannagh.armorhider.api.ArmorHiderApi;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.api.configuration.SlotModification;
-import de.zannagh.armorhider.client.api.render.ArmorHiderRenderingScopeApi;
-import de.zannagh.armorhider.client.api.render.GlobalRenderScope;
-import de.zannagh.armorhider.client.api.render.RenderScope;
-import de.zannagh.armorhider.client.api.render.ScopeContext;
-import de.zannagh.armorhider.client.rendering.RenderModifications;
-import de.zannagh.armorhider.client.scopes.IdentityCarrier;
+import de.zannagh.armorhider.client.common.SlotModification;
+import de.zannagh.armorhider.client.api.ArmorHiderRenderApi;
+import de.zannagh.armorhider.client.common.GlobalRenderScope;
+import de.zannagh.armorhider.client.common.RenderScope;
+import de.zannagh.armorhider.client.common.RenderScopeContext;
+import de.zannagh.armorhider.client.common.IdentityCarrier;
 import de.zannagh.armorhider.common.ItemInfo;
 import de.zannagh.armorhider.log.DebugTracer;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -19,11 +18,11 @@ import org.jspecify.annotations.Nullable;
 import java.util.EnumMap;
 import java.util.EnumSet;
 
-public class ArmorHiderRenderingScopeApiImpl implements ArmorHiderRenderingScopeApi {
+public class ArmorHiderRenderApiImpl implements ArmorHiderRenderApi {
 
     private final EnumSet<GlobalRenderScope> scopeFlags = EnumSet.noneOf(GlobalRenderScope.class);
     private String currentPlayerName = "";
-    private final EnumMap<RenderScope, ScopeContext> activeScopes = new EnumMap<>(RenderScope.class);
+    private final EnumMap<RenderScope, RenderScopeContext> activeScopes = new EnumMap<>(RenderScope.class);
 
     // --- Phase flags ---
 
@@ -35,25 +34,25 @@ public class ArmorHiderRenderingScopeApiImpl implements ArmorHiderRenderingScope
     @Override
     public void setInLevelRender() {
         DebugTracer.scopeEnterLevelRender();
-        ArmorHiderRenderingScopeApi.super.setInLevelRender();
+        ArmorHiderRenderApi.super.setInLevelRender();
     }
 
     @Override
     public void setInEntityRender() {
         DebugTracer.scopeEnterEntityRender();
-        ArmorHiderRenderingScopeApi.super.setInEntityRender();
+        ArmorHiderRenderApi.super.setInEntityRender();
     }
 
     @Override
     public void exitEntityRender() {
         DebugTracer.scopeExitEntityRender();
-        ArmorHiderRenderingScopeApi.super.exitEntityRender();
+        ArmorHiderRenderApi.super.exitEntityRender();
     }
 
     @Override
     public void exitInLevelRender() {
         DebugTracer.scopeExitLevelRender();
-        ArmorHiderRenderingScopeApi.super.exitInLevelRender();
+        ArmorHiderRenderApi.super.exitInLevelRender();
     }
 
     @Override
@@ -69,10 +68,10 @@ public class ArmorHiderRenderingScopeApiImpl implements ArmorHiderRenderingScope
     // --- Per-scope context management ---
 
     @Override
-    public ScopeContext enterScope(RenderScope scope, @Nullable IdentityCarrier carrier,
+    public RenderScopeContext enterScope(RenderScope scope, @Nullable IdentityCarrier carrier,
                                    @Nullable EquipmentSlot slot, @Nullable ItemStack item) {
         if (carrier == null) {
-            var ctx = ScopeContext.empty(scope);
+            var ctx = RenderScopeContext.empty(scope);
             activeScopes.put(scope, ctx);
             return ctx;
         }
@@ -86,7 +85,7 @@ public class ArmorHiderRenderingScopeApiImpl implements ArmorHiderRenderingScope
             mod = SlotModification.empty();
         }
 
-        var ctx = new ScopeContext(scope, carrier, mod, new RenderModifications(mod));
+        var ctx = new RenderScopeContext(scope, carrier, mod, new RenderModifications(mod));
         activeScopes.put(scope, ctx);
 
         if (!mod.isEmpty()) {
@@ -103,9 +102,9 @@ public class ArmorHiderRenderingScopeApiImpl implements ArmorHiderRenderingScope
     }
 
     @Override
-    public @NonNull ScopeContext getActiveScope(RenderScope scope) {
+    public @NonNull RenderScopeContext getActiveScope(RenderScope scope) {
         var ctx = activeScopes.get(scope);
-        return ctx != null ? ctx : ScopeContext.empty(scope);
+        return ctx != null ? ctx : RenderScopeContext.empty(scope);
     }
 
     @Override
@@ -115,45 +114,6 @@ public class ArmorHiderRenderingScopeApiImpl implements ArmorHiderRenderingScope
     }
 
     private void clearAllScopes() {
-        activeScopes.clear();
-    }
-
-    // --- Legacy convenience (scan all scopes) ---
-
-    @Override
-    public boolean hasActiveModification() {
-        for (var ctx : activeScopes.values()) {
-            if (!ctx.isEmpty()) return true;
-        }
-        return false;
-    }
-
-    @Override
-    public boolean hasActiveModificationFor(EquipmentSlot slot) {
-        for (var ctx : activeScopes.values()) {
-            if (!ctx.isEmpty() && ctx.modification().slot() == slot) return true;
-        }
-        return false;
-    }
-
-    @Override
-    public @NonNull SlotModification currentlyActiveModification() {
-        for (var ctx : activeScopes.values()) {
-            if (!ctx.isEmpty()) return ctx.modification();
-        }
-        return SlotModification.empty();
-    }
-
-    @Override
-    public void setActiveModification(SlotModification modification) {
-        DebugTracer.scopeEnterItemRender(modification.slot(), modification.playerName(), modification.transparency());
-        var scope = slotToScope(modification.slot(), modification.itemInfo());
-        activeScopes.put(scope, new ScopeContext(scope, null, modification, new RenderModifications(modification)));
-    }
-
-    @Override
-    public void clearActiveModification() {
-        DebugTracer.scopeExitItemRender();
         activeScopes.clear();
     }
 
@@ -172,7 +132,6 @@ public class ArmorHiderRenderingScopeApiImpl implements ArmorHiderRenderingScope
         };
     }
 
-    @Override
     public boolean shouldEnforceVanillaRendering() {
         if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.isArmorHiderDisabled()) {
             return false;

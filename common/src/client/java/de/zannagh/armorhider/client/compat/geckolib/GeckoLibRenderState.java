@@ -1,5 +1,5 @@
 //? if >= 1.21.9 {
-package de.zannagh.armorhider.client.rendering;
+package de.zannagh.armorhider.client.compat.geckolib;
 
 import net.minecraft.world.entity.EquipmentSlot;
 import org.jspecify.annotations.Nullable;

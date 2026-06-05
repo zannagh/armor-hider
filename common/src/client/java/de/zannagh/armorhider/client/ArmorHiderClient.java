@@ -2,7 +2,7 @@ package de.zannagh.armorhider.client;
 
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.CompatFlags;
-import de.zannagh.armorhider.client.api.ArmorHiderClientApiImpl;
+import de.zannagh.armorhider.client.api.implementations.ArmorHiderClientApiImpl;
 import de.zannagh.armorhider.client.gui.screens.ArmorHiderOptionsScreen;
 import de.zannagh.armorhider.client.net.ClientCommunicationManager;
 import de.zannagh.armorhider.configuration.PresetManager;

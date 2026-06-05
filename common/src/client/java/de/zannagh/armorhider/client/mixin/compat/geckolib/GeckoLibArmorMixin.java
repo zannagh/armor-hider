@@ -2,13 +2,11 @@
 package de.zannagh.armorhider.client.mixin.compat.geckolib;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.rendering.GeckoLibRenderState;
+import de.zannagh.armorhider.client.compat.geckolib.GeckoLibRenderState;
 import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
-import de.zannagh.armorhider.client.api.render.RenderScope;
+import de.zannagh.armorhider.client.common.RenderScope;
 import de.zannagh.armorhider.client.rendering.RenderTypeFactory;
-import de.zannagh.armorhider.client.api.configuration.SlotModification;
-import de.zannagh.armorhider.client.scopes.IdentityCarrier;
+import de.zannagh.armorhider.client.common.IdentityCarrier;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
@@ -118,9 +116,9 @@ public class GeckoLibArmorMixin {
 /*package de.zannagh.armorhider.client.mixin.compat.geckolib;
 
 import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
-import de.zannagh.armorhider.client.api.render.RenderScope;
+import de.zannagh.armorhider.client.common.RenderScope;
 import de.zannagh.armorhider.client.rendering.RenderTypeFactory;
-import de.zannagh.armorhider.client.scopes.IdentityCarrier;
+import de.zannagh.armorhider.client.common.IdentityCarrier;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
@@ -187,9 +185,9 @@ public class GeckoLibArmorMixin {
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
-import de.zannagh.armorhider.client.api.render.RenderScope;
+import de.zannagh.armorhider.client.common.RenderScope;
 import de.zannagh.armorhider.client.rendering.RenderTypeFactory;
-import de.zannagh.armorhider.client.scopes.IdentityCarrier;
+import de.zannagh.armorhider.client.common.IdentityCarrier;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;

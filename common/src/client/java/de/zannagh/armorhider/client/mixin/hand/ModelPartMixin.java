@@ -1,7 +1,7 @@
 //? if < 1.21.9 {
 /*package de.zannagh.armorhider.client.mixin.hand;
 
-import de.zannagh.armorhider.client.api.render.RenderScope;
+import de.zannagh.armorhider.client.common.RenderScope;
 import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
 import net.minecraft.client.model.geom.ModelPart;
 import org.spongepowered.asm.mixin.Mixin;

@@ -5,27 +5,22 @@ import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
-import de.zannagh.armorhider.client.api.render.RenderScope;
-import de.zannagh.armorhider.client.api.render.ScopeContext;
-import de.zannagh.armorhider.client.scopes.IdentityCarrier;
-import de.zannagh.armorhider.client.rendering.RenderModifications;
+import de.zannagh.armorhider.client.common.RenderScope;
+import de.zannagh.armorhider.client.common.RenderScopeContext;
+import de.zannagh.armorhider.client.common.IdentityCarrier;
 import de.zannagh.armorhider.util.ItemsUtil;
-import net.minecraft.resources.Identifier;
-import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.entity.layers.WingsLayer;
 import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.LivingEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import net.minecraft.client.renderer.MultiBufferSource;
 
 //? if >= 1.21.9
 import net.minecraft.client.renderer.SubmitNodeCollector;
 //? if >= 1.21.4
-import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
+
 //? if <= 1.21.4 {
 
 /*import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
@@ -63,7 +58,7 @@ public class ElytraRenderMixin
                                        //? if < 1.21.9
                                        //MultiBufferSource multiBufferSource,
                                        int i, S humanoidRenderState, float f, float g, CallbackInfo ci,
-                                       @Share(value = "scopeContext") LocalRef<ScopeContext> scopeContext) {
+                                       @Share(value = "scopeContext") LocalRef<RenderScopeContext> scopeContext) {
     //? }
     //? if < 1.21.4 {
     /*private void interceptElytraRender(PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, S humanoidRenderState, float limbSwing, float limbSwingAmount, float partialTick, float ageInTicks, float netHeadYaw, float headPitch, CallbackInfo ci,

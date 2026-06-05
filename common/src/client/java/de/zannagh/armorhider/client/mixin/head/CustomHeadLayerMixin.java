@@ -3,9 +3,9 @@ package de.zannagh.armorhider.client.mixin.head;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
-import de.zannagh.armorhider.client.api.render.RenderScope;
-import de.zannagh.armorhider.client.api.render.ScopeContext;
-import de.zannagh.armorhider.client.scopes.IdentityCarrier;
+import de.zannagh.armorhider.client.common.RenderScope;
+import de.zannagh.armorhider.client.common.RenderScopeContext;
+import de.zannagh.armorhider.client.common.IdentityCarrier;
 import de.zannagh.armorhider.constants.MixinConstants;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.layers.CustomHeadLayer;
@@ -69,7 +69,7 @@ public abstract class CustomHeadLayerMixin {
     }
 
     @Unique
-    private static ScopeContext setupScopeBasedOnWornHeadType(LivingEntityRenderState livingEntityRenderState) {
+    private static RenderScopeContext setupScopeBasedOnWornHeadType(LivingEntityRenderState livingEntityRenderState) {
         if (!(livingEntityRenderState instanceof IdentityCarrier carrier)) {
             return null;
         }
@@ -90,9 +90,9 @@ public abstract class CustomHeadLayerMixin {
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
-import de.zannagh.armorhider.client.api.render.RenderScope;
-import de.zannagh.armorhider.client.api.render.ScopeContext;
-import de.zannagh.armorhider.client.scopes.IdentityCarrier;
+import de.zannagh.armorhider.client.common.RenderScope;
+import de.zannagh.armorhider.client.common.ScopeContext;
+import de.zannagh.armorhider.client.common.IdentityCarrier;
 import de.zannagh.armorhider.constants.MixinConstants;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.layers.CustomHeadLayer;
@@ -155,8 +155,8 @@ public abstract class CustomHeadLayerMixin {
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
-import de.zannagh.armorhider.client.api.render.RenderScope;
-import de.zannagh.armorhider.client.scopes.IdentityCarrier;
+import de.zannagh.armorhider.client.common.RenderScope;
+import de.zannagh.armorhider.client.common.IdentityCarrier;
 import de.zannagh.armorhider.constants.MixinConstants;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.layers.CustomHeadLayer;

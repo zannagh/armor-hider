@@ -2,7 +2,7 @@
 /*package de.zannagh.armorhider.client.mixin.compat.mekanism;
 
 import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
-import de.zannagh.armorhider.client.api.render.RenderScope;
+import de.zannagh.armorhider.client.common.RenderScope;
 import mekanism.client.render.armor.MekaSuitArmor;
 import mekanism.common.lib.Color;
 import org.spongepowered.asm.mixin.Mixin;
