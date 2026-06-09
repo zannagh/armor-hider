@@ -70,7 +70,7 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
     public void save(PlayerConfig config) {
         playerConfigProvider.save(config);
         ClientPacketListener clientNetwork = Minecraft.getInstance().getConnection();
-        if (ArmorHiderClient.isClientConnectedToServer() && clientNetwork != null) {
+        if (serverConfiguration != null && ArmorHiderClient.isClientConnectedToServer() && clientNetwork != null) {
             ArmorHider.LOGGER.info("Sending to server...");
             ClientPacketSender.sendToServer(config);
             ArmorHider.LOGGER.info("Send client config package to server.");
