@@ -1,5 +1,6 @@
 package de.zannagh.armorhider.client.net;
 
+import de.zannagh.armorhider.ArmorHider;
 import net.minecraft.client.Minecraft;
 //? if >= 1.20.5 {
 import net.minecraft.network.protocol.common.ServerboundCustomPayloadPacket;
@@ -31,7 +32,11 @@ public final class ClientPacketSender {
         if (connection == null) {
             throw new IllegalStateException("Cannot send packet: not connected to a server");
         }
-        connection.send(new ServerboundCustomPayloadPacket(payload));
+        try {
+            connection.send(new ServerboundCustomPayloadPacket(payload));
+        } catch (UnsupportedOperationException e) {
+            ArmorHider.LOGGER.debug("Server does not support packet {}, skipping.", payload.type().id());
+        }
     }
     //?}
 

@@ -88,6 +88,11 @@ public final class ClientCommunicationManager {
 
             ClientPacketSender.sendToServer(currentConfig);
         });
+
+        ClientConnectionEvents.registerDisconnect(client -> {
+            ArmorHiderClient.CLIENT_CONFIG_MANAGER.clearServerConfig();
+            ArmorHiderClient.permissionLevel = 0;
+        });
     }
 
     private static void handleServerConfigReceived(ServerConfiguration ctx) {

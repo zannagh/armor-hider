@@ -15,11 +15,13 @@ import java.util.function.Function;
 
 public final class ClientCombatManager {
     public static void handleCombat(Function<Player, Boolean> shouldLogCombat, DamageSource damageSource, @Nullable Player victim) {
+        boolean serverHasMod = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getServerConfig() != null;
+
         if (victim != null && shouldLogCombat.apply(victim)) {
             var victimName = PlayerNameUtil.getPlayerName(victim);
             if (victimName != null) {
                 CombatManager.logCombat(victimName);
-                if (Minecraft.getInstance().player != null) {
+                if (serverHasMod && Minecraft.getInstance().player != null) {
                     ClientPacketSender.sendToServer(new CombatLogEventPacket(victim, Minecraft.getInstance().player.getUUID()));
                 }
             }
@@ -29,7 +31,7 @@ public final class ClientCombatManager {
             var attackerName = PlayerNameUtil.getPlayerName(attacker);
             if (attackerName != null) {
                 CombatManager.logCombat(attackerName);
-                if (Minecraft.getInstance().player != null) {
+                if (serverHasMod && Minecraft.getInstance().player != null) {
                     ClientPacketSender.sendToServer(new CombatLogEventPacket(attacker, Minecraft.getInstance().player.getUUID()));
                 }
             }
