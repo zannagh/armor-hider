@@ -141,6 +141,11 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
         notifyConfigListeners(null);
     }
 
+    public void clearServerConfig() {
+        serverConfiguration = null;
+        notifyConfigListeners(null);
+    }
+
     public PlayerConfig getConfigForPlayer(@Nullable String playerName) {
         if (playerName != null && playerName.equals(ArmorHiderClient.getCurrentPlayerName())) {
             return CURRENT;
