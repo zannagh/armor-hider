@@ -16,7 +16,13 @@ public class MinecraftClientMixin {
         LoadPresetKeyMapping.tick();
     }
 
+    //? if < 1.20.5 {
+    /*@Inject(method = "clearLevel()V", at = @At("HEAD"))
+    *///?} elif < 1.21.8 {
     @Inject(method = "disconnect()V", at = @At("HEAD"))
+    //?} else {
+    /*@Inject(method = "disconnect(Lnet/minecraft/client/gui/screens/Screen;Z)V", at = @At("HEAD"))
+    *///?}
     private void onDisconnect(CallbackInfo ci) {
         ClientConnectionEvents.onClientDisconnect((Minecraft) (Object) this);
     }
