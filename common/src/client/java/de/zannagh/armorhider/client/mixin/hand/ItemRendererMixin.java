@@ -5,9 +5,9 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import de.zannagh.armorhider.client.api.AhRenderManagementApi;
 import de.zannagh.armorhider.client.common.RenderScope;
-import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
-import de.zannagh.armorhider.client.rendering.RenderTypeFactory;
+import de.zannagh.armorhider.client.render.rendertype.ArmorHiderRenderTypes;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.Sheets;
@@ -32,9 +32,8 @@ public class ItemRendererMixin {
     )
     private MultiBufferSource wrapBufferSourceForTransparency(MultiBufferSource bufferSource) {
         
-        var scopeApi = ArmorHiderClientApi.getInstance().getRenderingScopeApi();
-        var offCtx = scopeApi.getActiveScope(RenderScope.OFFHAND);
-        var hdCtx = scopeApi.getActiveScope(RenderScope.HEAD);
+        var offCtx = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
+        var hdCtx = AhRenderManagementApi.getActiveScope(RenderScope.HEAD);
         var activeCtx = !offCtx.isEmpty() ? offCtx : hdCtx;
         if (activeCtx.isEmpty()) {
             return bufferSource;
@@ -49,10 +48,10 @@ public class ItemRendererMixin {
                 return bufferSource.getBuffer(Sheets.translucentItemSheet());
             }
             if (renderType == Sheets.shieldSheet()) {
-                return bufferSource.getBuffer(RenderTypeFactory.translucentEntity(Sheets.SHIELD_SHEET));
+                return bufferSource.getBuffer(ArmorHiderRenderTypes.translucentEntity(Sheets.SHIELD_SHEET));
             }
             if (renderType == Sheets.bannerSheet()) {
-                return bufferSource.getBuffer(RenderTypeFactory.translucentEntity(Sheets.BANNER_SHEET));
+                return bufferSource.getBuffer(ArmorHiderRenderTypes.translucentEntity(Sheets.BANNER_SHEET));
             }
             return bufferSource.getBuffer(renderType);
         };
@@ -67,14 +66,13 @@ public class ItemRendererMixin {
     )
     private void wrapShieldRender(BlockEntityWithoutLevelRenderer instance, ItemStack itemStack, ItemDisplayContext displayCtx, PoseStack poseStack, MultiBufferSource bufferSource, int light, int overlay, Operation<Void> original) {
         
-        var scopeApi2 = ArmorHiderClientApi.getInstance().getRenderingScopeApi();
-        if (scopeApi2.hasScopeModification(RenderScope.OFFHAND) || scopeApi2.hasScopeModification(RenderScope.HEAD)) {
+        if (AhRenderManagementApi.hasScopeModification(RenderScope.OFFHAND) || AhRenderManagementApi.hasScopeModification(RenderScope.HEAD)) {
             MultiBufferSource wrappedSource = renderType -> {
                 if (renderType == Sheets.shieldSheet()) {
-                    return bufferSource.getBuffer(RenderTypeFactory.translucentEntity(Sheets.SHIELD_SHEET));
+                    return bufferSource.getBuffer(ArmorHiderRenderTypes.translucentEntity(Sheets.SHIELD_SHEET));
                 }
                 if (renderType == Sheets.bannerSheet()) {
-                    return bufferSource.getBuffer(RenderTypeFactory.translucentEntity(Sheets.BANNER_SHEET));
+                    return bufferSource.getBuffer(ArmorHiderRenderTypes.translucentEntity(Sheets.BANNER_SHEET));
                 }
                 return bufferSource.getBuffer(renderType);
             };
@@ -94,9 +92,8 @@ public class ItemRendererMixin {
     private RenderType wrapGetRenderType(ItemStack itemStack, boolean fabulous, Operation<RenderType> original) {
         RenderType type = original.call(itemStack, fabulous);
         
-        var scopeApi3 = ArmorHiderClientApi.getInstance().getRenderingScopeApi();
-        var offCtx3 = scopeApi3.getActiveScope(RenderScope.OFFHAND);
-        var hdCtx3 = scopeApi3.getActiveScope(RenderScope.HEAD);
+        var offCtx3 = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
+        var hdCtx3 = AhRenderManagementApi.getActiveScope(RenderScope.HEAD);
         var activeCtx3 = !offCtx3.isEmpty() ? offCtx3 : hdCtx3;
         if (!activeCtx3.isEmpty()) {
             if (activeCtx3.renderModificationApi().getTranslucentItemRenderType(type) instanceof RenderType rt) {
@@ -116,9 +113,8 @@ public class ItemRendererMixin {
     )
     private void wrapPutBulkData(VertexConsumer instance, PoseStack.Pose pose, BakedQuad quad, float r, float g, float b, float alpha, int light, int overlay, Operation<Void> original) {
         
-        var scopeApi4 = ArmorHiderClientApi.getInstance().getRenderingScopeApi();
-        var offCtx4 = scopeApi4.getActiveScope(RenderScope.OFFHAND);
-        var hdCtx4 = scopeApi4.getActiveScope(RenderScope.HEAD);
+        var offCtx4 = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
+        var hdCtx4 = AhRenderManagementApi.getActiveScope(RenderScope.HEAD);
         var activeCtx4 = !offCtx4.isEmpty() ? offCtx4 : hdCtx4;
         if (!activeCtx4.isEmpty()) {
             float modifiedAlpha = alpha * activeCtx4.renderModificationApi().getTransparencyAlpha();
@@ -140,9 +136,8 @@ public class ItemRendererMixin {
     )
     private void wrapPutBulkData(VertexConsumer instance, PoseStack.Pose pose, BakedQuad quad, float r, float g, float b, float alpha, int light, int overlay, boolean useBlockLight, Operation<Void> original) {
         
-        var scopeApi5 = ArmorHiderClientApi.getInstance().getRenderingScopeApi();
-        var offCtx5 = scopeApi5.getActiveScope(RenderScope.OFFHAND);
-        var hdCtx5 = scopeApi5.getActiveScope(RenderScope.HEAD);
+        var offCtx5 = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
+        var hdCtx5 = AhRenderManagementApi.getActiveScope(RenderScope.HEAD);
         var activeCtx5 = !offCtx5.isEmpty() ? offCtx5 : hdCtx5;
         if (!activeCtx5.isEmpty()) {
             float modifiedAlpha = alpha * activeCtx5.renderModificationApi().getTransparencyAlpha();
@@ -162,7 +157,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
+import de.zannagh.armorhider.client.api.AhRenderManagementApi;
 import de.zannagh.armorhider.client.common.RenderScope;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
@@ -186,9 +181,8 @@ public class ItemRendererMixin {
     )
     private static RenderType modifyRenderType(RenderType renderType) {
         
-        var scopeApi = ArmorHiderClientApi.getInstance().getRenderingScopeApi();
-        var offCtx = scopeApi.getActiveScope(RenderScope.OFFHAND);
-        var hdCtx = scopeApi.getActiveScope(RenderScope.HEAD);
+        var offCtx = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
+        var hdCtx = AhRenderManagementApi.getActiveScope(RenderScope.HEAD);
         var activeCtx = !offCtx.isEmpty() ? offCtx : hdCtx;
         if (!activeCtx.isEmpty()) {
             if (activeCtx.renderModificationApi().getTranslucentItemRenderType(renderType) instanceof RenderType rt) {
@@ -207,9 +201,8 @@ public class ItemRendererMixin {
     )
     private static void wrapPutBulkData(VertexConsumer instance, PoseStack.Pose pose, BakedQuad quad, float r, float g, float b, float alpha, int light, int overlay, Operation<Void> original) {
         
-        var scopeApi2 = ArmorHiderClientApi.getInstance().getRenderingScopeApi();
-        var offCtx2 = scopeApi2.getActiveScope(RenderScope.OFFHAND);
-        var hdCtx2 = scopeApi2.getActiveScope(RenderScope.HEAD);
+        var offCtx2 = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
+        var hdCtx2 = AhRenderManagementApi.getActiveScope(RenderScope.HEAD);
         var activeCtx2 = !offCtx2.isEmpty() ? offCtx2 : hdCtx2;
         if (!activeCtx2.isEmpty()) {
             float modifiedAlpha = alpha * activeCtx2.renderModificationApi().getTransparencyAlpha();

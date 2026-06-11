@@ -2,7 +2,6 @@ package de.zannagh.armorhider.client;
 
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.CompatFlags;
-import de.zannagh.armorhider.client.api.implementations.ArmorHiderClientApiImpl;
 import de.zannagh.armorhider.client.gui.screens.ArmorHiderOptionsScreen;
 import de.zannagh.armorhider.client.net.ClientCommunicationManager;
 import de.zannagh.armorhider.configuration.PresetManager;
@@ -51,7 +50,7 @@ public class ArmorHiderClient {
     public static void init() {
         ArmorHider.LOGGER.info("Armor Hider client initializing...");
         ClientCommunicationManager.initClient();
-        ArmorHiderClientApiImpl.init();
+        de.zannagh.armorhider.client.api.impl.AhRendererRegistryImpl.registerDefaultInterceptors();
         if (IRIS_LOADED) {
             initIrisCompat();
         }

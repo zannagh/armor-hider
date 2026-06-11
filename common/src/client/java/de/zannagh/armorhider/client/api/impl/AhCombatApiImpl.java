@@ -1,8 +1,7 @@
-package de.zannagh.armorhider.client.combat;
+package de.zannagh.armorhider.client.api.impl;
 
 import de.zannagh.armorhider.api.ArmorHiderApi;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.api.ArmorHiderClientCombatApi;
 import de.zannagh.armorhider.client.net.ClientPacketSender;
 import de.zannagh.armorhider.combat.DefaultCombatEvent;
 import de.zannagh.armorhider.net.packets.CombatLogEventPacket;
@@ -11,33 +10,29 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.player.Player;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ClientCombatManager implements ArmorHiderClientCombatApi {
-    public void handleCombat(DamageSource damageSource, @Nullable Player victim) {
-        
+/**
+ * Client-side combat logic. Not part of the public API; reached through the static methods
+ * on {@link de.zannagh.armorhider.client.api.AhCombatApi}.
+ */
+@ApiStatus.Internal
+public final class AhCombatApiImpl {
+
+    private AhCombatApiImpl() {}
+
+    public static void handleCombat(DamageSource damageSource, @Nullable Player victim) {
         if (victim != null && shouldLogCombatForPlayer(victim)) {
             handleCombatFor(victim);
         }
-
         if (damageSource.getEntity() instanceof AbstractClientPlayer attacker && shouldLogCombatForPlayer(attacker)) {
             handleCombatFor(attacker);
         }
     }
 
-    /**
-     * Determines if combat should be logged for a specific player.
-     * <p>
-     * Logic:
-     * - If server has combat detection enabled: always log combat (ignore player preference)
-     * - If server has combat detection disabled or not configured: use the resolved player config
-     *   (respects {@code usePlayerSettingsWhenUndeterminable} for remote players without a known config)
-     *
-     * @param player The player entity to check.
-     * @return true if combat should be logged for this player
-     */
-    public boolean shouldLogCombatForPlayer(Player player) {
+    public static boolean shouldLogCombatForPlayer(Player player) {
         var serverConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getServerConfig();
         boolean serverUsesCombatDetection = serverConfig != null
                 && serverConfig.serverWideSettings.enableCombatDetection.getValue();
@@ -51,7 +46,7 @@ public class ClientCombatManager implements ArmorHiderClientCombatApi {
         return config.enableCombatDetection.getValue();
     }
 
-    private void handleCombatFor(@NotNull Player victim) {
+    private static void handleCombatFor(@NotNull Player victim) {
         var victimName = PlayerNameUtil.getPlayerName(victim);
         if (victimName != null) {
             ArmorHiderApi.getInstance().getCombatManagement().registerCombatEvent(new DefaultCombatEvent(victimName, System.currentTimeMillis()));

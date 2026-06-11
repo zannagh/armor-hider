@@ -6,7 +6,7 @@
 
 package de.zannagh.armorhider.client.mixin;
 
-import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
+import de.zannagh.armorhider.client.api.AhCombatApi;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -23,9 +23,9 @@ public class LivingEntityMixin {
     )
     private void triggerCombat(DamageSource damageSource, CallbackInfo ci) {
         if ((Object) this instanceof Player player) {
-            ArmorHiderClientApi.getInstance().getClientCombatApi().handleCombat(damageSource, player);
+            AhCombatApi.handleCombat(damageSource, player);
         } else {
-            ArmorHiderClientApi.getInstance().getClientCombatApi().handleCombat(damageSource, null);
+            AhCombatApi.handleCombat(damageSource, null);
         }
     }
 }

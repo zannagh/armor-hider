@@ -1,0 +1,42 @@
+package de.zannagh.armorhider.client.render.interceptors;
+
+import de.zannagh.armorhider.client.common.IdentityCarrier;
+import de.zannagh.armorhider.client.common.RenderInterceptionResult;
+import de.zannagh.armorhider.client.common.RenderScope;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.ItemStack;
+import org.jspecify.annotations.Nullable;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+/**
+ * Default renderer for {@link RenderScope#OFFHAND}. Used both by the first-person {@code ItemInHandRenderer}
+ * setup and the third-person {@code ItemInHandLayer}. The slot/stack are derived from the carrier's
+ * offhand if no explicit stack is provided.
+ */
+public class ArmorHiderOffhandRenderer extends AbstractArmorHiderRenderer {
+
+    @Override
+    public RenderScope getTargetScope() {
+        return RenderScope.OFFHAND;
+    }
+
+    @Override
+    public RenderInterceptionResult intercept(@Nullable Object identityCarrier, @Nullable EquipmentSlot slot, @Nullable ItemStack stack, CallbackInfo ci) {
+        IdentityCarrier carrier = identityCarrier instanceof IdentityCarrier ic ? ic : null;
+        if (carrier == null) {
+            resolveModification(null, null, null);
+            return RenderInterceptionResult.ignore();
+        }
+        ItemStack offhand = stack != null ? stack : carrier.getItemBySlot(EquipmentSlot.OFFHAND);
+        if (offhand == null || offhand.isEmpty()) {
+            resolveModification(carrier, EquipmentSlot.OFFHAND, ItemStack.EMPTY);
+            return RenderInterceptionResult.ignore();
+        }
+        return standardIntercept(carrier, EquipmentSlot.OFFHAND, offhand, ci);
+    }
+
+    @Override
+    public RenderInterceptionResult interceptFrom(@Nullable IdentityCarrier carrier, CallbackInfo ci) {
+        return intercept(carrier, null, null, ci);
+    }
+}

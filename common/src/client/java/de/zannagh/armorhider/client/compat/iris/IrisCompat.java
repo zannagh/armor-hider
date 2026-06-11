@@ -1,7 +1,7 @@
 package de.zannagh.armorhider.client.compat.iris;
 
 import de.zannagh.armorhider.ArmorHider;
-import de.zannagh.armorhider.client.rendering.ArmorHiderRenderTypes;
+import de.zannagh.armorhider.client.render.rendertype.ArmorHiderRenderTypes;
 import net.irisshaders.iris.api.v0.*;
 
 public final class IrisCompat {

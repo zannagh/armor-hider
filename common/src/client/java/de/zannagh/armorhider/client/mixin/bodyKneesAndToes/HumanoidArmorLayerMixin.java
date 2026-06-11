@@ -1,12 +1,10 @@
 package de.zannagh.armorhider.client.mixin.bodyKneesAndToes;
 
-import com.llamalad7.mixinextras.sugar.Share;
-import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import com.mojang.blaze3d.vertex.PoseStack;
-import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
-import de.zannagh.armorhider.client.common.RenderScope;
-import de.zannagh.armorhider.client.common.RenderScopeContext;
+import de.zannagh.armorhider.client.api.AhRenderManagementApi;
+import de.zannagh.armorhider.client.api.AhRenderInterceptionRegistryApi;
 import de.zannagh.armorhider.client.common.IdentityCarrier;
+import de.zannagh.armorhider.client.common.RenderScope;
 import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
@@ -27,25 +25,18 @@ import net.minecraft.client.renderer.MultiBufferSource;
 *///?}
 
 //? if < 1.21.4 {
-/*import net.minecraft.client.model.HumanoidModel;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.world.entity.LivingEntity;
-*///?}
-
-//? if < 1.21.4 {
 /*import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import de.zannagh.armorhider.client.render.VanillaArmorTextureManager;
+import net.minecraft.client.model.HumanoidModel;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.LivingEntity;
-import org.spongepowered.asm.mixin.injection.At;
 *///?}
-
-//? if >= 1.21 && < 1.21.4 {
-/*import net.minecraft.client.renderer.Sheets;
- *///?}
 
 @Mixin(HumanoidArmorLayer.class)
 public class HumanoidArmorLayerMixin
@@ -53,76 +44,26 @@ public class HumanoidArmorLayerMixin
 //<T extends LivingEntity, M extends HumanoidModel<T>, A extends HumanoidModel<T>>
 {
 
-    // ===== Player/state capture + early-out (render HEAD) =====
-
-    //? if < 1.21.9 {
-    /*
-    //? if >= 1.21.4 && < 1.21.9 {
-    @Inject(
-            method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/renderer/entity/state/HumanoidRenderState;FF)V",
-            at = @At("HEAD"),
-            cancellable = true
-    )
-    private <S extends HumanoidRenderState> void captureRenderState(PoseStack poseStack, MultiBufferSource multiBufferSource, int i, S entity, float f, float g, CallbackInfo ci, @Share(value = "scopeContext") LocalRef<ScopeContext> scopeContext) {
-    //? }
-    //? if >= 1.21 && < 1.21.4 {
-    @Inject(
-            method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/world/entity/LivingEntity;FFFFFF)V",
-            at = @At("HEAD"),
-            cancellable = true
-    )
-    private void capturePlayerName(PoseStack poseStack, MultiBufferSource bufferSource, int light, T entity, float f1, float f2, float f3, float f4, float f5, float f6, CallbackInfo ci, @Share(value = "scopeContext") LocalRef<ScopeContext> scopeContext) {
-    //? }
-    //? if < 1.21 {
-    @Inject(
-            method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/world/entity/LivingEntity;FFFFFF)V",
-            at = @At("HEAD"),
-            cancellable = true
-    )
-    private void skipIfAllHidden(PoseStack poseStack, MultiBufferSource bufferSource, int light, T entity, float f1, float f2, float f3, float f4, float f5, float f6, CallbackInfo ci, @Share(value = "scopeContext") LocalRef<ScopeContext> scopeContext) {
-    //?}
-        if (!(entity instanceof IdentityCarrier carrier)) {
-            return;
-        }
-        if (carrier.armorHider$allSlotsFullyHidden()) {
-            var api = ArmorHiderClientApi.getInstance().getRenderingScopeApi();
-            api.setCurrentPlayer(carrier.armorHider$playerName());
-            ci.cancel();
-            return;
-        }
-        scopeContext.set(ScopeContext.empty(RenderScope.ARMOR_PIECE));
-    }
-    *///?}
-
     // ===== Per-piece scope setup (renderArmorPiece HEAD) =====
 
     @Inject(method = "renderArmorPiece", at = @At("HEAD"), cancellable = true)
     //? if >= 1.21.9
-    private <S extends HumanoidRenderState> void captureContext(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, ItemStack itemStack, EquipmentSlot slot, int i, S humanoidRenderState, CallbackInfo ci, @Share(value = "scopeContext") LocalRef<RenderScopeContext> scopeContext) {
+    private <S extends HumanoidRenderState> void captureContext(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, ItemStack itemStack, EquipmentSlot slot, int i, S humanoidRenderState, CallbackInfo ci) {
     //? if >= 1.21.4 && < 1.21.9
-    //private void captureContext(PoseStack poseStack, MultiBufferSource multiBufferSource, ItemStack itemStack, EquipmentSlot slot, int i, HumanoidModel<?> humanoidRenderState, CallbackInfo ci, @Share(value = "scopeContext") LocalRef<ScopeContext> scopeContext) {
+    //private void captureContext(PoseStack poseStack, MultiBufferSource multiBufferSource, ItemStack itemStack, EquipmentSlot slot, int i, HumanoidModel<?> humanoidRenderState, CallbackInfo ci) {
     //? if < 1.21.4
-    //private void onRenderArmorPiece(PoseStack poseStack, MultiBufferSource bufferSource, T humanoidRenderState, EquipmentSlot slot, int packedLight, A itemStack, CallbackInfo ci, @Share(value = "scopeContext") LocalRef<ScopeContext> scopeContext) {
+    //private void onRenderArmorPiece(PoseStack poseStack, MultiBufferSource bufferSource, T humanoidRenderState, EquipmentSlot slot, int packedLight, A itemStack, CallbackInfo ci) {
 
-        //? if >= 1.21.4
         IdentityCarrier carrier = humanoidRenderState instanceof IdentityCarrier ic ? ic : null;
-        //? if < 1.21.4
-        //IdentityCarrier carrier = humanoidRenderState instanceof IdentityCarrier ic ? ic : (scopeContext.get() != null ? scopeContext.get().carrier() : null);
-        if (carrier == null) {
-            return;
-        }
+        if (carrier == null) return;
 
-        var api = ArmorHiderClientApi.getInstance().getRenderingScopeApi();
+        
         //? if >= 1.21.4
-        var ctx = api.enterScope(RenderScope.ARMOR_PIECE, carrier, slot, itemStack);
+        var result = AhRenderInterceptionRegistryApi.getRenderer(RenderScope.ARMOR_PIECE).intercept(carrier, slot, itemStack, ci);
         //? if < 1.21.4
-        //var ctx = api.enterScope(RenderScope.ARMOR_PIECE, carrier, slot, null);
-        scopeContext.set(ctx);
-
-        if (ctx.shouldCancel()) {
-            api.exitScope(RenderScope.ARMOR_PIECE);
-            ci.cancel();
-        }
+        //var result = AhRenderInterceptionRegistryApi.getRenderer(RenderScope.ARMOR_PIECE).intercept(carrier, slot, null, ci);
+        if (result.shouldCancel() || !result.shouldIntercept()) return;
+        AhRenderManagementApi.enterScope(result);
     }
 
     // ===== Per-piece scope cleanup (renderArmorPiece RETURN) =====
@@ -131,11 +72,10 @@ public class HumanoidArmorLayerMixin
     //? if >= 1.21.9 || < 1.21.4 {
     @Inject(method = "renderArmorPiece", at = @At("RETURN"))
     //? if >= 1.21.9
-    private <S extends HumanoidRenderState> void onRenderArmorPieceReturn(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, ItemStack itemStack, EquipmentSlot equipmentSlot, int i, S humanoidRenderState, CallbackInfo ci, @Share(value = "scopeContext") LocalRef<RenderScopeContext> scopeContext) {
+    private <S extends HumanoidRenderState> void onRenderArmorPieceReturn(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, ItemStack itemStack, EquipmentSlot equipmentSlot, int i, S humanoidRenderState, CallbackInfo ci) {
     //? if < 1.21.4
-    //private void onRenderArmorPieceReturn(PoseStack poseStack, MultiBufferSource bufferSource, T entity, EquipmentSlot slot, int packedLight, A armorModel, CallbackInfo ci, @Share(value = "scopeContext") LocalRef<ScopeContext> scopeContext) {
-        scopeContext.set(null);
-        ArmorHiderClientApi.getInstance().getRenderingScopeApi().exitScope(RenderScope.ARMOR_PIECE);
+    //private void onRenderArmorPieceReturn(PoseStack poseStack, MultiBufferSource bufferSource, T entity, EquipmentSlot slot, int packedLight, A armorModel, CallbackInfo ci) {
+        AhRenderManagementApi.exitScope(RenderScope.ARMOR_PIECE);
     }
     //?}
 
@@ -149,13 +89,9 @@ public class HumanoidArmorLayerMixin
                     target = "Lnet/minecraft/world/item/ItemStack;hasFoil()Z"
             )
     )
-    private boolean modifyGlint(boolean original, @Share(value = "scopeContext") LocalRef<ScopeContext> scopeContext) {
-        if (scopeContext.get() == null || scopeContext.get().isEmpty()) return original;
-        var mod = scopeContext.get().modification();
-        if (mod.shouldDisableGlint() || mod.shouldHide()) {
-            return false;
-        }
-        return original;
+    private boolean modifyGlint(boolean original) {
+        var ctx = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE);
+        return ctx.renderModificationApi().getHasFoil(original);
     }
 
     @WrapOperation(
@@ -165,10 +101,14 @@ public class HumanoidArmorLayerMixin
                     target = "Lnet/minecraft/client/renderer/RenderType;armorCutoutNoCull(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/RenderType;"
             )
     )
-    private RenderType modifyArmorRenderLayer(Identifier texture, Operation<RenderType> original, @Share(value = "scopeContext") LocalRef<ScopeContext> scopeContext) {
-        if (scopeContext.get() == null || scopeContext.get().isEmpty()) return original.call(texture);
-        Identifier resolved = VanillaArmorTextureManager.resolveArmorTexture(scopeContext.get().modification(), texture);
-        return new RenderModifications(scopeContext.get().modification()).getTranslucentArmorRenderType(resolved, original.call(resolved));
+    private RenderType modifyArmorRenderLayer(Identifier texture, Operation<RenderType> original) {
+        var ctx = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE);
+        if (ctx.isEmpty()) return original.call(texture);
+        Identifier resolved = VanillaArmorTextureManager.resolveArmorTexture(ctx.modification(), texture);
+        if (ctx.renderModificationApi().getTranslucentArmorRenderType(resolved, original.call(resolved)) instanceof RenderType rt) {
+            return rt;
+        }
+        return original.call(resolved);
     }
     *///?}
 
@@ -180,9 +120,10 @@ public class HumanoidArmorLayerMixin
                     target = "Lnet/minecraft/client/model/HumanoidModel;renderToBuffer(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;III)V"
             )
     )
-    private void modifyArmorColor(A model, PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, int color, Operation<Void> original, @Share(value = "scopeContext") LocalRef<ScopeContext> scopeContext) {
-        if (scopeContext.get() == null || scopeContext.get().isEmpty()) { original.call(model, poseStack, vertexConsumer, packedLight, packedOverlay, color); return; }
-        int modifiedColor = new RenderModifications(scopeContext.get().modification()).applyArmorTransparency(color);
+    private void modifyArmorColor(A model, PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, int color, Operation<Void> original) {
+        var ctx = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE);
+        if (ctx.isEmpty()) { original.call(model, poseStack, vertexConsumer, packedLight, packedOverlay, color); return; }
+        int modifiedColor = ctx.renderModificationApi().applyArmorTransparency(color);
         original.call(model, poseStack, vertexConsumer, packedLight, packedOverlay, modifiedColor);
     }
 
@@ -193,9 +134,13 @@ public class HumanoidArmorLayerMixin
                     target = "Lnet/minecraft/client/renderer/Sheets;armorTrimsSheet(Z)Lnet/minecraft/client/renderer/RenderType;"
             )
     )
-    private RenderType modifyTrimRenderLayer(boolean decal, Operation<RenderType> original, @Share(value = "scopeContext") LocalRef<ScopeContext> scopeContext) {
-        if (scopeContext.get() == null || scopeContext.get().isEmpty()) return original.call(decal);
-        return new RenderModifications(scopeContext.get().modification()).getTrimRenderLayer(decal, original.call(decal));
+    private RenderType modifyTrimRenderLayer(boolean decal, Operation<RenderType> original) {
+        var ctx = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE);
+        if (ctx.isEmpty()) return original.call(decal);
+        if (ctx.renderModificationApi().getTrimRenderLayer(decal, original.call(decal)) instanceof RenderType rt) {
+            return rt;
+        }
+        return original.call(decal);
     }
 
     @WrapOperation(
@@ -205,9 +150,10 @@ public class HumanoidArmorLayerMixin
                     target = "Lnet/minecraft/client/model/HumanoidModel;renderToBuffer(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;II)V"
             )
     )
-    private void modifyTrimColor(A model, PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, Operation<Void> original, @Share(value = "scopeContext") LocalRef<ScopeContext> scopeContext) {
-        if (scopeContext.get() == null || scopeContext.get().isEmpty()) { original.call(model, poseStack, vertexConsumer, packedLight, packedOverlay); return; }
-        int modifiedColor = new RenderModifications(scopeContext.get().modification()).applyTransparencyFromWhite(packedOverlay);
+    private void modifyTrimColor(A model, PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, Operation<Void> original) {
+        var ctx = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE);
+        if (ctx.isEmpty()) { original.call(model, poseStack, vertexConsumer, packedLight, packedOverlay); return; }
+        int modifiedColor = ctx.renderModificationApi().applyTransparencyFromWhite(packedOverlay);
         model.renderToBuffer(poseStack, vertexConsumer, packedLight, packedOverlay, modifiedColor);
     }
     *///?}
@@ -220,9 +166,10 @@ public class HumanoidArmorLayerMixin
                     target = "Lnet/minecraft/client/model/HumanoidModel;renderToBuffer(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;IIFFFF)V"
             )
     )
-    private void modifyArmorColor(A model, PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, float red, float green, float blue, float v, Operation<Void> original, @Share(value = "scopeContext") LocalRef<ScopeContext> scopeContext) {
-        if (scopeContext.get() == null || scopeContext.get().isEmpty()) { original.call(model, poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, v); return; }
-        float modifiedAlpha = new RenderModifications(scopeContext.get().modification()).getTransparencyAlpha();
+    private void modifyArmorColor(A model, PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, float red, float green, float blue, float v, Operation<Void> original) {
+        var ctx = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE);
+        if (ctx.isEmpty()) { original.call(model, poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, v); return; }
+        float modifiedAlpha = ctx.renderModificationApi().getTransparencyAlpha();
         original.call(model, poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, modifiedAlpha);
     }
 
@@ -234,9 +181,10 @@ public class HumanoidArmorLayerMixin
             ),
             require = 0
     )
-    private void modifyTrimColor(HumanoidModel<?> model, PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, float red, float green, float blue, float alpha, Operation<Void> original, @Share(value = "scopeContext") LocalRef<ScopeContext> scopeContext) {
-        if (scopeContext.get() == null || scopeContext.get().isEmpty()) { original.call(model, poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha); return; }
-        float modifiedAlpha = new RenderModifications(scopeContext.get().modification()).getTransparencyAlpha();
+    private void modifyTrimColor(HumanoidModel<?> model, PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, float red, float green, float blue, float alpha, Operation<Void> original) {
+        var ctx = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE);
+        if (ctx.isEmpty()) { original.call(model, poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha); return; }
+        float modifiedAlpha = ctx.renderModificationApi().getTransparencyAlpha();
         original.call(model, poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, modifiedAlpha);
     }
     *///?}

@@ -1,4 +1,4 @@
-package de.zannagh.armorhider.client.rendering;
+package de.zannagh.armorhider.client.render;
 
 import com.mojang.blaze3d.platform.NativeImage;
 import de.zannagh.armorhider.ArmorHider;

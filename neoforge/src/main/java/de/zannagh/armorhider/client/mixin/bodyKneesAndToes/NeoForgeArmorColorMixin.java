@@ -3,8 +3,8 @@
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
-import de.zannagh.armorhider.client.api.render.RenderScope;
+import de.zannagh.armorhider.client.api.AhRenderManagementApi;
+import de.zannagh.armorhider.client.common.RenderScope;
 import net.minecraft.client.renderer.SubmitNodeCollection;
 import net.minecraft.client.renderer.SubmitNodeStorage;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
@@ -48,7 +48,7 @@ public class NeoForgeArmorColorMixin {
     //private void wrapArmorModelPartAdd(ModelPartFeatureRenderer.Storage storage, RenderType renderType, SubmitNodeStorage.ModelPartSubmit submit, Operation<Void> original) {
         if (shouldApplyArmorTransparency()) {
             
-            float alpha = ArmorHiderClientApi.getInstance().getRenderingScopeApi().getActiveScope(RenderScope.ARMOR_PIECE).renderModificationApi().getTransparencyAlpha();
+            float alpha = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE).renderModificationApi().getTransparencyAlpha();
 
             int origColor = submit.tintedColor();
             int origAlpha = (origColor >> 24) & 0xFF;
@@ -92,7 +92,7 @@ public class NeoForgeArmorColorMixin {
     //private <S> void wrapArmorModelAdd(ModelFeatureRenderer.Storage storage, RenderType renderType, SubmitNodeStorage.ModelSubmit<S> submit, Operation<Void> original) {
         if (shouldApplyArmorTransparency()) {
             
-            float alpha = ArmorHiderClientApi.getInstance().getRenderingScopeApi().getActiveScope(RenderScope.ARMOR_PIECE).renderModificationApi().getTransparencyAlpha();
+            float alpha = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE).renderModificationApi().getTransparencyAlpha();
 
             int origColor = submit.tintedColor();
             int origAlpha = (origColor >> 24) & 0xFF;
@@ -121,7 +121,7 @@ public class NeoForgeArmorColorMixin {
 
     private static boolean shouldApplyArmorTransparency() {
         
-        return ArmorHiderClientApi.getInstance().getRenderingScopeApi().hasScopeModification(RenderScope.ARMOR_PIECE);
+        return AhRenderManagementApi.hasScopeModification(RenderScope.ARMOR_PIECE);
     }
 }
 *///?}

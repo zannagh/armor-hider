@@ -7,9 +7,9 @@
 package de.zannagh.armorhider.client.mixin;
 
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
+import de.zannagh.armorhider.client.api.AhRenderManagementApi;
 import de.zannagh.armorhider.api.ArmorHiderApi;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
 import de.zannagh.armorhider.client.common.PlayerModificationInfo;
 import de.zannagh.armorhider.client.common.SlotModification;
 import de.zannagh.armorhider.client.common.RenderScope;
@@ -140,26 +140,24 @@ public abstract class PlayerMixin
         if (original.isEmpty()) {
             return original;
         }
-        var ctx = ArmorHiderClientApi.getInstance().getRenderingScopeApi();
-
-        if (ctx.hasActiveModification()) {
+        if (AhRenderManagementApi.hasScopeModification(RenderScope.of(slot, new ItemInfo(original)))) {
             return original;
         }
 
         // Only fake empty slots during level rendering (3D world) — never during
         // game logic (tick processing, inventory interactions) or HUD/GUI rendering.
-        if (!ctx.isInLevelRender()) {
+        if (!AhRenderManagementApi.isInLevelRender()) {
             return original;
         }
 
         var playerName = armorHider$playerName();
         // During entity rendering (extractRenderState + layer rendering), return the
         // real item so that renderArmorPiece is called (for downstream render processing).
-        if (ctx.isInEntityRender() || playerName == null) {
+        if (AhRenderManagementApi.isInEntityRender() || playerName == null) {
             return original;
         }
 
-        if (ctx.getActiveScope(RenderScope.of(slot, new ItemInfo(original))).renderModificationApi().isSlotFullyHiddenForPlayer(playerName, slot, original)) {
+        if (AhRenderManagementApi.getActiveScope(RenderScope.of(slot, new ItemInfo(original))).renderModificationApi().isSlotFullyHiddenForPlayer(playerName, slot, original)) {
             DebugTracer.equipmentSlotHidingFired(playerName, slot, true, "isSlotFullyHidden");
             return ItemStack.EMPTY;
         }

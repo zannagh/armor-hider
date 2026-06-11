@@ -1,8 +1,8 @@
 //? if < 1.21.9 {
 /*package de.zannagh.armorhider.client.mixin.hand;
 
+import de.zannagh.armorhider.client.api.AhRenderManagementApi;
 import de.zannagh.armorhider.client.common.RenderScope;
-import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
 import net.minecraft.client.model.geom.ModelPart;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -21,9 +21,8 @@ public class ModelPartMixin {
     )
     private int modifyRenderColor(int color) {
         
-        var scopeApi = ArmorHiderClientApi.getInstance().getRenderingScopeApi();
-        var offCtx = scopeApi.getActiveScope(RenderScope.OFFHAND);
-        var hdCtx = scopeApi.getActiveScope(RenderScope.HEAD);
+        var offCtx = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
+        var hdCtx = AhRenderManagementApi.getActiveScope(RenderScope.HEAD);
         var activeCtx = !offCtx.isEmpty() ? offCtx : hdCtx;
         if (!activeCtx.isEmpty()) {
             return activeCtx.renderModificationApi().applyArmorTransparency(color);
@@ -41,9 +40,8 @@ public class ModelPartMixin {
     )
     private float modifyRenderAlpha(float alpha) {
         
-        var scopeApi2 = ArmorHiderClientApi.getInstance().getRenderingScopeApi();
-        var offCtx2 = scopeApi2.getActiveScope(RenderScope.OFFHAND);
-        var hdCtx2 = scopeApi2.getActiveScope(RenderScope.HEAD);
+        var offCtx2 = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
+        var hdCtx2 = AhRenderManagementApi.getActiveScope(RenderScope.HEAD);
         var activeCtx2 = !offCtx2.isEmpty() ? offCtx2 : hdCtx2;
         if (!activeCtx2.isEmpty()) {
             return alpha * activeCtx2.renderModificationApi().getTransparencyAlpha();

@@ -1,4 +1,4 @@
-package de.zannagh.armorhider.client.rendering;
+package de.zannagh.armorhider.client.render.rendertype;
 
 import net.minecraft.client.renderer.Sheets;
 import java.util.concurrent.ConcurrentHashMap;
@@ -33,7 +33,6 @@ import net.minecraft.resources.Identifier;
 
 //? if >= 26.1-0.snapshot.10 {
 import com.mojang.blaze3d.pipeline.DepthStencilState;
-import com.mojang.blaze3d.pipeline.ColorTargetState;
 //?}
 //? if >= 26.2-0.snapshot {
 /*import com.mojang.blaze3d.pipeline.BindGroupLayout;

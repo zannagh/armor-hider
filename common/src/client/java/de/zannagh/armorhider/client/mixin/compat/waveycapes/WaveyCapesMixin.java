@@ -3,7 +3,7 @@ package de.zannagh.armorhider.client.mixin.compat.waveycapes;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
-import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
+import de.zannagh.armorhider.client.api.AhRenderManagementApi;
 import de.zannagh.armorhider.client.common.RenderScope;
 import de.zannagh.armorhider.client.common.IdentityCarrier;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -57,12 +57,11 @@ public class WaveyCapesMixin {
         var renderState = player;
     *///?}
         if (renderState instanceof IdentityCarrier carrier) {
-            var api = ArmorHiderClientApi.getInstance().getRenderingScopeApi();
-            var ctx = api.enterScope(RenderScope.CAPE, carrier, EquipmentSlot.CHEST, chestEquipment);
+            var ctx = AhRenderManagementApi.enterScope(RenderScope.CAPE, carrier, EquipmentSlot.CHEST, chestEquipment);
             if (ctx.shouldCancel()
                     && itemStackContainsElytra(chestEquipment)
                     && carrier.isPlayerFlying()) {
-                api.exitScope(RenderScope.CAPE);
+                AhRenderManagementApi.exitScope(RenderScope.CAPE);
                 ci.cancel();
             }
         }
@@ -78,7 +77,7 @@ public class WaveyCapesMixin {
             )
     )
     private void moveCapeWhenArmorHidden(PoseStack instance, float f, float g, float h, Operation<Void> original) {
-        var capeCtx = ArmorHiderClientApi.getInstance().getRenderingScopeApi().getActiveScope(RenderScope.CAPE);
+        var capeCtx = AhRenderManagementApi.getActiveScope(RenderScope.CAPE);
         if (!capeCtx.isEmpty() && capeCtx.modification().shouldHide()) {
             original.call(instance, 0F, 0F, 0F);
         } else {
@@ -99,6 +98,6 @@ public class WaveyCapesMixin {
     //?} else {
     /*private void releaseCapeContext(PoseStack poseStack, MultiBufferSource multiBufferSource, int light, AbstractClientPlayer player, float limbSwing, float limbSwingAmount, float partialTick, float ageInTicks, float netHeadYaw, float headPitch, CallbackInfo ci) {
     *///?}
-        ArmorHiderClientApi.getInstance().getRenderingScopeApi().exitScope(RenderScope.CAPE);
+        AhRenderManagementApi.exitScope(RenderScope.CAPE);
     }
 }

@@ -2,7 +2,8 @@
 package de.zannagh.armorhider.client.mixin;
 
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.api.ArmorHiderClientApi;import de.zannagh.armorhider.client.common.IdentityCarrier;
+import de.zannagh.armorhider.client.common.IdentityCarrier;
+import de.zannagh.armorhider.client.common.SlotModification;
 //? if > 1.21.10
 import net.minecraft.client.model.player.PlayerModel;
 //? if <= 1.21.10
@@ -38,20 +39,16 @@ public class PlayerModelMixin {
         if (!(state instanceof IdentityCarrier carrier)) {
             return;
         }
-        var mod = carrier.createModificationAndSetContext(EquipmentSlot.CHEST, carrier.getItemBySlot(EquipmentSlot.CHEST));
-        try {
-            if (mod == null || !mod.needsModification()) {
-                return;
-            }
-
-            model.rightArm.visible = true;
-            model.leftArm.visible = true;
-
-            model.rightSleeve.visible = true;
-            model.leftSleeve.visible = true;
-        } finally {
-            ArmorHiderClientApi.getInstance().getRenderingScopeApi().clearActiveModification();
+        var mod = SlotModification.of(carrier.armorHider$playerName(), EquipmentSlot.CHEST, carrier.getItemBySlot(EquipmentSlot.CHEST));
+        if (!mod.needsModification()) {
+            return;
         }
+
+        model.rightArm.visible = true;
+        model.leftArm.visible = true;
+
+        model.rightSleeve.visible = true;
+        model.leftSleeve.visible = true;
     }
 }
 //?}

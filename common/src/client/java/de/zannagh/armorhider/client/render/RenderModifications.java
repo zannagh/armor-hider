@@ -1,9 +1,10 @@
-package de.zannagh.armorhider.client.api.implementations;
+package de.zannagh.armorhider.client.render;
 
+import de.zannagh.armorhider.client.api.AhRenderTypeFactory;
 import de.zannagh.armorhider.client.common.SlotModification;
-import de.zannagh.armorhider.client.api.ArmorHiderRenderModificationApi;
-import de.zannagh.armorhider.client.rendering.ColorMath;
-import de.zannagh.armorhider.client.rendering.RenderTypeFactory;
+import de.zannagh.armorhider.client.api.AhRenderModificationApi;
+import de.zannagh.armorhider.client.render.rendertype.ArmorHiderRenderTypes;
+import de.zannagh.armorhider.client.render.utils.ColorMath;
 import de.zannagh.armorhider.common.ItemInfo;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.Sheets;
@@ -18,7 +19,7 @@ import net.minecraft.resources.Identifier;
  * All methods are "pass-through safe": if no active modification exists,
  * they return the original values unchanged.
  */
-public class RenderModifications implements ArmorHiderRenderModificationApi {
+public class RenderModifications implements AhRenderModificationApi {
 
     public static final int ELYTRA_RENDER_PRIORITY = 100;
     public static final int SKULL_RENDER_PRIORITY = 99;
@@ -35,27 +36,31 @@ public class RenderModifications implements ArmorHiderRenderModificationApi {
         return new RenderModifications(SlotModification.empty());
     }
 
+    public static RenderModifications getInstance(SlotModification slotModification) {
+        return new RenderModifications(slotModification);
+    }
+
     // --- Render type modifications ---
 
     public RenderType getSkullRenderLayer(Identifier texture, RenderType originalLayer) {
         if (slotModification.isEmpty() || !slotModification.needsModification()) {
             return originalLayer;
         }
-        return RenderTypeFactory.translucentEntity(texture);
+        return getTranslucentEntityRenderType(texture);
     }
 
     public RenderType getTranslucentArmorRenderType(Identifier texture, RenderType originalLayer) {
         if (slotModification.isEmpty() || !slotModification.needsModification()) {
             return originalLayer;
         }
-        return RenderTypeFactory.translucentArmor(texture);
+        return getTranslucentArmorRenderType(texture);
     }
 
     public RenderType getTrimRenderLayer(boolean decal, RenderType originalLayer) {
         if (slotModification.isEmpty() || !slotModification.needsModification()) {
             return originalLayer;
         }
-        return RenderTypeFactory.translucentArmorTrim();
+        return getTranslucentArmorTrimRenderType();
     }
 
     public RenderType getTranslucentItemRenderType(RenderType originalLayer) {
@@ -66,7 +71,7 @@ public class RenderModifications implements ArmorHiderRenderModificationApi {
         if (originalLayer == Sheets.cutoutBlockSheet()) {
         //? if > 26.1.2
         //if (originalLayer == Sheets.cutoutBlockItemSheet()) {
-            return RenderTypeFactory.translucentItemSheet();
+            return getTranslucentItemSheetRenderType();
         }
         return originalLayer;
     }
@@ -114,14 +119,6 @@ public class RenderModifications implements ArmorHiderRenderModificationApi {
     }
 
     @Override
-    public Object getTranslucentRenderType(Object textureIdentifier, Object originalRenderType) {
-        if (textureIdentifier instanceof Identifier texture && originalRenderType instanceof RenderType original) {
-            return getTranslucentArmorRenderType(texture, original);
-        }
-        return originalRenderType;
-    }
-
-    @Override
     public Object getTrimRenderLayer(boolean decal, Object originalRenderType) {
         if (originalRenderType instanceof RenderType original) {
             return getTrimRenderLayer(decal, original);
@@ -160,6 +157,40 @@ public class RenderModifications implements ArmorHiderRenderModificationApi {
         return originalPriority;
     }
 
+    private AhRenderTypeFactory customRenderTypeFactory;
+
+    public void registerRenderTypeFactory(AhRenderTypeFactory renderTypeFactory){
+        customRenderTypeFactory = renderTypeFactory;
+    }
+
+    public RenderType getTranslucentArmorRenderType(Identifier texture) {
+        if (customRenderTypeFactory != null){
+            return customRenderTypeFactory.getTranslucentArmorRenderType(texture);
+        }
+        return ArmorHiderRenderTypes.translucentArmor(texture);
+    }
+
+    public RenderType getTranslucentEntityRenderType(Identifier texture){
+        if (customRenderTypeFactory != null){
+            return customRenderTypeFactory.getTranslucentEntityRenderType(texture);
+        }
+        return ArmorHiderRenderTypes.translucentEntity(texture);
+    }
+
+    public RenderType getTranslucentArmorTrimRenderType() {
+        if (customRenderTypeFactory != null){
+            return customRenderTypeFactory.getTranslucentArmorTrimRenderType();
+        }
+        return ArmorHiderRenderTypes.translucentArmorTrim();
+    }
+
+    public RenderType getTranslucentItemSheetRenderType() {
+        if (customRenderTypeFactory != null){
+            return customRenderTypeFactory.getTranslucentItemSheetRenderType();
+        }
+        return ArmorHiderRenderTypes.translucentItemSheet();
+    }
+
     // Buffer wrapping for < 1.21.9 (used by ItemInHandLayerMixin and OffHandRenderMixin)
 
     //? if < 1.21.9 {
@@ -172,10 +203,10 @@ public class RenderModifications implements ArmorHiderRenderModificationApi {
         //? if >= 1.21 {
         solidToTranslucent.put(
                 net.minecraft.client.renderer.rendertype.RenderType.entitySolid(Sheets.SHIELD_SHEET),
-                RenderTypeFactory.translucentEntity(Sheets.SHIELD_SHEET));
+                ArmorHiderRenderTypes.translucentEntity(Sheets.SHIELD_SHEET));
         solidToTranslucent.put(
                 net.minecraft.client.renderer.rendertype.RenderType.entitySolid(Sheets.BANNER_SHEET),
-                RenderTypeFactory.translucentEntity(Sheets.BANNER_SHEET));
+                ArmorHiderRenderTypes.translucentEntity(Sheets.BANNER_SHEET));
         //? } else {
         /^solidToTranslucent.put(
                 net.minecraft.client.renderer.rendertype.RenderType.entitySolid(Sheets.SHIELD_SHEET),
@@ -191,7 +222,7 @@ public class RenderModifications implements ArmorHiderRenderModificationApi {
         ^///?} elif < 1.21.4 {
         /^solidToTranslucent.put(
                 net.minecraft.client.renderer.rendertype.RenderType.entitySolid(net.minecraft.world.inventory.InventoryMenu.BLOCK_ATLAS),
-                RenderTypeFactory.translucentEntity(net.minecraft.world.inventory.InventoryMenu.BLOCK_ATLAS));
+                ArmorHiderRenderTypes.translucentEntity(net.minecraft.world.inventory.InventoryMenu.BLOCK_ATLAS));
         ^///?}
     }
 

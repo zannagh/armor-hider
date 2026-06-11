@@ -4,7 +4,7 @@ package de.zannagh.armorhider.client.mixin.hand;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
-import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
+import de.zannagh.armorhider.client.api.AhRenderManagementApi;
 import de.zannagh.armorhider.client.common.RenderScope;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.world.item.ItemDisplayContext;
@@ -55,9 +55,8 @@ public class ItemRenderStateMixin {
     //private void wrapSubmitItem(SubmitNodeCollector instance, PoseStack poseStack, ItemDisplayContext itemDisplayContext, int light, int overlay, int color, int[] tintLayers, List<BakedQuad> quads, RenderType renderType, ItemStackRenderState.FoilType foilType, Operation<Void> original) {
         
         
-        var scopeApi = ArmorHiderClientApi.getInstance().getRenderingScopeApi();
-        var offhandCtx = scopeApi.getActiveScope(RenderScope.OFFHAND);
-        var headCtx = scopeApi.getActiveScope(RenderScope.HEAD);
+        var offhandCtx = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
+        var headCtx = AhRenderManagementApi.getActiveScope(RenderScope.HEAD);
         var activeCtx = !offhandCtx.isEmpty() ? offhandCtx : headCtx;
         if (!activeCtx.isEmpty()) {
             // Note to future me: This can actually hide main hands.

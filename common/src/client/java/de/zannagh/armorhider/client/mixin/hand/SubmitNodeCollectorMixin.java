@@ -1,31 +1,21 @@
 //? if >= 1.21.9 {
-
 package de.zannagh.armorhider.client.mixin.hand;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
+import de.zannagh.armorhider.client.api.AhRenderManagementApi;
 import de.zannagh.armorhider.client.common.RenderScope;
-import de.zannagh.armorhider.client.rendering.RenderTypeFactory;
-
 import net.minecraft.client.renderer.SubmitNodeCollection;
 import net.minecraft.client.renderer.SubmitNodeStorage;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
-//? if <= 26.1.2
-import net.minecraft.client.renderer.feature.ModelPartFeatureRenderer;
 //? if <= 26.1.2 {
+import net.minecraft.client.renderer.feature.ModelPartFeatureRenderer;
+//?}
 import org.jspecify.annotations.NonNull;
 import org.spongepowered.asm.mixin.Unique;
-//?}
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-
-//? if >= 1.21.11 {
 import net.minecraft.client.renderer.rendertype.RenderType;
-//? }
-
-//? if 1.21.9 || 1.21.10
-//import net.minecraft.client.renderer.rendertype.RenderType;
 
 @SuppressWarnings({"unused", "UnusedMixin"})
 @Mixin(SubmitNodeCollection.class)
@@ -36,20 +26,13 @@ public class SubmitNodeCollectorMixin {
             method = "submitModelPart",
             at = @At(
                     value = "INVOKE",
-                    //? if >= 1.21.11
                     target = "Lnet/minecraft/client/renderer/feature/ModelPartFeatureRenderer$Storage;add(Lnet/minecraft/client/renderer/rendertype/RenderType;Lnet/minecraft/client/renderer/SubmitNodeStorage$ModelPartSubmit;)V"
-                    //? if 1.21.9 || 1.21.10
-                    //target = "Lnet/minecraft/client/renderer/feature/ModelPartFeatureRenderer$Storage;add(Lnet/minecraft/client/renderer/RenderType;Lnet/minecraft/client/renderer/SubmitNodeStorage$ModelPartSubmit;)V"
             )
     )
-    //? if >= 1.21.11
     private void wrapModelPartAdd(ModelPartFeatureRenderer.Storage storage, RenderType renderType, SubmitNodeStorage.ModelPartSubmit submit, Operation<Void> original) {
-    //? if 1.21.9 || 1.21.10
-    //private void wrapModelPartAdd(ModelPartFeatureRenderer.Storage storage, RenderType renderType, SubmitNodeStorage.ModelPartSubmit submit, Operation<Void> original) {
         
-        var api = ArmorHiderClientApi.getInstance().getRenderingScopeApi();
-        var offhandCtx = api.getActiveScope(RenderScope.OFFHAND);
-        var headCtx = api.getActiveScope(RenderScope.HEAD);
+        var offhandCtx = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
+        var headCtx = AhRenderManagementApi.getActiveScope(RenderScope.HEAD);
         var ctx = !offhandCtx.isEmpty() ? offhandCtx : headCtx;
         if (!ctx.isEmpty()) {
             float alpha = ctx.renderModificationApi().getTransparencyAlpha();
@@ -58,7 +41,8 @@ public class SubmitNodeCollectorMixin {
 
             RenderType translucentType = renderType;
             if (submit.sprite() != null) {
-                translucentType = RenderTypeFactory.translucentEntity(submit.sprite().atlasLocation());
+                translucentType =
+                        ctx.renderModificationApi().getTranslucentEntityRenderType(submit.sprite().atlasLocation());
             }
 
             original.call(storage, translucentType, modified);
@@ -87,20 +71,14 @@ public class SubmitNodeCollectorMixin {
             method = "submitModel",
             at = @At(
                     value = "INVOKE",
-                    //? if >= 1.21.11
                     target = "Lnet/minecraft/client/renderer/feature/ModelFeatureRenderer$Storage;add(Lnet/minecraft/client/renderer/rendertype/RenderType;Lnet/minecraft/client/renderer/SubmitNodeStorage$ModelSubmit;)V"
-                    //? if 1.21.9 || 1.21.10
-                    //target = "Lnet/minecraft/client/renderer/feature/ModelFeatureRenderer$Storage;add(Lnet/minecraft/client/renderer/RenderType;Lnet/minecraft/client/renderer/SubmitNodeStorage$ModelSubmit;)V"
             )
     )
-    //? if >= 1.21.11
+
     private <S> void wrapModelAdd(ModelFeatureRenderer.Storage storage, RenderType renderType, SubmitNodeStorage.ModelSubmit<S> submit, Operation<Void> original) {
-    //? if 1.21.9 || 1.21.10
-    //private <S> void wrapModelAdd(ModelFeatureRenderer.Storage storage, RenderType renderType, SubmitNodeStorage.ModelSubmit<S> submit, Operation<Void> original) {
         
-        var api2 = ArmorHiderClientApi.getInstance().getRenderingScopeApi();
-        var offCtx = api2.getActiveScope(RenderScope.OFFHAND);
-        var hdCtx = api2.getActiveScope(RenderScope.HEAD);
+        var offCtx = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
+        var hdCtx = AhRenderManagementApi.getActiveScope(RenderScope.HEAD);
         var activeCtx = !offCtx.isEmpty() ? offCtx : hdCtx;
         if (!activeCtx.isEmpty()) {
             float alpha = activeCtx.renderModificationApi().getTransparencyAlpha();
@@ -118,7 +96,8 @@ public class SubmitNodeCollectorMixin {
 
             RenderType translucentType = renderType;
             if (submit.sprite() != null) {
-                translucentType = RenderTypeFactory.translucentEntity(submit.sprite().atlasLocation());
+                translucentType =
+                        activeCtx.renderModificationApi().getTranslucentEntityRenderType(submit.sprite().atlasLocation());
             }
 
             original.call(storage, translucentType, modified);

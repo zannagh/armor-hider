@@ -1,7 +1,7 @@
 package de.zannagh.armorhider.client.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
+import de.zannagh.armorhider.client.api.AhRenderManagementApi;
 import de.zannagh.armorhider.client.common.IdentityCarrier;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import org.spongepowered.asm.mixin.Mixin;
@@ -61,9 +61,9 @@ public class EntityRenderDispatcherMixin {
     //? if < 1.21.4
     //private <E extends Entity> void enterEntityRendering(E entity, double x, double y, double z, float yRot, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int light, CallbackInfo ci) {
         if (isPlayerEntity(entity)) {
-            ArmorHiderClientApi.getInstance().getRenderingScopeApi().setInEntityRender();
+            AhRenderManagementApi.setInEntityRender();
             if (entity instanceof IdentityCarrier carrier) {
-                ArmorHiderClientApi.getInstance().getRenderingScopeApi().setCurrentPlayer(carrier.armorHider$playerName());
+                AhRenderManagementApi.setCurrentPlayer(carrier.armorHider$playerName());
             }
         }
     }
@@ -76,6 +76,6 @@ public class EntityRenderDispatcherMixin {
     *///?} else {
     /*private <E extends Entity> void exitEntityRendering(E entity, double x, double y, double z, float yRot, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int light, CallbackInfo ci) {
     *///?}
-        ArmorHiderClientApi.getInstance().getRenderingScopeApi().exitEntityRender();
+        AhRenderManagementApi.exitEntityRender();
     }
 }

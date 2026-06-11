@@ -1,5 +1,5 @@
 //? if mekanism {
-/*package de.zannagh.armorhider.client.rendering;
+/*package de.zannagh.armorhider.client.compat.mekanism;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import mekanism.client.render.MekanismRenderType;

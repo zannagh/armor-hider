@@ -2,9 +2,9 @@
 /*package de.zannagh.armorhider.client.mixin.compat.mekanism;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
+import de.zannagh.armorhider.client.api.AhRenderManagementApi;
 import de.zannagh.armorhider.client.common.RenderScope;
-import de.zannagh.armorhider.client.rendering.MekanismRenderCompat;
+import de.zannagh.armorhider.client.compat.mekanism.MekanismRenderCompat;
 import de.zannagh.armorhider.client.common.IdentityCarrier;
 import mekanism.client.render.layer.MekanismArmorLayer;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -34,18 +34,17 @@ public class MekanismArmorMixin {
         if (!(entity instanceof IdentityCarrier carrier)) {
             return;
         }
-        var api = ArmorHiderClientApi.getInstance().getRenderingScopeApi();
-        var ctx = api.enterScope(RenderScope.ARMOR_PIECE, carrier, slot, entity.getItemBySlot(slot));
+        var ctx = AhRenderManagementApi.enterScope(RenderScope.ARMOR_PIECE, carrier, slot, entity.getItemBySlot(slot));
         var mod = ctx.modification();
 
-        if (mod != null && mod.transparency() < 1.0) {
+        if (mod.transparency() < 1.0) {
             @SuppressWarnings("unchecked")
             var parentModel = ((RenderLayer<LivingEntity, ?>) (Object) this).getParentModel();
             MekanismRenderCompat.renderBodyUnderArmor(parentModel, poseStack, bufferSource, entity, slot, light);
         }
-        
-        if (mod != null && mod.shouldHide()) {
-            api.exitScope(RenderScope.ARMOR_PIECE);
+
+        if (mod.shouldHide()) {
+            AhRenderManagementApi.exitScope(RenderScope.ARMOR_PIECE);
             ci.cancel();
         }
     }
@@ -57,7 +56,7 @@ public class MekanismArmorMixin {
             index = 2,
             require = 0)
     private MultiBufferSource wrapBufferForTransparency(MultiBufferSource original) {
-        var armorCtx = ArmorHiderClientApi.getInstance().getRenderingScopeApi().getActiveScope(RenderScope.ARMOR_PIECE);
+        var armorCtx = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE);
         if (!armorCtx.isEmpty() && armorCtx.modification().transparency() < 1.0) {
             return MekanismRenderCompat.wrapForTransparency(original);
         }
@@ -73,7 +72,7 @@ public class MekanismArmorMixin {
             int light,
             float partialTicks,
             CallbackInfo ci) {
-        ArmorHiderClientApi.getInstance().getRenderingScopeApi().exitScope(RenderScope.ARMOR_PIECE);
+        AhRenderManagementApi.exitScope(RenderScope.ARMOR_PIECE);
     }
 }
 *///?}

@@ -1,11 +1,11 @@
 package de.zannagh.armorhider.client.mixin.hand;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
-import de.zannagh.armorhider.client.common.RenderScope;
+import de.zannagh.armorhider.client.api.AhRenderManagementApi;
+import de.zannagh.armorhider.client.api.AhRenderInterceptionRegistryApi;
 import de.zannagh.armorhider.client.common.IdentityCarrier;
+import de.zannagh.armorhider.client.common.RenderScope;
 import net.minecraft.client.renderer.entity.layers.ItemInHandLayer;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 //? if < 1.21.4 {
 /*import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import de.zannagh.armorhider.client.api.implementations.RenderModifications;
+import de.zannagh.armorhider.client.render.RenderModifications;
 import net.minecraft.client.renderer.ItemInHandRenderer;
 *///? }
 
@@ -59,31 +59,22 @@ public class ItemInHandLayerMixin {
         //? if < 1.21.4
         //if (arm == renderState.getMainArm()) return;
         //? if >= 1.21.4
-        if (!(renderState instanceof HumanoidRenderState humanoidState)) {
+        if (!(renderState instanceof HumanoidRenderState humanoidState)) return;
         //? if < 1.21.4
-        //if (!(renderState instanceof Player humanoidState)) {
-            return;
-        }
-        if (itemState.isEmpty()) {
-            return;
-        }
+        //if (!(renderState instanceof Player humanoidState)) return;
+        if (itemState.isEmpty()) return;
+        if (!(humanoidState instanceof IdentityCarrier carrier)) return;
 
-        if (!(humanoidState instanceof IdentityCarrier carrier)) {
-            return;
-        }
         
-        var api = ArmorHiderClientApi.getInstance().getRenderingScopeApi();
         //? if >= 1.21.11
-        var ctx = api.enterScope(RenderScope.OFFHAND, carrier, EquipmentSlot.OFFHAND, itemStack);
+        var result = AhRenderInterceptionRegistryApi.getRenderer(RenderScope.OFFHAND).intercept(carrier, null, itemStack, ci);
         //? if >= 1.21.4 && < 1.21.11
-        //var ctx = api.enterScope(RenderScope.OFFHAND, carrier, EquipmentSlot.OFFHAND, null);
+        //var result = AhRenderInterceptionRegistryApi.getRenderer(RenderScope.OFFHAND).interceptFrom(carrier, ci);
         //? if < 1.21.4
-        //var ctx = api.enterScope(RenderScope.OFFHAND, carrier, EquipmentSlot.OFFHAND, itemState);
+        //var result = AhRenderInterceptionRegistryApi.getRenderer(RenderScope.OFFHAND).intercept(carrier, null, itemState, ci);
 
-        if (ctx.shouldCancel()) {
-            api.exitScope(RenderScope.OFFHAND);
-            ci.cancel();
-        }
+        if (result.shouldCancel() || !result.shouldIntercept()) return;
+        AhRenderManagementApi.enterScope(result);
     }
 
     //? if < 1.21.4 {
@@ -95,9 +86,7 @@ public class ItemInHandLayerMixin {
             )
     )
     private void wrapOffhandRenderItem(ItemInHandRenderer renderer, LivingEntity entity, ItemStack itemStack, ItemDisplayContext displayContext, boolean isLeftHand, PoseStack poseStack, MultiBufferSource bufferSource, int light, Operation<Void> original) {
-        
-        var scopeApi = ArmorHiderClientApi.getInstance().getRenderingScopeApi();
-        var offhandCtx = scopeApi.getActiveScope(RenderScope.OFFHAND);
+        var offhandCtx = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
         if (!offhandCtx.isEmpty()
                 && offhandCtx.modification().transparency() < 1.0
                 && offhandCtx.modification().transparency() > 0) {
@@ -126,7 +115,7 @@ public class ItemInHandLayerMixin {
         if (arm != renderState.mainArm) {
         //? if < 1.21.4
         //if (arm != livingEntity.getMainArm()) {
-            ArmorHiderClientApi.getInstance().getRenderingScopeApi().exitScope(RenderScope.OFFHAND);
+            AhRenderManagementApi.exitScope(RenderScope.OFFHAND);
         }
     }
 }

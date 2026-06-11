@@ -1,17 +1,17 @@
 package de.zannagh.armorhider.client.mixin;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import de.zannagh.armorhider.client.ArmorHiderClient;
-
 import net.minecraft.client.renderer.GameRenderer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
+import de.zannagh.armorhider.client.api.AhRenderManagementApi;
 
 //? if >= 1.21
 import net.minecraft.client.DeltaTracker;
+
+//? if < 1.21
+//import com.mojang.blaze3d.vertex.PoseStack;
 
 /**
  * Sets scope flags around GameRenderer.renderLevel()
@@ -30,7 +30,7 @@ public class GameRendererMixin {
     private void enterLevelRender(DeltaTracker deltaTracker, CallbackInfo ci) {
     //? if < 1.21
     //private void enterLevelRender(float partialTick, long nanoTime, PoseStack poseStack, CallbackInfo ci) {
-        ArmorHiderClientApi.getInstance().getRenderingScopeApi().setInLevelRender();
+        AhRenderManagementApi.setInLevelRender();
     }
 
     @Inject(method = "renderLevel", at = @At("RETURN"))
@@ -38,6 +38,6 @@ public class GameRendererMixin {
     private void exitLevelRender(DeltaTracker deltaTracker, CallbackInfo ci) {
     //? if < 1.21
     //private void exitLevelRender(float partialTick, long nanoTime, PoseStack poseStack, CallbackInfo ci) {
-        ArmorHiderClientApi.getInstance().getRenderingScopeApi().exitInLevelRender();
+        AhRenderManagementApi.exitInLevelRender();
     }
 }

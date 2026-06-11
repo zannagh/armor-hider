@@ -1,4 +1,4 @@
-package de.zannagh.armorhider.client.rendering;
+package de.zannagh.armorhider.client.render.utils;
 
 //? if >= 1.21.4
 import net.minecraft.util.ARGB;

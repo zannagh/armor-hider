@@ -1,7 +1,5 @@
 package de.zannagh.armorhider.client.common;
 
-import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
-import de.zannagh.armorhider.client.api.ArmorHiderRenderApi;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -11,10 +9,7 @@ import org.jetbrains.annotations.Nullable;import org.jspecify.annotations.NonNul
  * Duck interface injected onto {@code Player} (all versions) and
  * {@code LivingEntityRenderState} (>= 1.21.4, via {@link IdentityStateCarrier}).
  * <p>
- * Carries player identity and produces {@link ActiveModification} instances
- * for the rendering pipeline. Layer mixins call {@link #createModificationAndSetContext}
- * to get the pre-computed modification, then store it in {@code RenderContext}
- * for downstream render interceptors.
+ * Carries player identity and produces {@link SlotModification} instances for the rendering pipeline.
  */
 public interface IdentityCarrier {
     @Nullable String armorHider$playerName();
@@ -56,36 +51,6 @@ public interface IdentityCarrier {
             slotInfo = slotInfo.addItemInformation(item);
         }
         return slotInfo;
-    }
-
-    /**
-     * Creates a rendering modification for the given equipment slot and item.
-     * Returns {@code null} when no modification is needed.
-     * Also sets the active context if the modification is not null via {@link ArmorHiderRenderApi#setActiveModification(SlotModification)}
-     */
-    default SlotModification createModificationAndSetContext(@NotNull EquipmentSlot slot, @Nullable ItemStack item) {
-        var mods = armorHider$getPlayerModifications();
-        SlotModification cached = mods == null ? null : switch (slot) {
-            case HEAD -> mods.head();
-            case CHEST -> mods.chest();
-            case LEGS -> mods.legs();
-            case FEET -> mods.feet();
-            default -> null;
-        };
-        SlotModification modification;
-        if (cached != null && item != null && ItemStack.matches(cached.itemInfo().getStack(), item)) {
-            modification = cached;
-        } else {
-            modification = SlotModification.of(armorHider$playerName(), slot, item);
-        }
-        if (!modification.isEmpty()) {
-            ArmorHiderClientApi.getInstance().getRenderingScopeApi().setCurrentPlayer(armorHider$playerName());
-            ArmorHiderClientApi.getInstance().getRenderingScopeApi().setActiveModification(modification);
-
-        } else {
-            ArmorHiderClientApi.getInstance().getRenderingScopeApi().clearActiveModification();
-        }
-        return modification;
     }
 
     /**

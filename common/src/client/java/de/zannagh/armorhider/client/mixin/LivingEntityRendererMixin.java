@@ -1,7 +1,7 @@
 package de.zannagh.armorhider.client.mixin;
 
+import de.zannagh.armorhider.client.api.AhRenderManagementApi;
 import de.zannagh.armorhider.CompatFlags;
-import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
 import de.zannagh.armorhider.client.common.IdentityCarrier;
 import de.zannagh.armorhider.client.common.IdentityStateCarrier;
 import net.minecraft.client.model.EntityModel;
@@ -24,11 +24,23 @@ import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 
 //? if < 1.21.9 {
 /*import com.mojang.blaze3d.vertex.PoseStack;
+import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.client.common.SlotModification;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.world.entity.EquipmentSlot;
+*///?}
+
+//? if >= 1.21.4 && < 1.21.9 {
+/*import net.minecraft.client.model.player.PlayerModel;
+import net.minecraft.client.renderer.entity.state.EntityRenderState;
+import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 *///?}
 
 //? if < 1.21.4 {
 /*import net.minecraft.client.model.HumanoidModel;
+import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.client.common.SlotModification;
+import net.minecraft.world.entity.EquipmentSlot;
 *///?}
 
 /**
@@ -75,9 +87,9 @@ public abstract class LivingEntityRendererMixin
         if (!(state instanceof AvatarRenderState)) {
             return;
         }
-        ArmorHiderClientApi.getInstance().getRenderingScopeApi().setInEntityRender();
+        AhRenderManagementApi.setInEntityRender();
         if (entity instanceof IdentityCarrier carrier) {
-            ArmorHiderClientApi.getInstance().getRenderingScopeApi().setCurrentPlayer(carrier.armorHider$playerName());
+            AhRenderManagementApi.setCurrentPlayer(carrier.armorHider$playerName());
         }
     }
 
