@@ -11,11 +11,13 @@ import net.minecraft.world.entity.EquipmentSlot;
  * @since 0.12.0
  */
 public enum RenderScope {
+    NONE,
     ARMOR_PIECE,
     ELYTRA,
     CAPE,
     OFFHAND,
-    HEAD;
+    HEAD,
+    ALL;
 
     public static RenderScope of(EquipmentSlot slot, ItemInfo itemInfo) {
         return switch (slot) {

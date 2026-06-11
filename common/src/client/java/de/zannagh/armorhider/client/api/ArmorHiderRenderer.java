@@ -12,7 +12,7 @@ public interface ArmorHiderRenderer extends RenderScopeProvider {
     RenderInterceptionResult intercept(@Nullable Object identityCarrier, @Nullable EquipmentSlot slot, @Nullable ItemStack stack, CallbackInfo ci);
 
     /**
-     * Gets the render modification API for this renderer based on the last interception.
+     * Gets the render modification API for this renderer based on the last interception if it is not available on the scope currently or has to be used immediately.
      * @return The render modification API.
      */
     ArmorHiderRenderModificationApi getRenderModificationApi();

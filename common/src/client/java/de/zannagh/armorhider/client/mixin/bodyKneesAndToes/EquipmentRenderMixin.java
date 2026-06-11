@@ -9,6 +9,7 @@ import de.zannagh.armorhider.api.ArmorHiderApi;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.api.ArmorHiderClientApi;
 import de.zannagh.armorhider.client.api.ArmorHiderRenderApi;
+import de.zannagh.armorhider.client.api.ArmorHiderRenderInterceptionRegistry;
 import de.zannagh.armorhider.client.common.RenderScope;
 import de.zannagh.armorhider.client.rendering.VanillaArmorTextureManager;
 import de.zannagh.armorhider.common.ItemInfo;
@@ -46,11 +47,15 @@ import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 //?}
 
+@SuppressWarnings("UnusedMixin")
 @Mixin(EquipmentLayerRenderer.class)
 public class EquipmentRenderMixin {
 
     @Unique
     private final ArmorHiderRenderApi renderApi = ArmorHiderClientApi.getInstance().getRenderingScopeApi();
+
+    @Unique
+    private final ArmorHiderRenderInterceptionRegistry rendererRegistry = ArmorHiderClientApi.getInstance().getRenderers();
 
     @Unique
     private static final ThreadLocal<Boolean> armorHider$combatSingleLayer = new ThreadLocal<>();
@@ -81,51 +86,25 @@ public class EquipmentRenderMixin {
     @Inject(method = RENDER_LAYERS_ENTRY, at = @At("HEAD"), cancellable = true)
     //? if >= 1.21.9 {
     private <S> void interceptRender(EquipmentClientInfo.LayerType layerType, ResourceKey<EquipmentAsset> resourceKey, Model<? super S> model, S object, ItemStack itemStack, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int i, int j, CallbackInfo ci) {
-    //?}
-    //? if < 1.21.9 {
+    //?} else {
     /*private void interceptRender(EquipmentClientInfo.LayerType layerType, ResourceKey<EquipmentAsset> resourceKey, Model model, ItemStack itemStack, PoseStack poseStack, MultiBufferSource multiBufferSource, int i, CallbackInfo ci) {
     *///?}
-        var itemInfo = new ItemInfo(itemStack);
-        var slot = itemInfo.getEquippableSlot();
-        if (slot == null) {
+        var renderer = rendererRegistry.getRenderer(RenderScope.ARMOR_PIECE);
+        var result = renderer.intercept(object, null, itemStack, ci);
+        if (result.shouldCancel() || !result.shouldIntercept()) {
             return;
         }
 
-        //? if >= 1.21.9 {
-        if (!(object instanceof IdentityCarrier carrier) || (itemInfo.isElytra() && carrier.isPlayerFlying())) {
+        var ctx = renderApi.enterScope(result);
+        String playerName = ctx.modification().playerName();
+        if (playerName == null || !armorHider$shouldForceVanillaCombatModel(playerName)) {
             return;
-        }
-
-        var ctx = renderApi.enterScope(RenderScope.ARMOR_PIECE, carrier, slot, itemStack);
-        var mod = ctx.modification();
-
-        String playerName = carrier.armorHider$playerName();
-        if (playerName != null && armorHider$shouldForceVanillaCombatModel(playerName)) {
-            armorHider$combatSingleLayer.set(Boolean.FALSE);
-            armorHider$combatAssetKey.set(resourceKey);
-            armorHider$combatLayerType.set(layerType);
-        }
-        //?}
-        //? if < 1.21.9 {
-        /*
-        String playerName = renderApi.currentlyHandledPlayerName();
-        if (playerName == null || playerName.isBlank()) {
-            return;
-        }
-
-        var mod = SlotModification.of(playerName, slot, itemStack);
-        if (mod.needsModification()) {
-            renderApi.setActiveModification(mod);
         }
 
         if (armorHider$shouldForceVanillaCombatModel(playerName)) {
             armorHider$combatSingleLayer.set(Boolean.FALSE);
-        }
-        *///?}
-
-        if (mod.shouldHide()) {
-            renderApi.exitScope(RenderScope.ARMOR_PIECE);
-            ci.cancel();
+            armorHider$combatAssetKey.set(resourceKey);
+            armorHider$combatLayerType.set(layerType);
         }
     }
 

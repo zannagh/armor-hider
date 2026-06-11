@@ -1,9 +1,6 @@
 package de.zannagh.armorhider.client.api;
 
-import de.zannagh.armorhider.client.common.GlobalRenderScope;
-import de.zannagh.armorhider.client.common.RenderScope;
-import de.zannagh.armorhider.client.common.RenderScopeContext;
-import de.zannagh.armorhider.client.common.IdentityCarrier;
+import de.zannagh.armorhider.client.common.*;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import org.jspecify.annotations.NonNull;
@@ -118,6 +115,10 @@ public interface ArmorHiderRenderApi {
      */
     RenderScopeContext enterScope(RenderScope scope, @Nullable IdentityCarrier carrier,
                             @Nullable EquipmentSlot slot, @Nullable ItemStack item);
+
+    default RenderScopeContext enterScope(RenderInterceptionResult interceptionResult){
+        return enterScope(interceptionResult.scope(), interceptionResult.carrier(), interceptionResult.getSlot(), interceptionResult.getItemInfo().getStack());
+    }
 
     /**
      * Exit a render scope, clearing its context.
