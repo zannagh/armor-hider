@@ -39,6 +39,9 @@ dependencies {
     if (hasProperty("mekanism.version")) {
         add("compileOnly", "maven.modrinth:mekanism:${findProperty("mekanism.version")}")
     }
+    if (hasProperty("waveycapes.version")) {
+        add("compileOnly", "maven.modrinth:wavey-capes:${findProperty("waveycapes.version")}")
+    }
 }
 
 // Include common's sources in the loader's source sets for IntelliJ

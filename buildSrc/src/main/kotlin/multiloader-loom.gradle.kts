@@ -40,6 +40,7 @@ with(sc) {
     constants["fabric"] = current.project.contains("fabric")
     constants["neoforge"] = current.project.contains("neoforge")
     constants["mekanism"] = hasProperty("mekanism.version")
+    constants["waveycapes"] = hasProperty("waveycapes.version")
 }
 
 // ── Common branch ──
@@ -89,6 +90,9 @@ if (branch == "common") {
         }
         if (hasProperty("mekanism.version")) {
             add(modClientDep, "maven.modrinth:mekanism:${findProperty("mekanism.version")}")
+        }
+        if (hasProperty("waveycapes.version")) {
+            add(modClientDep, "maven.modrinth:wavey-capes:${findProperty("waveycapes.version")}")
         }
         add("compileOnly", "net.luckperms:api:5.4")
         add("compileOnly", "org.jspecify:jspecify:1.0.0")

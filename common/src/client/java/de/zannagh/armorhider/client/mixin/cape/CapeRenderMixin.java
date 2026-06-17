@@ -5,7 +5,6 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.api.AhRenderManagementApi;
 import de.zannagh.armorhider.client.api.AhRenderInterceptionRegistryApi;
-import de.zannagh.armorhider.client.common.IdentityCarrier;
 import de.zannagh.armorhider.client.common.RenderScope;
 import net.minecraft.client.renderer.entity.layers.CapeLayer;
 import org.spongepowered.asm.mixin.Mixin;
@@ -14,20 +13,16 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-//? if >= 1.21.9
+//? if >= 1.21.9 {
 import net.minecraft.client.renderer.SubmitNodeCollector;
+//? } else
+//import net.minecraft.client.renderer.MultiBufferSource;
 
 //? if >= 1.21.4 {
 import net.minecraft.client.renderer.entity.state.AvatarRenderState;
 import net.minecraft.client.resources.model.EquipmentClientInfo;
-//?}
-
-//? if < 1.21.9
-//import net.minecraft.client.renderer.MultiBufferSource;
-
-//? if < 1.21.4 {
-/*import net.minecraft.client.player.AbstractClientPlayer;
-*///?}
+//?} else
+//import net.minecraft.client.player.AbstractClientPlayer;
 
 @Mixin(CapeLayer.class)
 public class CapeRenderMixin {
@@ -41,25 +36,25 @@ public class CapeRenderMixin {
     //private static final String CAPE_CONTEXT_METHOD = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/player/AbstractClientPlayer;FFFFFF)V";
 
     @Inject(method = CAPE_CONTEXT_METHOD, at = @At("HEAD"), cancellable = true)
-    //? if >= 1.21.4 {
-    private void setupCapeRenderContext(PoseStack poseStack,
-                                        //? if >= 1.21.9
-                                        SubmitNodeCollector submitNodeCollector,
-                                        //? if < 1.21.9
-                                        //MultiBufferSource multiBufferSource,
-                                        int light,
-                                        AvatarRenderState avatarRenderState,
-                                        float f,
-                                        float g,
-                                        CallbackInfo ci) {
-    //?} else {
-    /*private void setupCapeRenderContext(PoseStack poseStack, MultiBufferSource multiBufferSource, int light, AbstractClientPlayer avatarRenderState, float limbSwing, float limbSwingAmount, float partialTick, float ageInTicks, float netHeadYaw, float headPitch, CallbackInfo ci) {
-    *///?}
-        if (!(avatarRenderState instanceof IdentityCarrier carrier)) {
+    private void setupCapeContext(PoseStack poseStack,
+                                  //? if >= 1.21.9 {
+                                  SubmitNodeCollector submitNodeCollector,
+                                  //? } else
+                                  //MultiBufferSource multiBufferSource,
+                                  int light,
+                                  //? if >= 1.21.4 {
+                                  AvatarRenderState avatarRenderState,
+                                  //? } else
+                                  //AbstractClientPlayer avatarRenderState,
+                                  float limbSwing, float limbSwingAmount,
+                                  //? if < 1.21.4 {
+                                  //float partialTick, float ageInTicks, float netHeadYaw, float headPitch,
+                                  //? }
+                                  CallbackInfo ci) {
+        var result = AhRenderInterceptionRegistryApi.getRenderer(RenderScope.CAPE).interceptFrom(avatarRenderState, ci);
+        if (!result.shouldIntercept()) {
             return;
         }
-        
-        var result = AhRenderInterceptionRegistryApi.getRenderer(RenderScope.CAPE).interceptFrom(carrier, ci);
         if (result.shouldCancel()) {
             AhRenderManagementApi.exitScope(RenderScope.CAPE);
             return;
@@ -85,56 +80,56 @@ public class CapeRenderMixin {
         }
     }
 
-    //? if >= 1.21.4 {
+
     @WrapOperation(
             method = CAPE_CONTEXT_METHOD,
             at = @At(
                     value = "INVOKE",
+                    //? if >= 1.21.4 {
                     target = "Lnet/minecraft/client/renderer/entity/layers/CapeLayer;hasLayer(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/client/resources/model/EquipmentClientInfo$LayerType;)Z",
+                    //? } else
+                    //target = "Lnet/minecraft/world/item/ItemStack;is(Lnet/minecraft/world/item/Item;)Z",
                     ordinal = 0
             )
     )
-    private boolean bypassWingsWhenElytraHidden(CapeLayer instance,
-                                                net.minecraft.world.item.ItemStack item,
-                                                EquipmentClientInfo.LayerType layerType,
-                                                Operation<Boolean> original) {
+    private boolean bypassWingsWhenElytraHidden(
+            //? if >= 1.21.4 {
+            CapeLayer instance,
+            net.minecraft.world.item.ItemStack item,
+            EquipmentClientInfo.LayerType layerType,
+            Operation<Boolean> original) {
         boolean result = original.call(instance, item, layerType);
-    //?} else {
-    /*@WrapOperation(
-            method = CAPE_CONTEXT_METHOD,
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/world/item/ItemStack;is(Lnet/minecraft/world/item/Item;)Z"
-            )
-    )
-    private boolean bypassWingsWhenElytraHidden(net.minecraft.world.item.ItemStack instance,
-                                                net.minecraft.world.item.Item item,
-                                                Operation<Boolean> original) {
+            //? } else {
+            /*
+            net.minecraft.world.item.ItemStack instance,
+            net.minecraft.world.item.Item item,
+            Operation<Boolean> original) {
         boolean result = original.call(instance, item);
-    *///?}
-        if (!result) return false;
-        var ctx = AhRenderManagementApi.getActiveScope(RenderScope.CAPE);
-        if (!ctx.isEmpty() && ctx.modification().shouldHide()) {
+            *///? }
+
+        if (!result) {
             return false;
         }
-        return true;
+        var ctx = AhRenderManagementApi.getActiveScope(RenderScope.CAPE);
+        return ctx.isEmpty() || !ctx.modification().shouldHide();
     }
 
     @Inject(method = CAPE_CONTEXT_METHOD, at = @At("RETURN"))
-    //? if >= 1.21.4 {
     private void releaseCapeContext(PoseStack poseStack,
-                                    //? if >= 1.21.9
+                                    //? if >= 1.21.9 {
                                     SubmitNodeCollector submitNodeCollector,
-                                    //? if < 1.21.9
+                                    //? } else
                                     //MultiBufferSource multiBufferSource,
                                     int light,
+                                    //? if >= 1.21.4 {
                                     AvatarRenderState avatarRenderState,
-                                    float f,
-                                    float g,
+                                    //? } else
+                                    //AbstractClientPlayer avatarRenderState,
+                                    float limbSwing, float limbSwingAmount,
+                                    //? if < 1.21.4 {
+                                    //float partialTick, float ageInTicks, float netHeadYaw, float headPitch,
+                                    //? }
                                     CallbackInfo ci) {
-    //?} else {
-    /*private void releaseCapeContext(PoseStack poseStack, MultiBufferSource multiBufferSource, int light, AbstractClientPlayer player, float limbSwing, float limbSwingAmount, float partialTick, float ageInTicks, float netHeadYaw, float headPitch, CallbackInfo ci) {
-    *///?}
         AhRenderManagementApi.exitScope(RenderScope.CAPE);
     }
 }

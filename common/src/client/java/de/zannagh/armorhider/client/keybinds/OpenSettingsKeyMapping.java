@@ -1,6 +1,7 @@
 package de.zannagh.armorhider.client.keybinds;
 
 
+import de.zannagh.armorhider.client.utils.McClientUtils;
 import net.minecraft.client.Minecraft;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 
@@ -23,7 +24,7 @@ public class OpenSettingsKeyMapping extends CustomKeyMapping {
         var currentScreen = client.screen;
         //? if > 26.1.2
         //var currentScreen = client.gui.screen();
-        ArmorHiderClient.openPreferredSettingsScreen(currentScreen, client.options);
+        McClientUtils.openPreferredSettingsScreen(currentScreen, client.options);
     }
 
     @Override

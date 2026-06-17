@@ -1,8 +1,11 @@
 package de.zannagh.armorhider.client.api;
 
+import com.mojang.datafixers.util.Pair;
 import de.zannagh.armorhider.client.api.impl.AhRendererRegistryImpl;
 import de.zannagh.armorhider.client.common.RenderScope;
 import org.jetbrains.annotations.ApiStatus;
+
+import java.util.function.Function;
 
 /**
  * Registry of {@link AhRenderer}s keyed by {@link RenderScope}.
@@ -57,6 +60,15 @@ public interface AhRenderInterceptionRegistryApi {
      */
     static void unregister(AhRenderer renderer, int priority) {
         AhRendererRegistryImpl.unregister(renderer, priority);
+    }
+
+    /**
+     * Registers a conditional suppressor to replace the actual instance of the renderer with an empty renderer
+     * whenever the evaluation returns true (since renderes are resolved via RenderScope).
+     * @param evaluation The evaluation to apply.
+     */
+    static void suppressRenderInterceptionConditionally(RenderScope scope, Function<Pair<RenderScope, AhRenderer>, Boolean> evaluation) {
+        AhRendererRegistryImpl.suppressConditionally(scope, evaluation);
     }
 
     /**

@@ -3,28 +3,17 @@ package de.zannagh.armorhider.client.mixin;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import de.zannagh.armorhider.client.utils.McClientUtils;
 import net.minecraft.client.Options;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.options.OptionsScreen;
+import net.minecraft.client.gui.layouts.*;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.Component;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
-
-//region Conditional Imports
-//? if < 1.21 {
-/*
-import net.minecraft.client.gui.layouts.GridLayout;
-import net.minecraft.client.gui.layouts.LayoutElement;
-import net.minecraft.client.gui.layouts.SpacerElement;
-import net.minecraft.client.gui.screens.OptionsScreen;
-*/
-//?} else {
-import net.minecraft.client.gui.layouts.GridLayout;
-import net.minecraft.client.gui.screens.options.OptionsScreen;
-//?}
-//endregion
 
 @Mixin(OptionsScreen.class)
 public abstract class OptionsScreenMixin extends Screen {
@@ -53,20 +42,8 @@ public abstract class OptionsScreenMixin extends Screen {
         if (layoutElement instanceof SpacerElement) {
             original.call(instance, layoutElement, i);
         }
-        var settingsButton = Button.builder(
-                Component.translatable("armorhider.options.mod_title"),
-                button ->
-                        //? if < 1.21
-                        //ArmorHiderClient.openPreferredSettingsScreen(this, this.options)
-                //? if >= 1.21
-                ArmorHiderClient.openPreferredSettingsScreen(this, this.options)
-        ).width(200).build();
-        instance.addChild(settingsButton, 2);
-        return layoutElement;
-    }
-    *///?}
-    
-    //? if >= 1.21{
+        var returnValue = layoutElement;
+    *///? } else {
     @WrapOperation(
             method = "init",
             at = @At(
@@ -79,15 +56,18 @@ public abstract class OptionsScreenMixin extends Screen {
             return original.call(instance, i);
         }
         var returnValue = original.call(instance, i);
+    //? }
+
         var settingsButton = Button.builder(
                 Component.translatable("armorhider.options.mod_title"),
                 button ->
-                        //? if < 1.21
-                        //ArmorHiderClient.openPreferredSettingsScreen(this, this.options)
-                        //? if >= 1.21
-                        ArmorHiderClient.openPreferredSettingsScreen(this, this.options)).width(200).build();
+                        McClientUtils.openPreferredSettingsScreen(this, this.options)
+        ).width(200).build();
+
+        //? if >= 1.21 {
         returnValue.addChild(settingsButton, 2);
+        //? } else
+        // instance.addChild(settingsButton, 2);
         return returnValue;
     }
-    //?}
 }

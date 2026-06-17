@@ -3,6 +3,7 @@ package de.zannagh.armorhider.client.net;
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.api.ArmorHiderApi;
 import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.client.utils.McClientUtils;
 import de.zannagh.armorhider.combat.DefaultCombatEvent;
 import de.zannagh.armorhider.log.DebugLogger;
 import de.zannagh.armorhider.net.packets.CombatLogNotificationPacket;
@@ -80,12 +81,13 @@ public final class ClientCommunicationManager {
                 }
             }
 
-            if (!ArmorHiderClient.isClientConnectedToServer()) {
+            if (!McClientUtils.isClientConnectedToServer()) {
                 ArmorHiderClient.permissionLevel = 4; // local -> admin
             }
 
             ClientPacketSender.sendToServer(currentConfig);
         });
+        ArmorHider.LOGGER.info("Registered client-side packet handlers.");
     }
 
     private static void handleServerConfigReceived(ServerConfiguration ctx) {

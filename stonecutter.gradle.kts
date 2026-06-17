@@ -17,6 +17,9 @@ stonecutter parameters {
     replacements.string(current.parsed < "1.21") { replace("net.minecraft.client.gui.screens.options.OptionsSubScreen", "net.minecraft.client.gui.screens.OptionsSubScreen") }
     replacements.string(current.parsed < "1.21.9") { replace(".setScreenAndShow(", ".setScreen(") }
     replacements.string(current.parsed <= "1.21.1") { replace("WingsLayer", "ElytraLayer") }
+    replacements.string(current.parsed < "1.21") { replace("net.minecraft.client.gui.screens.options.SkinCustomizationScreen", "net.minecraft.client.gui.screens.SkinCustomizationScreen")}
+    replacements.string(current.parsed < "1.21") { replace("net.minecraft.client.gui.screens.options.OptionsScreen", "net.minecraft.client.gui.screens.OptionsScreen")}
+
 }
 
 tasks.register("stageArtifacts") {

@@ -41,9 +41,4 @@ public class ArmorHiderItemRenderer extends AbstractArmorHiderRenderer {
         resolveModification(null, null, null);
         return RenderInterceptionResult.ignore();
     }
-
-    @Override
-    public RenderInterceptionResult interceptFrom(@Nullable IdentityCarrier carrier, CallbackInfo ci) {
-        return intercept(carrier, null, null, ci);
-    }
 }

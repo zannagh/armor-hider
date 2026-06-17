@@ -2,7 +2,10 @@ package de.zannagh.armorhider.client;
 
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.CompatFlags;
-import de.zannagh.armorhider.client.gui.screens.ArmorHiderOptionsScreen;
+import de.zannagh.armorhider.client.api.AhRenderInterceptionRegistryApi;
+import de.zannagh.armorhider.client.api.impl.AhRendererRegistryImpl;
+import de.zannagh.armorhider.client.common.RenderScope;
+import de.zannagh.armorhider.client.compat.CompatManager;
 import de.zannagh.armorhider.client.net.ClientCommunicationManager;
 import de.zannagh.armorhider.configuration.PresetManager;
 import de.zannagh.armorhider.log.DebugLogger;
@@ -10,17 +13,10 @@ import de.zannagh.armorhider.util.PlayerNameUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.multiplayer.PlayerInfo;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.NonNull;
 import oshi.util.tuples.Pair;
-
-//? if >= 1.21 {
-import net.minecraft.client.gui.screens.options.SkinCustomizationScreen;
-//?} else {
-/*import net.minecraft.client.gui.screens.SkinCustomizationScreen;
-*///?}
 
 public class ArmorHiderClient {
 
@@ -31,6 +27,9 @@ public class ArmorHiderClient {
     public static final boolean FA_LOADED = CompatFlags.FA_LOADED || classExists("net.kenddie.fantasyarmor.FantasyArmor");
     public static final boolean GECKOLIB_LOADED = CompatFlags.GECKOLIB_LOADED || classExists("com.geckolib.renderer.GeoArmorRenderer");
     public static final boolean ET_LOADED = CompatFlags.ET_LOADED || classExists("dev.kikugie.elytratrims.ep.ETClientEntrypoint");
+
+    public static final boolean EMF_LOADED = CompatFlags.EMF_LOADED || classExists("traben.entity_model_features.EMFManager");
+
     public static final boolean IRIS_LOADED = classExists("net.irisshaders.iris.api.v0.IrisApi");
 
     private static boolean classExists(String name) {
@@ -50,47 +49,17 @@ public class ArmorHiderClient {
     public static void init() {
         ArmorHider.LOGGER.info("Armor Hider client initializing...");
         ClientCommunicationManager.initClient();
-        de.zannagh.armorhider.client.api.impl.AhRendererRegistryImpl.registerDefaultInterceptors();
-        if (IRIS_LOADED) {
-            initIrisCompat();
-        }
-        if (CompatFlags.EMF_LOADED) {
-            initEmfCompat();
-        }
-    }
 
-    private static void initEmfCompat() {
-        try {
-            de.zannagh.armorhider.client.compat.emf.EmfCompat.register();
-        } catch (Exception e) {
-            ArmorHider.LOGGER.warn("Failed to register vanilla model condition with EMF", e);
+        ArmorHider.LOGGER.info("Registering render interceptors...");
+        for (var interceptor : AhRendererRegistryImpl.getDefaultInterceptors()) {
+            ArmorHider.LOGGER.info("Registering interceptor: {}", interceptor.getClass().getName());
+            AhRenderInterceptionRegistryApi.register(interceptor, AhRendererRegistryImpl.DEFAULT_PRIORITY);
         }
-    }
+        ArmorHider.LOGGER.info("Registered render interceptors.");
 
-    private static void initIrisCompat() {
-        try {
-            de.zannagh.armorhider.client.compat.iris.IrisCompat.registerPipelines();
-        } catch (Exception e) {
-            ArmorHider.LOGGER.warn("Failed to register pipelines with Iris", e);
-        }
-    }
-    
-    public static @NonNull Boolean isClientConnectedToServer() {
-        return Minecraft.getInstance().isLocalServer()
-                || Minecraft.getInstance().getCurrentServer() != null
-                || (Minecraft.getInstance().getConnection() != null && Minecraft.getInstance().getConnection().getServerData() != null);
-    }
-
-    public static void openPreferredSettingsScreen(Screen parent, net.minecraft.client.Options options) {
-        var minecraft = Minecraft.getInstance();
-        //? if >= 1.21.9 {
-        Screen target = CLIENT_CONFIG_MANAGER.getValue().showSettingsInSkinCustomization.getValue()
-                ? new SkinCustomizationScreen(parent, options)
-                : new ArmorHiderOptionsScreen(parent, options);
-        //?}
-        //? if < 1.21.9
-        //Screen target = new ArmorHiderOptionsScreen(parent, options);
-        minecraft.setScreenAndShow(target);
+        ArmorHider.LOGGER.info("Setting up compatibilities...");
+        CompatManager.init();
+        ArmorHider.LOGGER.info("Compatibilities set up.");
     }
 
     public static String getCurrentPlayerName() {

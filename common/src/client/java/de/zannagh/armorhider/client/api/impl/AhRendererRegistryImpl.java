@@ -11,10 +11,9 @@ import de.zannagh.armorhider.client.render.interceptors.ArmorHiderItemRenderer;
 import de.zannagh.armorhider.client.render.interceptors.ArmorHiderOffhandRenderer;
 import org.jetbrains.annotations.ApiStatus;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.EnumMap;
-import java.util.Objects;
+import java.lang.reflect.Type;
+import java.util.*;
+import java.util.function.Function;
 
 /**
  * Storage and lookup for {@link AhRenderer}s. Not part of the public API; reached through the
@@ -32,6 +31,7 @@ public final class AhRendererRegistryImpl {
 
     private static final AhRenderer EMPTY_RENDERER = new ArmorHiderEmptyRenderer();
 
+    private static final HashMap<RenderScope, HashSet<Function<Pair<RenderScope, AhRenderer>, Boolean>>> SUPPRESSORS = new HashMap<>();
     private AhRendererRegistryImpl() {}
 
     public static void register(AhRenderer renderer, int priority) {
@@ -50,22 +50,46 @@ public final class AhRendererRegistryImpl {
     }
 
     public static AhRenderer getRenderer(RenderScope scope) {
+        AhRenderer renderer = EMPTY_RENDERER;
+        if (scope == null || scope == RenderScope.NONE) {
+            return renderer;
+        }
+
         var list = RENDERERS.get(scope);
         if (list != null && !list.isEmpty()) {
-            return list.get(0).getSecond();
+            renderer = list.get(0).getSecond();
         }
+
         var fallback = RENDERERS.get(RenderScope.ALL);
         if (fallback != null && !fallback.isEmpty()) {
-            return fallback.get(0).getSecond();
+            renderer = fallback.get(0).getSecond();
         }
-        return EMPTY_RENDERER;
+
+        if (SUPPRESSORS.containsKey(scope)) {
+            var pair = Pair.of(scope, renderer);
+            var set = SUPPRESSORS.get(scope);
+            for (var evaluation : set) {
+                if (evaluation.apply(pair)) {
+                    return EMPTY_RENDERER;
+                }
+            }
+        }
+
+        return renderer;
     }
 
-    public static void registerDefaultInterceptors() {
-        register(new ArmorHiderItemRenderer(), DEFAULT_PRIORITY);
-        register(new ArmorHiderCapeRenderer(), DEFAULT_PRIORITY);
-        register(new ArmorHiderElytraRenderer(), DEFAULT_PRIORITY);
-        register(new ArmorHiderOffhandRenderer(), DEFAULT_PRIORITY);
-        register(new ArmorHiderHeadRenderer(), DEFAULT_PRIORITY);
+    public static void suppressConditionally(RenderScope scope, Function<Pair<RenderScope, AhRenderer>, Boolean> evaluation) {
+        if (SUPPRESSORS.containsKey(scope)) {
+            var set = SUPPRESSORS.get(scope);
+            set.add(evaluation);
+        } else {
+            var set = new HashSet<Function<Pair<RenderScope, AhRenderer>, Boolean>>();
+            set.add(evaluation);
+            SUPPRESSORS.put(scope, set);
+        }
+    }
+
+    public static List<AhRenderer> getDefaultInterceptors() {
+        return List.of(new ArmorHiderItemRenderer(), new ArmorHiderCapeRenderer(), new ArmorHiderElytraRenderer(), new ArmorHiderOffhandRenderer(), new ArmorHiderHeadRenderer());
     }
 }

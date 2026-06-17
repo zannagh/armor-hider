@@ -9,6 +9,8 @@ import net.minecraft.world.item.ItemStack;
 import org.jspecify.annotations.Nullable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.lang.reflect.Type;
+
 /**
  * Per-scope renderer that owns the interception decision for one {@link RenderScope}.
  * <p>
@@ -28,6 +30,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * @since 0.12.0
  */
 public interface AhRenderer extends RenderScopeProvider, AhRenderTypeFactory {
+
+    default Type getType() {
+        return this.getClass();
+    }
 
     /**
      * Intercept a render call when the caller already has the slot and stack (e.g.
@@ -62,8 +68,11 @@ public interface AhRenderer extends RenderScopeProvider, AhRenderTypeFactory {
      * @param ci      callback for cancellation, or {@code null} for context-recovery calls (e.g.
      *                re-resolving the head scope from {@code resolveSkullRenderType}).
      */
-    default RenderInterceptionResult interceptFrom(@Nullable IdentityCarrier carrier, @Nullable CallbackInfo ci) {
-        return intercept(carrier, null, null, ci);
+    default RenderInterceptionResult interceptFrom(@Nullable Object carrier, @Nullable CallbackInfo ci) {
+        if (!(carrier instanceof IdentityCarrier carrier1)) {
+            return RenderInterceptionResult.ignore();
+        }
+        return intercept(carrier1, null, null, ci);
     }
 
     /**

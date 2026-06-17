@@ -35,9 +35,4 @@ public class ArmorHiderHeadRenderer extends AbstractArmorHiderRenderer {
         }
         return standardIntercept(carrier, EquipmentSlot.HEAD, headItem, ci);
     }
-
-    @Override
-    public RenderInterceptionResult interceptFrom(@Nullable IdentityCarrier carrier, CallbackInfo ci) {
-        return intercept(carrier, null, null, ci);
-    }
 }

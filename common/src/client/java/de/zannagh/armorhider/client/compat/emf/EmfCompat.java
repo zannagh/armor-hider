@@ -46,7 +46,9 @@ public final class EmfCompat {
     }
 
     private static boolean shouldApplyCombatDetection(PlayerConfig config) {
-        if (config.enableCombatDetection.getValue()) return true;
+        if (config.enableCombatDetection.getValue()) {
+            return true;
+        }
         var serverConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getServerConfig();
         return serverConfig != null
                 && serverConfig.serverWideSettings.enableCombatDetection.getValue();

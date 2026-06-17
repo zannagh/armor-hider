@@ -39,7 +39,7 @@ public class ArmorHiderElytraRenderer extends AbstractArmorHiderRenderer {
         if (mod.isEmpty()) {
             return RenderInterceptionResult.ignore();
         }
-        if (carrier.isPlayerFlying() || ArmorHiderClient.ET_LOADED) {
+        if (carrier.isPlayerFlying()) {
             return RenderInterceptionResult.ignore();
         }
         if (mod.shouldHide()) {
@@ -47,10 +47,5 @@ public class ArmorHiderElytraRenderer extends AbstractArmorHiderRenderer {
             return new RenderInterceptionResult(true, true, getTargetScope(), carrier, mod);
         }
         return new RenderInterceptionResult(true, false, getTargetScope(), carrier, mod);
-    }
-
-    @Override
-    public RenderInterceptionResult interceptFrom(@Nullable IdentityCarrier carrier, CallbackInfo ci) {
-        return intercept(carrier, null, null, ci);
     }
 }

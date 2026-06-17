@@ -43,9 +43,4 @@ public class ArmorHiderCapeRenderer extends AbstractArmorHiderRenderer {
         }
         return new RenderInterceptionResult(true, false, getTargetScope(), carrier, mod);
     }
-
-    @Override
-    public RenderInterceptionResult interceptFrom(@Nullable IdentityCarrier carrier, CallbackInfo ci) {
-        return intercept(carrier, null, null, ci);
-    }
 }
