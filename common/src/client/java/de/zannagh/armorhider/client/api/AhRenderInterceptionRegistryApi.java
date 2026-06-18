@@ -54,6 +54,10 @@ public interface AhRenderInterceptionRegistryApi {
         AhRendererRegistryImpl.register(renderer, priority);
     }
 
+    static void register(AhRenderer renderer) {
+        AhRendererRegistryImpl.register(renderer, defaultPriority());
+    }
+
     /**
      * Remove the (priority, renderer) entry matching this exact priority and identity. No-op if
      * the renderer was never registered at that priority.
