@@ -5,6 +5,7 @@ import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.net.ClientPacketSender;
 import de.zannagh.armorhider.combat.DefaultCombatEvent;
 import de.zannagh.armorhider.net.packets.CombatLogEventPacket;
+import de.zannagh.armorhider.net.packets.PlayerConfig;
 import de.zannagh.armorhider.util.PlayerNameUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.AbstractClientPlayer;
@@ -44,6 +45,21 @@ public final class AhCombatApiImpl {
         var playerName = PlayerNameUtil.getPlayerName(player);
         var config = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getConfigForPlayer(playerName);
         return config.enableCombatDetection.getValue();
+    }
+
+    public static boolean shouldApplyCombatDetectionFor(String playerName) {
+        if (playerName == null || ArmorHiderClient.CLIENT_CONFIG_MANAGER.isArmorHiderDisabled()) {
+            return false;
+        }
+
+        PlayerConfig config = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getConfigForPlayer(playerName);
+
+        if (config.enableCombatDetection.getValue()) {
+            return true;
+        }
+        var serverConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getServerConfig();
+        return serverConfig != null
+                && serverConfig.serverWideSettings.enableCombatDetection.getValue();
     }
 
     private static void handleCombatFor(@NotNull Player victim) {

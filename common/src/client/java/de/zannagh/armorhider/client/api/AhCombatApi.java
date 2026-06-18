@@ -1,6 +1,7 @@
 package de.zannagh.armorhider.client.api;
 
 import de.zannagh.armorhider.client.api.impl.AhCombatApiImpl;
+import de.zannagh.armorhider.util.PlayerNameUtil;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.ApiStatus;
@@ -38,5 +39,13 @@ public interface AhCombatApi {
      */
     static boolean shouldLogCombatForPlayer(Player player) {
         return AhCombatApiImpl.shouldLogCombatForPlayer(player);
+    }
+
+    static boolean shouldApplyCombatDetectionFor(String playerName) {
+        return AhCombatApiImpl.shouldApplyCombatDetectionFor(playerName);
+    }
+
+    static boolean shouldApplyCombatDetectionFor(Player player) {
+        return AhCombatApiImpl.shouldApplyCombatDetectionFor(PlayerNameUtil.getPlayerName(player));
     }
 }
