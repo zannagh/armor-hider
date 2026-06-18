@@ -25,6 +25,7 @@ public final class CompatFlags {
     public static boolean GECKOLIB_LOADED = false;
     public static boolean WFGM_LOADED = false;
     public static boolean LUCKPERMS_LOADED = false;
+    public static boolean FIGURA_LOADED = false;
 
     private CompatFlags() {}
 }

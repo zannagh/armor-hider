@@ -134,6 +134,12 @@ public abstract class PlayerMixin
         Player player = (Player) (Object) this;
         return player.isFallFlying() || player.getAbilities().flying;
     }
+    
+    @Override
+    public boolean isPlayerBlocking() {
+        Player player = (Player) (Object) this;
+        return player.isBlocking();
+    }
 
     @ModifyReturnValue(method = "getItemBySlot", at = @At("RETURN"))
     private ItemStack hideFullyHiddenSlot(ItemStack original, EquipmentSlot slot) {

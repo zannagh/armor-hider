@@ -7,8 +7,12 @@ import de.zannagh.armorhider.client.common.RenderScope;
 import de.zannagh.armorhider.client.compat.mekanism.MekanismRenderCompat;
 import de.zannagh.armorhider.client.common.IdentityCarrier;
 import mekanism.client.render.layer.MekanismArmorLayer;
+import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.entity.RenderLayerParent;
+import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
+import net.minecraft.client.resources.model.ModelManager;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import org.spongepowered.asm.mixin.Mixin;
@@ -20,10 +24,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Pseudo
 @Mixin(value = MekanismArmorLayer.class, remap = false)
-public class MekanismArmorMixin {
+public abstract class MekanismArmorMixin <T extends LivingEntity, M extends HumanoidModel<T>, A extends HumanoidModel<T>> extends HumanoidArmorLayer<T, M, A> {
+
+    public MekanismArmorMixin(RenderLayerParent<T, M> p_267286_, A p_267110_, A p_267150_, ModelManager p_267238_) {
+        super(p_267286_, p_267110_, p_267150_, p_267238_);
+    }
 
     @Inject(method = "renderArmorPart", at = @At("HEAD"), cancellable = true, require = 0)
-    private <T extends LivingEntity> void interceptMekanismArmor(
+    private void interceptMekanismArmor(
             PoseStack poseStack,
             MultiBufferSource bufferSource,
             T entity,
@@ -37,10 +45,9 @@ public class MekanismArmorMixin {
         var ctx = AhRenderManagementApi.enterScope(RenderScope.ARMOR_PIECE, carrier, slot, entity.getItemBySlot(slot));
         var mod = ctx.modification();
 
-        if (mod.transparency() < 1.0) {
-            @SuppressWarnings("unchecked")
-            var parentModel = ((RenderLayer<LivingEntity, ?>) (Object) this).getParentModel();
-            MekanismRenderCompat.renderBodyUnderArmor(parentModel, poseStack, bufferSource, entity, slot, light);
+        if (mod != null && mod.transparency() < 1.0) {
+            HumanoidModel<T> parentModel = this.getParentModel();
+            MekanismRenderCompat.renderBodyUnderArmor(parentModel, poseStack, bufferSource, entity, slot, light, partialTicks);
         }
 
         if (mod.shouldHide()) {

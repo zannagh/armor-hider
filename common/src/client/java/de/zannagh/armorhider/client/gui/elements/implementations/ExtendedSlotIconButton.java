@@ -1,12 +1,12 @@
 package de.zannagh.armorhider.client.gui.elements.implementations;
 
-import de.zannagh.armorhider.client.gui.elements.LayeredButton;
+import de.zannagh.armorhider.client.gui.elements.LayeredImageButton;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
 import org.jetbrains.annotations.Nullable;
 
-public class ExtendedSlotIconButton extends LayeredButton {
+public class ExtendedSlotIconButton extends LayeredImageButton {
     
     @Override
     protected @Nullable Identifier spriteForeground(boolean enabled) { return modSprite("other_items_icon"); }

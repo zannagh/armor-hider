@@ -1,6 +1,6 @@
 package de.zannagh.armorhider.client.gui.elements.implementations;
 
-import de.zannagh.armorhider.client.gui.elements.LayeredButton;
+import de.zannagh.armorhider.client.gui.elements.LayeredImageButton;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -9,7 +9,7 @@ import org.jetbrains.annotations.Nullable;
 //? if < 1.21
 //import net.minecraft.ChatFormatting;
 
-public class AffectOtherItemsButton extends LayeredButton {
+public class AffectOtherItemsButton extends LayeredImageButton {
     @Nullable private final Identifier slotSprite;
 
     @Override

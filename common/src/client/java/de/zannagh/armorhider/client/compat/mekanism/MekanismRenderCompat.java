@@ -2,16 +2,23 @@
 /*package de.zannagh.armorhider.client.compat.mekanism;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import de.zannagh.armorhider.client.ArmorHiderClient;
 import mekanism.client.render.MekanismRenderType;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.player.PlayerModel;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
+import org.figuramc.figura.avatar.Avatar;
+import org.figuramc.figura.avatar.AvatarManager;
+import org.figuramc.figura.model.rendering.PartFilterScheme;
 
 public final class MekanismRenderCompat {
 
@@ -38,16 +45,22 @@ public final class MekanismRenderCompat {
         };
     }
 
-    @SuppressWarnings("unchecked")
     public static <T extends LivingEntity> void renderBodyUnderArmor(
-            EntityModel<?> parentModel,
+            EntityModel<T> parentModel,
             PoseStack poseStack,
             MultiBufferSource bufferSource,
             T entity,
             EquipmentSlot slot,
-            int light) {
+            int light,
+            float partialTicks) {
         if (!(entity instanceof AbstractClientPlayer player)
-            || !(parentModel instanceof PlayerModel<?> model)) {
+            || !(parentModel instanceof PlayerModel<T> model)) {
+            return;
+        }
+        if (ArmorHiderClient.FIGURA_LOADED && AvatarManager.getAvatar(player) instanceof Avatar avatar) {
+            if (slot == EquipmentSlot.HEAD) {
+                avatar.headRender(poseStack, bufferSource, light, true);
+            }
             return;
         }
         var skin = player.getSkin().texture();

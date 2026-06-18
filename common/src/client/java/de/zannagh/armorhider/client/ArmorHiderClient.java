@@ -27,10 +27,9 @@ public class ArmorHiderClient {
     public static final boolean FA_LOADED = CompatFlags.FA_LOADED || classExists("net.kenddie.fantasyarmor.FantasyArmor");
     public static final boolean GECKOLIB_LOADED = CompatFlags.GECKOLIB_LOADED || classExists("com.geckolib.renderer.GeoArmorRenderer");
     public static final boolean ET_LOADED = CompatFlags.ET_LOADED || classExists("dev.kikugie.elytratrims.ep.ETClientEntrypoint");
-
     public static final boolean EMF_LOADED = CompatFlags.EMF_LOADED || classExists("traben.entity_model_features.EMFManager");
-
     public static final boolean IRIS_LOADED = classExists("net.irisshaders.iris.api.v0.IrisApi");
+    public static final boolean FIGURA_LOADED = CompatFlags.FIGURA_LOADED || classExists("org.figuramc.figura.FiguraMod");
 
     private static boolean classExists(String name) {
         try {

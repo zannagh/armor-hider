@@ -31,17 +31,21 @@ public class ArmorHiderOptionsScreen extends ArmorHiderConfigurationScreen {
                 .withGap(0);
         int panelWidth = spacing.getWidth(0);
         int panelHeight = this.height - topMargin - bottomMargin;
-        this.addRenderableWidget(new ArmorHiderOptionsPanelWidget(0, topMargin, panelWidth, panelHeight, this, this.gameOptions,
+        var optionsPanelWidget = new ArmorHiderOptionsPanelWidget(0, topMargin, panelWidth, panelHeight, this, this.gameOptions,
                 () -> {
-            this.settingsChanged = true;
-            ArmorHiderClient.CLIENT_CONFIG_MANAGER.markLocalDirty();
-        }, ArmorHiderClient.PRESET_MANAGER));
+                    this.settingsChanged = true;
+                    ArmorHiderClient.CLIENT_CONFIG_MANAGER.markLocalDirty();
+                }, ArmorHiderClient.PRESET_MANAGER);
+        this.addRenderableWidget(optionsPanelWidget);
         this.addRenderableWidget(Button.builder(net.minecraft.network.chat.CommonComponents.GUI_DONE, btn -> onClose())
                 .bounds(this.width / 2 - 100, this.height - 27, 200, 20).build());
 
         if (inGame) {
             int previewWidth = spacing.getWidth(1) - previewMargin;
-            int previewHeight = this.height - topMargin - bottomMargin - previewMargin;
+            if (previewWidth > 150) {
+                previewWidth = 150;
+            }
+            int previewHeight = previewWidth;
             int previewX = spacing.getX(1) + previewMargin / 2;
             int previewY = topMargin + previewMargin / 2;
             addRenderableWidget(new PlayerPreviewWidget(previewX, previewY, previewWidth, previewHeight));
@@ -58,7 +62,10 @@ public class ArmorHiderOptionsScreen extends ArmorHiderConfigurationScreen {
 
         if (inGameLegacy) {
             int previewWidth = spacingLegacy.getWidth(1) - previewMargin;
-            int previewHeight = this.height - topMargin - bottomMargin - previewMargin * 2;
+            if (previewWidth > 150) {
+                previewWidth = 150;
+            }
+            int previewHeight = previewWidth;
             int previewX = spacingLegacy.getX(1) + previewMargin / 2;
             int previewY = topMargin + previewMargin / 2;
             addRenderableWidget(new PlayerPreviewWidget(previewX, previewY, previewWidth, previewHeight));

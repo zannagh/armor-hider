@@ -25,6 +25,7 @@ public class ElementSpacingOptions {
     private int groupCount = 0;
     @Nullable private ArrayList<Pair<Integer, Integer>> groups;
     private int @Nullable [] groupSizes;
+    private int @Nullable [] groupMinSizes;
     private boolean @Nullable [] groupLeftAligned;
     private boolean @Nullable [] groupRightAligned;
 
@@ -135,8 +136,26 @@ public class ElementSpacingOptions {
     }
 
     /**
+     * Configures per-group minimum widths. When shrinking is needed, groups above their
+     * minimum are shrunk first. Groups at their minimum are only shrunk as a last resort.
+     * Must be called after {@link #withGroups}.
+     * @param minSizes minimum width for each group
+     * @return this
+     */
+    public ElementSpacingOptions withMinSizesForGroups(int[] minSizes) {
+        if (minSizes.length != groupCount) {
+            throw new IllegalArgumentException("Min sizes array length (" + minSizes.length +
+                    ") must match number of groups (" + groupCount + ")");
+        }
+        this.groupMinSizes = minSizes.clone();
+        invalidate();
+        return this;
+    }
+
+    /**
      * Configures the element spacing to use fixed sizes for each group.
-     * Best effort: if the sum of the sizes will exceed the full width, the sizes get adjusted.
+     * Best effort: if the sum of the sizes will exceed the full width, groups above their
+     * minimum size (if set) are shrunk first before touching groups at their minimum.
      * @param sizes width for each group
      * @return this
      * @throws IllegalArgumentException if the sizes array is not the same length as the number of groups
@@ -147,14 +166,45 @@ public class ElementSpacingOptions {
                     ") must match number of groups (" + groupCount + ")");
         }
         this.groupSizes = sizes.clone();
+        int totalGaps = Math.max(groupCount - 1, 0) * gap;
         int total = 0;
         for (int s : this.groupSizes) total += s;
-        int totalWithGaps = total + Math.max(groupCount - 1, 0) * gap;
-        if (totalWithGaps > fullWidth) {
-            int availableForContent = fullWidth - Math.max(groupCount - 1, 0) * gap;
-            double scale = (double) availableForContent / total;
-            for (int i = 0; i < this.groupSizes.length; i++) {
-                this.groupSizes[i] = (int) (this.groupSizes[i] * scale);
+
+        if (total + totalGaps > fullWidth) {
+            int available = fullWidth - totalGaps;
+            int excess = total - available;
+
+            if (groupMinSizes != null) {
+                int shrinkable = 0;
+                for (int i = 0; i < groupCount; i++) {
+                    shrinkable += Math.max(0, this.groupSizes[i] - groupMinSizes[i]);
+                }
+
+                if (shrinkable >= excess) {
+                    double scale = 1.0 - (double) excess / shrinkable;
+                    for (int i = 0; i < groupCount; i++) {
+                        int aboveMin = Math.max(0, this.groupSizes[i] - groupMinSizes[i]);
+                        this.groupSizes[i] = groupMinSizes[i] + (int) (aboveMin * scale);
+                    }
+                } else {
+                    for (int i = 0; i < groupCount; i++) {
+                        this.groupSizes[i] = groupMinSizes[i];
+                    }
+                    int remaining = excess - shrinkable;
+                    int minTotal = 0;
+                    for (int s : this.groupSizes) minTotal += s;
+                    if (minTotal > 0) {
+                        double scale = (double) (minTotal - remaining) / minTotal;
+                        for (int i = 0; i < groupCount; i++) {
+                            this.groupSizes[i] = Math.max(0, (int) (this.groupSizes[i] * scale));
+                        }
+                    }
+                }
+            } else {
+                double scale = (double) available / total;
+                for (int i = 0; i < this.groupSizes.length; i++) {
+                    this.groupSizes[i] = (int) (this.groupSizes[i] * scale);
+                }
             }
         }
         invalidate();

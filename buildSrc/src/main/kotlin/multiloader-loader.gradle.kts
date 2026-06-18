@@ -42,6 +42,9 @@ dependencies {
     if (hasProperty("waveycapes.version")) {
         add("compileOnly", "maven.modrinth:wavey-capes:${findProperty("waveycapes.version")}")
     }
+    if (hasProperty("figura.version")) {
+        add("compileOnly", "maven.modrinth:figura:${findProperty("figura.version")}")
+    }
 }
 
 // Include common's sources in the loader's source sets for IntelliJ

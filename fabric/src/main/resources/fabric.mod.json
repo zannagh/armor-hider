@@ -29,6 +29,7 @@
     "client": [
       "de.zannagh.armorhider.client.FabricArmorHiderClient"
     ],
+    "modmenu": [ "de.zannagh.armorhider.client.compat.modmenu.ArmorHiderModMenu" ],
     "armor-hider": []
   },
   "mixins": [

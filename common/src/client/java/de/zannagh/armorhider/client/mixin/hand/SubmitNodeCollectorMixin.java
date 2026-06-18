@@ -6,6 +6,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import de.zannagh.armorhider.client.api.AhRenderManagementApi;
 import de.zannagh.armorhider.client.common.RenderScope;
 import net.minecraft.client.renderer.SubmitNodeCollection;
+//? if < 26.2-1.pre
 import net.minecraft.client.renderer.SubmitNodeStorage;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
 //? if <= 26.1.2 {
@@ -16,6 +17,11 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import net.minecraft.client.renderer.rendertype.RenderType;
+
+//? if >= 26.2-1.pre {
+/*import net.minecraft.client.renderer.feature.phase.TranslucentFeatureRenderPhase;
+import net.minecraft.client.renderer.feature.submit.TranslucentSubmit;
+*///?}
 
 @SuppressWarnings({"unused", "UnusedMixin"})
 @Mixin(SubmitNodeCollection.class)
@@ -67,6 +73,7 @@ public class SubmitNodeCollectorMixin {
     }
     //?}
 
+    //? if < 26.2-1.pre {
     @WrapOperation(
             method = "submitModel",
             at = @At(
@@ -105,5 +112,47 @@ public class SubmitNodeCollectorMixin {
             original.call(storage, renderType, submit);
         }
     }
+    //?}
+
+    //? if >= 26.2-1.pre {
+    /*@WrapOperation(
+            method = "submitModel",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/renderer/feature/phase/TranslucentFeatureRenderPhase;submit(Lnet/minecraft/client/renderer/feature/submit/TranslucentSubmit;)V"
+            )
+    )
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private void wrapModelSubmit(TranslucentFeatureRenderPhase phase, TranslucentSubmit submit, Operation<Void> original) {
+        if (!(submit instanceof ModelFeatureRenderer.Submit<?> modelSubmit)) {
+            original.call(phase, submit);
+            return;
+        }
+        var ctx = ArmorHiderClient.RENDER_CONTEXT;
+        if (ctx.hasActiveModification(EquipmentSlot.OFFHAND) || ctx.hasActiveModification(EquipmentSlot.HEAD)) {
+            float alpha = RenderModifications.getTransparencyAlpha(ctx);
+
+            int origColor = modelSubmit.tintedColor();
+            int origAlpha = (origColor >> 24) & 0xFF;
+            int newAlpha = Math.round(alpha * origAlpha);
+            int modifiedColor = (origColor & 0x00FFFFFF) | (newAlpha << 24);
+
+            RenderType translucentType = modelSubmit.renderType();
+            if (modelSubmit.sprite() != null) {
+                translucentType = RenderTypeFactory.translucentEntity(modelSubmit.sprite().atlasLocation());
+            }
+
+            var modified = new ModelFeatureRenderer.Submit(
+                    translucentType, modelSubmit.pose(), modelSubmit.model(), modelSubmit.state(),
+                    modelSubmit.lightCoords(), modelSubmit.overlayCoords(), modifiedColor,
+                    modelSubmit.sprite(), modelSubmit.sheetedDecalPose()
+            );
+
+            original.call(phase, (TranslucentSubmit) modified);
+        } else {
+            original.call(phase, submit);
+        }
+    }
+    *///?}
 }
 //? }

@@ -94,6 +94,12 @@ if (branch == "common") {
         if (hasProperty("waveycapes.version")) {
             add(modClientDep, "maven.modrinth:wavey-capes:${findProperty("waveycapes.version")}")
         }
+        if (hasProperty("figura.version")) {
+            add(modClientDep, "maven.modrinth:figura:${findProperty("figura.version")}")
+        }
+        if (hasProperty("modmenu.version")) {
+            add(modClientDep, "maven.modrinth:modmenu:${findProperty("modmenu.version")}")
+        }
         add("compileOnly", "net.luckperms:api:5.4")
         add("compileOnly", "org.jspecify:jspecify:1.0.0")
         add("testImplementation", platform("org.junit:junit-bom:6.0.1"))
@@ -171,6 +177,10 @@ if (branch == "fabric") {
             it.startsWith("1.21.") && (it.removePrefix("1.21.").toIntOrNull() ?: 0) >= 9
         }) {
             add("modCompileOnly", "maven.modrinth:elytra-trims:iLC0LP3D")
+        }
+        if (hasProperty("modmenu.version")) {
+            val modMenuDep = if (isDeobf) "compileOnly" else "modCompileOnly"
+            add(modMenuDep, "maven.modrinth:modmenu:${findProperty("modmenu.version")}")
         }
     }
 

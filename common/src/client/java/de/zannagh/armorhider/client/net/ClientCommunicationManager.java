@@ -72,6 +72,9 @@ public final class ClientCommunicationManager {
             ServerData serverData = client.getCurrentServer();
             if (serverData != null) {
                 try {
+                    //? if >= 26.2-1.pre
+                    //boolean isSinglePlayer = client.hasSingleplayerServer();
+                    //? if < 26.2-1.pre
                     boolean isSinglePlayer = client.isSingleplayer();
                     if (isSinglePlayer) {
                         ArmorHiderClient.permissionLevel = 4;
@@ -88,6 +91,11 @@ public final class ClientCommunicationManager {
             ClientPacketSender.sendToServer(currentConfig);
         });
         ArmorHider.LOGGER.info("Registered client-side packet handlers.");
+
+        ClientConnectionEvents.registerDisconnect(client -> {
+            ArmorHiderClient.CLIENT_CONFIG_MANAGER.clearServerConfig();
+            ArmorHiderClient.permissionLevel = 0;
+        });
     }
 
     private static void handleServerConfigReceived(ServerConfiguration ctx) {

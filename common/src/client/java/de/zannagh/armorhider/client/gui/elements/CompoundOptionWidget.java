@@ -1,5 +1,7 @@
 package de.zannagh.armorhider.client.gui.elements;
 
+import com.mojang.datafixers.util.Pair;
+import de.zannagh.armorhider.client.gui.UiConstants;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 //? if > 1.21.8
@@ -8,6 +10,8 @@ import net.minecraft.network.chat.Component;
 import org.jspecify.annotations.NonNull;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import org.jspecify.annotations.Nullable;
+
+import java.util.ArrayList;
 
 /**
  * A compound widget that places a primary widget (e.g. slider) at ~80% width
@@ -27,8 +31,23 @@ public class CompoundOptionWidget extends AbstractWidget {
         this.secondary = secondary;
         this.tertiary = tertiary;
         this.additional = additional;
+
+        int totalElements = 1 + smallElementCount();
+        int sq = UiConstants.SQUARE_BUTTON_WIDTH;
+        int g = UiConstants.DEFAULT_BUTTON_SPACING / 2;
+        int smalls = smallElementCount();
+        int smallGroupWidth = smalls * sq + (smalls - 1) * g;
+        int sliderWidth = width - smallGroupWidth - g;
+
+        var groups = new ArrayList<Pair<Integer, Integer>>();
+        groups.add(new Pair<>(0, 0));
+        groups.add(new Pair<>(1, totalElements - 1));
+
         this.spacing = new ElementSpacingOptions(width)
-                .forVaryingElements(1, smallElementCount());
+                .forEvenElements(sq, totalElements)
+                .withGroups(groups)
+                .withMinSizesForGroups(new int[]{sq, smallGroupWidth})
+                .withSizesForGroups(new int[]{sliderWidth, smallGroupWidth});
     }
 
     private int smallElementCount() {
@@ -68,15 +87,18 @@ public class CompoundOptionWidget extends AbstractWidget {
     }
 
     public static int getPrimaryWidth(int width, int smallElements) {
-        return new ElementSpacingOptions(width).forVaryingElements(1, smallElements).getWidth(0);
+        int sq = UiConstants.SQUARE_BUTTON_WIDTH;
+        int g = UiConstants.DEFAULT_BUTTON_SPACING / 2;
+        int smallGroupWidth = smallElements * sq + (smallElements - 1) * g;
+        return width - smallGroupWidth - g;
     }
 
     public static int getAdditionalElementWidth(int width) {
-        return getAdditionalElementWidth(width, 3);
+        return UiConstants.SQUARE_BUTTON_WIDTH;
     }
 
     public static int getAdditionalElementWidth(int width, int smallElements) {
-        return new ElementSpacingOptions(width).forVaryingElements(1, smallElements).getWidth(1);
+        return UiConstants.SQUARE_BUTTON_WIDTH;
     }
 
     @Override

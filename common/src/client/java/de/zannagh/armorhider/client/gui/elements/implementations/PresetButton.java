@@ -1,18 +1,17 @@
 package de.zannagh.armorhider.client.gui.elements.implementations;
 
-import de.zannagh.armorhider.client.gui.elements.SquareLayeredButton;
-import net.minecraft.client.gui.components.Button;
+import de.zannagh.armorhider.client.gui.elements.SquareLayeredTextButton;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.Nullable;
 
-public class PresetButton extends SquareLayeredButton {
+public class PresetButton extends SquareLayeredTextButton {
 
     private final int presetIndex;
     private boolean presetActive;
 
     public PresetButton(int presetIndex, boolean isEmpty, boolean active, OnPress onPress) {
-        super(message(presetIndex, isEmpty, active), onPress);
+        super(String.valueOf(presetIndex + 1), message(presetIndex, isEmpty, active), onPress);
         this.presetIndex = presetIndex;
         this.presetActive = active;
         this.isEnabled = !isEmpty;
@@ -40,11 +39,6 @@ public class PresetButton extends SquareLayeredButton {
         var msg = message(presetIndex, !isEnabled, presetActive);
         this.setMessage(msg);
         this.setTooltip(net.minecraft.client.gui.components.Tooltip.create(msg));
-    }
-
-    @Override
-    protected @Nullable Identifier spriteForeground(boolean enabled) {
-        return modSprite("preset_" + (presetIndex + 1));
     }
 
     @Override

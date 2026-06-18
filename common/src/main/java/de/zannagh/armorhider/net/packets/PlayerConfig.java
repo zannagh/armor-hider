@@ -101,6 +101,8 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
     public @NonNull ShowSettingsInSkinCustomization showSettingsInSkinCustomization;
     @SerializedName(value = "offHandOpacity")
     public @NonNull OffHandOpacity offHandOpacity;
+    @SerializedName(value = "showShieldWhenBlocking")
+    public @NonNull ShowShieldWhenBlocking showShieldWhenBlocking;
 
     public @NonNull PlayerUuid playerId;
 
@@ -134,6 +136,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         usePlayerSettingsWhenUndeterminable = new UsePlayerSettingsWhenUndeterminable();
         showSettingsInSkinCustomization = new ShowSettingsInSkinCustomization();
         offHandOpacity = new OffHandOpacity();
+        showShieldWhenBlocking = new ShowShieldWhenBlocking();
         helmetGlint = new EnableGlint();
         chestGlint = new EnableGlint();
         legsGlint = new EnableGlint();
@@ -191,6 +194,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         fresh.usePlayerSettingsWhenUndeterminable.setValue(old.usePlayerSettingsWhenUndeterminable.getValue());
         fresh.showSettingsInSkinCustomization.setValue(old.showSettingsInSkinCustomization.getValue());
         fresh.offHandOpacity.setValue(old.offHandOpacity.getValue());
+        fresh.showShieldWhenBlocking.setValue(old.showShieldWhenBlocking.getValue());
         fresh.exclusionItems = old.exclusionItems.deepCopy();
 
         fresh.setHasChangedFromSerializedContent();
@@ -226,6 +230,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         newConfig.usePlayerSettingsWhenUndeterminable.setValue(this.usePlayerSettingsWhenUndeterminable.getValue());
         newConfig.showSettingsInSkinCustomization.setValue(this.showSettingsInSkinCustomization.getValue());
         newConfig.offHandOpacity.setValue(this.offHandOpacity.getValue());
+        newConfig.showShieldWhenBlocking.setValue(this.showShieldWhenBlocking.getValue());
         newConfig.helmetGlint.setValue(this.helmetGlint.getValue());
         newConfig.chestGlint.setValue(this.chestGlint.getValue());
         newConfig.legsGlint.setValue(this.legsGlint.getValue());
