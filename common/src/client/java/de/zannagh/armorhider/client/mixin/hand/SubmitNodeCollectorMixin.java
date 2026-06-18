@@ -48,7 +48,7 @@ public class SubmitNodeCollectorMixin {
             RenderType translucentType = renderType;
             if (submit.sprite() != null) {
                 translucentType =
-                        ctx.renderModificationApi().getTranslucentEntityRenderType(submit.sprite().atlasLocation());
+                        ctx.renderModificationApi().renderTypes().getTranslucentEntityRenderType(submit.sprite().atlasLocation());
             }
 
             original.call(storage, translucentType, modified);
@@ -87,30 +87,30 @@ public class SubmitNodeCollectorMixin {
         var offCtx = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
         var hdCtx = AhRenderManagementApi.getActiveScope(RenderScope.HEAD);
         var activeCtx = !offCtx.isEmpty() ? offCtx : hdCtx;
-        if (!activeCtx.isEmpty()) {
-            float alpha = activeCtx.renderModificationApi().getTransparencyAlpha();
-
-            int origColor = submit.tintedColor();
-            int origAlpha = (origColor >> 24) & 0xFF;
-            int newAlpha = Math.round(alpha * origAlpha);
-            int modifiedColor = (origColor & 0x00FFFFFF) | (newAlpha << 24);
-
-            SubmitNodeStorage.ModelSubmit<S> modified = new SubmitNodeStorage.ModelSubmit<>(
-                    submit.pose(), submit.model(), submit.state(),
-                    submit.lightCoords(), submit.overlayCoords(), modifiedColor,
-                    submit.sprite(), submit.outlineColor(), submit.crumblingOverlay()
-            );
-
-            RenderType translucentType = renderType;
-            if (submit.sprite() != null) {
-                translucentType =
-                        activeCtx.renderModificationApi().getTranslucentEntityRenderType(submit.sprite().atlasLocation());
-            }
-
-            original.call(storage, translucentType, modified);
-        } else {
+        if (activeCtx.isEmpty()) {
             original.call(storage, renderType, submit);
+            return;
         }
+        float alpha = activeCtx.renderModificationApi().getTransparencyAlpha();
+
+        int origColor = submit.tintedColor();
+        int origAlpha = (origColor >> 24) & 0xFF;
+        int newAlpha = Math.round(alpha * origAlpha);
+        int modifiedColor = (origColor & 0x00FFFFFF) | (newAlpha << 24);
+
+        SubmitNodeStorage.ModelSubmit<S> modified = new SubmitNodeStorage.ModelSubmit<>(
+                submit.pose(), submit.model(), submit.state(),
+                submit.lightCoords(), submit.overlayCoords(), modifiedColor,
+                submit.sprite(), submit.outlineColor(), submit.crumblingOverlay()
+        );
+
+        RenderType translucentType = renderType;
+        if (submit.sprite() != null) {
+            translucentType =
+                    activeCtx.renderModificationApi().renderTypes().getTranslucentEntityRenderType(submit.sprite().atlasLocation());
+        }
+
+        original.call(storage, translucentType, modified);
     }
     //?}
 
@@ -128,30 +128,32 @@ public class SubmitNodeCollectorMixin {
             original.call(phase, submit);
             return;
         }
-        var ctx = ArmorHiderClient.RENDER_CONTEXT;
-        if (ctx.hasActiveModification(EquipmentSlot.OFFHAND) || ctx.hasActiveModification(EquipmentSlot.HEAD)) {
-            float alpha = RenderModifications.getTransparencyAlpha(ctx);
-
-            int origColor = modelSubmit.tintedColor();
-            int origAlpha = (origColor >> 24) & 0xFF;
-            int newAlpha = Math.round(alpha * origAlpha);
-            int modifiedColor = (origColor & 0x00FFFFFF) | (newAlpha << 24);
-
-            RenderType translucentType = modelSubmit.renderType();
-            if (modelSubmit.sprite() != null) {
-                translucentType = RenderTypeFactory.translucentEntity(modelSubmit.sprite().atlasLocation());
-            }
-
-            var modified = new ModelFeatureRenderer.Submit(
-                    translucentType, modelSubmit.pose(), modelSubmit.model(), modelSubmit.state(),
-                    modelSubmit.lightCoords(), modelSubmit.overlayCoords(), modifiedColor,
-                    modelSubmit.sprite(), modelSubmit.sheetedDecalPose()
-            );
-
-            original.call(phase, (TranslucentSubmit) modified);
-        } else {
+        var offCtx = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
+        var hdCtx = AhRenderManagementApi.getActiveScope(RenderScope.HEAD);
+        var activeCtx = !offCtx.isEmpty() ? offCtx : hdCtx;
+        if (activeCtx.isEmpty()) {
             original.call(phase, submit);
+            return;
         }
+        float alpha = activeCtx.renderModificationApi().getTransparencyAlpha();
+
+        int origColor = modelSubmit.tintedColor();
+        int origAlpha = (origColor >> 24) & 0xFF;
+        int newAlpha = Math.round(alpha * origAlpha);
+        int modifiedColor = (origColor & 0x00FFFFFF) | (newAlpha << 24);
+
+        RenderType translucentType = modelSubmit.renderType();
+        if (modelSubmit.sprite() != null) {
+            translucentType = activeCtx.renderModificationApi().renderTypes().getTranslucentEntityRenderType(modelSubmit.sprite().atlasLocation());
+        }
+
+        var modified = new ModelFeatureRenderer.Submit(
+                translucentType, modelSubmit.pose(), modelSubmit.model(), modelSubmit.state(),
+                modelSubmit.lightCoords(), modelSubmit.overlayCoords(), modifiedColor,
+                modelSubmit.sprite(), modelSubmit.sheetedDecalPose()
+        );
+
+        original.call(phase, (TranslucentSubmit) modified);
     }
     *///?}
 }

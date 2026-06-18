@@ -1,35 +1,41 @@
-//? if >= 1.21.9 {
 package de.zannagh.armorhider.client.mixin.compat.geckolib;
 
+import com.geckolib.renderer.GeoArmorRenderer;
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.api.AhRenderManagementApi;
 import de.zannagh.armorhider.client.compat.geckolib.GeckoLibRenderState;
 import de.zannagh.armorhider.client.common.RenderScope;
 import de.zannagh.armorhider.client.common.IdentityCarrier;
 import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.client.renderer.SubmitNodeCollector;
-import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Pseudo;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Coerce;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import com.geckolib.renderer.base.GeoRenderState;
 
-@SuppressWarnings("UnresolvedMixinReference")
+//? if >= 1.21.9 {
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
+import com.geckolib.renderer.base.GeoRenderState;
+//? } else {
+/*
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import net.minecraft.world.entity.Entity;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
+*///? }
+
 @Pseudo
-@Mixin(targets = "com.geckolib.renderer.GeoArmorRenderer", remap = false)
+@Mixin(value = GeoArmorRenderer.class, remap = false)
 public class GeckoLibArmorMixin {
 
-    // ========================
-    // tryRenderGeoArmorPiece
-    // ========================
-
+    //? if >= 1.21.9 {
     @Inject(method = "tryRenderGeoArmorPiece", at = @At("HEAD"), cancellable = true)
     private static void interceptGeckoLibArmor(
             @Coerce Object modelFunction,
@@ -89,163 +95,66 @@ public class GeckoLibArmorMixin {
         }
         AhRenderManagementApi.exitScope(RenderScope.ARMOR_PIECE);
     }
+    //? } else {
+    /*
+    @Shadow protected EquipmentSlot currentSlot;
+    @Shadow protected ItemStack currentStack;
+    @Shadow protected Entity currentEntity;
+    *///? }
 
     // ========================
     // Render type transparency
     // ========================
 
+
     // @Inject at HEAD avoids bridge method issues — cancelling from the bridge
     // short-circuits before the real method runs, so the inject fires exactly once.
-    @Inject(method = "getRenderType", at = @At("HEAD"), cancellable = true, require = 0)
-    private void modifyRenderType(@Coerce Object renderState, Identifier texture,
+    @Inject(method = "getRenderType*", at = @At("HEAD"), cancellable = true, require = 0)
+    private void modifyRenderType(
+            @Coerce Object renderState,
+            Identifier texture,
+            //? if >= 1.21 && < 1.21.9 {
+            /*@Coerce Object bufferSource,
+            float partialTick,
+             *///? }
             CallbackInfoReturnable<RenderType> cir) {
+        //? if < 1.21.9 {
+        /*
+        if (currentEntity instanceof IdentityCarrier carrier && currentSlot != null) {
+            AhRenderManagementApi.enterScope(RenderScope.ARMOR_PIECE, carrier, currentSlot, currentStack);
+        }
+         *///? }
         var armorCtx = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE);
         if (armorCtx.isEmpty()) {
             return;
         }
         if (armorCtx.modification().transparency() < 1.0) {
             cir.setReturnValue(
-                    armorCtx.renderModificationApi().getTranslucentArmorRenderType(texture));
-        }
-    }
-
-}
-//?}
-
-//? if >= 1.21 && < 1.21.9 {
-/*package de.zannagh.armorhider.client.mixin.compat.geckolib;
-
-import de.zannagh.armorhider.client.api.AhRenderManagementApi;
-import de.zannagh.armorhider.client.common.RenderScope;
-import de.zannagh.armorhider.client.render.rendertype.ArmorHiderRenderTypes;
-import de.zannagh.armorhider.client.common.IdentityCarrier;
-import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.resources.Identifier;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.item.ItemStack;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Pseudo;
-import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Coerce;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.ModifyVariable;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-
-@SuppressWarnings("UnresolvedMixinReference")
-@Pseudo
-@Mixin(targets = "com.geckolib.renderer.GeoArmorRenderer", remap = false)
-public class GeckoLibArmorMixin {
-
-    @Shadow protected EquipmentSlot currentSlot;
-    @Shadow protected ItemStack currentStack;
-    @Shadow protected Entity currentEntity;
-
-    // ========================
-    // Render type transparency + modification setup
-    // ========================
-
-    // NOTE: prepForRender is inherited from GeoRenderer and not overridden in
-    // GeoArmorRenderer, so Mixin cannot inject into it. We set up the modification
-    // here instead, using the @Shadow fields that GeckoLib populates before this call.
-    @Inject(method = "getRenderType", at = @At("HEAD"), cancellable = true, require = 0)
-    private void modifyRenderType(@Coerce Object animatable, Identifier texture,
-            @Coerce Object bufferSource, float partialTick,
-            CallbackInfoReturnable<RenderType> cir) {
-        // Clear any stale modification from a previous slot
-        AhRenderManagementApi.exitScope(RenderScope.ARMOR_PIECE);
-        if (currentEntity instanceof IdentityCarrier carrier && currentSlot != null) {
-            AhRenderManagementApi.enterScope(RenderScope.ARMOR_PIECE, carrier, currentSlot, currentStack);
-        }
-        var armorCtx = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE);
-        if (armorCtx.isEmpty()) {
-            return;
-        }
-        if (armorCtx.modification().shouldHide() || armorCtx.modification().transparency() < 1.0) {
-            cir.setReturnValue(ArmorHiderRenderTypes.translucentArmor(texture));
+                    armorCtx.renderModificationApi().renderTypes().getTranslucentArmorRenderType(texture));
         }
     }
 
     // ========================
-    // Color alpha
+    // Color alpha on older versions
     // ========================
 
-    @ModifyVariable(method = "actuallyRender", at = @At("HEAD"), ordinal = 2, argsOnly = true, require = 0)
+    //? if >= 1.21 && < 1.21.9 {
+    /*
+    @ModifyVariable(
+        method = "actuallyRender",
+        at = @At("HEAD"),
+        //? if >= 1.21
+        ordinal = 2,
+        //? if < 1.21
+        //ordinal = 4,
+        argsOnly = true, require = 0)
     private int modifyRenderColor(int renderColor) {
         return AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE).renderModificationApi().applyArmorTransparency(renderColor);
     }
-}
-*///?}
+    *///? }
 
-//? if < 1.21 {
-/*package de.zannagh.armorhider.client.mixin.compat.geckolib;
-
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import de.zannagh.armorhider.client.api.AhRenderManagementApi;
-import de.zannagh.armorhider.client.common.RenderScope;
-import de.zannagh.armorhider.client.render.rendertype.ArmorHiderRenderTypes;
-import de.zannagh.armorhider.client.common.IdentityCarrier;
-import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.resources.Identifier;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.item.ItemStack;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Pseudo;
-import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Coerce;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.ModifyVariable;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-
-@SuppressWarnings("UnresolvedMixinReference")
-@Pseudo
-@Mixin(targets = "com.geckolib.renderer.GeoArmorRenderer", remap = false)
-public class GeckoLibArmorMixin {
-
-    @Shadow protected EquipmentSlot currentSlot;
-    @Shadow protected ItemStack currentStack;
-    @Shadow protected Entity currentEntity;
-
-    // ========================
-    // Render type transparency + modification setup
-    // ========================
-
-    // NOTE: prepForRender is inherited from GeoRenderer and not overridden in
-    // GeoArmorRenderer, so Mixin cannot inject into it. We set up the modification
-    // here instead, using the @Shadow fields that GeckoLib populates before this call.
-    @Inject(method = "getRenderType", at = @At("HEAD"), cancellable = true, require = 0)
-    private void modifyRenderType(@Coerce Object animatable, Identifier texture,
-            @Coerce Object bufferSource, float partialTick,
-            CallbackInfoReturnable<RenderType> cir) {
-        // Clear any stale modification from a previous slot
-        AhRenderManagementApi.exitScope(RenderScope.ARMOR_PIECE);
-        if (currentEntity instanceof IdentityCarrier carrier && currentSlot != null) {
-            AhRenderManagementApi.enterScope(RenderScope.ARMOR_PIECE, carrier, currentSlot, currentStack);
-        }
-        var armorCtx = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE);
-        if (armorCtx.isEmpty()) return;
-        if (armorCtx.modification().shouldHide() || armorCtx.modification().transparency() < 1.0) {
-            cir.setReturnValue(ArmorHiderRenderTypes.translucentArmor(texture));
-        }
-    }
-
-    // ========================
-    // Color alpha
-    // ========================
-
-    @ModifyVariable(method = "actuallyRender", at = @At("HEAD"), ordinal = 4, argsOnly = true, require = 0)
-    private float modifyAlpha(float alpha) {
-        var armorCtx = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE);
-        if (!armorCtx.isEmpty() && armorCtx.modification().transparency() < 1.0) {
-            return (float) (armorCtx.modification().transparency() * alpha);
-        }
-        return alpha;
-    }
-
+    //? if < 1.21 {
+    /*
     // ========================
     // Glint suppression
     // ========================
@@ -268,5 +177,5 @@ public class GeckoLibArmorMixin {
         }
         return result;
     }
+    *///? }
 }
-*///?}

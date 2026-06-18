@@ -15,16 +15,18 @@ public final class McClientUtils {
                 || (Minecraft.getInstance().getConnection() != null && Minecraft.getInstance().getConnection().getServerData() != null);
     }
 
-    public static void openPreferredSettingsScreen(Screen parent, Options options) {
-        var minecraft = Minecraft.getInstance();
+    public static Screen getPreferredSettingsScreen(Screen parent, Options options) {
         //? if >= 1.21.9 {
-        Screen target = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().showSettingsInSkinCustomization.getValue()
+        return ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().showSettingsInSkinCustomization.getValue()
                 ? new SkinCustomizationScreen(parent, options)
                 : new ArmorHiderOptionsScreen(parent, options);
         //?}
         //? if < 1.21.9
-        //Screen target = new ArmorHiderOptionsScreen(parent, options);
-        minecraft.setScreenAndShow(target);
+        //return new ArmorHiderOptionsScreen(parent, options);
     }
 
+    public static void openPreferredSettingsScreen(Screen parent, Options options) {
+        var minecraft = Minecraft.getInstance();
+        minecraft.setScreenAndShow(getPreferredSettingsScreen(parent, options));
+    }
 }

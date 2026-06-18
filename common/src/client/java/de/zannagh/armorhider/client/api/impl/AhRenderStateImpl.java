@@ -2,6 +2,8 @@ package de.zannagh.armorhider.client.api.impl;
 
 import de.zannagh.armorhider.api.ArmorHiderApi;
 import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.client.api.AhRenderModificationApi;
+import de.zannagh.armorhider.client.api.AhRenderTypeFactory;
 import de.zannagh.armorhider.client.common.GlobalRenderScope;
 import de.zannagh.armorhider.client.common.IdentityCarrier;
 import de.zannagh.armorhider.client.common.RenderScope;
@@ -118,7 +120,7 @@ public final class AhRenderStateImpl {
             ACTIVE_SCOPES.put(scope, empty);
             return empty;
         }
-        var ctx = new RenderScopeContext(scope, null, modification, new RenderModifications(modification));
+        var ctx = new RenderScopeContext(scope, null, modification, AhRenderModificationApi.getInstance(modification));
         ACTIVE_SCOPES.put(scope, ctx);
         setCurrentPlayer(modification.playerName());
         DebugTracer.scopeEnterItemRender(modification.slot(), modification.playerName(), modification.transparency());

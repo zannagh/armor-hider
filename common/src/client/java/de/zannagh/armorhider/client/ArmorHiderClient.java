@@ -3,10 +3,14 @@ package de.zannagh.armorhider.client;
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.CompatFlags;
 import de.zannagh.armorhider.client.api.AhRenderInterceptionRegistryApi;
+import de.zannagh.armorhider.client.api.AhRenderModificationApi;
+import de.zannagh.armorhider.client.api.AhRenderTypeFactory;
 import de.zannagh.armorhider.client.api.impl.AhRendererRegistryImpl;
 import de.zannagh.armorhider.client.common.RenderScope;
 import de.zannagh.armorhider.client.compat.CompatManager;
 import de.zannagh.armorhider.client.net.ClientCommunicationManager;
+import de.zannagh.armorhider.client.render.RenderModifications;
+import de.zannagh.armorhider.client.render.rendertype.RenderTypeFactory;
 import de.zannagh.armorhider.configuration.PresetManager;
 import de.zannagh.armorhider.log.DebugLogger;
 import de.zannagh.armorhider.util.PlayerNameUtil;
@@ -49,6 +53,8 @@ public class ArmorHiderClient {
         ArmorHider.LOGGER.info("Armor Hider client initializing...");
         ClientCommunicationManager.initClient();
 
+        initRenderTypes();
+
         ArmorHider.LOGGER.info("Registering render interceptors...");
         for (var interceptor : AhRendererRegistryImpl.getDefaultInterceptors()) {
             ArmorHider.LOGGER.info("Registering interceptor: {}", interceptor.getClass().getName());
@@ -59,6 +65,13 @@ public class ArmorHiderClient {
         ArmorHider.LOGGER.info("Setting up compatibilities...");
         CompatManager.init();
         ArmorHider.LOGGER.info("Compatibilities set up.");
+    }
+
+    /**
+     * Mixin to this method to adjust render types or use {@link AhRenderModificationApi#registerRenderTypeFactory(AhRenderTypeFactory, int)} (AhRenderModificationApi, int)} to change render type behavior.
+     */
+    public static void initRenderTypes() {
+        AhRenderModificationApi.registerRenderTypeFactory(new RenderTypeFactory(), AhRenderModificationApi.getDefaultPriority());
     }
 
     public static String getCurrentPlayerName() {

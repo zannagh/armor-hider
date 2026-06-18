@@ -35,7 +35,7 @@ public interface AhRenderTypeFactory {
      * @return the {@link RenderType} used to draw a translucent armor trim. Trims share a single sheet,
      * so no texture parameter is needed.
      */
-    RenderType getTranslucentArmorTrimRenderType();
+    RenderType getTranslucentArmorTrimRenderType(boolean decal);
 
     /**
      * @return the {@link RenderType} used to draw translucent block-item sheet items

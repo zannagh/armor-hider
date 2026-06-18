@@ -53,9 +53,9 @@ public class ArmorHiderEmptyRenderer implements AhRenderer {
     }
 
     @Override
-    public RenderType getTranslucentArmorTrimRenderType() {
+    public RenderType getTranslucentArmorTrimRenderType(boolean decal) {
         if (customRenderTypeFactory != null){
-            return customRenderTypeFactory.getTranslucentArmorTrimRenderType();
+            return customRenderTypeFactory.getTranslucentArmorTrimRenderType(decal);
         }
         return ArmorHiderRenderTypes.translucentArmorTrim();
     }

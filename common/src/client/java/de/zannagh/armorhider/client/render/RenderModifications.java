@@ -4,6 +4,7 @@ import de.zannagh.armorhider.client.api.AhRenderTypeFactory;
 import de.zannagh.armorhider.client.common.SlotModification;
 import de.zannagh.armorhider.client.api.AhRenderModificationApi;
 import de.zannagh.armorhider.client.render.rendertype.ArmorHiderRenderTypes;
+import de.zannagh.armorhider.client.render.rendertype.RenderTypeFactory;
 import de.zannagh.armorhider.client.render.utils.ColorMath;
 import de.zannagh.armorhider.common.ItemInfo;
 import net.minecraft.client.model.geom.ModelPart;
@@ -36,8 +37,8 @@ public class RenderModifications implements AhRenderModificationApi {
         return new RenderModifications(SlotModification.empty());
     }
 
-    public static RenderModifications getInstance(SlotModification slotModification) {
-        return new RenderModifications(slotModification);
+    public AhRenderTypeFactory renderTypes() {
+        return customRenderTypeFactory == null ? RenderTypeFactory.getInstance() : customRenderTypeFactory;
     }
 
     // --- Render type modifications ---
@@ -60,7 +61,7 @@ public class RenderModifications implements AhRenderModificationApi {
         if (slotModification.isEmpty() || !slotModification.needsModification()) {
             return originalLayer;
         }
-        return getTranslucentArmorTrimRenderType();
+        return getTranslucentArmorTrimRenderType(decal);
     }
 
     public RenderType getTranslucentItemRenderType(RenderType originalLayer) {
@@ -159,7 +160,7 @@ public class RenderModifications implements AhRenderModificationApi {
 
     private AhRenderTypeFactory customRenderTypeFactory;
 
-    public void registerRenderTypeFactory(AhRenderTypeFactory renderTypeFactory){
+    public void setRenderTypeFactory(AhRenderTypeFactory renderTypeFactory) {
         customRenderTypeFactory = renderTypeFactory;
     }
 
@@ -177,9 +178,9 @@ public class RenderModifications implements AhRenderModificationApi {
         return ArmorHiderRenderTypes.translucentEntity(texture);
     }
 
-    public RenderType getTranslucentArmorTrimRenderType() {
+    public RenderType getTranslucentArmorTrimRenderType(boolean decal) {
         if (customRenderTypeFactory != null){
-            return customRenderTypeFactory.getTranslucentArmorTrimRenderType();
+            return customRenderTypeFactory.getTranslucentArmorTrimRenderType(decal);
         }
         return ArmorHiderRenderTypes.translucentArmorTrim();
     }

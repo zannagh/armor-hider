@@ -18,6 +18,8 @@ public interface IdentityCarrier {
 
     boolean isPlayerFlying();
 
+    default boolean isPlayerBlocking() { return false; }
+
     PlayerModificationInfo armorHider$getPlayerModifications();
 
     default boolean armorHider$allSlotsFullyHidden() {

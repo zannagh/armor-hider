@@ -82,7 +82,7 @@ public class GenderArmorLayerMixin {
                     //? if >= 1.21.11
                     target = "Lnet/minecraft/client/renderer/rendertype/RenderTypes;armorCutoutNoCull(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/rendertype/RenderType;",
                     //? if >= 1.21.9 && < 1.21.11
-                    //target = "Lnet/minecraft/client/renderer/RenderType;armorCutoutNoCull(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/RenderType;",
+                    //target = "Lnet/minecraft/client/renderer/rendertype/RenderType;armorCutoutNoCull(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/rendertype/RenderType;",
                     remap = true)
     )
     //? if >= 1.21.11
@@ -127,7 +127,7 @@ public class GenderArmorLayerMixin {
                     //? if >= 1.21.11
                     target = "Lnet/minecraft/client/renderer/Sheets;armorTrimsSheet(Z)Lnet/minecraft/client/renderer/rendertype/RenderType;",
                     //? if >= 1.21.9 && < 1.21.11
-                    //target = "Lnet/minecraft/client/renderer/Sheets;armorTrimsSheet(Z)Lnet/minecraft/client/renderer/RenderType;",
+                    //target = "Lnet/minecraft/client/renderer/Sheets;armorTrimsSheet(Z)Lnet/minecraft/client/renderer/rendertype/RenderType;",
                     remap = true)
     )
     //? if >= 1.21.11
@@ -241,7 +241,7 @@ public class GenderArmorLayerMixin {
             method = "renderBreastArmor",
             require = 0,
             at = @At(value = "INVOKE",
-                    target = "Lnet/minecraft/client/renderer/RenderType;armorCutoutNoCull(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/RenderType;",
+                    target = "Lnet/minecraft/client/renderer/rendertype/RenderType;armorCutoutNoCull(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/rendertype/RenderType;",
                     remap = true)
     )
     private RenderType modifyBreastArmorRenderType(Identifier texture, Operation<RenderType> original) {
@@ -283,7 +283,7 @@ public class GenderArmorLayerMixin {
             method = "renderArmorTrim",
             require = 0,
             at = @At(value = "INVOKE",
-                    target = "Lnet/minecraft/client/renderer/Sheets;armorTrimsSheet(Z)Lnet/minecraft/client/renderer/RenderType;",
+                    target = "Lnet/minecraft/client/renderer/Sheets;armorTrimsSheet(Z)Lnet/minecraft/client/renderer/rendertype/RenderType;",
                     remap = true)
     )
     private RenderType modifyTrimRenderType(boolean decal, Operation<RenderType> original) {
@@ -359,7 +359,7 @@ public class GenderArmorLayerMixin {
             method = "renderVanillaLikeBreastArmor",
             require = 0,
             at = @At(value = "INVOKE",
-                    target = "Lnet/minecraft/client/renderer/RenderType;armorCutoutNoCull(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/RenderType;",
+                    target = "Lnet/minecraft/client/renderer/rendertype/RenderType;armorCutoutNoCull(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/rendertype/RenderType;",
                     remap = true)
     )
     private RenderType modifyBreastArmorRenderType(Identifier texture, Operation<RenderType> original) {
@@ -410,7 +410,7 @@ public class GenderArmorLayerMixin {
             method = "renderArmorTrim",
             require = 0,
             at = @At(value = "INVOKE",
-                    target = "Lnet/minecraft/client/renderer/Sheets;armorTrimsSheet(Z)Lnet/minecraft/client/renderer/RenderType;",
+                    target = "Lnet/minecraft/client/renderer/Sheets;armorTrimsSheet(Z)Lnet/minecraft/client/renderer/rendertype/RenderType;",
                     remap = true)
     )
     private RenderType modifyTrimRenderType(boolean decal, Operation<RenderType> original) {

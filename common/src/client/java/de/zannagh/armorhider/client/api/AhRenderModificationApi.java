@@ -1,5 +1,7 @@
 package de.zannagh.armorhider.client.api;
 
+import com.mojang.datafixers.util.Pair;
+import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.client.common.RenderScope;
 import de.zannagh.armorhider.client.common.RenderScopeContext;
 import de.zannagh.armorhider.client.common.SlotModification;
@@ -8,6 +10,9 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.Comparator;
 
 /**
  * Version-independent interface for applying render modifications (transparency, render type
@@ -26,7 +31,11 @@ import org.jetbrains.annotations.NotNull;
  * @since 0.12.0
  */
 @ApiStatus.NonExtendable
-public interface AhRenderModificationApi extends AhRenderTypeFactory {
+public interface AhRenderModificationApi {
+
+    ArrayList<Pair<Integer, AhRenderTypeFactory>> RENDER_TYPE_FACTORIES = new ArrayList<>();
+
+    ArrayList<Pair<Integer, AhRenderModificationApi>> RENDER_MODIFIERS = new ArrayList<>();
 
     /**
      * Returns a modification API instance backed by the given {@link SlotModification}. Mostly
@@ -34,8 +43,34 @@ public interface AhRenderModificationApi extends AhRenderTypeFactory {
      * the same render transformations without entering a scope.
      */
     static AhRenderModificationApi getInstance(SlotModification modification) {
-        return RenderModifications.getInstance(modification);
+        AhRenderModificationApi instance;
+        if (RENDER_MODIFIERS.isEmpty()) {
+            instance = new RenderModifications(modification);
+        }
+        else {
+            instance = RENDER_MODIFIERS.get(0).getSecond();
+        }
+        if (RENDER_TYPE_FACTORIES.isEmpty()) {
+            return instance;
+        }
+        var renderTypeFactory = RENDER_TYPE_FACTORIES.get(0).getSecond();
+        instance.setRenderTypeFactory(renderTypeFactory);
+        return instance;
     }
+
+    static int getDefaultPriority() {
+        return 1000;
+    }
+
+    static void registerRenderTypeFactory(AhRenderTypeFactory renderTypeFactory, int priority) {
+        ArmorHider.LOGGER.info("Registering render type factory: {} with priority {}", renderTypeFactory.getClass().getName(), priority);
+        RENDER_TYPE_FACTORIES.add(Pair.of(priority, renderTypeFactory));
+        RENDER_TYPE_FACTORIES.sort(Comparator.comparingInt(Pair::getFirst));
+    }
+
+    void setRenderTypeFactory(AhRenderTypeFactory renderTypeFactory);
+
+    AhRenderTypeFactory renderTypes();
 
     /**
      * Apply the active transparency to the alpha channel of an ARGB color.

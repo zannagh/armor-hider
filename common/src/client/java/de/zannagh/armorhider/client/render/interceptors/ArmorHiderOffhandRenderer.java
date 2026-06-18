@@ -1,10 +1,12 @@
 package de.zannagh.armorhider.client.render.interceptors;
 
+import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.common.IdentityCarrier;
 import de.zannagh.armorhider.client.common.RenderInterceptionResult;
 import de.zannagh.armorhider.client.common.RenderScope;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import org.jspecify.annotations.Nullable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
@@ -22,16 +24,30 @@ public class ArmorHiderOffhandRenderer extends AbstractArmorHiderRenderer {
 
     @Override
     public RenderInterceptionResult intercept(@Nullable Object identityCarrier, @Nullable EquipmentSlot slot, @Nullable ItemStack stack, CallbackInfo ci) {
+        if (stack != null) {
+            if (stack.is(Items.AIR)) {
+                return RenderInterceptionResult.ignore();
+            }
+        }
+        if (slot == null) {
+            slot = EquipmentSlot.OFFHAND;
+        }
         IdentityCarrier carrier = identityCarrier instanceof IdentityCarrier ic ? ic : null;
         if (carrier == null) {
             resolveModification(null, null, null);
             return RenderInterceptionResult.ignore();
         }
-        ItemStack offhand = stack != null ? stack : carrier.getItemBySlot(EquipmentSlot.OFFHAND);
-        if (offhand == null || offhand.isEmpty()) {
-            resolveModification(carrier, EquipmentSlot.OFFHAND, ItemStack.EMPTY);
+        ItemStack offhand = stack != null ? stack : carrier.getItemBySlot(slot);
+        if (offhand.isEmpty()) {
+            resolveModification(carrier, slot, ItemStack.EMPTY);
             return RenderInterceptionResult.ignore();
         }
-        return standardIntercept(carrier, EquipmentSlot.OFFHAND, offhand, ci);
+
+        if (carrier.isPlayerBlocking()
+          && ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().showShieldWhenBlocking.getValue()) {
+            return RenderInterceptionResult.ignore();
+        }
+
+        return standardIntercept(carrier, slot, offhand, ci);
     }
 }

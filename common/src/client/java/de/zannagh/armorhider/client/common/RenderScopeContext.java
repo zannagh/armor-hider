@@ -2,7 +2,9 @@ package de.zannagh.armorhider.client.common;
 
 import de.zannagh.armorhider.client.api.AhRenderManagementApi;
 import de.zannagh.armorhider.client.api.AhRenderModificationApi;
+import de.zannagh.armorhider.client.api.AhRenderTypeFactory;
 import de.zannagh.armorhider.client.render.RenderModifications;
+import de.zannagh.armorhider.client.render.rendertype.RenderTypeFactory;
 import org.jspecify.annotations.Nullable;
 
 /**

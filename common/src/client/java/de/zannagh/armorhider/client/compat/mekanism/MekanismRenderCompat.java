@@ -31,6 +31,7 @@ public final class MekanismRenderCompat {
         MEKASUIT_ORIGINAL = MekanismRenderType.MEKASUIT;
     }
 
+    @SuppressWarnings("deprecation") // TextureAtlas.LOCATION_BLOCKS: no non-deprecated Identifier alternative; Mojang's own Sheets uses it internally.
     public static MultiBufferSource wrapForTransparency(MultiBufferSource original) {
         init();
         if (MEKASUIT_ORIGINAL == null) {
