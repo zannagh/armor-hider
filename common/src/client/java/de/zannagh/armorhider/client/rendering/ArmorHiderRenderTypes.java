@@ -35,9 +35,6 @@ import net.minecraft.resources.Identifier;
 import com.mojang.blaze3d.pipeline.DepthStencilState;
 import com.mojang.blaze3d.pipeline.ColorTargetState;
 //?}
-//? if >= 26.2-0.snapshot {
-import com.mojang.blaze3d.pipeline.BindGroupLayout;
-//?}
 
 import java.util.Optional;
 import java.util.function.Function;
