@@ -98,9 +98,9 @@ public final class RenderModifications {
             return originalLayer;
         }
         //? if <= 26.1.2
-        if (originalLayer == Sheets.cutoutBlockSheet()) {
+        //if (originalLayer == Sheets.cutoutBlockSheet()) {
         //? if > 26.1.2
-        //if (originalLayer == Sheets.cutoutBlockItemSheet()) {
+        if (originalLayer == Sheets.cutoutBlockItemSheet()) {
             return RenderTypeFactory.translucentItemSheet();
         }
         return originalLayer;

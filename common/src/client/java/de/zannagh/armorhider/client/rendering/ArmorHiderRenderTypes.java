@@ -36,8 +36,8 @@ import com.mojang.blaze3d.pipeline.DepthStencilState;
 import com.mojang.blaze3d.pipeline.ColorTargetState;
 //?}
 //? if >= 26.2-0.snapshot {
-/*import com.mojang.blaze3d.pipeline.BindGroupLayout;
-*///?}
+import com.mojang.blaze3d.pipeline.BindGroupLayout;
+//?}
 
 import java.util.Optional;
 import java.util.function.Function;
@@ -62,7 +62,7 @@ public final class ArmorHiderRenderTypes {
     // --- Pipelines (>= 1.21.5) ---
 
     //? if >= 26.2-1.pre {
-    /*private static RenderPipeline clonePipelineNoDepthWrite(RenderPipeline src, Identifier location) {
+    private static RenderPipeline clonePipelineNoDepthWrite(RenderPipeline src, Identifier location) {
         var srcDss = src.getDepthStencilState();
         var noDss = new DepthStencilState(srcDss.depthTest(), false, srcDss.depthBiasScaleFactor(), srcDss.depthBiasConstant());
         var snippet = new RenderPipeline.Snippet(
@@ -86,7 +86,7 @@ public final class ArmorHiderRenderTypes {
     private static final RenderPipeline ITEM_ENTITY_TRANSLUCENT_CULL_NO_DEPTH = clonePipelineNoDepthWrite(
             RenderPipelines.ITEM_TRANSLUCENT,
             Identifier.fromNamespaceAndPath("armor_hider", "pipeline/item_translucent_no_depth"));
-    *///?} elif >= 26.2-0.snapshot {
+    //?} elif >= 26.2-0.snapshot {
     /*private static RenderPipeline clonePipelineNoDepthWrite(RenderPipeline src, Identifier location) {
         var srcDss = src.getDepthStencilState();
         var noDss = new DepthStencilState(srcDss.depthTest(), false, srcDss.depthBiasScaleFactor(), srcDss.depthBiasConstant());
@@ -112,7 +112,7 @@ public final class ArmorHiderRenderTypes {
             RenderPipelines.ITEM_TRANSLUCENT,
             Identifier.fromNamespaceAndPath("armor_hider", "pipeline/item_translucent_no_depth"));
     *///?} elif >= 26.1-0.snapshot.10 {
-    private static RenderPipeline clonePipelineNoDepthWrite(RenderPipeline src, Identifier location) {
+    /*private static RenderPipeline clonePipelineNoDepthWrite(RenderPipeline src, Identifier location) {
         var srcDss = src.getDepthStencilState();
         var noDss = new DepthStencilState(srcDss.depthTest(), false, srcDss.depthBiasScaleFactor(), srcDss.depthBiasConstant());
         var snippet = new RenderPipeline.Snippet(
@@ -136,7 +136,7 @@ public final class ArmorHiderRenderTypes {
     private static final RenderPipeline ITEM_ENTITY_TRANSLUCENT_CULL_NO_DEPTH = clonePipelineNoDepthWrite(
             RenderPipelines.ITEM_TRANSLUCENT,
             Identifier.fromNamespaceAndPath("armor_hider", "pipeline/item_translucent_no_depth"));
-    //? } elif >= 1.21.5 {
+    *///? } elif >= 1.21.5 {
     /*private static RenderPipeline clonePipelineNoDepthWrite(RenderPipeline src, Identifier location) {
         var snippet = new RenderPipeline.Snippet(
                 Optional.of(src.getVertexShader()), Optional.of(src.getFragmentShader()),

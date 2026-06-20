@@ -10,15 +10,15 @@ import de.zannagh.armorhider.client.rendering.RenderTypeFactory;
 
 import net.minecraft.client.renderer.SubmitNodeCollection;
 //? if < 26.2-1.pre
-import net.minecraft.client.renderer.SubmitNodeStorage;
+//import net.minecraft.client.renderer.SubmitNodeStorage;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
 //? if <= 26.1.2
-import net.minecraft.client.renderer.feature.ModelPartFeatureRenderer;
+//import net.minecraft.client.renderer.feature.ModelPartFeatureRenderer;
 import net.minecraft.world.entity.EquipmentSlot;
 //? if <= 26.1.2 {
-import org.jspecify.annotations.NonNull;
+/*import org.jspecify.annotations.NonNull;
 import org.spongepowered.asm.mixin.Unique;
-//?}
+*///?}
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
@@ -30,16 +30,16 @@ import net.minecraft.client.renderer.rendertype.RenderType;
 //import net.minecraft.client.renderer.rendertype.RenderType;
 
 //? if >= 26.2-1.pre {
-/*import net.minecraft.client.renderer.feature.phase.TranslucentFeatureRenderPhase;
+import net.minecraft.client.renderer.feature.phase.TranslucentFeatureRenderPhase;
 import net.minecraft.client.renderer.feature.submit.TranslucentSubmit;
-*///?}
+//?}
 
 @SuppressWarnings({"unused", "UnusedMixin"})
 @Mixin(SubmitNodeCollection.class)
 public class SubmitNodeCollectorMixin {
 
     //? if <= 26.1.2 {
-    @WrapOperation(
+    /*@WrapOperation(
             method = "submitModelPart",
             at = @At(
                     value = "INVOKE",
@@ -84,10 +84,10 @@ public class SubmitNodeCollectorMixin {
                 submit.crumblingOverlay(), submit.outlineColor()
         );
     }
-    //?}
+    *///?}
 
     //? if < 26.2-1.pre {
-    @WrapOperation(
+    /*@WrapOperation(
             method = "submitModel",
             at = @At(
                     value = "INVOKE",
@@ -126,10 +126,10 @@ public class SubmitNodeCollectorMixin {
             original.call(storage, renderType, submit);
         }
     }
-    //?}
+    *///?}
 
     //? if >= 26.2-1.pre {
-    /*@WrapOperation(
+    @WrapOperation(
             method = "submitModel",
             at = @At(
                     value = "INVOKE",
@@ -167,6 +167,6 @@ public class SubmitNodeCollectorMixin {
             original.call(phase, submit);
         }
     }
-    *///?}
+    //?}
 }
 //? }
