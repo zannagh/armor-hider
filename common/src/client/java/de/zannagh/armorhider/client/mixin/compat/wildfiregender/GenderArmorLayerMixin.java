@@ -1,5 +1,5 @@
-//? if >= 1.21.9 {
-package de.zannagh.armorhider.client.mixin.compat.wildfiregender;
+//? if >= 1.21.9 && < 26.2 {
+/*package de.zannagh.armorhider.client.mixin.compat.wildfiregender;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -25,15 +25,15 @@ import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.resources.Identifier;
 //? }
 //? if >= 1.21.9 && < 1.21.11 {
-/*import net.minecraft.client.renderer.rendertype.RenderType;
+/^import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.resources.Identifier;
-*///?}
+^///?}
 
-/**
+/^*
  * Compatibility mixin for Wildfire's Female Gender Mod.
  * Applies chest armor hiding, transparency, and glint control
  * to the breast armor geometry rendered by {@code GenderArmorLayer}.
- */
+ ^/
 @SuppressWarnings("UnresolvedMixinReference")
 @Pseudo
 @Mixin(targets = "com.wildfire.render.GenderArmorLayer", remap = false)
@@ -149,6 +149,136 @@ public class GenderArmorLayerMixin {
             return;
         }
         ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
+    }
+}
+*///?}
+
+//? if >= 26.2 {
+package de.zannagh.armorhider.client.mixin.compat.wildfiregender;
+
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.mojang.blaze3d.vertex.PoseStack;
+import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.client.rendering.RenderModifications;
+import de.zannagh.armorhider.client.scopes.IdentityCarrier;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.entity.state.AvatarRenderState;
+import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.ItemStack;
+import org.apache.commons.lang3.mutable.MutableBoolean;
+import org.apache.commons.lang3.mutable.MutableInt;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Pseudo;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Coerce;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+/**
+ * Compatibility mixin for Wildfire's Female Gender Mod (26.2+).
+ * <p>
+ * In 26.2 the renderBreastArmor signature changed: the trailing {@code boolean glint}
+ * was replaced by a {@code MutableBoolean} glint reference and a {@code MutableInt}
+ * alpha override was appended. renderArmorTrim's trailing {@code boolean glint}
+ * became a {@code MutableInt}. renderGlint was removed — glint is now suppressed
+ * by clearing the {@code MutableBoolean} ref before the breast armor draw.
+ */
+@SuppressWarnings("UnresolvedMixinReference")
+@Pseudo
+@Mixin(targets = "com.wildfire.render.GenderArmorLayer", remap = false)
+public class GenderArmorLayerMixin {
+
+    // ========================
+    // renderBreastArmor
+    // ========================
+
+    @Inject(method = "renderBreastArmor", at = @At("HEAD"), cancellable = true)
+    private void interceptBreastArmor(Identifier texture, PoseStack poseStack,
+            SubmitNodeCollector queue, HumanoidRenderState state,
+            @Coerce Object side, int color, MutableBoolean glintRef, MutableInt alphaRef,
+            CallbackInfo ci) {
+        if (!(state instanceof IdentityCarrier carrier)) return;
+        ItemStack chestItem = (state instanceof AvatarRenderState avatar) ? avatar.chestEquipment : null;
+        var mod = carrier.createModification(EquipmentSlot.CHEST, chestItem);
+        if (mod == null) return;
+        if (mod.shouldHide()) {
+            ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
+            ci.cancel();
+            return;
+        }
+        if (mod.shouldDisableGlint()) {
+            glintRef.setValue(false);
+        }
+    }
+
+    @Inject(method = "renderBreastArmor", at = @At("RETURN"))
+    private void clearBreastArmorContext(Identifier texture, PoseStack poseStack,
+            SubmitNodeCollector queue, HumanoidRenderState state,
+            @Coerce Object side, int color, MutableBoolean glintRef, MutableInt alphaRef,
+            CallbackInfo ci) {
+        ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
+    }
+
+    @WrapOperation(
+            method = "renderBreastArmor",
+            require = 0,
+            at = @At(value = "INVOKE",
+                    target = "Lnet/minecraft/util/ARGB;opaque(I)I",
+                    remap = true)
+    )
+    private int modifyBreastArmorColor(int color, Operation<Integer> original) {
+        int opaqueColor = original.call(color);
+        return RenderModifications.applyArmorTransparency(ArmorHiderClient.RENDER_CONTEXT, opaqueColor);
+    }
+
+    @WrapOperation(
+            method = "renderBreastArmor",
+            require = 0,
+            at = @At(value = "INVOKE",
+                    target = "Lnet/minecraft/client/renderer/rendertype/RenderTypes;armorCutoutNoCull(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/rendertype/RenderType;",
+                    remap = true)
+    )
+    private RenderType modifyBreastArmorRenderType(Identifier texture, Operation<RenderType> original) {
+        return RenderModifications.getTranslucentArmorRenderType(ArmorHiderClient.RENDER_CONTEXT, texture, original.call(texture));
+    }
+
+    // ========================
+    // renderArmorTrim
+    // ========================
+
+    @Inject(method = "renderArmorTrim", at = @At("HEAD"), cancellable = true)
+    private void interceptArmorTrim(@Coerce Object armorAsset, PoseStack poseStack,
+            SubmitNodeCollector queue, HumanoidRenderState state,
+            @Coerce Object trim, @Coerce Object side, MutableInt alphaRef, CallbackInfo ci) {
+        if (!(state instanceof IdentityCarrier carrier)) return;
+        ItemStack chestItem = (state instanceof AvatarRenderState avatar) ? avatar.chestEquipment : null;
+        var mod = carrier.createModification(EquipmentSlot.CHEST, chestItem);
+        if (mod != null && mod.shouldHide()) {
+            ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
+            ci.cancel();
+        }
+    }
+
+    @Inject(method = "renderArmorTrim", at = @At("RETURN"))
+    private void clearArmorTrimContext(@Coerce Object armorAsset, PoseStack poseStack,
+            SubmitNodeCollector queue, HumanoidRenderState state,
+            @Coerce Object trim, @Coerce Object side, MutableInt alphaRef, CallbackInfo ci) {
+        ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
+    }
+
+    @WrapOperation(
+            method = "renderArmorTrim",
+            require = 0,
+            at = @At(value = "INVOKE",
+                    target = "Lnet/minecraft/client/renderer/Sheets;armorTrimsSheet(Z)Lnet/minecraft/client/renderer/rendertype/RenderType;",
+                    remap = true)
+    )
+    private RenderType modifyTrimRenderType(boolean decal, Operation<RenderType> original) {
+        return RenderModifications.getTrimRenderLayer(ArmorHiderClient.RENDER_CONTEXT, decal, original.call(decal));
     }
 }
 //?}
