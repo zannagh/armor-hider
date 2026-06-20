@@ -106,14 +106,9 @@ public class OffHandRenderMixin {
         //original.call(instance, livingEntity, itemStack, itemDisplayContext, poseStack, source, level, i, j, k);
     }
 
-    @Inject(
-            method = "renderArmWithItem",
-            at = @At("TAIL")
-    )
-    //? if >= 1.21.9
-    private void releaseContext(AbstractClientPlayer abstractClientPlayer, float f, float g, InteractionHand interactionHand, float h, ItemStack itemStack, float i, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int j, CallbackInfo ci) {
-    //? if < 1.21.9
-    //private void releaseContext(AbstractClientPlayer abstractClientPlayer, float f, float g, InteractionHand interactionHand, float h, ItemStack itemStack, float i, PoseStack poseStack, MultiBufferSource multiBufferSource, int j, CallbackInfo ci) {
+    @Inject(method = "renderArmWithItem",
+            at = @At("TAIL"))
+    private void releaseContext(CallbackInfo ci) {
         AhRenderManagementApi.exitScope(RenderScope.OFFHAND);
     }
 }

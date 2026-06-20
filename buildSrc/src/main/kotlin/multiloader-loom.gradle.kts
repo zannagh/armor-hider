@@ -41,7 +41,12 @@ with(sc) {
     constants["neoforge"] = current.project.contains("neoforge")
     constants["mekanism"] = hasProperty("mekanism.version")
     constants["waveycapes"] = hasProperty("waveycapes.version")
-    constants["gender"] = hasProperty("gender.version")
+    // `gender` activates the modern GenderArmorLayer-based mixin.
+    // `gender_legacy` activates the GenderLayer.render() coarse mixin for older
+    // mod builds (e.g. female-gender NeoForge 1.21/1.21.1, hash kKffHCGl) whose
+    // jar ships only the legacy GenderLayer API.
+    constants["gender"] = hasProperty("gender.version") && findProperty("gender_legacy_api") != "true"
+    constants["gender_legacy"] = hasProperty("gender.version") && findProperty("gender_legacy_api") == "true"
 }
 
 // ── Common branch ──

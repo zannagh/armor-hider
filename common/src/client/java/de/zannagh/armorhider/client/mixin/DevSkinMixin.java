@@ -16,16 +16,9 @@ import org.spongepowered.asm.mixin.injection.At;
 public class DevSkinMixin {
     
     //? if >= 1.21.1 {
-    @Unique
-    //? if >= 1.21.9
-    private static final String SKIN_METHOD = "get";
-    //? if >= 1.21.4 && < 1.21.9
-    //private static final String SKIN_METHOD = "getOrLoad";
-    //? if < 1.21.4
-    //private static final String SKIN_METHOD = "get";
-
+    //~ if >= 1.21.4 && < 1.21.9 '"get"' -> '"getOrLoad"' {
     @WrapOperation(
-            method = SKIN_METHOD,
+            method = "get",
             at = @At(
                     value = "INVOKE",
                     target = "Lcom/mojang/authlib/minecraft/MinecraftSessionService;getPackedTextures(Lcom/mojang/authlib/GameProfile;)Lcom/mojang/authlib/properties/Property;"
@@ -39,6 +32,7 @@ public class DevSkinMixin {
         }
         return original.call(service, profile);
     }
+    //~}
     //?}
     
     @Unique

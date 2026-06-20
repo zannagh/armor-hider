@@ -54,6 +54,7 @@ public class MixinPlugin implements IMixinConfigPlugin {
             "MinecraftClientMixin",
             // Compat — @Pseudo, auto-skipped if target mod absent
             "compat.wildfiregender.GenderArmorLayerMixin",
+            "compat.wildfiregender.GenderLegacyLayerMixin",
             "compat.geckolib.GeckoLibArmorMixin",
             "compat.waveycapes.WaveyCapesMixin",
             // Compat - Pseudo and guarded in source for mekanism constant only (1.21.1 Neo)

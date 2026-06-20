@@ -4,15 +4,11 @@ package de.zannagh.armorhider.client.mixin.compat.wildfiregender;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.wildfire.render.BreastSide;
-import com.wildfire.render.GenderArmorLayer;
 import de.zannagh.armorhider.client.api.AhRenderManagementApi;
 import de.zannagh.armorhider.client.common.RenderScope;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
-import org.apache.commons.lang3.mutable.MutableBoolean;
-import org.apache.commons.lang3.mutable.MutableInt;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Pseudo;
 import org.spongepowered.asm.mixin.Unique;
@@ -23,6 +19,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 //? if >= 1.21 {
 import com.mojang.datafixers.util.Pair;
+import com.wildfire.render.BreastSide;
+import com.wildfire.render.GenderArmorLayer;
 //?}
 
 //? if >= 1.21.9 {
@@ -38,6 +36,11 @@ import net.minecraft.world.item.equipment.EquipmentAsset;
 import net.minecraft.world.item.equipment.trim.ArmorTrim;
 //?}
 
+//? if >= 26.1-0.snapshot {
+import org.apache.commons.lang3.mutable.MutableBoolean;
+import org.apache.commons.lang3.mutable.MutableInt;
+//?}
+
 //? if >= 1.21 && < 1.21.9 {
 /*import de.zannagh.armorhider.client.common.SlotModification;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -45,6 +48,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
 
 //? if < 1.21 {
 /*import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+import com.wildfire.render.GenderLayer;
 import de.zannagh.armorhider.client.common.IdentityCarrier;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.world.entity.player.Player;
@@ -96,16 +100,18 @@ public class GenderArmorLayerMixin {
     // renderBreastArmor (renderVanillaLikeBreastArmor on < 1.21)
     // ========================
 
-    @Inject(method = "renderBreastArmor", at = @At("HEAD"), cancellable = true)
+    @Inject(method = BREAST_METHOD, at = @At("HEAD"), cancellable = true)
     private void interceptBreastArmor(
-            //? if >= 1.21.9 {
-            Identifier texture, PoseStack poseStack, SubmitNodeCollector collector, HumanoidRenderState state, BreastSide side, int color, MutableBoolean glint, MutableInt order, CallbackInfo ci
-            //? } elif >= 1.21 {
+            //? if >= 26.1-0.snapshot {
+            Identifier texture, PoseStack poseStack, SubmitNodeCollector collector, HumanoidRenderState state, BreastSide side, int color, MutableBoolean glint, MutableInt order,
+            //? } elif >= 1.21.9 {
+            /*Identifier texture, PoseStack poseStack, SubmitNodeCollector collector, HumanoidRenderState state, BreastSide side, int color, boolean glint,
+            *///? } elif >= 1.21 {
             /*Identifier texture, PoseStack poseStack, MultiBufferSource bufferSource, int light, @Coerce Object side, int color, boolean glint,
             *///? } else {
             /*Player player, PoseStack poseStack, MultiBufferSource bufferSource, ArmorItem armorItem, ItemStack itemStack, int light, boolean isLeft,
             *///?}
-    ) {
+            CallbackInfo ci) {
         //? if >= 1.21.9 {
         var interceptionResult = interceptArmor(state, EquipmentSlot.CHEST, state.chestEquipment, ci);
         if (!interceptionResult.getFirst()) {
@@ -135,14 +141,16 @@ public class GenderArmorLayerMixin {
 
     @Inject(method = BREAST_METHOD, at = @At("RETURN"))
     private void clearBreastArmorContext(
-            //? if >= 1.21.9 {
-            Identifier texture, PoseStack poseStack, SubmitNodeCollector collector, HumanoidRenderState state, BreastSide side, int color, MutableBoolean glint, MutableInt order, CallbackInfo ci
-            //? } elif >= 1.21 {
+            //? if >= 26.1-0.snapshot {
+            Identifier texture, PoseStack poseStack, SubmitNodeCollector collector, HumanoidRenderState state, BreastSide side, int color, MutableBoolean glint, MutableInt order,
+            //? } elif >= 1.21.9 {
+            /*Identifier texture, PoseStack poseStack, SubmitNodeCollector collector, HumanoidRenderState state, BreastSide side, int color, boolean glint,
+            *///? } elif >= 1.21 {
             /*Identifier texture, PoseStack poseStack, MultiBufferSource bufferSource, int light, @Coerce Object side, int color, boolean glint,
             *///? } else {
             /*Player player, PoseStack poseStack, MultiBufferSource bufferSource, ArmorItem armorItem, ItemStack itemStack, int light, boolean isLeft,
             *///?}
-    ) {
+            CallbackInfo ci) {
         AhRenderManagementApi.exitScope(RenderScope.ARMOR_PIECE);
     }
 
@@ -229,14 +237,16 @@ public class GenderArmorLayerMixin {
 
     @Inject(method = TRIM_METHOD, at = @At("HEAD"), cancellable = true)
     private void interceptArmorTrim(
-            //? if >= 1.21.9 {
-            ResourceKey<EquipmentAsset> armorModel, PoseStack poseStack, SubmitNodeCollector collector, HumanoidRenderState state, ArmorTrim trim, BreastSide side, MutableInt order, CallbackInfo ci
-            //? } elif >= 1.21 {
+            //? if >= 26.1-0.snapshot {
+            ResourceKey<EquipmentAsset> armorModel, PoseStack poseStack, SubmitNodeCollector collector, HumanoidRenderState state, ArmorTrim trim, BreastSide side, MutableInt order,
+            //? } elif >= 1.21.9 {
+            /*ResourceKey<EquipmentAsset> armorModel, PoseStack poseStack, SubmitNodeCollector collector, HumanoidRenderState state, ArmorTrim trim, BreastSide side, boolean glint,
+            *///? } elif >= 1.21 {
             /*@Coerce Object armorModel, PoseStack poseStack, MultiBufferSource bufferSource, int light, @Coerce Object trim, boolean glint, @Coerce Object side,
             *///? } else {
             /*ArmorMaterial material, PoseStack poseStack, MultiBufferSource bufferSource, int light, ArmorTrim trim, boolean glint, boolean isLeft,
             *///?}
-    ) {
+            CallbackInfo ci) {
         //? if >= 1.21.9 {
         var interceptionResult = interceptArmor(state, EquipmentSlot.CHEST, state.chestEquipment, ci);
         if (!interceptionResult.getFirst()) {
@@ -264,14 +274,16 @@ public class GenderArmorLayerMixin {
 
     @Inject(method = TRIM_METHOD, at = @At("RETURN"))
     private void clearArmorTrimContext(
-            //? if >= 1.21.9 {
-            ResourceKey<EquipmentAsset> armorModel, PoseStack poseStack, SubmitNodeCollector collector, HumanoidRenderState state, ArmorTrim trim, BreastSide side, MutableInt order, CallbackInfo ci
-            //? } elif >= 1.21 {
+            //? if >= 26.1-0.snapshot {
+            ResourceKey<EquipmentAsset> armorModel, PoseStack poseStack, SubmitNodeCollector collector, HumanoidRenderState state, ArmorTrim trim, BreastSide side, MutableInt order,
+            //? } elif >= 1.21.9 {
+            /*ResourceKey<EquipmentAsset> armorModel, PoseStack poseStack, SubmitNodeCollector collector, HumanoidRenderState state, ArmorTrim trim, BreastSide side, boolean glint,
+            *///? } elif >= 1.21 {
             /*@Coerce Object armorModel, PoseStack poseStack, MultiBufferSource bufferSource, int light, @Coerce Object trim, boolean glint, @Coerce Object side,
             *///? } else {
             /*ArmorMaterial material, PoseStack poseStack, MultiBufferSource bufferSource, int light, ArmorTrim trim, boolean glint, boolean isLeft,
             *///?}
-    ) {
+            CallbackInfo ci) {
         AhRenderManagementApi.exitScope(RenderScope.ARMOR_PIECE);
     }
 
@@ -308,11 +320,11 @@ public class GenderArmorLayerMixin {
     *///?}
 
     // ========================
-    // renderGlint (era 3 / 1.21.9+ only)
+    // renderGlint (era 3a / 1.21.9-1.21.11 only; removed in 26.1+)
     // ========================
 
-    //? if >= 1.21.9 {
-    @Inject(method = "renderGlint", at = @At("HEAD"), cancellable = true)
+    //? if >= 1.21.9 && < 26.1-0.snapshot {
+    /*@Inject(method = "renderGlint", at = @At("HEAD"), cancellable = true)
     private void interceptGlint(PoseStack poseStack, SubmitNodeCollector queue,
             HumanoidRenderState state, @Coerce Object box, CallbackInfo ci) {
         if (!(state instanceof IdentityCarrier carrier)) return;
@@ -322,6 +334,6 @@ public class GenderArmorLayerMixin {
             ci.cancel();
         }
     }
-    //?}
+    *///?}
 }
 //?}

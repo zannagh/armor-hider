@@ -45,12 +45,8 @@ public class EntityRenderDispatcherMixin {
 
     @Unique
     private static boolean isPlayerEntity(Object entity) {
-        //? if >= 1.21.9
+        //~ if < 1.21.9 'AvatarRenderState' -> 'Player'
         return entity instanceof AvatarRenderState;
-        //? if >= 1.21.4 && < 1.21.9
-        //return entity instanceof Player;
-        //? if < 1.21.4
-        //return entity instanceof Player;
     }
 
     @Inject(method = RENDER_METHOD, at = @At("HEAD"))
@@ -69,13 +65,7 @@ public class EntityRenderDispatcherMixin {
     }
 
     @Inject(method = RENDER_METHOD, at = @At("RETURN"))
-    //? if >= 1.21.9 {
-    private <S extends EntityRenderState> void exitEntityRendering(S entity, CameraRenderState cameraRenderState, double d, double e, double f, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, CallbackInfo ci) {
-    //?} else if >= 1.21.4 {
-    /*private <E extends Entity> void exitEntityRendering(E entity, double x, double y, double z, float yRot, PoseStack poseStack, MultiBufferSource bufferSource, int light, CallbackInfo ci) {
-    *///?} else {
-    /*private <E extends Entity> void exitEntityRendering(E entity, double x, double y, double z, float yRot, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int light, CallbackInfo ci) {
-    *///?}
+    private void exitEntityRendering(CallbackInfo ci) {
         AhRenderManagementApi.exitEntityRender();
     }
 }

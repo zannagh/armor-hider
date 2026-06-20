@@ -71,10 +71,7 @@ public class HumanoidArmorLayerMixin
 
     //? if >= 1.21.9 || < 1.21.4 {
     @Inject(method = "renderArmorPiece", at = @At("RETURN"))
-    //? if >= 1.21.9
-    private <S extends HumanoidRenderState> void onRenderArmorPieceReturn(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, ItemStack itemStack, EquipmentSlot equipmentSlot, int i, S humanoidRenderState, CallbackInfo ci) {
-    //? if < 1.21.4
-    //private void onRenderArmorPieceReturn(PoseStack poseStack, MultiBufferSource bufferSource, T entity, EquipmentSlot slot, int packedLight, A armorModel, CallbackInfo ci) {
+    private void onRenderArmorPieceReturn(CallbackInfo ci) {
         AhRenderManagementApi.exitScope(RenderScope.ARMOR_PIECE);
     }
     //?}

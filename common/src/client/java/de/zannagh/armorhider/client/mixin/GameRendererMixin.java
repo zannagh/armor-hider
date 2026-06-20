@@ -26,18 +26,12 @@ import net.minecraft.client.DeltaTracker;
 public class GameRendererMixin {
     
     @Inject(method = "renderLevel", at = @At("HEAD"))
-    //? if >= 1.21
-    private void enterLevelRender(DeltaTracker deltaTracker, CallbackInfo ci) {
-    //? if < 1.21
-    //private void enterLevelRender(float partialTick, long nanoTime, PoseStack poseStack, CallbackInfo ci) {
+    private void enterLevelRender(CallbackInfo ci) {
         AhRenderManagementApi.setInLevelRender();
     }
 
     @Inject(method = "renderLevel", at = @At("RETURN"))
-    //? if >= 1.21
-    private void exitLevelRender(DeltaTracker deltaTracker, CallbackInfo ci) {
-    //? if < 1.21
-    //private void exitLevelRender(float partialTick, long nanoTime, PoseStack poseStack, CallbackInfo ci) {
+    private void exitLevelRender(CallbackInfo ci) {
         AhRenderManagementApi.exitInLevelRender();
     }
 }

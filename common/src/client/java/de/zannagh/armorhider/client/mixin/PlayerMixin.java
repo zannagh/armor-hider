@@ -169,6 +169,4 @@ public abstract class PlayerMixin
         }
         return original;
     }
-
-
 }

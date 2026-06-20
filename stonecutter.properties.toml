@@ -282,6 +282,10 @@ mekanism.version = "5KzzycBT"
 waveycapes.version = "uuX7ce0R"
 figura.version = "yXFi1fed"
 gender.version = "kKffHCGl"
+# kKffHCGl ships only the legacy GenderLayer API (no GenderArmorLayer / BreastSide).
+# Routes the gender compat through GenderLegacyLayerMixin (coarse hide-cancel only;
+# no transparency or trim recolor on this combo).
+gender_legacy_api = "true"
 
 ["neoforge-1.21.4"]
 "neoforge.version" = "21.4.156"

@@ -115,21 +115,7 @@ public class CapeRenderMixin {
     }
 
     @Inject(method = CAPE_CONTEXT_METHOD, at = @At("RETURN"))
-    private void releaseCapeContext(PoseStack poseStack,
-                                    //? if >= 1.21.9 {
-                                    SubmitNodeCollector submitNodeCollector,
-                                    //? } else
-                                    //MultiBufferSource multiBufferSource,
-                                    int light,
-                                    //? if >= 1.21.4 {
-                                    AvatarRenderState avatarRenderState,
-                                    //? } else
-                                    //AbstractClientPlayer avatarRenderState,
-                                    float limbSwing, float limbSwingAmount,
-                                    //? if < 1.21.4 {
-                                    //float partialTick, float ageInTicks, float netHeadYaw, float headPitch,
-                                    //? }
-                                    CallbackInfo ci) {
+    private void releaseCapeContext(CallbackInfo ci) {
         AhRenderManagementApi.exitScope(RenderScope.CAPE);
     }
 }

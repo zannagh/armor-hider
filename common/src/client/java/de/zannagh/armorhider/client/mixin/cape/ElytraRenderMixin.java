@@ -70,18 +70,7 @@ public class ElytraRenderMixin
     }
 
     @Inject(method = ENTRY_METHOD, at = @At(value = "RETURN"))
-    //? if >= 1.21.4 {
-    private void releaseContext(PoseStack poseStack,
-                                //? if >= 1.21.9
-                                SubmitNodeCollector submitNodeCollector,
-                                //? if < 1.21.9
-                                //MultiBufferSource multiBufferSource,
-                                int i,
-                                S humanoidRenderState, float f, float g, CallbackInfo ci) {
-    //? }
-    //? if < 1.21.4 {
-    /*private void releaseContext(PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, S humanoidRenderState, float limbSwing, float limbSwingAmount, float partialTick, float ageInTicks, float netHeadYaw, float headPitch, CallbackInfo ci) {
-     *///?}
+    private void releaseContext(CallbackInfo ci) {
         AhRenderManagementApi.exitScope(RenderScope.ELYTRA);
     }
 
