@@ -86,6 +86,12 @@ display_version = "26.2-pre.1"
 accesswidener.version = "current"
 game_versions = "26.2-pre-1"
 
+["26.2"]
+java.version = "25"
+display_version = "26.2"
+accesswidener.version = "current"
+game_versions = "26.2"
+
 # ──────────────────────────────────────────────────────────────────────────────
 # Per project — loader-specific properties.
 # Matched via the default project tag (e.g. "fabric-1.20.1").
@@ -252,6 +258,16 @@ etf.version = "pzW03Rc5"
 modmenu.version = "A1KYIXpK"
 gender.version = "BGSsrIlj"
 
+["fabric-26.2"]
+"fabric.minecraft_version" = "26.2"
+"fabric.minecraft_version_range" = "26.2"
+elytratrims.version = "tKGLQKLD"
+geckolib.version = "GdrAq4td"
+iris.version = "3uIIps8q"
+emf.version = "DzLYJMqg"
+etf.version = "HLCBKYFD"
+modmenu.version = "dTGuPZ91"
+
 # ── NeoForge ──────────────────────────────────────────────────────────────────
 
 ["neoforge-1.21.1"]
@@ -314,3 +330,12 @@ elytratrims.version = "wgUBgHvL"
 iris.version = "MwcLS51S"
 emf.version = "hABUrVHX"
 etf.version = "J8nN7dGg"
+
+["neoforge-26.2"]
+"neoforge.version" = "26.2.0.6-beta"
+"neoforge.minecraft_version_range" = "[26.2]"
+geckolib.version = "Y5jWG02T"
+elytratrims.version = "kHpKqNuJ"
+iris.version = "3uIIps8q"
+emf.version = "QxbPFvdn"
+etf.version = "NrV7O0NJ"

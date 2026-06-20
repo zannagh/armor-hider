@@ -6,9 +6,12 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import de.zannagh.armorhider.client.api.AhRenderManagementApi;
 import de.zannagh.armorhider.client.common.RenderScope;
 import net.minecraft.client.renderer.SubmitNodeCollection;
-import net.minecraft.client.renderer.SubmitNodeStorage;
+//? if < 26.2-1.pre
+//import net.minecraft.client.renderer.SubmitNodeStorage;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
-import net.minecraft.client.renderer.feature.ModelPartFeatureRenderer;
+//? if < 26.2-1.pre
+//import net.minecraft.client.renderer.feature.ModelPartFeatureRenderer;
+import net.minecraft.world.entity.EquipmentSlot;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
@@ -19,6 +22,11 @@ import net.minecraft.client.renderer.RenderTypes;
 
 //? if 1.21.9 || 1.21.10
 //import net.minecraft.client.renderer.RenderType;
+
+//? if >= 26.2-1.pre {
+/^import net.minecraft.client.renderer.feature.phase.TranslucentFeatureRenderPhase;
+import net.minecraft.client.renderer.feature.submit.TranslucentSubmit;
+^///?}
 
 /^*
  * NeoForge-specific armor color transparency mixin.
@@ -32,7 +40,8 @@ import net.minecraft.client.renderer.RenderTypes;
 @Mixin(SubmitNodeCollection.class)
 public class NeoForgeArmorColorMixin {
 
-    @WrapOperation(
+    //? if < 26.2-1.pre {
+    /^@WrapOperation(
             method = "submitModelPart",
             at = @At(
                     value = "INVOKE",
@@ -47,7 +56,7 @@ public class NeoForgeArmorColorMixin {
     //? if 1.21.9 || 1.21.10
     //private void wrapArmorModelPartAdd(ModelPartFeatureRenderer.Storage storage, RenderType renderType, SubmitNodeStorage.ModelPartSubmit submit, Operation<Void> original) {
         if (shouldApplyArmorTransparency()) {
-            
+
             float alpha = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE).renderModificationApi().getTransparencyAlpha();
 
             int origColor = submit.tintedColor();
@@ -91,7 +100,7 @@ public class NeoForgeArmorColorMixin {
     //? if 1.21.9 || 1.21.10
     //private <S> void wrapArmorModelAdd(ModelFeatureRenderer.Storage storage, RenderType renderType, SubmitNodeStorage.ModelSubmit<S> submit, Operation<Void> original) {
         if (shouldApplyArmorTransparency()) {
-            
+
             float alpha = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE).renderModificationApi().getTransparencyAlpha();
 
             int origColor = submit.tintedColor();
@@ -118,9 +127,50 @@ public class NeoForgeArmorColorMixin {
             original.call(storage, renderType, submit);
         }
     }
+    ^///?}
+
+    //? if >= 26.2-1.pre {
+    @WrapOperation(
+            method = "submitModel",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/renderer/feature/phase/TranslucentFeatureRenderPhase;submit(Lnet/minecraft/client/renderer/feature/submit/TranslucentSubmit;)V"
+            )
+    )
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private void wrapArmorModelSubmit(TranslucentFeatureRenderPhase phase, TranslucentSubmit submit, Operation<Void> original) {
+        if (!(submit instanceof ModelFeatureRenderer.Submit<?> modelSubmit)) {
+            original.call(phase, submit);
+            return;
+        }
+        if (shouldApplyArmorTransparency()) {
+            float alpha = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE).renderModificationApi().getTransparencyAlpha();
+
+            int origColor = modelSubmit.tintedColor();
+            int origAlpha = (origColor >> 24) & 0xFF;
+            int newAlpha = Math.round(alpha * origAlpha);
+            int modifiedColor = (origColor & 0x00FFFFFF) | (newAlpha << 24);
+
+            RenderType translucentType = modelSubmit.renderType();
+            if (modelSubmit.sprite() != null) {
+                translucentType = RenderTypes.entityTranslucent(modelSubmit.sprite().atlasLocation());
+            }
+
+            var modified = new ModelFeatureRenderer.Submit(
+                    translucentType, modelSubmit.pose(), modelSubmit.model(), modelSubmit.state(),
+                    modelSubmit.lightCoords(), modelSubmit.overlayCoords(), modifiedColor,
+                    modelSubmit.sprite(), modelSubmit.sheetedDecalPose()
+            );
+
+            original.call(phase, (TranslucentSubmit) modified);
+        } else {
+            original.call(phase, submit);
+        }
+    }
+    //?}
 
     private static boolean shouldApplyArmorTransparency() {
-        
+
         return AhRenderManagementApi.hasScopeModification(RenderScope.ARMOR_PIECE);
     }
 }

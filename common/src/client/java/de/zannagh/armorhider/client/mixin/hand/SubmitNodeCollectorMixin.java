@@ -19,9 +19,9 @@ import org.spongepowered.asm.mixin.injection.At;
 import net.minecraft.client.renderer.rendertype.RenderType;
 
 //? if >= 26.2-1.pre {
-/*import net.minecraft.client.renderer.feature.phase.TranslucentFeatureRenderPhase;
+import net.minecraft.client.renderer.feature.phase.TranslucentFeatureRenderPhase;
 import net.minecraft.client.renderer.feature.submit.TranslucentSubmit;
-*///?}
+//?}
 
 @SuppressWarnings({"unused", "UnusedMixin"})
 @Mixin(SubmitNodeCollection.class)
@@ -36,7 +36,7 @@ public class SubmitNodeCollectorMixin {
             )
     )
     private void wrapModelPartAdd(ModelPartFeatureRenderer.Storage storage, RenderType renderType, SubmitNodeStorage.ModelPartSubmit submit, Operation<Void> original) {
-        
+
         var offhandCtx = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
         var headCtx = AhRenderManagementApi.getActiveScope(RenderScope.HEAD);
         var ctx = !offhandCtx.isEmpty() ? offhandCtx : headCtx;
@@ -83,7 +83,7 @@ public class SubmitNodeCollectorMixin {
     )
 
     private <S> void wrapModelAdd(ModelFeatureRenderer.Storage storage, RenderType renderType, SubmitNodeStorage.ModelSubmit<S> submit, Operation<Void> original) {
-        
+
         var offCtx = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
         var hdCtx = AhRenderManagementApi.getActiveScope(RenderScope.HEAD);
         var activeCtx = !offCtx.isEmpty() ? offCtx : hdCtx;
