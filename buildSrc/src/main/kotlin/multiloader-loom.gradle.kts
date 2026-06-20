@@ -1,7 +1,7 @@
-import dev.kikugie.stonecutter.build.StonecutterBuildExtension
 
 val isDeobf = extra.has("loom.deobf") && extra.get("loom.deobf") as Boolean
 val sc = project.stonecutterBuild
+val proj = project
 val branch = sc.branch.id
 val mcVersion = sc.current.project.substringAfter('-')
 
@@ -41,6 +41,7 @@ with(sc) {
     constants["neoforge"] = current.project.contains("neoforge")
     constants["mekanism"] = hasProperty("mekanism.version")
     constants["waveycapes"] = hasProperty("waveycapes.version")
+    constants["gender"] = hasProperty("gender.version")
 }
 
 // ── Common branch ──
@@ -67,11 +68,13 @@ if (branch == "common") {
     }
 
     dependencies {
+
         if (!isDeobf) {
             add("modCompileOnly", "net.fabricmc:fabric-loader:${property("loader_version")}")
         }
         val modDep = if (isDeobf) "compileOnly" else "modCompileOnly"
         val modClientDep = if (isDeobf) "clientCompileOnly" else "modClientCompileOnly"
+
         if (hasProperty("geckolib.version")) {
             add(modDep, "maven.modrinth:geckolib:${findProperty("geckolib.version")}")
             add(modClientDep, "maven.modrinth:geckolib:${findProperty("geckolib.version")}")
@@ -99,6 +102,9 @@ if (branch == "common") {
         }
         if (hasProperty("modmenu.version")) {
             add(modClientDep, "maven.modrinth:modmenu:${findProperty("modmenu.version")}")
+        }
+        if (hasProperty("gender.version")) {
+            add(modClientDep, "maven.modrinth:female-gender:${findProperty("gender.version")}")
         }
         add("compileOnly", "net.luckperms:api:5.4")
         add("compileOnly", "org.jspecify:jspecify:1.0.0")
