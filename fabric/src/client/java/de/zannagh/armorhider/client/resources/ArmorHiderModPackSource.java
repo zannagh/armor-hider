@@ -1,3 +1,4 @@
+//? if >= 1.21 {
 package de.zannagh.armorhider.client.resources;
 
 import de.zannagh.armorhider.ArmorHider;
@@ -57,3 +58,4 @@ public final class ArmorHiderModPackSource implements RepositorySource {
         }
     }
 }
+//?}

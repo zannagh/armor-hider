@@ -1,3 +1,4 @@
+//? if >= 1.21 {
 package de.zannagh.armorhider.client.mixin.resources;
 
 import de.zannagh.armorhider.CompatFlags;
@@ -34,3 +35,4 @@ public abstract class PackRepositoryMixin {
         return combined;
     }
 }
+//?}
