@@ -1,5 +1,5 @@
 //? if gender_legacy {
-package de.zannagh.armorhider.client.mixin.compat.wildfiregender;
+/*package de.zannagh.armorhider.client.mixin.compat.wildfiregender;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.wildfire.render.GenderLayer;
@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-/**
+/^*
  * Compatibility mixin for the legacy female-gender API.
  * <p>
  * The mod's NeoForge 1.21/1.21.1 build (modrinth hash {@code kKffHCGl}) ships only
@@ -23,7 +23,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * hooks, so all we can do here is coarse hide-cancellation of the whole breast
  * geometry when the player's chest slot is configured to hide. Transparency and
  * armor-trim recolor are not supported on this combo.
- */
+ ^/
 @SuppressWarnings("UnresolvedMixinReference")
 @Pseudo
 @Mixin(value = GenderLayer.class, remap = false)
@@ -43,4 +43,4 @@ public class GenderLegacyLayerMixin {
         }
     }
 }
-//?}
+*///?}

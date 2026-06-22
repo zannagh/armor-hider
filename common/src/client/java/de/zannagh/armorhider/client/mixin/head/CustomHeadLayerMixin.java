@@ -19,13 +19,13 @@ import net.minecraft.client.renderer.rendertype.RenderType;
 //? if >= 1.21.9 {
 import net.minecraft.client.renderer.SubmitNodeCollector;
 //? } else {
-import net.minecraft.client.renderer.MultiBufferSource;
-//? }
+/*import net.minecraft.client.renderer.MultiBufferSource;
+*///? }
 //? if >= 1.21.4 {
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 //? } else {
-import net.minecraft.world.entity.LivingEntity;
-//? }
+/*import net.minecraft.world.entity.LivingEntity;
+*///? }
 
 @Mixin(CustomHeadLayer.class)
 public abstract class CustomHeadLayerMixin {
