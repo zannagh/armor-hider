@@ -4,6 +4,7 @@ package de.zannagh.armorhider.client.mixin.bodyKneesAndToes;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.api.AhRenderManagementApi;
 import de.zannagh.armorhider.client.api.AhRenderInterceptionRegistryApi;
@@ -13,6 +14,7 @@ import de.zannagh.armorhider.client.api.AhRenderManagementApi;
 import de.zannagh.armorhider.client.api.AhRenderInterceptionRegistryApi;
 import de.zannagh.armorhider.client.common.RenderScope;
 import de.zannagh.armorhider.client.render.VanillaArmorTextureManager;
+import de.zannagh.armorhider.common.ItemInfo;
 import de.zannagh.armorhider.log.DebugLogger;
 import de.zannagh.armorhider.net.packets.PlayerConfig;
 import net.minecraft.client.model.Model;
@@ -21,6 +23,7 @@ import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.resources.model.EquipmentClientInfo;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.equipment.EquipmentAsset;
 import org.spongepowered.asm.mixin.Mixin;
@@ -69,7 +72,7 @@ public class EquipmentRenderMixin {
     //? if >= 1.21.9 {
     @ModifyVariable(method = RENDER_LAYERS_DETAIL, at = @At("HEAD"), ordinal = 2, argsOnly = true)
     private int modifyRenderOrder(int value) {
-        return AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE).renderModificationApi().modifyRenderPriority(value);
+        return AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE, RenderScope.ELYTRA).renderModificationApi().modifyRenderPriority(value);
     }
     //?}
 
@@ -79,9 +82,13 @@ public class EquipmentRenderMixin {
     // handles scope entry there instead, so the entry/reset hooks are gated to 1.21.9+.
     @Inject(method = RENDER_LAYERS_ENTRY, at = @At("HEAD"), cancellable = true)
     private <S> void interceptRender(EquipmentClientInfo.LayerType layerType, ResourceKey<EquipmentAsset> resourceKey, Model<? super S> model, S object, ItemStack itemStack, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int i, int j, CallbackInfo ci) {
-        var renderer = AhRenderInterceptionRegistryApi.getRenderer(RenderScope.ARMOR_PIECE);
-        var result = renderer.intercept(object, null, itemStack, ci);
+        var targetScope = RenderScope.of(null, itemStack);
+        var renderer = AhRenderInterceptionRegistryApi.getRenderer(targetScope);
+        var result = renderer.intercept(object, targetScope == RenderScope.ELYTRA ? EquipmentSlot.CHEST : null, itemStack, ci);
         if (result.shouldCancel() || !result.shouldIntercept()) {
+            return;
+        }
+        if (targetScope == RenderScope.ELYTRA) {
             return;
         }
 
@@ -100,7 +107,7 @@ public class EquipmentRenderMixin {
 
     @Inject(method = RENDER_LAYERS_ENTRY, at = @At("RETURN"))
     private static <S> void resetContext(EquipmentClientInfo.LayerType layerType, ResourceKey<EquipmentAsset> resourceKey, Model<? super S> model, S object, ItemStack itemStack, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int i, int j, CallbackInfo ci) {
-        AhRenderManagementApi.exitScope(RenderScope.ARMOR_PIECE);
+        AhRenderManagementApi.exitScopes(RenderScope.ARMOR_PIECE, RenderScope.ELYTRA);
         armorHider$combatSingleLayer.remove();
         armorHider$combatAssetKey.remove();
         armorHider$combatLayerType.remove();
@@ -112,7 +119,7 @@ public class EquipmentRenderMixin {
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;hasFoil()Z")
     )
     private boolean modifyGlint(boolean original) {
-        return AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE).renderModificationApi().getHasFoil(original);
+        return AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE, RenderScope.ELYTRA).renderModificationApi().getHasFoil(original);
     }
 
     @WrapOperation(
@@ -125,26 +132,23 @@ public class EquipmentRenderMixin {
                     //target = "Lnet/minecraft/client/renderer/rendertype/RenderType;armorCutoutNoCull(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/rendertype/RenderType;"
             )
     )
-    private RenderType modifyArmorRenderLayer(Identifier texture, Operation<RenderType> original) {
+    private RenderType modifyArmorRenderLayer(Identifier texture, Operation<RenderType> original,
+                                              @Local(argsOnly = true) EquipmentClientInfo.LayerType layerType) {
         ResourceKey<EquipmentAsset> assetKey = armorHider$combatAssetKey.get();
-        EquipmentClientInfo.LayerType layerType = armorHider$combatLayerType.get();
-        if (assetKey != null && layerType != null) {
-            Identifier vanillaTexture = VanillaArmorTextureManager.resolveVanillaEquipmentTexture(assetKey, layerType);
+        EquipmentClientInfo.LayerType combatLayerType = armorHider$combatLayerType.get();
+        if (assetKey != null && combatLayerType != null) {
+            Identifier vanillaTexture = VanillaArmorTextureManager.resolveVanillaEquipmentTexture(assetKey, combatLayerType);
             if (vanillaTexture != null) {
                 return original.call(vanillaTexture);
             }
         }
-        var ctx = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE);
+        var ctx = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE, RenderScope.ELYTRA);
         if (ctx.isEmpty()) {
             return original.call(texture);
         }
 
         Identifier resolved = VanillaArmorTextureManager.resolveArmorTexture(ctx.modification(), texture);
-
-        if (ctx.renderModificationApi().getTranslucentArmorRenderType(resolved, original.call(resolved)) instanceof RenderType renderType) {
-            return renderType;
-        }
-        return original.call(resolved);
+        return ctx.renderModificationApi().getTranslucentArmorRenderType(resolved, original.call(resolved)) instanceof RenderType rt ? rt : original.call(resolved);
     }
 
     @WrapOperation(
@@ -158,7 +162,7 @@ public class EquipmentRenderMixin {
             )
     )
     private RenderType modifyTrimRenderLayer(boolean decal, Operation<RenderType> original) {
-        var modApi = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE).renderModificationApi();
+        var modApi = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE, RenderScope.ELYTRA).renderModificationApi();
         if (modApi.getTrimRenderLayer(decal, original.call(decal)) instanceof RenderType renderType) {
             return renderType;
         }
@@ -187,7 +191,7 @@ public class EquipmentRenderMixin {
                 DebugLogger.log("[CombatSingleLayer] Allowed first layer submit | renderType={}", renderType);
             }
         }
-        var modifiedColor = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE).renderModificationApi().applyArmorTransparency(color);
+        var modifiedColor = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE, RenderScope.ELYTRA).renderModificationApi().applyArmorTransparency(color);
         original.call(collector, model, state, poseStack, renderType, light, overlay, modifiedColor, sprite, param9, crumblingOverlay);
     }
     //?}

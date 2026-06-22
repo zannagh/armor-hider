@@ -58,15 +58,7 @@ public class ElytraRenderMixin
     //? if < 1.21.4 {
     /*private void interceptElytraRender(PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, S humanoidRenderState, float limbSwing, float limbSwingAmount, float partialTick, float ageInTicks, float netHeadYaw, float headPitch, CallbackInfo ci) {
     *///?}
-        if (!(humanoidRenderState instanceof IdentityCarrier carrier)) {
-            return;
-        }
-        
-        var result = AhRenderInterceptionRegistryApi.getRenderer(RenderScope.ELYTRA).interceptFrom(carrier, ci);
-        if (!result.shouldIntercept() || result.shouldCancel()) {
-            return;
-        }
-        AhRenderManagementApi.enterScope(result);
+        AhRenderInterceptionRegistryApi.getRenderer(RenderScope.ELYTRA).interceptFrom(humanoidRenderState, ci);
     }
 
     @Inject(method = ENTRY_METHOD, at = @At(value = "RETURN"))

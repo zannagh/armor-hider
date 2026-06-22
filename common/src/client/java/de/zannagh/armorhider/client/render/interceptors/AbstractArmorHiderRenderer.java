@@ -75,12 +75,16 @@ public abstract class AbstractArmorHiderRenderer implements AhRenderer {
      */
     protected SlotModification resolveModification(@Nullable IdentityCarrier carrier, @Nullable EquipmentSlot slot, @Nullable ItemStack stack) {
         SlotModification mod;
-        if (carrier == null || carrier.armorHider$playerName() == null || slot == null) {
+        if (carrier == null || carrier.armorHider$playerName() == null) {
             mod = SlotModification.empty();
         } else {
+            if (stack == null && slot != null) {
+                stack = carrier.getItemBySlot(slot);
+            }
             mod = SlotModification.of(carrier.armorHider$playerName(), slot, stack);
         }
-        modificationApi.set(new RenderModifications(mod));
+        var modifications = AhRenderModificationApi.getInstance(mod);
+        modificationApi.set(modifications);
         return mod;
     }
 

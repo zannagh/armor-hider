@@ -2,6 +2,7 @@ package de.zannagh.armorhider.client.common;
 
 import de.zannagh.armorhider.common.ItemInfo;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.ItemStack;
 
 /**
  * Identifies one rendering "concern" that Armor Hider tracks independently. Each scope has its
@@ -47,5 +48,13 @@ public enum RenderScope {
             }
             default -> ARMOR_PIECE;
         };
+    }
+
+    public static RenderScope of(EquipmentSlot slot, ItemStack stack) {
+        var info = new ItemInfo(stack);
+        if (info.isElytra() && slot == null) {
+            return ELYTRA;
+        }
+        return of(slot, info);
     }
 }

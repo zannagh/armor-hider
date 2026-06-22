@@ -1,5 +1,4 @@
 package de.zannagh.armorhider.client.render.rendertype;
-
 import net.minecraft.client.renderer.Sheets;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -33,6 +32,7 @@ import net.minecraft.resources.Identifier;
 
 //? if >= 26.1-0.snapshot.10 {
 import com.mojang.blaze3d.pipeline.DepthStencilState;
+import com.mojang.blaze3d.pipeline.ColorTargetState;
 //?}
 
 import java.util.Optional;
@@ -42,32 +42,13 @@ import java.util.function.Function;
  * Custom render types identical to vanilla translucent types but with depth writing disabled.
  * Prevents semi-transparent armor/items from occluding translucent terrain (water, ice) behind them.
  */
-@SuppressWarnings("deprecation") // TextureAtlas.LOCATION_BLOCKS: no non-deprecated Identifier alternative; Mojang's own Sheets uses it internally.
-
-public final class ArmorHiderRenderTypes
-    //? if < 1.21.11
-    //extends RenderStateShard
-    {
-    private ArmorHiderRenderTypes() {
-        //? if < 1.21.11
-        //super("armor_hider_dummy", () -> {}, () -> {});
-    }
-
-    public static RenderType translucentArmor(Identifier texture) {
-        return TRANSLUCENT_ARMOR.apply(texture);
-    }
-
-    public static RenderType translucentEntity(Identifier texture) {
-        return TRANSLUCENT_ENTITY.apply(texture);
-    }
-
-    public static RenderType translucentArmorTrim() {
-        return translucentArmor(Sheets.ARMOR_TRIMS_SHEET);
-    }
-
-    public static RenderType translucentItemSheet() {
-        return TRANSLUCENT_ITEM_SHEET;
-    }
+//? if < 1.21.11 {
+/*public final class ArmorHiderRenderTypes extends RenderStateShard {
+    private ArmorHiderRenderTypes() { super("armor_hider_dummy", () -> {}, () -> {}); }
+*///?} else {
+public final class ArmorHiderRenderTypes {
+    private ArmorHiderRenderTypes() {}
+//?}
 
     private static <T, R> Function<T, R> memoize(Function<T, R> fn) {
         var cache = new ConcurrentHashMap<T, R>();
@@ -77,7 +58,7 @@ public final class ArmorHiderRenderTypes
     // --- Pipelines (>= 1.21.5) ---
 
     //? if >= 26.2-1.pre {
-    /*private static RenderPipeline clonePipelineNoDepthWrite(RenderPipeline src, Identifier location) {
+    private static RenderPipeline clonePipelineNoDepthWrite(RenderPipeline src, Identifier location) {
         var srcDss = src.getDepthStencilState();
         var noDss = new DepthStencilState(srcDss.depthTest(), false, srcDss.depthBiasScaleFactor(), srcDss.depthBiasConstant());
         var snippet = new RenderPipeline.Snippet(
@@ -101,7 +82,7 @@ public final class ArmorHiderRenderTypes
     private static final RenderPipeline ITEM_ENTITY_TRANSLUCENT_CULL_NO_DEPTH = clonePipelineNoDepthWrite(
             RenderPipelines.ITEM_TRANSLUCENT,
             Identifier.fromNamespaceAndPath("armor_hider", "pipeline/item_translucent_no_depth"));
-    *///?} elif >= 26.2-0.snapshot {
+    //?} elif >= 26.2-0.snapshot {
     /*private static RenderPipeline clonePipelineNoDepthWrite(RenderPipeline src, Identifier location) {
         var srcDss = src.getDepthStencilState();
         var noDss = new DepthStencilState(srcDss.depthTest(), false, srcDss.depthBiasScaleFactor(), srcDss.depthBiasConstant());
@@ -127,7 +108,7 @@ public final class ArmorHiderRenderTypes
             RenderPipelines.ITEM_TRANSLUCENT,
             Identifier.fromNamespaceAndPath("armor_hider", "pipeline/item_translucent_no_depth"));
     *///?} elif >= 26.1-0.snapshot.10 {
-    private static RenderPipeline clonePipelineNoDepthWrite(RenderPipeline src, Identifier location) {
+    /*private static RenderPipeline clonePipelineNoDepthWrite(RenderPipeline src, Identifier location) {
         var srcDss = src.getDepthStencilState();
         var noDss = new DepthStencilState(srcDss.depthTest(), false, srcDss.depthBiasScaleFactor(), srcDss.depthBiasConstant());
         var snippet = new RenderPipeline.Snippet(
@@ -151,7 +132,7 @@ public final class ArmorHiderRenderTypes
     private static final RenderPipeline ITEM_ENTITY_TRANSLUCENT_CULL_NO_DEPTH = clonePipelineNoDepthWrite(
             RenderPipelines.ITEM_TRANSLUCENT,
             Identifier.fromNamespaceAndPath("armor_hider", "pipeline/item_translucent_no_depth"));
-    //? } elif >= 1.21.5 {
+    *///? } elif >= 1.21.5 {
     /*private static RenderPipeline clonePipelineNoDepthWrite(RenderPipeline src, Identifier location) {
         var snippet = new RenderPipeline.Snippet(
                 Optional.of(src.getVertexShader()), Optional.of(src.getFragmentShader()),
@@ -184,9 +165,9 @@ public final class ArmorHiderRenderTypes
     //? if >= 1.21.5 {
     public static RenderPipeline[] pipelines() {
         return new RenderPipeline[] {
-            ARMOR_TRANSLUCENT_NO_DEPTH,
-            ENTITY_TRANSLUCENT_NO_DEPTH,
-            ITEM_ENTITY_TRANSLUCENT_CULL_NO_DEPTH
+                ARMOR_TRANSLUCENT_NO_DEPTH,
+                ENTITY_TRANSLUCENT_NO_DEPTH,
+                ITEM_ENTITY_TRANSLUCENT_CULL_NO_DEPTH
         };
     }
     //?}
@@ -299,32 +280,59 @@ public final class ArmorHiderRenderTypes
                     .setOutline(RenderSetup.OutlineProperty.AFFECTS_OUTLINE)
                     .createRenderSetup()
     );
-    //? } else {
+    //? } elif >= 1.21.5 {
     /*private static final RenderType TRANSLUCENT_ITEM_SHEET = RenderType.create(
-            "armor_hider_item_translucent_cull_no_depth",
-            //? if >= 1.21.5
-            1536, true, true, ITEM_ENTITY_TRANSLUCENT_CULL_NO_DEPTH,
-            //? if < 1.21.5
-            //DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, 1536, true, true,
+            "armor_hider_item_translucent_cull_no_depth", 1536, true, true,
+            ITEM_ENTITY_TRANSLUCENT_CULL_NO_DEPTH,
             RenderType.CompositeState.builder()
-                    //? if >= 1.21.5 {
                     .setTextureState(new RenderStateShard.TextureStateShard(
                             net.minecraft.client.renderer.texture.TextureAtlas.LOCATION_BLOCKS, false))
-                    //? }
-                    //? if < 1.21.5 {
-                    /^.setShaderState(RENDERTYPE_ITEM_ENTITY_TRANSLUCENT_CULL_SHADER)
-                    .setTextureState(new TextureStateShard(
-                                net.minecraft.client.renderer.texture.TextureAtlas.LOCATION_BLOCKS,
-                                //? if >= 1.21.4
-                                TriState.FALSE,
-                                //? if < 1.21.4
-                                //false,
-                                false))
-                    .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
-                    .setWriteMaskState(COLOR_WRITE)
-                    ^///? }
                     .setLightmapState(LIGHTMAP)
                     .createCompositeState(true)
     );
-     *///? }
+    *///?} elif >= 1.21.4 {
+    /*private static final RenderType TRANSLUCENT_ITEM_SHEET = RenderType.create(
+            "armor_hider_item_translucent_cull_no_depth",
+            DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, 1536, true, true,
+            RenderType.CompositeState.builder()
+                    .setShaderState(RENDERTYPE_ITEM_ENTITY_TRANSLUCENT_CULL_SHADER)
+                    .setTextureState(new TextureStateShard(
+                            net.minecraft.client.renderer.texture.TextureAtlas.LOCATION_BLOCKS, TriState.FALSE, false))
+                    .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
+                    .setLightmapState(LIGHTMAP)
+                    .setWriteMaskState(COLOR_WRITE)
+                    .createCompositeState(true)
+    );
+    *///?} else {
+    /*private static final RenderType TRANSLUCENT_ITEM_SHEET = RenderType.create(
+            "armor_hider_item_translucent_cull_no_depth",
+            DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, 1536, true, true,
+            RenderType.CompositeState.builder()
+                    .setShaderState(RENDERTYPE_ITEM_ENTITY_TRANSLUCENT_CULL_SHADER)
+                    .setTextureState(new TextureStateShard(
+                            net.minecraft.world.inventory.InventoryMenu.BLOCK_ATLAS, false, false))
+                    .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
+                    .setLightmapState(LIGHTMAP)
+                    .setWriteMaskState(COLOR_WRITE)
+                    .createCompositeState(true)
+    );
+    *///?}
+
+    // --- Public API ---
+
+    public static RenderType translucentArmor(Identifier texture) {
+        return TRANSLUCENT_ARMOR.apply(texture);
+    }
+
+    public static RenderType translucentEntity(Identifier texture) {
+        return TRANSLUCENT_ENTITY.apply(texture);
+    }
+
+    public static RenderType translucentArmorTrim() {
+        return translucentArmor(Sheets.ARMOR_TRIMS_SHEET);
+    }
+
+    public static RenderType translucentItemSheet() {
+        return TRANSLUCENT_ITEM_SHEET;
+    }
 }

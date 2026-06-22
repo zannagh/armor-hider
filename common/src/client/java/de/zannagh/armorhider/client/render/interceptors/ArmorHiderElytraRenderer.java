@@ -1,9 +1,12 @@
 package de.zannagh.armorhider.client.render.interceptors;
 
 import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.client.api.AhRenderManagementApi;
 import de.zannagh.armorhider.client.common.IdentityCarrier;
 import de.zannagh.armorhider.client.common.RenderInterceptionResult;
 import de.zannagh.armorhider.client.common.RenderScope;
+import de.zannagh.armorhider.client.common.SlotModification;
+import de.zannagh.armorhider.common.ItemInfo;
 import de.zannagh.armorhider.util.ItemsUtil;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
@@ -36,16 +39,22 @@ public class ArmorHiderElytraRenderer extends AbstractArmorHiderRenderer {
         }
         ItemStack elytraStack = stack != null ? stack : ItemsUtil.ELYTRA_ITEM_STACK;
         var mod = resolveModification(carrier, EquipmentSlot.CHEST, elytraStack);
-        if (mod.isEmpty()) {
-            return RenderInterceptionResult.ignore();
-        }
-        if (carrier.isPlayerFlying()) {
-            return RenderInterceptionResult.ignore();
-        }
+        RenderInterceptionResult result;
         if (mod.shouldHide()) {
             cancel(ci);
-            return new RenderInterceptionResult(true, true, getTargetScope(), carrier, mod);
+            result = new RenderInterceptionResult(true, true, getTargetScope(), carrier, mod);
         }
-        return new RenderInterceptionResult(true, false, getTargetScope(), carrier, mod);
+        else if (mod.isEmpty()) {
+            result = RenderInterceptionResult.ignore(getTargetScope(), mod);
+        }
+        else if (carrier.isPlayerFlying()) {
+            mod = new SlotModification(EquipmentSlot.CHEST, false, false, false, 1D, carrier.armorHider$playerName(), null, new ItemInfo(stack));
+            result = RenderInterceptionResult.ignore(getTargetScope(), mod);
+        }
+        else {
+            result = new RenderInterceptionResult(true, false, getTargetScope(), carrier, mod);
+        }
+        AhRenderManagementApi.enterScope(result);
+        return result;
     }
 }

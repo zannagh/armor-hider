@@ -45,6 +45,10 @@ public record RenderInterceptionResult(
         return new RenderInterceptionResult(false, false, RenderScope.NONE, null, null);
     }
 
+    public static RenderInterceptionResult ignore(RenderScope scope, @Nullable SlotModification mod) {
+        return new RenderInterceptionResult(false, false, scope, null, mod);
+    }
+
     /**
      * @return the equipment slot the resolved modification applies to, or {@code null} when the
      * result carries no modification (the {@link #ignore()} case).

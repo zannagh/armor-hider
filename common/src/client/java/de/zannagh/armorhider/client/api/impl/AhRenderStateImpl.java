@@ -3,13 +3,12 @@ package de.zannagh.armorhider.client.api.impl;
 import de.zannagh.armorhider.api.ArmorHiderApi;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.api.AhRenderModificationApi;
-import de.zannagh.armorhider.client.api.AhRenderTypeFactory;
 import de.zannagh.armorhider.client.common.GlobalRenderScope;
 import de.zannagh.armorhider.client.common.IdentityCarrier;
 import de.zannagh.armorhider.client.common.RenderScope;
 import de.zannagh.armorhider.client.common.RenderScopeContext;
 import de.zannagh.armorhider.client.common.SlotModification;
-import de.zannagh.armorhider.client.render.RenderModifications;
+import de.zannagh.armorhider.log.DebugLogger;
 import de.zannagh.armorhider.log.DebugTracer;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
@@ -27,8 +26,10 @@ import java.util.EnumSet;
 @ApiStatus.Internal
 public final class AhRenderStateImpl {
 
-    private static final EnumSet<GlobalRenderScope> SCOPE_FLAGS = EnumSet.noneOf(GlobalRenderScope.class);
-    private static final EnumMap<RenderScope, RenderScopeContext> ACTIVE_SCOPES = new EnumMap<>(RenderScope.class);
+    private static final ThreadLocal<EnumSet<GlobalRenderScope>> SCOPE_FLAGS =
+            ThreadLocal.withInitial(() -> EnumSet.noneOf(GlobalRenderScope.class));
+    private static final ThreadLocal<EnumMap<RenderScope, RenderScopeContext>> ACTIVE_SCOPES =
+            ThreadLocal.withInitial(() -> new EnumMap<>(RenderScope.class));
     private static String currentPlayerName = "";
 
     private AhRenderStateImpl() {}
@@ -36,17 +37,17 @@ public final class AhRenderStateImpl {
     // --- Phase flags ---
 
     public static boolean isInLevelRender() {
-        return SCOPE_FLAGS.contains(GlobalRenderScope.LEVEL_RENDER);
+        return SCOPE_FLAGS.get().contains(GlobalRenderScope.LEVEL_RENDER);
     }
 
     public static boolean isInEntityRender() {
-        return SCOPE_FLAGS.contains(GlobalRenderScope.ENTITY_RENDER);
+        return SCOPE_FLAGS.get().contains(GlobalRenderScope.ENTITY_RENDER);
     }
 
     public static void setInLevelRender() {
         DebugTracer.scopeEnterLevelRender();
         clearGlobalScope();
-        SCOPE_FLAGS.add(GlobalRenderScope.LEVEL_RENDER);
+        SCOPE_FLAGS.get().add(GlobalRenderScope.LEVEL_RENDER);
     }
 
     public static void exitInLevelRender() {
@@ -60,21 +61,29 @@ public final class AhRenderStateImpl {
         // Reset any per-entity scope state that may have leaked from the previous entity render.
         // Without this, an armor render that's cancelled at @At("HEAD") never sees its @At("RETURN")
         // hook fire, leaving the scope context active for the next frame's body submit.
-        ACTIVE_SCOPES.clear();
-        SCOPE_FLAGS.add(GlobalRenderScope.ENTITY_RENDER);
+        ACTIVE_SCOPES.get().clear();
+        SCOPE_FLAGS.get().add(GlobalRenderScope.ENTITY_RENDER);
     }
 
     public static void exitEntityRender() {
         DebugTracer.scopeExitEntityRender();
         clearCurrentPlayer();
-        ACTIVE_SCOPES.clear();
-        SCOPE_FLAGS.remove(GlobalRenderScope.ENTITY_RENDER);
+        ACTIVE_SCOPES.get().clear();
+        SCOPE_FLAGS.get().remove(GlobalRenderScope.ENTITY_RENDER);
     }
 
     public static void clearGlobalScope() {
-        SCOPE_FLAGS.clear();
-        ACTIVE_SCOPES.clear();
+        if (SCOPE_FLAGS.get().size() <= 1 && ACTIVE_SCOPES.get().isEmpty()) {
+            clearCurrentPlayer();
+            DebugLogger.log("--- Global scope cleared ---");
+            return;
+        }
+        DebugLogger.log("--- Clearing global scopes ---");
+        DebugLogger.log("Remaining scope flags: {}. Remaining uncleared active scopes: {}", SCOPE_FLAGS.get().size(), ACTIVE_SCOPES.get().size());
+        SCOPE_FLAGS.get().clear();
+        ACTIVE_SCOPES.get().clear();
         clearCurrentPlayer();
+        DebugLogger.log("--- Global scope cleared ---");
     }
 
     public static @NonNull String currentlyHandledPlayerName() {
@@ -95,19 +104,22 @@ public final class AhRenderStateImpl {
                                                          @Nullable EquipmentSlot slot, @Nullable ItemStack item) {
         if (carrier == null) {
             var ctx = RenderScopeContext.empty(scope);
-            ACTIVE_SCOPES.put(scope, ctx);
+            ACTIVE_SCOPES.get().put(scope, ctx);
+            DebugTracer.scopeEntered(scope.name(), null, false);
             return ctx;
         }
 
-        setCurrentPlayer(carrier.armorHider$playerName());
+        String identity = carrier.armorHider$playerName();
+        setCurrentPlayer(identity);
 
         SlotModification mod = slot != null
                 ? carrier.getModification(slot, item)
                 : SlotModification.empty();
 
-        var ctx = new RenderScopeContext(scope, carrier, mod, new RenderModifications(mod));
-        ACTIVE_SCOPES.put(scope, ctx);
+        var ctx = new RenderScopeContext(scope, carrier, mod, AhRenderModificationApi.getInstance(mod));
+        ACTIVE_SCOPES.get().put(scope, ctx);
 
+        DebugTracer.scopeEntered(scope.name(), identity, !mod.isEmpty());
         if (!mod.isEmpty()) {
             DebugTracer.scopeEnterItemRender(mod.slot(), mod.playerName(), mod.transparency());
         }
@@ -117,28 +129,35 @@ public final class AhRenderStateImpl {
     public static @NonNull RenderScopeContext enterScope(RenderScope scope, SlotModification modification) {
         if (modification == null || modification.isEmpty()) {
             var empty = RenderScopeContext.empty(scope);
-            ACTIVE_SCOPES.put(scope, empty);
+            ACTIVE_SCOPES.get().put(scope, empty);
+            DebugTracer.scopeEntered(scope.name(), modification != null ? modification.playerName() : null, false);
             return empty;
         }
         var ctx = new RenderScopeContext(scope, null, modification, AhRenderModificationApi.getInstance(modification));
-        ACTIVE_SCOPES.put(scope, ctx);
+        ACTIVE_SCOPES.get().put(scope, ctx);
         setCurrentPlayer(modification.playerName());
+        DebugTracer.scopeEntered(scope.name(), modification.playerName(), true);
         DebugTracer.scopeEnterItemRender(modification.slot(), modification.playerName(), modification.transparency());
         return ctx;
     }
 
     public static void exitScope(RenderScope scope) {
-        ACTIVE_SCOPES.remove(scope);
+        var prev = ACTIVE_SCOPES.get().remove(scope);
+        if (prev == null || prev.isEmpty()) {
+            return;
+        }
+        String identity = prev.carrier() != null ? prev.carrier().armorHider$playerName() : currentPlayerName;
+        DebugTracer.scopeExited(scope.name(), identity);
         DebugTracer.scopeExitItemRender();
     }
 
     public static @NonNull RenderScopeContext getActiveScope(RenderScope scope) {
-        var ctx = ACTIVE_SCOPES.get(scope);
+        var ctx = ACTIVE_SCOPES.get().get(scope);
         return ctx != null ? ctx : RenderScopeContext.empty(scope);
     }
 
     public static boolean hasScopeModification(RenderScope scope) {
-        var ctx = ACTIVE_SCOPES.get(scope);
+        var ctx = ACTIVE_SCOPES.get().get(scope);
         return ctx != null && !ctx.isEmpty();
     }
 

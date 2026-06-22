@@ -65,6 +65,20 @@ public interface AhRenderManagementApi {
     }
 
     /**
+     * Query the active context for a specific scope.
+     *
+     * @return The active scope context, or {@link RenderScopeContext#empty(RenderScope)} if none is active.
+     */
+    static @NonNull RenderScopeContext getActiveScope(RenderScope... scopes) {
+        for (RenderScope scope : scopes) {
+            if (AhRenderStateImpl.hasScopeModification(scope)) {
+                return AhRenderStateImpl.getActiveScope(scope);
+            }
+        }
+        return RenderScopeContext.empty(scopes[0]);
+    }
+
+    /**
      * @return True if the given scope has an active, non-empty modification.
      */
     static boolean hasScopeModification(RenderScope scope) {
@@ -134,7 +148,7 @@ public interface AhRenderManagementApi {
      */
     @ApiStatus.Internal
     static @NonNull RenderScopeContext enterScope(RenderInterceptionResult result) {
-        return AhRenderStateImpl.enterScope(result.scope(), result.carrier(), result.getSlot(), result.getItemInfo().getStack());
+        return AhRenderStateImpl.enterScope(result.scope(), result.modification());
     }
 
     /**
@@ -152,6 +166,16 @@ public interface AhRenderManagementApi {
     @ApiStatus.Internal
     static void exitScope(RenderScope scope) {
         AhRenderStateImpl.exitScope(scope);
+    }
+
+    /**
+     * Exit a render scope, clearing its context.
+     */
+    @ApiStatus.Internal
+    static void exitScopes(RenderScope... scopes) {
+        for (RenderScope scope : scopes) {
+            AhRenderStateImpl.exitScope(scope);
+        }
     }
 
     // endregion

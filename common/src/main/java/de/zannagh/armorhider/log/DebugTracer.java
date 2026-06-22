@@ -65,6 +65,25 @@ public final class DebugTracer {
         DebugLogger.log("      << exitItemRender");
     }
 
+    // --- Per-render-scope lifecycle (not frame-sampled: scope churn is bounded,
+    //     and missing an event makes debugging harder than a slightly busier log) ---
+
+    public static void scopeEntered(String scope, @Nullable String identity, boolean hasModification) {
+        if (!DebugLogger.isEnabled()) {
+            return;
+        }
+        DebugLogger.log("      >> scope ENTER: {} | identity={} | hasModification={}",
+                scope, identity != null ? identity : "<none>", hasModification);
+    }
+
+    public static void scopeExited(String scope, @Nullable String identity) {
+        if (!DebugLogger.isEnabled()) {
+            return;
+        }
+        DebugLogger.log("      << scope EXIT:  {} | identity={}",
+                scope, identity != null ? identity : "<none>");
+    }
+
     // --- Equipment slot hiding ---
 
     public static void equipmentSlotHidingFired(@Nullable String playerName, EquipmentSlot slot, boolean hidden, String reason) {

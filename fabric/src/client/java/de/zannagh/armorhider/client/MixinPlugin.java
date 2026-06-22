@@ -38,6 +38,8 @@ public class MixinPlugin implements IMixinConfigPlugin {
             "cape.ElytraRenderMixin",
             "head.CustomHeadLayerMixin",
             "head.SkullBlockRenderMixin",
+            // Fabric-only — programmatic mod-resource-pack registration when fabric-resource-loader-v0 is absent
+            "resources.PackRepositoryMixin",
             // All versions — Stonecutter guards per version range
             "bodyKneesAndToes.HumanoidArmorLayerMixin",
             "bodyKneesAndToes.HumanoidArmorLayerRenderMixin",
