@@ -29,8 +29,6 @@ public class ItemInfo {
                     Items.CREEPER_HEAD,
                     Items.PIGLIN_HEAD));
 
-    private static final ItemStack ELYTRA_ITEM_STACK = new ItemStack(Items.ELYTRA);
-
     @NonNull private final ItemStack itemStack;
 
     public ItemInfo(@Nullable ItemStack itemStack){
@@ -88,7 +86,7 @@ public class ItemInfo {
         if (itemStack.isEmpty()) {
             return false;
         }
-        return itemStack.is(ELYTRA_ITEM_STACK.getItem()) || itemStack.getItem().toString().toLowerCase().contains("elytra");
+        return itemStack.is(Items.ELYTRA) || itemStack.getItem().toString().toLowerCase().contains("elytra");
     }
 
     public boolean isVanillaSkullItem(){

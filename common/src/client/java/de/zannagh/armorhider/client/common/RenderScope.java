@@ -3,6 +3,8 @@ package de.zannagh.armorhider.client.common;
 import de.zannagh.armorhider.common.ItemInfo;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Identifies one rendering "concern" that Armor Hider tracks independently. Each scope has its
@@ -36,25 +38,20 @@ public enum RenderScope {
      * item resolves to {@link #ELYTRA}; everything else in chest/head/feet/legs is
      * {@link #ARMOR_PIECE}; offhand is {@link #OFFHAND}; head item is {@link #HEAD}.
      */
-    public static RenderScope of(EquipmentSlot slot, ItemInfo itemInfo) {
+    public static RenderScope of(@Nullable EquipmentSlot slot, @Nullable ItemInfo itemInfo) {
+        boolean isElytra = itemInfo != null && itemInfo.isElytra();
+        if (slot == null) {
+            return isElytra ? ELYTRA : ARMOR_PIECE;
+        }
         return switch (slot) {
             case HEAD -> HEAD;
             case OFFHAND -> OFFHAND;
-            case CHEST -> {
-                if (itemInfo.isElytra()) {
-                    yield ELYTRA;
-                }
-                yield ARMOR_PIECE;
-            }
+            case CHEST -> isElytra ? ELYTRA : ARMOR_PIECE;
             default -> ARMOR_PIECE;
         };
     }
 
-    public static RenderScope of(EquipmentSlot slot, ItemStack stack) {
-        var info = new ItemInfo(stack);
-        if (info.isElytra() && slot == null) {
-            return ELYTRA;
-        }
-        return of(slot, info);
+    public static RenderScope of(@Nullable EquipmentSlot slot, @NonNull ItemStack stack) {
+        return of(slot, new ItemInfo(stack));
     }
 }
