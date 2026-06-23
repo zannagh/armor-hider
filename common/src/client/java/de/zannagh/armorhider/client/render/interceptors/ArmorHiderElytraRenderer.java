@@ -40,16 +40,29 @@ public class ArmorHiderElytraRenderer extends AbstractArmorHiderRenderer {
         ItemStack elytraStack = stack != null ? stack : ItemsUtil.ELYTRA_ITEM_STACK;
         var mod = resolveModification(carrier, EquipmentSlot.CHEST, elytraStack);
         RenderInterceptionResult result;
-        if (mod.shouldHide()) {
-            cancel(ci);
-            result = new RenderInterceptionResult(true, true, getTargetScope(), carrier, mod);
-        }
-        else if (mod.isEmpty()) {
+        // Flying must short-circuit BEFORE shouldHide so that 0%-opacity players still see the
+        // elytra geometry while actually elytra-flying — the wings are the flight indicator.
+        if (mod.isEmpty()) {
             result = RenderInterceptionResult.ignore(getTargetScope(), mod);
         }
         else if (carrier.isPlayerFlying()) {
             mod = new SlotModification(EquipmentSlot.CHEST, false, false, false, 1D, carrier.armorHider$playerName(), null, new ItemInfo(stack));
             result = RenderInterceptionResult.ignore(getTargetScope(), mod);
+        }
+        // With ElytraTrims present, ET's own rendering pipeline owns elytra appearance. Submitting
+        // a partial-alpha scope here lets unrelated sliders (e.g. head) leak into ET's submissions
+        // via SubmitNodeCollectorMixin's scope checks — so cap to full-hide-or-vanilla.
+        else if (ArmorHiderClient.ET_LOADED) {
+            if (mod.shouldHide()) {
+                cancel(ci);
+                result = new RenderInterceptionResult(true, true, getTargetScope(), carrier, mod);
+            } else {
+                result = RenderInterceptionResult.ignore(getTargetScope(), mod);
+            }
+        }
+        else if (mod.shouldHide()) {
+            cancel(ci);
+            result = new RenderInterceptionResult(true, true, getTargetScope(), carrier, mod);
         }
         else {
             result = new RenderInterceptionResult(true, false, getTargetScope(), carrier, mod);

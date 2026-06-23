@@ -83,6 +83,13 @@ public abstract class CustomHeadLayerMixin {
     }
 
     //? if >= 1.21.9 {
+    // resolveSkullRenderType is sometimes called outside CustomHeadLayer.submit (e.g. by mods that
+    // resolve skull types during their own render). The HEAD-scope our @Inject(HEAD) of submit
+    // would normally bracket isn't active in those paths, so we grab here. But we MUST release
+    // again at RETURN — otherwise the scope leaks into subsequent rendering passes (e.g.
+    // ElytraTrims' elytra submission, where SubmitNodeCollectorMixin would then apply head opacity).
+    @Unique private static final ThreadLocal<Boolean> armorHider$enteredFromResolve = ThreadLocal.withInitial(() -> Boolean.FALSE);
+
     @Inject(
             method = "resolveSkullRenderType",
             //? if fabric
@@ -92,6 +99,20 @@ public abstract class CustomHeadLayerMixin {
     private void grabSkullRenderContext(LivingEntityRenderState livingEntityRenderState, SkullBlock.Type type, CallbackInfoReturnable<RenderType> cir) {
         if (!AhRenderManagementApi.hasScopeModification(RenderScope.HEAD)) {
             enterHeadScope(livingEntityRenderState, null);
+            armorHider$enteredFromResolve.set(Boolean.TRUE);
+        }
+    }
+
+    @Inject(
+            method = "resolveSkullRenderType",
+            //? if fabric
+            order = MixinConstants.HIGH_PRIO,
+            at = @At("RETURN")
+    )
+    private void releaseSkullRenderContextOnResolve(LivingEntityRenderState livingEntityRenderState, SkullBlock.Type type, CallbackInfoReturnable<RenderType> cir) {
+        if (armorHider$enteredFromResolve.get()) {
+            armorHider$enteredFromResolve.set(Boolean.FALSE);
+            AhRenderManagementApi.exitScope(RenderScope.HEAD);
         }
     }
     //? }

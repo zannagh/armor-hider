@@ -40,7 +40,8 @@ public class OffHandRenderMixin {
 
     @Inject(
             method = "renderArmWithItem",
-            at = @At("HEAD")
+            at = @At("HEAD"),
+            cancellable = true
     )
     //? if >= 1.21.9
     private void onRenderItem(AbstractClientPlayer abstractClientPlayer, float f, float g, InteractionHand interactionHand, float h, ItemStack itemStack, float i, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int j, CallbackInfo ci){

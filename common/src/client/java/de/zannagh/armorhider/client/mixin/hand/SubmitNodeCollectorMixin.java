@@ -19,7 +19,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import net.minecraft.client.renderer.rendertype.RenderType;
 
 //? if >= 26.2-1.pre {
-/*import net.minecraft.client.renderer.feature.phase.TranslucentFeatureRenderPhase;
+/*import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+import net.minecraft.client.renderer.feature.phase.TranslucentFeatureRenderPhase;
 import net.minecraft.client.renderer.feature.submit.TranslucentSubmit;
 *///?}
 
@@ -115,7 +116,28 @@ public class SubmitNodeCollectorMixin {
     //?}
 
     //? if >= 26.2-1.pre {
-    /*@WrapOperation(
+    /*// Shields/skulls submit with an opaque cutout RenderType. submitModel routes via
+    // RenderType.hasBlending() — opaque → solid phase (unwrapped); translucent → translucentModels
+    // phase (wrapped below). When our OFFHAND/HEAD scope is active, force hasBlending=true so the
+    // submit is routed through the translucent phase and wrapModelSubmit can rebuild it with a
+    // translucent type + alpha-tinted color.
+    @ModifyExpressionValue(
+            method = "submitModel",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/renderer/rendertype/RenderType;hasBlending()Z"
+            )
+    )
+    private boolean forceTranslucentRoute(boolean original) {
+        if (original) {
+            return true;
+        }
+        var offCtx = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
+        var hdCtx = AhRenderManagementApi.getActiveScope(RenderScope.HEAD);
+        return !offCtx.isEmpty() || !hdCtx.isEmpty();
+    }
+
+    @WrapOperation(
             method = "submitModel",
             at = @At(
                     value = "INVOKE",

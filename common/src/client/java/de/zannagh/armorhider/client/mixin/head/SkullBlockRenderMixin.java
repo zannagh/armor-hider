@@ -136,8 +136,10 @@ public abstract class SkullBlockRenderMixin {
                     value = "INVOKE",
                     //? if >= 26.1-0.snapshot.6 {
                     target = "Lnet/minecraft/client/renderer/rendertype/RenderTypes;entityCutoutZOffset(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/rendertype/RenderType;"
-                    //? } else {
+                    //? } elif >= 26.1-0.snapshot.1 {
                     /*target = "Lnet/minecraft/client/renderer/rendertype/RenderTypes;entityCutoutNoCullZOffset(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/rendertype/RenderType;"*/
+                    //? } else {
+                    /*target = "Lnet/minecraft/client/renderer/rendertype/RenderType;entityCutoutNoCullZOffset(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/rendertype/RenderType;"*/
                     //? }
             )
     )

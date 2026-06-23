@@ -2,9 +2,11 @@ package de.zannagh.armorhider.client.gui.screens;
 
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.client.gui.UiConstants;
 import de.zannagh.armorhider.client.gui.elements.ArmorHiderOptionsPanelWidget;
 import de.zannagh.armorhider.client.gui.elements.ElementSpacingOptions;
 import de.zannagh.armorhider.client.gui.elements.PlayerPreviewWidget;
+import de.zannagh.armorhider.client.gui.elements.implementations.ShowShieldWhenBlockingButton;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
 import net.minecraft.client.gui.components.Button;
@@ -154,10 +156,20 @@ public class ArmorHiderOptionsScreen extends ArmorHiderConfigurationScreen {
                 config.offHandOpacity.getValue(),
                 val -> setSetting(val, config.offHandOpacity::setValue)
         );
+        var shieldButton = new ShowShieldWhenBlockingButton(
+                config.showShieldWhenBlocking.getValue(),
+                UiConstants.SQUARE_BUTTON_WIDTH,
+                UiConstants.DEFAULT_BUTTON_HEIGHT,
+                onPress -> {
+                    if (onPress instanceof ShowShieldWhenBlockingButton btn) {
+                        setSetting(btn.toggle(), config.showShieldWhenBlocking::setValue);
+                    }
+                });
         factory.addSliderWithToggles(EquipmentSlot.OFFHAND,
                 offhandOption,
                 gameOptions,
-                null, null, null, null);
+                null, null, null, null,
+                shieldButton);
 
         var enableCombatDetection = factory.buildBooleanOption(
                 Component.translatable("armorhider.options.combat_detection.title"),
