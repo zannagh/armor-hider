@@ -12,7 +12,7 @@ public class CombatDetectionButton extends LayeredImageButton {
     private final Identifier disabledSlotSprite = modSprite("in_combat_button_icon_disabled");
 
     public CombatDetectionButton(boolean initial, OnPress onPress) {
-        super(null, UiConstants.SQUARE_BUTTON_WIDTH, UiConstants.DEFAULT_BUTTON_HEIGHT,
+        super(null, initial, UiConstants.SQUARE_BUTTON_WIDTH, UiConstants.DEFAULT_BUTTON_HEIGHT,
                 initial ? CombatDetectionButton.enabledMsg() : CombatDetectionButton.disabledMsg(), onPress);
     }
 

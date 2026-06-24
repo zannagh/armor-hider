@@ -64,7 +64,7 @@ public class GlintSlotOnOffButton extends LayeredImageButton {
     }
 
     public GlintSlotOnOffButton(boolean initial, EquipmentSlot slot, int width, int height, OnPress onPress) {
-        super(slot, width, height, initial ? GlintSlotOnOffButton.enabledMsg(slot) : GlintSlotOnOffButton.disabledMsg(slot), onPress);
+        super(slot, initial, width, height, initial ? GlintSlotOnOffButton.enabledMsg(slot) : GlintSlotOnOffButton.disabledMsg(slot), onPress);
         if (slot == EquipmentSlot.HEAD) {
             slotSprite = modSprite("iron_helmet");
         }

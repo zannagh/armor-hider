@@ -14,8 +14,8 @@ public abstract class LayeredImageButton extends LayeredButton {
 
     @Nullable protected final EquipmentSlot slot;
 
-    public LayeredImageButton(@Nullable EquipmentSlot slot, int width, int height, Component message, OnPress onPress) {
-        super(width, height, message, onPress);
+    public LayeredImageButton(@Nullable EquipmentSlot slot, boolean initial, int width, int height, Component message, OnPress onPress) {
+        super(initial, width, height, message, onPress);
         this.slot = slot;
     }
 

@@ -11,9 +11,8 @@ public class ShowShieldWhenBlockingButton extends LayeredImageButton {
     private final Identifier disabledSprite = modSprite("shield_blocking_disabled");
 
     public ShowShieldWhenBlockingButton(boolean initial, int width, int height, OnPress onPress) {
-        super(null, width, height,
+        super(null, initial, width, height,
                 initial ? enabledMsg() : disabledMsg(), onPress);
-        super.setEnabled(initial);
     }
 
     @Override

@@ -11,8 +11,8 @@ import org.jetbrains.annotations.Nullable;
 import net.minecraft.client.renderer.RenderPipelines;
 
 public abstract class LayeredButton extends Button {
-    protected boolean isEnabled = true;
 
+    protected boolean isEnabled;
     @Nullable protected Identifier midLayerSprite(boolean enabled) { return null; }
 
     protected Identifier spriteBg() {
@@ -29,10 +29,11 @@ public abstract class LayeredButton extends Button {
     //? if < 1.21
     //protected static Identifier modSprite(String name) { return new Identifier("armor-hider", name); }
 
-    public LayeredButton(int width, int height, Component message, OnPress onPress) {
+    public LayeredButton(boolean initial, int width, int height, Component message, OnPress onPress) {
         super(0, 0, width, height, message, onPress, (discarded) -> MutableComponent.create(message.getContents()));
         this.setMessage(message);
         this.setTooltip(Tooltip.create(message));
+        this.isEnabled = initial;
     }
 
     protected abstract Component enabledMessage();

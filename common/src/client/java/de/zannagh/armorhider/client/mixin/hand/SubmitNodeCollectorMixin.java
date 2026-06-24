@@ -20,8 +20,12 @@ import net.minecraft.client.renderer.rendertype.RenderType;
 
 //? if >= 26.2-1.pre {
 /*import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+import net.minecraft.client.renderer.feature.phase.SimpleFeatureRenderPhase;
 import net.minecraft.client.renderer.feature.phase.TranslucentFeatureRenderPhase;
+import net.minecraft.client.renderer.feature.submit.SubmitNode;
 import net.minecraft.client.renderer.feature.submit.TranslucentSubmit;
+import org.spongepowered.asm.mixin.Final;
+import org.spongepowered.asm.mixin.Shadow;
 *///?}
 
 @SuppressWarnings({"unused", "UnusedMixin"})

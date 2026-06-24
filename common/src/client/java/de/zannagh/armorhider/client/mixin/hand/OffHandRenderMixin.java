@@ -39,7 +39,10 @@ import net.minecraft.world.level.Level;
 public class OffHandRenderMixin {
 
     @Inject(
-            method = "renderArmWithItem",
+            //? if < 26.2
+            //method = "renderArmWithItem",
+            //? if >= 26.2
+            method = "submitArmWithItem",
             at = @At("HEAD"),
             cancellable = true
     )
@@ -107,8 +110,13 @@ public class OffHandRenderMixin {
         //original.call(instance, livingEntity, itemStack, itemDisplayContext, poseStack, source, level, i, j, k);
     }
 
-    @Inject(method = "renderArmWithItem",
-            at = @At("TAIL"))
+    @Inject(
+            //? if < 26.2
+            //method = "renderArmWithItem",
+            //? if >= 26.2
+            method = "submitArmWithItem",
+            at = @At("TAIL")
+    )
     private void releaseContext(CallbackInfo ci) {
         AhRenderManagementApi.exitScope(RenderScope.OFFHAND);
     }
