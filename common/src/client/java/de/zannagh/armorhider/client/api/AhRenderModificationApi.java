@@ -35,6 +35,8 @@ public interface AhRenderModificationApi {
 
     ArrayList<Pair<Integer, AhRenderTypeFactory>> RENDER_TYPE_FACTORIES = new ArrayList<>();
 
+    ArrayList<Pair<Integer, AhColorTransformer>> COLOR_TRANSFORMERS = new ArrayList<>();
+
     ArrayList<Pair<Integer, AhRenderModificationApi>> RENDER_MODIFIERS = new ArrayList<>();
 
     /**
@@ -50,11 +52,12 @@ public interface AhRenderModificationApi {
         else {
             instance = RENDER_MODIFIERS.get(0).getSecond();
         }
-        if (RENDER_TYPE_FACTORIES.isEmpty()) {
-            return instance;
+        if (!RENDER_TYPE_FACTORIES.isEmpty()) {
+            instance.setRenderTypeFactory(RENDER_TYPE_FACTORIES.get(0).getSecond());
         }
-        var renderTypeFactory = RENDER_TYPE_FACTORIES.get(0).getSecond();
-        instance.setRenderTypeFactory(renderTypeFactory);
+        if (!COLOR_TRANSFORMERS.isEmpty()) {
+            instance.setColorTransformer(COLOR_TRANSFORMERS.get(0).getSecond());
+        }
         return instance;
     }
 
@@ -68,9 +71,31 @@ public interface AhRenderModificationApi {
         RENDER_TYPE_FACTORIES.sort(Comparator.comparingInt(Pair::getFirst));
     }
 
+    /**
+     * Register a custom {@link AhColorTransformer}. Lower priority values win — mirrors
+     * {@link #registerRenderTypeFactory(AhRenderTypeFactory, int)}. Useful for compat layers that
+     * want gamma-corrected blending or shader-friendly color spaces, and for the mod itself to
+     * conditionally swap arithmetic per compat scenario without touching mixin call sites.
+     */
+    static void registerColorTransformer(AhColorTransformer colorTransformer, int priority) {
+        ArmorHider.LOGGER.info("Registering color transformer: {} with priority {}", colorTransformer.getClass().getName(), priority);
+        COLOR_TRANSFORMERS.add(Pair.of(priority, colorTransformer));
+        COLOR_TRANSFORMERS.sort(Comparator.comparingInt(Pair::getFirst));
+    }
+
     void setRenderTypeFactory(AhRenderTypeFactory renderTypeFactory);
 
     AhRenderTypeFactory renderTypes();
+
+    void setColorTransformer(AhColorTransformer colorTransformer);
+
+    /**
+     * Returns the {@link AhColorTransformer} used by this instance — either a registered override
+     * (highest precedence) or the built-in {@code DefaultColorTransformer}. Use the returned
+     * transformer for any color arithmetic that needs to honor compat overrides, rather than
+     * doing the bit-twiddling inline at each call site.
+     */
+    AhColorTransformer colors();
 
     /**
      * Apply the active transparency to the alpha channel of an ARGB color.

@@ -7,11 +7,11 @@ import de.zannagh.armorhider.client.api.AhRenderManagementApi;
 import de.zannagh.armorhider.client.common.RenderScope;
 import net.minecraft.client.renderer.SubmitNodeCollection;
 //? if < 26.2-1.pre
-import net.minecraft.client.renderer.SubmitNodeStorage;
+//import net.minecraft.client.renderer.SubmitNodeStorage;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
 //? if <= 26.1.2 {
-import net.minecraft.client.renderer.feature.ModelPartFeatureRenderer;
-//?}
+/*import net.minecraft.client.renderer.feature.ModelPartFeatureRenderer;
+*///?}
 import org.jspecify.annotations.NonNull;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.Mixin;
@@ -19,21 +19,21 @@ import org.spongepowered.asm.mixin.injection.At;
 import net.minecraft.client.renderer.rendertype.RenderType;
 
 //? if >= 26.2-1.pre {
-/*import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import net.minecraft.client.renderer.feature.phase.SimpleFeatureRenderPhase;
 import net.minecraft.client.renderer.feature.phase.TranslucentFeatureRenderPhase;
 import net.minecraft.client.renderer.feature.submit.SubmitNode;
 import net.minecraft.client.renderer.feature.submit.TranslucentSubmit;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Shadow;
-*///?}
+//?}
 
 @SuppressWarnings({"unused", "UnusedMixin"})
 @Mixin(SubmitNodeCollection.class)
 public class SubmitNodeCollectorMixin {
 
     //? if <= 26.1.2 {
-    @WrapOperation(
+    /*@WrapOperation(
             method = "submitModelPart",
             at = @At(
                     value = "INVOKE",
@@ -48,14 +48,15 @@ public class SubmitNodeCollectorMixin {
         // including ElytraTrims's trim layers submitted under the same scope bracket.
         var ctx = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
         if (!ctx.isEmpty()) {
-            float alpha = ctx.renderModificationApi().getTransparencyAlpha();
+            var modApi = ctx.renderModificationApi();
+            float alpha = modApi.getTransparencyAlpha();
 
-            SubmitNodeStorage.ModelPartSubmit modified = getModelPartSubmit(submit, alpha);
+            SubmitNodeStorage.ModelPartSubmit modified = getModelPartSubmit(submit, modApi.colors().scaleAlpha(submit.tintedColor(), alpha));
 
             RenderType translucentType = renderType;
             if (submit.sprite() != null) {
                 translucentType =
-                        ctx.renderModificationApi().renderTypes().getTranslucentEntityRenderType(submit.sprite().atlasLocation());
+                        modApi.renderTypes().getTranslucentEntityRenderType(submit.sprite().atlasLocation());
             }
 
             original.call(storage, translucentType, modified);
@@ -65,12 +66,7 @@ public class SubmitNodeCollectorMixin {
     }
 
     @Unique
-    private static SubmitNodeStorage.@NonNull ModelPartSubmit getModelPartSubmit(SubmitNodeStorage.ModelPartSubmit submit, float alpha) {
-        int origColor = submit.tintedColor();
-        int origAlpha = (origColor >> 24) & 0xFF;
-        int newAlpha = Math.round(alpha * origAlpha);
-        int modifiedColor = (origColor & 0x00FFFFFF) | (newAlpha << 24);
-
+    private static SubmitNodeStorage.@NonNull ModelPartSubmit getModelPartSubmit(SubmitNodeStorage.ModelPartSubmit submit, int modifiedColor) {
         return new SubmitNodeStorage.ModelPartSubmit(
                 submit.pose(), submit.modelPart(), submit.lightCoords(), submit.overlayCoords(),
                 submit.sprite(), submit.sheeted(), submit.hasFoil(),
@@ -78,10 +74,10 @@ public class SubmitNodeCollectorMixin {
                 submit.crumblingOverlay(), submit.outlineColor()
         );
     }
-    //?}
+    *///?}
 
     //? if < 26.2-1.pre {
-    @WrapOperation(
+    /*@WrapOperation(
             method = "submitModel",
             at = @At(
                     value = "INVOKE",
@@ -98,12 +94,9 @@ public class SubmitNodeCollectorMixin {
             original.call(storage, renderType, submit);
             return;
         }
-        float alpha = activeCtx.renderModificationApi().getTransparencyAlpha();
-
-        int origColor = submit.tintedColor();
-        int origAlpha = (origColor >> 24) & 0xFF;
-        int newAlpha = Math.round(alpha * origAlpha);
-        int modifiedColor = (origColor & 0x00FFFFFF) | (newAlpha << 24);
+        var modApi = activeCtx.renderModificationApi();
+        float alpha = modApi.getTransparencyAlpha();
+        int modifiedColor = modApi.colors().scaleAlpha(submit.tintedColor(), alpha);
 
         SubmitNodeStorage.ModelSubmit<S> modified = new SubmitNodeStorage.ModelSubmit<>(
                 submit.pose(), submit.model(), submit.state(),
@@ -114,15 +107,15 @@ public class SubmitNodeCollectorMixin {
         RenderType translucentType = renderType;
         if (submit.sprite() != null) {
             translucentType =
-                    activeCtx.renderModificationApi().renderTypes().getTranslucentEntityRenderType(submit.sprite().atlasLocation());
+                    modApi.renderTypes().getTranslucentEntityRenderType(submit.sprite().atlasLocation());
         }
 
         original.call(storage, translucentType, modified);
     }
-    //?}
+    *///?}
 
     //? if >= 26.2-1.pre {
-    /*// Shields/skulls submit with an opaque cutout RenderType. submitModel routes via
+    // Shields/skulls submit with an opaque cutout RenderType. submitModel routes via
     // RenderType.hasBlending() — opaque → solid phase (unwrapped); translucent → translucentModels
     // phase (wrapped below). When our OFFHAND/HEAD scope is active, force hasBlending=true so the
     // submit is routed through the translucent phase and wrapModelSubmit can rebuild it with a
@@ -163,16 +156,13 @@ public class SubmitNodeCollectorMixin {
             original.call(phase, submit);
             return;
         }
-        float alpha = activeCtx.renderModificationApi().getTransparencyAlpha();
-
-        int origColor = modelSubmit.tintedColor();
-        int origAlpha = (origColor >> 24) & 0xFF;
-        int newAlpha = Math.round(alpha * origAlpha);
-        int modifiedColor = (origColor & 0x00FFFFFF) | (newAlpha << 24);
+        var modApi = activeCtx.renderModificationApi();
+        float alpha = modApi.getTransparencyAlpha();
+        int modifiedColor = modApi.colors().scaleAlpha(modelSubmit.tintedColor(), alpha);
 
         RenderType translucentType = modelSubmit.renderType();
         if (modelSubmit.sprite() != null) {
-            translucentType = activeCtx.renderModificationApi().renderTypes().getTranslucentEntityRenderType(modelSubmit.sprite().atlasLocation());
+            translucentType = modApi.renderTypes().getTranslucentEntityRenderType(modelSubmit.sprite().atlasLocation());
         }
 
         var modified = new ModelFeatureRenderer.Submit(
@@ -183,6 +173,6 @@ public class SubmitNodeCollectorMixin {
 
         original.call(phase, (TranslucentSubmit) modified);
     }
-    *///?}
+    //?}
 }
 //? }

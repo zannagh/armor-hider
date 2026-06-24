@@ -183,7 +183,7 @@ public class GenderArmorLayerMixin {
     *///?}
 
     //? if >= 26.1-0.snapshot.1 {
-    /*@WrapOperation(
+    @WrapOperation(
             method = BREAST_METHOD,
             require = 0,
             at = @At(value = "INVOKE",
@@ -197,10 +197,10 @@ public class GenderArmorLayerMixin {
         }
         return original.call(texture);
     }
-    *///?}
+    //?}
 
     //? if >= 1.21.9 && < 26.1-0.snapshot.1 {
-    @WrapOperation(
+    /*@WrapOperation(
             method = BREAST_METHOD,
             require = 0,
             at = @At(value = "INVOKE",
@@ -214,7 +214,7 @@ public class GenderArmorLayerMixin {
         }
         return original.call(texture);
     }
-    //?}
+    *///?}
 
     //? if < 1.21.9 {
     /*@WrapOperation(

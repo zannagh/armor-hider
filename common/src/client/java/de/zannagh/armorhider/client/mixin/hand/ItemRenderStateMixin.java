@@ -67,15 +67,13 @@ public class ItemRenderStateMixin {
 
             // Use one extra slot for non-tinted quads: white with our alpha
             int syntheticTintIndex = tintLayers.length;
-            int alphaInt = Math.round(alpha * 255);
+            var colors = modApi.colors();
 
             int[] modifiedTints = new int[syntheticTintIndex + 1];
             for (int t = 0; t < tintLayers.length; t++) {
-                int origAlpha = (tintLayers[t] >> 24) & 0xFF;
-                int newAlpha = Math.round(alpha * origAlpha);
-                modifiedTints[t] = (tintLayers[t] & 0x00FFFFFF) | (newAlpha << 24);
+                modifiedTints[t] = colors.scaleAlpha(tintLayers[t], alpha);
             }
-            modifiedTints[syntheticTintIndex] = (alphaInt << 24) | 0x00FFFFFF;
+            modifiedTints[syntheticTintIndex] = colors.whiteWithTransparency(alpha);
 
             // Reassign non-tinted quads to the synthetic tint index so they pick up alpha
             List<BakedQuad> modifiedQuads = new ArrayList<>(quads.size());

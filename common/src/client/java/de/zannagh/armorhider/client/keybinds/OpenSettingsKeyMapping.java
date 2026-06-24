@@ -21,9 +21,9 @@ public class OpenSettingsKeyMapping extends CustomKeyMapping {
             return;
         }
         //? if <= 26.1.2
-        var currentScreen = client.screen;
+        //var currentScreen = client.screen;
         //? if > 26.1.2
-        //var currentScreen = client.gui.screen();
+        var currentScreen = client.gui.screen();
         McClientUtils.openPreferredSettingsScreen(currentScreen, client.options);
     }
 

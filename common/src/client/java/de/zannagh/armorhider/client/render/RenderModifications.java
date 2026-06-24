@@ -1,11 +1,12 @@
 package de.zannagh.armorhider.client.render;
 
+import de.zannagh.armorhider.client.api.AhColorTransformer;
 import de.zannagh.armorhider.client.api.AhRenderTypeFactory;
 import de.zannagh.armorhider.client.common.SlotModification;
 import de.zannagh.armorhider.client.api.AhRenderModificationApi;
 import de.zannagh.armorhider.client.render.rendertype.ArmorHiderRenderTypes;
 import de.zannagh.armorhider.client.render.rendertype.RenderTypeFactory;
-import de.zannagh.armorhider.client.render.utils.ColorMath;
+import de.zannagh.armorhider.client.render.utils.DefaultColorTransformer;
 import de.zannagh.armorhider.common.ItemInfo;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.Sheets;
@@ -69,9 +70,9 @@ public class RenderModifications implements AhRenderModificationApi {
             return originalLayer;
         }
         //? if <= 26.1.2
-        if (originalLayer == Sheets.cutoutBlockSheet()) {
+        //if (originalLayer == Sheets.cutoutBlockSheet()) {
         //? if > 26.1.2
-        //if (originalLayer == Sheets.cutoutBlockItemSheet()) {
+        if (originalLayer == Sheets.cutoutBlockItemSheet()) {
             return getTranslucentItemSheetRenderType();
         }
         return originalLayer;
@@ -83,16 +84,14 @@ public class RenderModifications implements AhRenderModificationApi {
         if (slotModification.isEmpty() || !slotModification.needsModification()) {
             return originalColor;
         }
-        int alpha = (int) (slotModification.transparency() * 255);
-        return ColorMath.withAlpha(originalColor, alpha);
+        return colors().applyTransparency(originalColor, (float) slotModification.transparency());
     }
 
     public int applyTransparencyFromWhite(int original) {
         if (slotModification.isEmpty() || !slotModification.needsModification()) {
             return original;
         }
-        int alpha = (int) (slotModification.transparency() * 255);
-        return ColorMath.whiteWithAlpha(alpha);
+        return colors().whiteWithTransparency((float) slotModification.transparency());
     }
 
     public float getTransparencyAlpha() {
@@ -159,9 +158,20 @@ public class RenderModifications implements AhRenderModificationApi {
     }
 
     private AhRenderTypeFactory customRenderTypeFactory;
+    private AhColorTransformer customColorTransformer;
 
     public void setRenderTypeFactory(AhRenderTypeFactory renderTypeFactory) {
         customRenderTypeFactory = renderTypeFactory;
+    }
+
+    @Override
+    public void setColorTransformer(AhColorTransformer colorTransformer) {
+        customColorTransformer = colorTransformer;
+    }
+
+    @Override
+    public AhColorTransformer colors() {
+        return customColorTransformer == null ? DefaultColorTransformer.getInstance() : customColorTransformer;
     }
 
     public RenderType getTranslucentArmorRenderType(Identifier texture) {
