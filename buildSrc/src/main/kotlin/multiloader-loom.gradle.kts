@@ -40,6 +40,7 @@ with(sc) {
     constants["fabric"] = current.project.contains("fabric")
     constants["neoforge"] = current.project.contains("neoforge")
     constants["mekanism"] = hasProperty("mekanism.version")
+    constants["gender"] = hasProperty("gender.version")
 }
 
 // ── Common branch ──
@@ -95,6 +96,9 @@ if (branch == "common") {
         }
         if (hasProperty("modmenu.version")) {
             add(modClientDep, "maven.modrinth:modmenu:${findProperty("modmenu.version")}")
+        }
+        if (hasProperty("gender.version")) {
+            add(modClientDep, "maven.modrinth:female-gender:${findProperty("gender.version")}")
         }
         add("compileOnly", "net.luckperms:api:5.4")
         add("compileOnly", "org.jspecify:jspecify:1.0.0")

@@ -1,9 +1,11 @@
-//? if >= 1.21.9 && < 26.2 {
+//? if gender && >= 1.21.9 && < 26.1-0.snapshot {
 /*package de.zannagh.armorhider.client.mixin.compat.wildfiregender;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.wildfire.render.BreastSide;
+import com.wildfire.render.GenderArmorLayer;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.rendering.RenderModifications;
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
@@ -36,7 +38,7 @@ import net.minecraft.resources.Identifier;
  ^/
 @SuppressWarnings("UnresolvedMixinReference")
 @Pseudo
-@Mixin(targets = "com.wildfire.render.GenderArmorLayer", remap = false)
+@Mixin(value = GenderArmorLayer.class, remap = false)
 public class GenderArmorLayerMixin {
 
     // ========================
@@ -46,7 +48,7 @@ public class GenderArmorLayerMixin {
     @Inject(method = "renderBreastArmor", at = @At("HEAD"), cancellable = true)
     private void interceptBreastArmor(Identifier texture, PoseStack poseStack,
             SubmitNodeCollector queue, HumanoidRenderState state,
-            @Coerce Object side, int color, boolean glint, CallbackInfo ci) {
+            BreastSide side, int color, boolean glint, CallbackInfo ci) {
         if (!(state instanceof IdentityCarrier carrier)) return;
         ItemStack chestItem = (state instanceof AvatarRenderState avatar) ? avatar.chestEquipment : null;
         var mod = carrier.createModification(EquipmentSlot.CHEST, chestItem);
@@ -59,7 +61,7 @@ public class GenderArmorLayerMixin {
     @Inject(method = "renderBreastArmor", at = @At("RETURN"))
     private void clearBreastArmorContext(Identifier texture, PoseStack poseStack,
             SubmitNodeCollector queue, HumanoidRenderState state,
-            @Coerce Object side, int color, boolean glint, CallbackInfo ci) {
+            BreastSide side, int color, boolean glint, CallbackInfo ci) {
         ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
     }
 
@@ -153,12 +155,14 @@ public class GenderArmorLayerMixin {
 }
 *///?}
 
-//? if >= 26.2 {
+//? if gender && >= 26.1-0.snapshot {
 package de.zannagh.armorhider.client.mixin.compat.wildfiregender;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.wildfire.render.BreastSide;
+import com.wildfire.render.GenderArmorLayer;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.rendering.RenderModifications;
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
@@ -179,17 +183,21 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
- * Compatibility mixin for Wildfire's Female Gender Mod (26.2+).
+ * Compatibility mixin for Wildfire's Female Gender Mod, beta4+ signature.
  * <p>
- * In 26.2 the renderBreastArmor signature changed: the trailing {@code boolean glint}
- * was replaced by a {@code MutableBoolean} glint reference and a {@code MutableInt}
- * alpha override was appended. renderArmorTrim's trailing {@code boolean glint}
- * became a {@code MutableInt}. renderGlint was removed — glint is now suppressed
- * by clearing the {@code MutableBoolean} ref before the breast armor draw.
+ * Targets the renderBreastArmor signature introduced in female-gender 5.0.0-Beta.4
+ * (26.1) and carried into 26.2: the trailing {@code boolean glint} was replaced by
+ * a {@code MutableBoolean} glint reference, and a {@code MutableInt} alpha override
+ * was appended. renderArmorTrim's trailing {@code boolean glint} became a
+ * {@code MutableInt}. renderGlint was removed — glint is now suppressed by
+ * clearing the {@code MutableBoolean} ref before the breast armor draw.
+ * <p>
+ * On 26.1.x users running beta3 will see a mixin-apply failure at startup; the
+ * fix is to update female-gender to beta4 (see issue #256).
  */
 @SuppressWarnings("UnresolvedMixinReference")
 @Pseudo
-@Mixin(targets = "com.wildfire.render.GenderArmorLayer", remap = false)
+@Mixin(value = GenderArmorLayer.class, remap = false)
 public class GenderArmorLayerMixin {
 
     // ========================
@@ -199,7 +207,7 @@ public class GenderArmorLayerMixin {
     @Inject(method = "renderBreastArmor", at = @At("HEAD"), cancellable = true)
     private void interceptBreastArmor(Identifier texture, PoseStack poseStack,
             SubmitNodeCollector queue, HumanoidRenderState state,
-            @Coerce Object side, int color, MutableBoolean glintRef, MutableInt alphaRef,
+            BreastSide side, int color, MutableBoolean glintRef, MutableInt alphaRef,
             CallbackInfo ci) {
         if (!(state instanceof IdentityCarrier carrier)) return;
         ItemStack chestItem = (state instanceof AvatarRenderState avatar) ? avatar.chestEquipment : null;
@@ -218,7 +226,7 @@ public class GenderArmorLayerMixin {
     @Inject(method = "renderBreastArmor", at = @At("RETURN"))
     private void clearBreastArmorContext(Identifier texture, PoseStack poseStack,
             SubmitNodeCollector queue, HumanoidRenderState state,
-            @Coerce Object side, int color, MutableBoolean glintRef, MutableInt alphaRef,
+            BreastSide side, int color, MutableBoolean glintRef, MutableInt alphaRef,
             CallbackInfo ci) {
         ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
     }
@@ -283,12 +291,13 @@ public class GenderArmorLayerMixin {
 }
 //?}
 
-//? if >= 1.21 && < 1.21.9 {
+//? if gender && >= 1.21 && < 1.21.9 {
 /*package de.zannagh.armorhider.client.mixin.compat.wildfiregender;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.wildfire.render.GenderArmorLayer;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.rendering.RenderModifications;
 import de.zannagh.armorhider.client.scopes.ActiveModification;
@@ -304,8 +313,9 @@ import org.spongepowered.asm.mixin.injection.Coerce;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+@SuppressWarnings("UnresolvedMixinReference")
 @Pseudo
-@Mixin(targets = "com.wildfire.render.GenderArmorLayer", remap = false)
+@Mixin(value = GenderArmorLayer.class, remap = false)
 public class GenderArmorLayerMixin {
 
     // ========================
@@ -414,13 +424,14 @@ public class GenderArmorLayerMixin {
 }
 *///?}
 
-//? if < 1.21 {
+//? if gender && < 1.21 {
 /*package de.zannagh.armorhider.client.mixin.compat.wildfiregender;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.wildfire.render.GenderLayer;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.rendering.RenderModifications;
 import de.zannagh.armorhider.client.scopes.IdentityCarrier;
@@ -445,7 +456,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 // No transparency support: Wildfire uses a custom renderBox with hardcoded alpha.
 @SuppressWarnings("UnresolvedMixinReference")
 @Pseudo
-@Mixin(targets = "com.wildfire.render.GenderLayer", remap = false)
+@Mixin(value = GenderLayer.class, remap = false)
 public class GenderArmorLayerMixin {
 
     // ========================

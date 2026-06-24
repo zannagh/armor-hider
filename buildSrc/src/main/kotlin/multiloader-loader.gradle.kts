@@ -42,6 +42,9 @@ dependencies {
     if (hasProperty("figura.version")) {
         add("compileOnly", "maven.modrinth:figura:${findProperty("figura.version")}")
     }
+    if (hasProperty("gender.version")) {
+        add("compileOnly", "maven.modrinth:female-gender:${findProperty("gender.version")}")
+    }
 }
 
 // Include common's sources in the loader's source sets for IntelliJ
