@@ -95,23 +95,23 @@ public class CapeRenderMixin {
     private boolean bypassWingsWhenElytraHidden(
             //? if >= 1.21.4 {
             CapeLayer instance,
-            net.minecraft.world.item.ItemStack item,
+            net.minecraft.world.item.ItemStack itemStack,
             EquipmentClientInfo.LayerType layerType,
             Operation<Boolean> original) {
-        boolean result = original.call(instance, item, layerType);
+        boolean result = original.call(instance, itemStack, layerType);
             //? } else {
             /*
-            net.minecraft.world.item.ItemStack instance,
+            net.minecraft.world.item.ItemStack itemStack,
             net.minecraft.world.item.Item item,
             Operation<Boolean> original) {
-        boolean result = original.call(instance, item);
+        boolean result = original.call(itemStack, item);
             *///? }
 
         if (!result) {
             return false;
         }
         var ctx = AhRenderManagementApi.getActiveScope(RenderScope.CAPE);
-        return ctx.isEmpty() || (!ctx.modification().shouldHide() && de.zannagh.armorhider.util.ItemsUtil.itemStackContainsElytra(item));
+        return ctx.isEmpty() || (!ctx.modification().shouldHide() && de.zannagh.armorhider.util.ItemsUtil.itemStackContainsElytra(itemStack));
     }
 
     @Inject(method = CAPE_CONTEXT_METHOD, at = @At("RETURN"))
