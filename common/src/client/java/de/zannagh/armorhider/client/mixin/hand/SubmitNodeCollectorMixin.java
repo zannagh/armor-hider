@@ -38,9 +38,11 @@ public class SubmitNodeCollectorMixin {
     )
     private void wrapModelPartAdd(ModelPartFeatureRenderer.Storage storage, RenderType renderType, SubmitNodeStorage.ModelPartSubmit submit, Operation<Void> original) {
 
-        var offhandCtx = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
-        var headCtx = AhRenderManagementApi.getActiveScope(RenderScope.HEAD);
-        var ctx = !offhandCtx.isEmpty() ? offhandCtx : headCtx;
+        // Only check OFFHAND scope here. HEAD scope is handled directly by SkullBlockRenderMixin
+        // (which targets the skull-specific path). Including HEAD here would leak the helmet/skull
+        // opacity onto every model-part submission while CustomHeadLayer's HEAD scope is open —
+        // including ElytraTrims's trim layers submitted under the same scope bracket.
+        var ctx = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
         if (!ctx.isEmpty()) {
             float alpha = ctx.renderModificationApi().getTransparencyAlpha();
 
@@ -85,9 +87,9 @@ public class SubmitNodeCollectorMixin {
 
     private <S> void wrapModelAdd(ModelFeatureRenderer.Storage storage, RenderType renderType, SubmitNodeStorage.ModelSubmit<S> submit, Operation<Void> original) {
 
-        var offCtx = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
-        var hdCtx = AhRenderManagementApi.getActiveScope(RenderScope.HEAD);
-        var activeCtx = !offCtx.isEmpty() ? offCtx : hdCtx;
+        // OFFHAND scope only — see comment on wrapModelPartAdd above. HEAD scope leaks onto
+        // unrelated submissions (e.g. ElytraTrims trim layers) when a helmet is worn.
+        var activeCtx = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
         if (activeCtx.isEmpty()) {
             original.call(storage, renderType, submit);
             return;
@@ -132,9 +134,10 @@ public class SubmitNodeCollectorMixin {
         if (original) {
             return true;
         }
-        var offCtx = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
-        var hdCtx = AhRenderManagementApi.getActiveScope(RenderScope.HEAD);
-        return !offCtx.isEmpty() || !hdCtx.isEmpty();
+        // OFFHAND only — HEAD scope can be open while CustomHeadLayer's bracket is active and
+        // would erroneously force unrelated opaque models (e.g. ElytraTrims trim layers) onto
+        // the translucent path with helmet-opacity alpha applied.
+        return !AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND).isEmpty();
     }
 
     @WrapOperation(
@@ -150,9 +153,8 @@ public class SubmitNodeCollectorMixin {
             original.call(phase, submit);
             return;
         }
-        var offCtx = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
-        var hdCtx = AhRenderManagementApi.getActiveScope(RenderScope.HEAD);
-        var activeCtx = !offCtx.isEmpty() ? offCtx : hdCtx;
+        // OFFHAND only — see comment on forceTranslucentRoute.
+        var activeCtx = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
         if (activeCtx.isEmpty()) {
             original.call(phase, submit);
             return;

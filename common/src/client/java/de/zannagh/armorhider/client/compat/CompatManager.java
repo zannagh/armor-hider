@@ -2,8 +2,6 @@ package de.zannagh.armorhider.client.compat;
 
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.api.AhRenderInterceptionRegistryApi;
-import de.zannagh.armorhider.client.common.RenderScope;
 
 public class CompatManager {
 
@@ -18,11 +16,10 @@ public class CompatManager {
             initEmfCompat();
         }
 
-        if (ArmorHiderClient.ET_LOADED) {
-            ArmorHider.LOGGER.info("Registering ElytraTrims compatibility to suppress Elytra render changes...");
-            AhRenderInterceptionRegistryApi.suppressRenderInterceptionConditionally(RenderScope.ELYTRA, eval -> true); // Suppress custom rendering when ElytraTrims is present for any elytra renderers.
-        }
-
+        // ElytraTrims compat lives inline in ArmorHiderElytraRenderer.intercept (the ET_LOADED
+        // branch). Earlier we replaced the elytra renderer with EMPTY_RENDERER here, but that
+        // also disabled the hide-cancel path at 0% opacity — and the inline branch already
+        // collapses to "full hide or pass through" when ET is loaded, which is what we want.
     }
 
     private static void initEmfCompat() {

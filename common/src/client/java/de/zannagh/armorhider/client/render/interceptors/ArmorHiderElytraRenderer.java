@@ -5,8 +5,6 @@ import de.zannagh.armorhider.client.api.AhRenderManagementApi;
 import de.zannagh.armorhider.client.common.IdentityCarrier;
 import de.zannagh.armorhider.client.common.RenderInterceptionResult;
 import de.zannagh.armorhider.client.common.RenderScope;
-import de.zannagh.armorhider.client.common.SlotModification;
-import de.zannagh.armorhider.common.ItemInfo;
 import de.zannagh.armorhider.util.ItemsUtil;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
@@ -39,32 +37,30 @@ public class ArmorHiderElytraRenderer extends AbstractArmorHiderRenderer {
         }
         ItemStack elytraStack = stack != null ? stack : ItemsUtil.ELYTRA_ITEM_STACK;
         var mod = resolveModification(carrier, EquipmentSlot.CHEST, elytraStack);
-        RenderInterceptionResult result;
+
+        // Pass-through branches: do NOT enter scope. enterScope-with-mod would still register a
+        // non-empty modification into the active-scope map, and downstream wraps then react to it
+        // even though we logically "ignored" — that leaks into things like ElytraTrims rendering.
+        if (mod.isEmpty()) {
+            return RenderInterceptionResult.ignore();
+        }
         // Flying must short-circuit BEFORE shouldHide so that 0%-opacity players still see the
         // elytra geometry while actually elytra-flying — the wings are the flight indicator.
-        if (mod.isEmpty()) {
-            result = RenderInterceptionResult.ignore(getTargetScope(), mod);
+        if (carrier.isPlayerFlying()) {
+            return RenderInterceptionResult.ignore();
         }
-        else if (carrier.isPlayerFlying()) {
-            mod = new SlotModification(EquipmentSlot.CHEST, false, false, false, 1D, carrier.armorHider$playerName(), null, new ItemInfo(stack));
-            result = RenderInterceptionResult.ignore(getTargetScope(), mod);
+        // With ElytraTrims present, ET's own rendering pipeline owns elytra appearance — collapse
+        // to full-hide-or-vanilla. The non-hide case must NOT enter scope (would still leak our
+        // mod into ET's submissions and re-introduce the blue-trim / missing-trim regressions).
+        if (ArmorHiderClient.ET_LOADED && !mod.shouldHide()) {
+            return RenderInterceptionResult.ignore();
         }
-        // With ElytraTrims present, ET's own rendering pipeline owns elytra appearance. Submitting
-        // a partial-alpha scope here lets unrelated sliders (e.g. head) leak into ET's submissions
-        // via SubmitNodeCollectorMixin's scope checks — so cap to full-hide-or-vanilla.
-        else if (ArmorHiderClient.ET_LOADED) {
-            if (mod.shouldHide()) {
-                cancel(ci);
-                result = new RenderInterceptionResult(true, true, getTargetScope(), carrier, mod);
-            } else {
-                result = RenderInterceptionResult.ignore(getTargetScope(), mod);
-            }
-        }
-        else if (mod.shouldHide()) {
+
+        RenderInterceptionResult result;
+        if (mod.shouldHide()) {
             cancel(ci);
             result = new RenderInterceptionResult(true, true, getTargetScope(), carrier, mod);
-        }
-        else {
+        } else {
             result = new RenderInterceptionResult(true, false, getTargetScope(), carrier, mod);
         }
         AhRenderManagementApi.enterScope(result);

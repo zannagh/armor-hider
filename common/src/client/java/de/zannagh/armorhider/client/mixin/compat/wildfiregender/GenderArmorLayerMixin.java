@@ -182,8 +182,8 @@ public class GenderArmorLayerMixin {
     }
     *///?}
 
-    //? if >= 1.21.9 {
-    @WrapOperation(
+    //? if >= 26.1-0.snapshot.1 {
+    /*@WrapOperation(
             method = BREAST_METHOD,
             require = 0,
             at = @At(value = "INVOKE",
@@ -191,9 +191,28 @@ public class GenderArmorLayerMixin {
                     remap = true)
     )
     private RenderType modifyBreastArmorRenderType(Identifier texture, Operation<RenderType> original) {
-        return AhRenderManagementApi
-                .getActiveScope(RenderScope.ARMOR_PIECE).renderModificationApi()
-                .renderTypes().getTranslucentArmorRenderType(texture);
+        var modApi = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE).renderModificationApi();
+        if (modApi.getTranslucentArmorRenderType(texture, original.call(texture)) instanceof RenderType rt) {
+            return rt;
+        }
+        return original.call(texture);
+    }
+    *///?}
+
+    //? if >= 1.21.9 && < 26.1-0.snapshot.1 {
+    @WrapOperation(
+            method = BREAST_METHOD,
+            require = 0,
+            at = @At(value = "INVOKE",
+                    target = "Lnet/minecraft/client/renderer/rendertype/RenderType;armorCutoutNoCull(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/rendertype/RenderType;",
+                    remap = true)
+    )
+    private RenderType modifyBreastArmorRenderType(Identifier texture, Operation<RenderType> original) {
+        var modApi = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE).renderModificationApi();
+        if (modApi.getTranslucentArmorRenderType(texture, original.call(texture)) instanceof RenderType rt) {
+            return rt;
+        }
+        return original.call(texture);
     }
     //?}
 
