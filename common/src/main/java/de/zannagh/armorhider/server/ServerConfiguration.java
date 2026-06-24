@@ -72,7 +72,7 @@ public class ServerConfiguration implements ConfigurationSource<ServerConfigurat
     public ServerConfiguration() {
         // Always initialize serverWideSettings with defaults to prevent null pointer exceptions
         // Migration logic will detect v3 format by checking for old field presence
-        this.serverWideSettings = new ServerWideSettings();
+        this.serverWideSettings = ServerWideSettings.defaults();
     }
 
     private ServerConfiguration(Map<UUID, PlayerConfig> playerConfigs, @NonNull ServerWideSettings serverWideSettings) {
@@ -101,6 +101,11 @@ public class ServerConfiguration implements ConfigurationSource<ServerConfigurat
                     configuration.setHasChangedFromSerializedContent();
                 } else {
                     ArmorHider.LOGGER.info("Loaded server config (v4 format).");
+                }
+
+                // Migrate serverWideSettings from older schema versions
+                if (configuration.serverWideSettings.configVersion < ServerWideSettings.CURRENT_CONFIG_VERSION) {
+                    configuration.serverWideSettings = ServerWideSettings.migrate(configuration.serverWideSettings);
                 }
 
                 // Migrate embedded player configs from older schema versions
