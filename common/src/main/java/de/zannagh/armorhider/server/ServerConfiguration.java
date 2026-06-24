@@ -96,7 +96,7 @@ public class ServerConfiguration implements ConfigurationSource<ServerConfigurat
                 // Detect v3 by presence of old field and absence of new field in JSON
                 if (obj.has("enableCombatDetection") && !obj.has("serverWideSettings")) {
                     Boolean legacyCombatDetection = obj.get("enableCombatDetection").getAsBoolean();
-                    configuration.serverWideSettings = new ServerWideSettings(legacyCombatDetection, false);
+                    configuration.serverWideSettings = new ServerWideSettings(legacyCombatDetection, false, false);
                     ArmorHider.LOGGER.info("Migrated server config from v3 to v4 format (enableCombatDetection -> serverWideSettings).");
                     configuration.setHasChangedFromSerializedContent();
                 } else {
@@ -144,7 +144,7 @@ public class ServerConfiguration implements ConfigurationSource<ServerConfigurat
 
     @Contract("_ -> new")
     private static @NotNull ServerConfiguration fromLegacyFormat(Map<UUID, PlayerConfig> playerConfigs) {
-        return new ServerConfiguration(playerConfigs, new ServerWideSettings(true, false));
+        return new ServerConfiguration(playerConfigs, new ServerWideSettings(true, false, false));
     }
 
 

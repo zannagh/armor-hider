@@ -22,6 +22,8 @@ public interface IdentityCarrier {
 
     boolean isPlayerFlying();
 
+    boolean armorHider$isPlayerInvisible();
+
     default boolean isPlayerBlocking() { return false; }
     
     @Nullable ActiveModification armorHider$getHeadMod();
@@ -34,7 +36,7 @@ public interface IdentityCarrier {
      * Returns {@code null} when no modification is needed.
      */
     default @Nullable ActiveModification getModification(@NotNull EquipmentSlot slot, @Nullable ItemStack item) {
-        return ActiveModification.create(armorHider$playerName(), slot, item);
+        return ActiveModification.create(armorHider$playerName(), slot, item, armorHider$isPlayerInvisible());
     }
 
     /**
@@ -54,7 +56,7 @@ public interface IdentityCarrier {
         if (cached != null && item != null && ItemStack.matches(cached.item(), item)) {
             modification = cached;
         } else {
-            modification = ActiveModification.create(armorHider$playerName(), slot, item);
+            modification = ActiveModification.create(armorHider$playerName(), slot, item, armorHider$isPlayerInvisible());
         }
         if (modification != null) {
             ArmorHiderClient.RENDER_CONTEXT.setActiveModification(modification);

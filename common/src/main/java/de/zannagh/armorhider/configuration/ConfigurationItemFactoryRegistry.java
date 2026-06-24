@@ -39,6 +39,8 @@ public class ConfigurationItemFactoryRegistry {
         registerFactoriesForClass(ShowSettingsInSkinCustomization.class);
         registerFactoriesForClass(InCombatUseDefaultArmorSkin.class);
         registerFactoriesForClass(ShowShieldWhenBlocking.class);
+        registerFactoriesForClass(DisableArmorHiderOnInvisibility.class);
+        registerFactoriesForClass(DisableArmorHiderOnInvisibilityGlobally.class);
 
         initialized = true;
     }
