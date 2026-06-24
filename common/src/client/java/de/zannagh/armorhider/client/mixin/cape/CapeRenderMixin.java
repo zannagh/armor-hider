@@ -133,12 +133,8 @@ public class CapeRenderMixin {
         if (result) {
             var mod = ArmorHiderClient.RENDER_CONTEXT.activeModification();
             if (mod != null
-                    && ActiveModification.isSlotFullyHidden(mod.playerName(), EquipmentSlot.CHEST,
-                    //? if >= 1.21.4
-                    item
-                    //? if < 1.21.4
-                    //instance
-                    )) {
+                    && mod.shouldHide()
+                    && itemStackContainsElytra(mod.item()) ) {
                 return false;
             }
         }
