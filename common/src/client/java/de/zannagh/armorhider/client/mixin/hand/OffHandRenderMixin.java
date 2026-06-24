@@ -36,7 +36,10 @@ import net.minecraft.world.level.Level;
 public class OffHandRenderMixin {
 
     @Inject(
-            method = "renderArmWithItem",
+            //? if < 26.2
+            //method = "renderArmWithItem",
+            //? if >= 26.2
+            method = "submitArmWithItem",
             at = @At("HEAD")
     )
     //? if >= 1.21.9
@@ -109,7 +112,10 @@ public class OffHandRenderMixin {
     }
 
     @Inject(
-            method = "renderArmWithItem",
+            //? if < 26.2
+            //method = "renderArmWithItem",
+            //? if >= 26.2
+            method = "submitArmWithItem",
             at = @At("TAIL")
     )
     //? if >= 1.21.9
