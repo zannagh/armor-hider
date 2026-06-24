@@ -30,8 +30,12 @@ import net.minecraft.client.renderer.rendertype.RenderType;
 //import net.minecraft.client.renderer.rendertype.RenderType;
 
 //? if >= 26.2-1.pre {
+import net.minecraft.client.renderer.feature.phase.SimpleFeatureRenderPhase;
 import net.minecraft.client.renderer.feature.phase.TranslucentFeatureRenderPhase;
+import net.minecraft.client.renderer.feature.submit.SubmitNode;
 import net.minecraft.client.renderer.feature.submit.TranslucentSubmit;
+import org.spongepowered.asm.mixin.Final;
+import org.spongepowered.asm.mixin.Shadow;
 //?}
 
 @SuppressWarnings({"unused", "UnusedMixin"})
@@ -129,6 +133,53 @@ public class SubmitNodeCollectorMixin {
     *///?}
 
     //? if >= 26.2-1.pre {
+    @Shadow @Final public TranslucentFeatureRenderPhase translucentModels;
+
+    /// In 26.2 `submitModel` routes by render-type phase: cutout/solid items (shields,
+    /// banners, tridents in their special-renderer paths) go to `solid.submit(...)`,
+    /// bypassing the translucent submit wrap below. Redirect that solid call into
+    /// `translucentModels` with a translucent render type and alpha-rewritten color so
+    /// off-hand and custom-head modifications actually apply.
+    @WrapOperation(
+            method = "submitModel",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/renderer/feature/phase/SimpleFeatureRenderPhase;submit(Lnet/minecraft/client/renderer/feature/submit/SubmitNode;)V",
+                    ordinal = 1
+            )
+    )
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private void redirectSolidToTranslucentForModifiedSlots(SimpleFeatureRenderPhase solid, SubmitNode node, Operation<Void> original) {
+        if (!(node instanceof ModelFeatureRenderer.Submit<?> modelSubmit)) {
+            original.call(solid, node);
+            return;
+        }
+        var ctx = ArmorHiderClient.RENDER_CONTEXT;
+        if (!ctx.hasActiveModification(EquipmentSlot.OFFHAND) && !ctx.hasActiveModification(EquipmentSlot.HEAD)) {
+            original.call(solid, node);
+            return;
+        }
+
+        float alpha = RenderModifications.getTransparencyAlpha(ctx);
+        int origColor = modelSubmit.tintedColor();
+        int origAlpha = (origColor >> 24) & 0xFF;
+        int newAlpha = Math.round(alpha * origAlpha);
+        int modifiedColor = (origColor & 0x00FFFFFF) | (newAlpha << 24);
+
+        RenderType translucentType = modelSubmit.renderType();
+        if (modelSubmit.sprite() != null) {
+            translucentType = RenderTypeFactory.translucentEntity(modelSubmit.sprite().atlasLocation());
+        }
+
+        var modified = new ModelFeatureRenderer.Submit(
+                translucentType, modelSubmit.pose(), modelSubmit.model(), modelSubmit.state(),
+                modelSubmit.lightCoords(), modelSubmit.overlayCoords(), modifiedColor,
+                modelSubmit.sprite(), modelSubmit.sheetedDecalPose()
+        );
+
+        translucentModels.submit((TranslucentSubmit) modified);
+    }
+
     @WrapOperation(
             method = "submitModel",
             at = @At(
