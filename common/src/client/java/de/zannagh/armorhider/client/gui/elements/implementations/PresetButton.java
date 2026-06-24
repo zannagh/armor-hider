@@ -11,10 +11,9 @@ public class PresetButton extends SquareLayeredTextButton {
     private boolean presetActive;
 
     public PresetButton(int presetIndex, boolean isEmpty, boolean active, OnPress onPress) {
-        super(String.valueOf(presetIndex + 1), message(presetIndex, isEmpty, active), onPress);
+        super(!isEmpty, String.valueOf(presetIndex + 1), message(presetIndex, isEmpty, active), onPress);
         this.presetIndex = presetIndex;
         this.presetActive = active;
-        this.isEnabled = !isEmpty;
     }
 
     public int getPresetIndex() {

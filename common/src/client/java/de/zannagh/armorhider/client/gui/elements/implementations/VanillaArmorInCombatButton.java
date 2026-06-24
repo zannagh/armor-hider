@@ -9,7 +9,7 @@ import org.jetbrains.annotations.Nullable;
 public class VanillaArmorInCombatButton extends LayeredImageButton {
 
     public VanillaArmorInCombatButton(boolean initial, OnPress onPress) {
-        super(null, UiConstants.SQUARE_BUTTON_WIDTH, UiConstants.DEFAULT_BUTTON_HEIGHT,
+        super(null, initial, UiConstants.SQUARE_BUTTON_WIDTH, UiConstants.DEFAULT_BUTTON_HEIGHT,
                 initial ? VanillaArmorInCombatButton.enabledMsg() : VanillaArmorInCombatButton.disabledMsg(), onPress);
     }
 

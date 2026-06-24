@@ -8,8 +8,8 @@ public abstract class SquareLayeredTextButton extends LayeredButton {
 
     private final String label;
 
-    public SquareLayeredTextButton(String label, Component message, OnPress onPress) {
-        super(UiConstants.SQUARE_BUTTON_WIDTH, UiConstants.DEFAULT_BUTTON_HEIGHT, message, onPress);
+    public SquareLayeredTextButton(boolean initial, String label, Component message, OnPress onPress) {
+        super(initial, UiConstants.SQUARE_BUTTON_WIDTH, UiConstants.DEFAULT_BUTTON_HEIGHT, message, onPress);
         this.label = label;
     }
 

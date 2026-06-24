@@ -53,7 +53,7 @@ public class AffectOtherItemsButton extends LayeredImageButton {
     }
 
     public AffectOtherItemsButton(boolean initial, EquipmentSlot slot, int width, int height, OnPress onPress) {
-        super(slot, width, height, initial ? enabledMsg(slot) : disabledMsg(slot), onPress);
+        super(slot, initial, width, height, initial ? enabledMsg(slot) : disabledMsg(slot), onPress);
         if (slot == EquipmentSlot.HEAD) {
             slotSprite = modSprite("affect_head_slot_button");
         }

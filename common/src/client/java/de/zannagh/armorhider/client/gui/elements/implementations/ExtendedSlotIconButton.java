@@ -13,7 +13,7 @@ public class ExtendedSlotIconButton extends LayeredImageButton {
     
 
     public ExtendedSlotIconButton(EquipmentSlot slot, int width, int height, OnPress onPress) {
-        super(slot, width, height, buttonMessage, onPress);
+        super(slot, true, width, height, buttonMessage, onPress);
     }
 
     private static final Component buttonMessage = Component.translatable("armorhider.options.item_exclusion.button_tooltip");
