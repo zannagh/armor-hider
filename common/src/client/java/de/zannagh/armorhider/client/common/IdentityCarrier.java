@@ -65,15 +65,4 @@ public interface IdentityCarrier {
      * Returns and clears the arm re-render flag.
      */
     default boolean pollNeedsArmRerender() { return false; }
-
-    /**
-     * Saves the original GeckoLib render color before patching for transparency,
-     * so it can be restored after GeckoLib finishes rendering the slot.
-     */
-    default void saveGeckoLibColor(int color) {}
-
-    /**
-     * Returns and clears the saved GeckoLib render color.
-     */
-    default @Nullable Integer pollSavedGeckoLibColor() { return null; }
 }

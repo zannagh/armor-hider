@@ -91,20 +91,5 @@ public class LivingEntityRenderStateMixin implements IdentityStateCarrier {
         armorHider$needsArmRerender = false;
         return needs;
     }
-
-    @Unique
-    private @Nullable Integer armorHider$savedGeckoLibColor;
-
-    @Override
-    public void saveGeckoLibColor(int color) {
-        armorHider$savedGeckoLibColor = color;
-    }
-
-    @Override
-    public @Nullable Integer pollSavedGeckoLibColor() {
-        Integer color = armorHider$savedGeckoLibColor;
-        armorHider$savedGeckoLibColor = null;
-        return color;
-    }
 }
 //?}

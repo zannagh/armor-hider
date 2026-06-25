@@ -3,12 +3,7 @@ package de.zannagh.armorhider.client.api.impl;
 import com.mojang.datafixers.util.Pair;
 import de.zannagh.armorhider.client.api.AhRenderer;
 import de.zannagh.armorhider.client.common.RenderScope;
-import de.zannagh.armorhider.client.render.interceptors.ArmorHiderCapeRenderer;
-import de.zannagh.armorhider.client.render.interceptors.ArmorHiderElytraRenderer;
-import de.zannagh.armorhider.client.render.interceptors.ArmorHiderEmptyRenderer;
-import de.zannagh.armorhider.client.render.interceptors.ArmorHiderHeadRenderer;
-import de.zannagh.armorhider.client.render.interceptors.ArmorHiderItemRenderer;
-import de.zannagh.armorhider.client.render.interceptors.ArmorHiderOffhandRenderer;
+import de.zannagh.armorhider.client.render.interceptors.*;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.lang.reflect.Type;
@@ -32,6 +27,9 @@ public final class AhRendererRegistryImpl {
     private static final AhRenderer EMPTY_RENDERER = new ArmorHiderEmptyRenderer();
 
     private static final HashMap<RenderScope, HashSet<Function<Pair<RenderScope, AhRenderer>, Boolean>>> SUPPRESSORS = new HashMap<>();
+
+    private static final List<AhRenderer> DEFAULT_INTERCEPTORS = List.of(new ArmorHiderItemRenderer(), new ArmorHiderCapeRenderer(), new ArmorHiderElytraRenderer(), new ArmorHiderOffhandRenderer(), new ArmorHiderHeadRenderer(), new AhGeckoLibRenderer());
+
     private AhRendererRegistryImpl() {}
 
     public static void register(AhRenderer renderer, int priority) {
@@ -103,6 +101,6 @@ public final class AhRendererRegistryImpl {
     }
 
     public static List<AhRenderer> getDefaultInterceptors() {
-        return List.of(new ArmorHiderItemRenderer(), new ArmorHiderCapeRenderer(), new ArmorHiderElytraRenderer(), new ArmorHiderOffhandRenderer(), new ArmorHiderHeadRenderer());
+        return DEFAULT_INTERCEPTORS;
     }
 }
