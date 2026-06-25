@@ -30,7 +30,7 @@ public final class AhRenderStateImpl {
             ThreadLocal.withInitial(() -> EnumSet.noneOf(GlobalRenderScope.class));
     private static final ThreadLocal<EnumMap<RenderScope, RenderScopeContext>> ACTIVE_SCOPES =
             ThreadLocal.withInitial(() -> new EnumMap<>(RenderScope.class));
-    private static String currentPlayerName = "";
+    private static final ThreadLocal<String> CURRENT_PLAYER_NAME = ThreadLocal.withInitial(() -> "");
 
     private AhRenderStateImpl() {}
 
@@ -87,15 +87,15 @@ public final class AhRenderStateImpl {
     }
 
     public static @NonNull String currentlyHandledPlayerName() {
-        return currentPlayerName;
+        return CURRENT_PLAYER_NAME.get();
     }
 
-    public static void setCurrentPlayer(String playerName) {
-        currentPlayerName = playerName;
+    public static void setCurrentPlayer(@Nullable String playerName) {
+        CURRENT_PLAYER_NAME.set(playerName == null ? "" : playerName);
     }
 
     public static void clearCurrentPlayer() {
-        currentPlayerName = "";
+        CURRENT_PLAYER_NAME.set("");
     }
 
     // --- Per-scope context management ---
@@ -146,7 +146,7 @@ public final class AhRenderStateImpl {
         if (prev == null || prev.isEmpty()) {
             return;
         }
-        String identity = prev.carrier() != null ? prev.carrier().armorHider$playerName() : currentPlayerName;
+        String identity = prev.carrier() != null ? prev.carrier().armorHider$playerName() : CURRENT_PLAYER_NAME.get();
         DebugTracer.scopeExited(scope.name(), identity);
         DebugTracer.scopeExitItemRender();
     }

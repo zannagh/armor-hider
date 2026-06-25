@@ -102,10 +102,11 @@ public class HumanoidArmorLayerMixin
         var ctx = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE);
         if (ctx.isEmpty()) return original.call(texture);
         Identifier resolved = VanillaArmorTextureManager.resolveArmorTexture(ctx.modification(), texture);
-        if (ctx.renderModificationApi().getTranslucentArmorRenderType(resolved, original.call(resolved)) instanceof RenderType rt) {
+        var originalType = original.call(resolved);
+        if (ctx.renderModificationApi().getTranslucentArmorRenderType(resolved, originalType) instanceof RenderType rt) {
             return rt;
         }
-        return original.call(resolved);
+        return originalType;
     }
     *///?}
 
@@ -134,10 +135,11 @@ public class HumanoidArmorLayerMixin
     private RenderType modifyTrimRenderLayer(boolean decal, Operation<RenderType> original) {
         var ctx = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE);
         if (ctx.isEmpty()) return original.call(decal);
-        if (ctx.renderModificationApi().getTrimRenderLayer(decal, original.call(decal)) instanceof RenderType rt) {
+        var originalType = original.call(decal);
+        if (ctx.renderModificationApi().getTrimRenderLayer(decal, originalType) instanceof RenderType rt) {
             return rt;
         }
-        return original.call(decal);
+        return originalType;
     }
 
     @WrapOperation(

@@ -192,10 +192,11 @@ public class GenderArmorLayerMixin {
     )
     private RenderType modifyBreastArmorRenderType(Identifier texture, Operation<RenderType> original) {
         var modApi = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE).renderModificationApi();
-        if (modApi.getTranslucentArmorRenderType(texture, original.call(texture)) instanceof RenderType rt) {
+        var originalType = original.call(texture);
+        if (modApi.getTranslucentArmorRenderType(texture, originalType) instanceof RenderType rt) {
             return rt;
         }
-        return original.call(texture);
+        return originalType;
     }
     //?}
 
@@ -209,10 +210,11 @@ public class GenderArmorLayerMixin {
     )
     private RenderType modifyBreastArmorRenderType(Identifier texture, Operation<RenderType> original) {
         var modApi = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE).renderModificationApi();
-        if (modApi.getTranslucentArmorRenderType(texture, original.call(texture)) instanceof RenderType rt) {
+        var originalType = original.call(texture);
+        if (modApi.getTranslucentArmorRenderType(texture, originalType) instanceof RenderType rt) {
             return rt;
         }
-        return original.call(texture);
+        return originalType;
     }
     *///?}
 
@@ -226,10 +228,11 @@ public class GenderArmorLayerMixin {
     )
     private RenderType modifyBreastArmorRenderType(Identifier texture, Operation<RenderType> original) {
         var modApi = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE).renderModificationApi();
-        if (modApi.getTranslucentArmorRenderType(texture, original.call(texture)) instanceof RenderType rt) {
+        var originalType = original.call(texture);
+        if (modApi.getTranslucentArmorRenderType(texture, originalType) instanceof RenderType rt) {
             return rt;
         }
-        return original.call(texture);
+        return originalType;
     }
     *///?}
 
@@ -331,10 +334,11 @@ public class GenderArmorLayerMixin {
     )
     private RenderType modifyTrimRenderType(boolean decal, Operation<RenderType> original) {
         var trimModApi = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE).renderModificationApi();
-        if (trimModApi.getTrimRenderLayer(decal, original.call(decal)) instanceof RenderType rt) {
+        var originalType = original.call(decal);
+        if (trimModApi.getTrimRenderLayer(decal, originalType) instanceof RenderType rt) {
             return rt;
         }
-        return original.call(decal);
+        return originalType;
     }
     *///?}
 

@@ -56,11 +56,11 @@ public final class AhRendererRegistryImpl {
         var list = RENDERERS.get(scope);
         if (list != null && !list.isEmpty()) {
             renderer = list.get(0).getSecond();
-        }
-
-        var fallback = RENDERERS.get(RenderScope.ALL);
-        if (fallback != null && !fallback.isEmpty()) {
-            renderer = fallback.get(0).getSecond();
+        } else {
+            var fallback = RENDERERS.get(RenderScope.ALL);
+            if (fallback != null && !fallback.isEmpty()) {
+                renderer = fallback.get(0).getSecond();
+            }
         }
 
         if (SUPPRESSORS.containsKey(scope)) {

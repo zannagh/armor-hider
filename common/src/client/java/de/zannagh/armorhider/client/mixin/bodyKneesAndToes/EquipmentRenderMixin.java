@@ -148,7 +148,8 @@ public class EquipmentRenderMixin {
         }
 
         Identifier resolved = VanillaArmorTextureManager.resolveArmorTexture(ctx.modification(), texture);
-        return ctx.renderModificationApi().getTranslucentArmorRenderType(resolved, original.call(resolved)) instanceof RenderType rt ? rt : original.call(resolved);
+        var originalType = original.call(resolved);
+        return ctx.renderModificationApi().getTranslucentArmorRenderType(resolved, originalType) instanceof RenderType rt ? rt : originalType;
     }
 
     @WrapOperation(
@@ -163,10 +164,11 @@ public class EquipmentRenderMixin {
     )
     private RenderType modifyTrimRenderLayer(boolean decal, Operation<RenderType> original) {
         var modApi = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE, RenderScope.ELYTRA).renderModificationApi();
-        if (modApi.getTrimRenderLayer(decal, original.call(decal)) instanceof RenderType renderType) {
+        var originalType = original.call(decal);
+        if (modApi.getTrimRenderLayer(decal, originalType) instanceof RenderType renderType) {
             return renderType;
         }
-        return original.call(decal);
+        return originalType;
     }
 
     //? if >= 1.21.11 {

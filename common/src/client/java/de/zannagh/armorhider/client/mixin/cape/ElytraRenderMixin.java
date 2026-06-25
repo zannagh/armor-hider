@@ -76,11 +76,12 @@ public class ElytraRenderMixin
     )
     private RenderType modifyElytraRenderType(Identifier texture, Operation<RenderType> original) {
         var ctx = AhRenderManagementApi.getActiveScope(RenderScope.ELYTRA);
-        if (ctx.isEmpty()) return original.call(texture);
-        if (ctx.renderModificationApi().getTranslucentArmorRenderType(texture, original.call(texture)) instanceof RenderType rt) {
+        var originalType = original.call(texture);
+        if (ctx.isEmpty()) return originalType;
+        if (ctx.renderModificationApi().getTranslucentArmorRenderType(texture, originalType) instanceof RenderType rt) {
             return rt;
         }
-        return original.call(texture);
+        return originalType;
     }
 
     //? if >= 1.21 {

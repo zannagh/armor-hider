@@ -2,7 +2,9 @@ package de.zannagh.armorhider;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import de.zannagh.armorhider.api.ArmorHiderApi;
 import de.zannagh.armorhider.api.ArmorHiderApiImpl;
+import de.zannagh.armorhider.api.ArmorHiderInitializer;
 import de.zannagh.armorhider.log.EnrichedLogger;
 import de.zannagh.armorhider.configuration.serialization.*;
 import de.zannagh.armorhider.net.*;
@@ -53,6 +55,9 @@ public class ArmorHider {
         });
 
         CommsManager.initServer();
+
+        ArmorHiderInitializer.dispatchAll(ArmorHiderApi.getInstance());
+
         LOGGER.info("Initialized!");
     }
 
