@@ -1,4 +1,4 @@
-package de.zannagh.armorhider.client.compat.iris;
+package de.zannagh.armorhider.client.compat;
 
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.client.render.rendertype.ArmorHiderRenderTypes;

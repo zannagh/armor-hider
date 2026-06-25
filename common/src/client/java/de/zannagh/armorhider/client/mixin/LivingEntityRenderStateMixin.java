@@ -77,19 +77,5 @@ public class LivingEntityRenderStateMixin implements IdentityStateCarrier {
         return armorHider$carrier == null ? ItemStack.EMPTY : armorHider$carrier.getItemBySlot(slot);
     }
 
-    @Unique
-    private boolean armorHider$needsArmRerender;
-
-    @Override
-    public void setNeedsArmRerender() {
-        armorHider$needsArmRerender = true;
-    }
-
-    @Override
-    public boolean pollNeedsArmRerender() {
-        boolean needs = armorHider$needsArmRerender;
-        armorHider$needsArmRerender = false;
-        return needs;
-    }
 }
 //?}

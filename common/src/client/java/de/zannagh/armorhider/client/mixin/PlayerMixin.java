@@ -37,9 +37,6 @@ public abstract class PlayerMixin
     //extends LivingEntity implements IdentityCarrier {
 
     @Unique
-    private boolean armorHider$needsArmRerender;
-
-    @Unique
     private boolean armorHider$modsDirty = true;
     @Unique
     private PlayerModificationInfo armorHider$playerModInfo;
@@ -105,18 +102,6 @@ public abstract class PlayerMixin
         return name != null && ArmorHiderApi.getInstance().getCombatManagement().isInCombat(name);
     }
 
-    @Override
-    public void setNeedsArmRerender() {
-        armorHider$needsArmRerender = true;
-    }
-
-    @Override
-    public boolean pollNeedsArmRerender() {
-        boolean needs = armorHider$needsArmRerender;
-        armorHider$needsArmRerender = false;
-        return needs;
-    }
-    
     @Override
     public @Nullable String armorHider$playerName() {
         return PlayerNameUtil.getPlayerName(this);

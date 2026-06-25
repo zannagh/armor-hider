@@ -55,14 +55,4 @@ public interface IdentityCarrier {
         return slotInfo;
     }
 
-    /**
-     * Signals that a compat layer (e.g. GeckoLib) needs the vanilla arm model
-     * parts re-rendered because its custom armor model includes body geometry.
-     */
-    default void setNeedsArmRerender() {}
-
-    /**
-     * Returns and clears the arm re-render flag.
-     */
-    default boolean pollNeedsArmRerender() { return false; }
 }

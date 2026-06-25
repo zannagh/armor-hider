@@ -24,7 +24,7 @@ public class CompatManager {
 
     private static void initEmfCompat() {
         try {
-            de.zannagh.armorhider.client.compat.emf.EmfCompat.register();
+            EmfCompat.register();
         } catch (Exception e) {
             ArmorHider.LOGGER.warn("Failed to register vanilla model condition with EMF", e);
         }
@@ -32,7 +32,7 @@ public class CompatManager {
 
     private static void initIrisCompat() {
         try {
-            de.zannagh.armorhider.client.compat.iris.IrisCompat.registerPipelines();
+            IrisCompat.registerPipelines();
         } catch (Exception e) {
             ArmorHider.LOGGER.warn("Failed to register pipelines with Iris", e);
         }

@@ -1,4 +1,4 @@
-package de.zannagh.armorhider.client.compat.figura;
+package de.zannagh.armorhider.client.compat;
 
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import net.minecraft.world.entity.EquipmentSlot;
