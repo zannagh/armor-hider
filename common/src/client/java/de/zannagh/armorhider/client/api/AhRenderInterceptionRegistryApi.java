@@ -3,8 +3,12 @@ package de.zannagh.armorhider.client.api;
 import com.mojang.datafixers.util.Pair;
 import de.zannagh.armorhider.client.api.impl.AhRendererRegistryImpl;
 import de.zannagh.armorhider.client.common.RenderScope;
+import de.zannagh.armorhider.client.render.interceptors.ArmorHiderEmptyRenderer;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
+import java.lang.reflect.Type;
 import java.util.function.Function;
 
 /**
@@ -82,5 +86,19 @@ public interface AhRenderInterceptionRegistryApi {
      */
     static AhRenderer getRenderer(RenderScope scope) {
         return AhRendererRegistryImpl.getRenderer(scope);
+    }
+
+    /**
+     * Look up a registered renderer by its concrete class, ignoring scope. Returns the first
+     * renderer whose runtime class is exactly {@code type} (not a subclass), or {@code null}
+     * if none is registered.
+     * <p>
+     * Use when calling code needs a specific implementation rather than the scope-resolved
+     * renderer — e.g. resolving a third-party compat interceptor like
+     * {@code GeckoLibRenderInterceptor} that registers under {@link RenderScope#ALL} but is
+     * addressed by type at the call site.
+     */
+    static <T extends AhRenderer> @Nullable T getRenderer(Class<T> type) {
+        return AhRendererRegistryImpl.getRenderer(type);
     }
 }

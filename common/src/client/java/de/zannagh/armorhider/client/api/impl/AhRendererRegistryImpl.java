@@ -78,6 +78,19 @@ public final class AhRendererRegistryImpl {
         return renderer;
     }
 
+    public static <T extends AhRenderer> T getRenderer(Class<T> type) {
+        if (type == null) return null;
+        for (var registrations : RENDERERS.values()) {
+            for (var renderPair : registrations) {
+                var renderer = renderPair.getSecond();
+                if (renderer.getClass() == type) {
+                    return type.cast(renderer);
+                }
+            }
+        }
+        return null;
+    }
+
     public static void suppressConditionally(RenderScope scope, Function<Pair<RenderScope, AhRenderer>, Boolean> evaluation) {
         if (SUPPRESSORS.containsKey(scope)) {
             var set = SUPPRESSORS.get(scope);

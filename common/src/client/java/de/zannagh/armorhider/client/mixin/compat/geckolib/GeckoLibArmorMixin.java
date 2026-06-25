@@ -2,10 +2,10 @@ package de.zannagh.armorhider.client.mixin.compat.geckolib;
 
 import com.geckolib.renderer.GeoArmorRenderer;
 import com.mojang.blaze3d.vertex.PoseStack;
+import de.zannagh.armorhider.client.api.AhRenderInterceptionRegistryApi;
 import de.zannagh.armorhider.client.api.AhRenderManagementApi;
-import de.zannagh.armorhider.client.compat.geckolib.GeckoLibRenderState;
 import de.zannagh.armorhider.client.common.RenderScope;
-import de.zannagh.armorhider.client.common.IdentityCarrier;
+import de.zannagh.armorhider.client.render.interceptors.AhGeckoLibRenderer;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -20,7 +20,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 //? if >= 1.21.9 {
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
-import com.geckolib.renderer.base.GeoRenderState;
 //? } else {
 /*
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
@@ -46,30 +45,14 @@ public class GeckoLibArmorMixin {
             int packedLight,
             HumanoidRenderState renderState,
             CallbackInfoReturnable<Boolean> cir) {
-        if (!(renderState instanceof IdentityCarrier carrier)) {
+        var geckoLibRenderer = AhRenderInterceptionRegistryApi.getRenderer(AhGeckoLibRenderer.class);
+        if (geckoLibRenderer == null) {
             return;
         }
-        var ctx = AhRenderManagementApi.enterScope(RenderScope.ARMOR_PIECE, carrier, slot, stack);
-        var mod = ctx.modification();
-        if (!mod.needsModification()) {
-            return;
-        }
+        var result = geckoLibRenderer.intercept(renderState, slot, stack, cir);
 
-        if (mod.shouldHide()) {
-            // Cancel GeckoLib rendering entirely, so rendering is delegated down the vanilla pipeline.
-            AhRenderManagementApi.exitScope(RenderScope.ARMOR_PIECE);
+        if (result.shouldCancel()) {
             cir.setReturnValue(false);
-            return;
-        }
-
-        if (renderState instanceof GeoRenderState geoState) {
-            GeoRenderState perSlotState = GeckoLibRenderState.getPerSlotState(geoState, slot);
-            if (perSlotState != null) {
-                int originalColor = GeckoLibRenderState.getRenderColor(perSlotState);
-                carrier.saveGeckoLibColor(originalColor);
-                int modifiedColor = ctx.renderModificationApi().applyArmorTransparency(originalColor);
-                GeckoLibRenderState.setRenderColor(perSlotState, modifiedColor);
-            }
         }
     }
 
@@ -84,16 +67,11 @@ public class GeckoLibArmorMixin {
             HumanoidRenderState renderState,
             CallbackInfoReturnable<Boolean> cir) {
         // Restore the original render color on the per-slot state
-        if (renderState instanceof IdentityCarrier carrier) {
-            Integer savedColor = carrier.pollSavedGeckoLibColor();
-            if (savedColor != null && renderState instanceof GeoRenderState geoState) {
-                GeoRenderState perSlotState = GeckoLibRenderState.getPerSlotState(geoState, slot);
-                if (perSlotState != null) {
-                    GeckoLibRenderState.setRenderColor(perSlotState, savedColor);
-                }
-            }
+        var geckoLibRenderer = AhRenderInterceptionRegistryApi.getRenderer(AhGeckoLibRenderer.class);
+        if (geckoLibRenderer == null) {
+            return;
         }
-        AhRenderManagementApi.exitScope(RenderScope.ARMOR_PIECE);
+        geckoLibRenderer.popAndApplyColor(renderState, slot);
     }
     //? } else {
     /*
