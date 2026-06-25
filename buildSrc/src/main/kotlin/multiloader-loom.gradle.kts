@@ -1,7 +1,7 @@
+import dev.kikugie.stonecutter.build.StonecutterBuildExtension
 
 val isDeobf = extra.has("loom.deobf") && extra.get("loom.deobf") as Boolean
 val sc = project.stonecutterBuild
-val proj = project
 val branch = sc.branch.id
 val mcVersion = sc.current.project.substringAfter('-')
 
@@ -73,13 +73,11 @@ if (branch == "common") {
     }
 
     dependencies {
-
         if (!isDeobf) {
             add("modCompileOnly", "net.fabricmc:fabric-loader:${property("loader_version")}")
         }
         val modDep = if (isDeobf) "compileOnly" else "modCompileOnly"
         val modClientDep = if (isDeobf) "clientCompileOnly" else "modClientCompileOnly"
-
         if (hasProperty("geckolib.version")) {
             add(modDep, "maven.modrinth:geckolib:${findProperty("geckolib.version")}")
             add(modClientDep, "maven.modrinth:geckolib:${findProperty("geckolib.version")}")

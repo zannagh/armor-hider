@@ -1,7 +1,7 @@
 # Global properties
 maven_group = "de.zannagh.armorhider"
 archives_base_name = "armor-hider"
-loader_version = "0.18.2"
+loader_version = "0.18.4"
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Per MC version — shared between fabric and neoforge for the same game version.
