@@ -68,7 +68,7 @@ public class ArmorHiderClient {
     }
 
     /**
-     * Mixin to this method to adjust render types or use {@link AhRenderModificationApi#registerRenderTypeFactory(AhRenderTypeFactory, int)} (AhRenderModificationApi, int)} to change render type behavior.
+     * Mixin to this method to adjust render types or use {@link AhRenderModificationApi#registerRenderTypeFactory(AhRenderTypeFactory, int)} to change render type behavior.
      */
     public static void initRenderTypes() {
         AhRenderModificationApi.registerRenderTypeFactory(new RenderTypeFactory(), AhRenderModificationApi.getDefaultPriority());
