@@ -1,14 +1,13 @@
 package de.zannagh.armorhider.client.render.interceptors;
 
 import de.zannagh.armorhider.client.api.AhRenderInterceptionRegistryApi;
+import de.zannagh.armorhider.client.common.EquippableInformation;
 import de.zannagh.armorhider.client.common.IdentityCarrier;
 import de.zannagh.armorhider.client.common.RenderInterceptionResult;
 import de.zannagh.armorhider.client.common.RenderScope;
 import de.zannagh.armorhider.common.ItemInfo;
-import de.zannagh.armorhider.util.ItemsUtil;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import org.jspecify.annotations.Nullable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
@@ -27,22 +26,19 @@ public class ArmorHiderItemRenderer extends AbstractArmorHiderRenderer {
     @Override
     public RenderInterceptionResult intercept(@Nullable Object identityCarrier, @Nullable EquipmentSlot slot, @Nullable ItemStack stack, CallbackInfo ci) {
         IdentityCarrier carrier = identityCarrier instanceof IdentityCarrier ic ? ic : null;
-        EquipmentSlot resolvedSlot = slot;
-        if (resolvedSlot == null && stack != null) {
-            resolvedSlot = new ItemInfo(stack).getEquippableSlot();
+        var equipmentInfo = new EquippableInformation(identityCarrier, slot, stack);
+        if (!equipmentInfo.isValid()) {
+            setEmptyModification();
+            return RenderInterceptionResult.ignore();
+        }
+        EquipmentSlot resolvedSlot = equipmentInfo.getSlot();
+        if (stack == null) {
+            stack = equipmentInfo.getStack();
         }
 
-        if (stack != null) {
-            if (new ItemInfo(stack).isElytra()) {
-                var elytraRenderer = AhRenderInterceptionRegistryApi.getRenderer(RenderScope.ELYTRA);
-                return elytraRenderer.intercept(identityCarrier, resolvedSlot, stack, ci);
-            }
-        }
-        else if (resolvedSlot == EquipmentSlot.CHEST) {
-            if (carrier != null && new ItemInfo(carrier.getItemBySlot(resolvedSlot)).isElytra()){
-                var elytraRenderer = AhRenderInterceptionRegistryApi.getRenderer(RenderScope.ELYTRA);
-                return elytraRenderer.intercept(identityCarrier, resolvedSlot, new ItemStack(Items.ELYTRA), ci);
-            }
+        if (equipmentInfo.getItemInfo().isElytra()) {
+            var elytraRenderer = AhRenderInterceptionRegistryApi.getRenderer(RenderScope.ELYTRA);
+            return elytraRenderer.intercept(identityCarrier, resolvedSlot, stack, ci);
         }
 
         if (carrier != null) {
@@ -54,7 +50,7 @@ public class ArmorHiderItemRenderer extends AbstractArmorHiderRenderer {
             return super.standardIntercept(carrier, resolvedSlot, stack, ci);
         }
 
-        resolveModification(null, null, null);
+        setEmptyModification();
         return RenderInterceptionResult.ignore();
     }
 }

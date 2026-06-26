@@ -25,7 +25,7 @@ public class ArmorHiderHeadRenderer extends AbstractArmorHiderRenderer {
     public RenderInterceptionResult intercept(@Nullable Object identityCarrier, @Nullable EquipmentSlot slot, @Nullable ItemStack stack, CallbackInfo ci) {
         IdentityCarrier carrier = identityCarrier instanceof IdentityCarrier ic ? ic : null;
         if (carrier == null) {
-            resolveModification(null, null, null);
+            setEmptyModification();
             return RenderInterceptionResult.ignore();
         }
         ItemStack headItem = stack != null ? stack : carrier.customHeadItem();

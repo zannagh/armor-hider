@@ -34,7 +34,7 @@ public class ArmorHiderOffhandRenderer extends AbstractArmorHiderRenderer {
         }
         IdentityCarrier carrier = identityCarrier instanceof IdentityCarrier ic ? ic : null;
         if (carrier == null) {
-            resolveModification(null, null, null);
+            setEmptyModification();
             return RenderInterceptionResult.ignore();
         }
         ItemStack offhand = stack != null ? stack : carrier.getItemBySlot(slot);
