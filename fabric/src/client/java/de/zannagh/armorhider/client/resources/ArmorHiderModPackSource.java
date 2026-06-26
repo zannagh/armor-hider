@@ -53,7 +53,7 @@ public final class ArmorHiderModPackSource implements RepositorySource {
             );
             var selectionConfig = new PackSelectionConfig(true, Pack.Position.TOP, true);
             consumer.accept(new Pack(locationInfo, resourcesSupplier, metadata, selectionConfig));
-            ArmorHider.LOGGER.info("Mounted built-in resource pack from {}", root);
+            ArmorHider.LOGGER.debug("Mounted built-in resource pack from {}", root);
             return;
         }
     }
