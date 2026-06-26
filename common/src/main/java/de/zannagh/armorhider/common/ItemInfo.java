@@ -43,7 +43,7 @@ public class ItemInfo {
 
     public static ItemInfo of(@Nullable SkullBlock.Type skullBlockType){
         if (skullBlockType == null) {
-            return null;
+            return ItemInfo.empty();
         }
         //noinspection IfCanBeSwitch - does not work on Java 17.
         if (skullBlockType == SkullBlock.Types.SKELETON) {
