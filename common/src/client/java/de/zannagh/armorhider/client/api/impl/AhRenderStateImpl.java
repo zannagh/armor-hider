@@ -143,12 +143,14 @@ public final class AhRenderStateImpl {
 
     public static void exitScope(RenderScope scope) {
         var prev = ACTIVE_SCOPES.get().remove(scope);
-        if (prev == null || prev.isEmpty()) {
+        if (prev == null) {
             return;
         }
         String identity = prev.carrier() != null ? prev.carrier().armorHider$playerName() : CURRENT_PLAYER_NAME.get();
         DebugTracer.scopeExited(scope.name(), identity);
-        DebugTracer.scopeExitItemRender();
+        if (!prev.isEmpty()) {
+            DebugTracer.scopeExitItemRender();
+        }
     }
 
     public static @NonNull RenderScopeContext getActiveScope(RenderScope scope) {
