@@ -37,6 +37,8 @@ public class ArmorHider {
     public static void init() {
         LOGGER.info("Initializing...");
 
+        SmokeMode.maybeArm();
+
         ArmorHiderApiImpl.init();
         PayloadRegistry.init();
         

@@ -78,6 +78,9 @@ public class AhGeckoLibRenderer extends AbstractArmorHiderRenderer {
 
     //? if >= 1.21.9 {
     public static @Nullable GeoRenderState getPerSlotState(GeoRenderState topLevelState, EquipmentSlot slot) {
+        if (!topLevelState.hasGeckolibData(DataTickets.PER_SLOT_RENDER_DATA)) {
+            return null;
+        }
         var map = topLevelState.getGeckolibData(DataTickets.PER_SLOT_RENDER_DATA);
         if (map instanceof EnumMap<?,?> enumMap) {
             return enumMap.get(slot) instanceof GeoRenderState grs ? grs : null;
@@ -86,6 +89,9 @@ public class AhGeckoLibRenderer extends AbstractArmorHiderRenderer {
     }
 
     public static @Nullable Integer getRenderColor(GeoRenderState renderState) {
+        if (!renderState.hasGeckolibData(DataTickets.RENDER_COLOR)) {
+            return null;
+        }
         return renderState.getGeckolibData(DataTickets.RENDER_COLOR);
     }
 

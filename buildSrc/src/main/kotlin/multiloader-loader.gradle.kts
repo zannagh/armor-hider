@@ -6,6 +6,59 @@ plugins {
 val sc = project.stonecutterBuild
 sc.constants["fabric"] = sc.current.project.contains("fabric")
 sc.constants["neoforge"] = sc.current.project.contains("neoforge")
+
+// ── Smoke-test compat fetcher ────────────────────────────────────────────────
+val compatKeys = listOf(
+    "fabricapi",
+    "gender", "geckolib", "waveycapes", "mekanism", "figura",
+    "elytratrims", "iris", "emf", "etf", "modmenu"
+)
+val availableHashes = compatKeys.mapNotNull { key ->
+    findProperty("$key.version")?.toString()?.let { hash -> key to hash }
+}.toMap()
+val compatSel = (findProperty("compat")?.toString() ?: "all").trim()
+val selectedKeys: Set<String> = when (compatSel.lowercase()) {
+    "all" -> availableHashes.keys
+    "none", "clean" -> emptySet()
+    else -> compatSel.split(",").map { it.trim() }.toSet()
+}
+val activeMcVersion: String? = listOf("fabric.minecraft_version", "neoforge.minecraft_version")
+    .firstNotNullOfOrNull { findProperty(it)?.toString() }
+    ?.substringBefore("-pre")?.substringBefore("-rc")?.substringBefore("-alpha")
+val activeLoader: String? = when {
+    sc.current.project.contains("fabric") -> "fabric"
+    sc.current.project.contains("neoforge") -> "neoforge"
+    else -> null
+}
+
+val fetchCompatJars = tasks.register<FetchCompatJars>("fetchCompatJars") {
+    group = "verification"
+    description = "Fetch Modrinth compat jars (controlled by -Pcompat) into run/mods/ for smoke runs"
+    modsDir.set(project.layout.projectDirectory.dir("run/mods"))
+    versionHashes.set(availableHashes)
+    include.set(selectedKeys)
+    activeMcVersion?.let { mcGameVersion.set(it) }
+    activeLoader?.let { loader.set(it) }
+    // Never cache — the action wipes run/mods/ before populating it. If Gradle skips us
+    // on a transitively-cached call, a prior smoke row's mods can leak into the next.
+    outputs.upToDateWhen { false }
+}
+
+val fetchFcgtCompatJars = tasks.register<FetchCompatJars>("fetchFcgtCompatJars") {
+    group = "verification"
+    description = "Like fetchCompatJars but always includes fabric-api (required for FCGT runtime activation)"
+    modsDir.set(project.layout.projectDirectory.dir("run/mods"))
+    versionHashes.set(availableHashes)
+    if (availableHashes.containsKey("fabricapi")) {
+        include.set(selectedKeys + "fabricapi")
+    } else {
+        include.set(selectedKeys)
+    }
+    activeMcVersion?.let { mcGameVersion.set(it) }
+    activeLoader?.let { loader.set(it) }
+    // Same caching note as fetchCompatJars — never up-to-date.
+    outputs.upToDateWhen { false }
+}
 val commonNode = sc.node.sibling("common")
     ?: error("Could not find common branch sibling for ${sc.current.project}")
 val commonPath = commonNode.hierarchy.toString()

@@ -74,8 +74,13 @@ public class GeckoLibArmorMixin {
         }
         geckoLibRenderer.popAndApplyColor(renderState, slot);
     }
-    //? } else {
+    //? } elif < 1.21.5 {
     /*
+    // GeckoLib's field-based API (currentSlot / currentStack / currentEntity) exists only
+    // on GeckoLib jars pinned for MC <= 1.21.4. On 1.21.5–1.21.8 GeckoLib still uses the
+    // pre-1.21.9 MC render flow but has moved its state into per-render parameters; on
+    // 1.21.9+ the whole flow changes to tryRenderGeoArmorPiece. We only @Shadow the fields
+    // where they still exist.
     @Shadow protected EquipmentSlot currentSlot;
     @Shadow protected ItemStack currentStack;
     @Shadow protected Entity currentEntity;
@@ -97,8 +102,12 @@ public class GeckoLibArmorMixin {
             float partialTick,
              *///? }
             CallbackInfoReturnable<RenderType> cir) {
-        //? if < 1.21.9 {
+        //? if < 1.21.5 {
         /*
+        // Field-based armor-piece scope entry — only valid where GeckoLib still exposes
+        // currentEntity / currentSlot / currentStack as shadowable fields. On 1.21.5-1.21.8
+        // GeckoLib dropped those, so we rely on the HumanoidArmorLayer mixin (which fires
+        // first in the layer chain) to have already entered ARMOR_PIECE scope.
         if (currentEntity instanceof IdentityCarrier carrier && currentSlot != null) {
             AhRenderManagementApi.enterScope(RenderScope.ARMOR_PIECE, carrier, currentSlot, currentStack);
         }
