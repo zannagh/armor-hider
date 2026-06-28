@@ -51,12 +51,11 @@ public class OffHandRenderMixin {
     //? if < 1.21.9
     //private void onRenderItem(AbstractClientPlayer abstractClientPlayer, float f, float g, InteractionHand interactionHand, float h, ItemStack itemStack, float i, PoseStack poseStack, MultiBufferSource multiBufferSource, int j, CallbackInfo ci){
 
-        EquipmentSlot slot = EquipmentSlot.OFFHAND;
         if (interactionHand == InteractionHand.MAIN_HAND) {
-            slot = EquipmentSlot.MAINHAND;
+            return;
         }
 
-        var result = AhRenderInterceptionRegistryApi.getRenderer(RenderScope.OFFHAND).intercept(abstractClientPlayer, slot, itemStack, ci);
+        var result = AhRenderInterceptionRegistryApi.getRenderer(RenderScope.OFFHAND).intercept(abstractClientPlayer, EquipmentSlot.OFFHAND, itemStack, ci);
         if (result.shouldCancel() || !result.shouldIntercept()) {
             return;
         }

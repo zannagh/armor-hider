@@ -86,7 +86,8 @@ public class ItemInfo {
         if (itemStack.isEmpty()) {
             return false;
         }
-        return itemStack.is(Items.ELYTRA) || itemStack.getItem().toString().toLowerCase().contains("elytra");
+        return itemStack.is(Items.ELYTRA)
+                || itemStack.getItem().toString().toLowerCase(java.util.Locale.ROOT).contains("elytra");
     }
 
     public boolean isVanillaSkullItem(){

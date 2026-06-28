@@ -70,6 +70,8 @@ public record SlotModification(
         return of(config, slot).addItemInformation(new ItemInfo(itemStack));
     }
 
+    public static SlotModification of(PlayerConfig config, EquipmentSlot slot) {
+
         if (shouldUseVanilla(config)) {
             return empty(slot);
         }
@@ -95,7 +97,11 @@ public record SlotModification(
         boolean shouldHideEntirely = transparency < ArmorOpacity.TRANSPARENCY_STEP;
 
         boolean needsModification = (transparency < 1 - ArmorOpacity.TRANSPARENCY_STEP / 2) || disableGlint;
-        return new SlotModification(slot, needsModification, shouldHideEntirely, disableGlint, transparency, config.playerName.getValue(), config, null);
+        // itemInfo is filled in by addItemInformation(...) for the call sites that have
+        // the stack on hand. Initialise to ItemInfo.empty() rather than null so callers
+        // (e.g. RenderModifications.modifyRenderPriority -> itemInfo.isElytra()) that
+        // read it before addItemInformation runs don't trip an NPE.
+        return new SlotModification(slot, needsModification, shouldHideEntirely, disableGlint, transparency, config.playerName.getValue(), config, ItemInfo.empty());
     }
 
     public SlotModification addItemInformation(ItemInfo itemInfo) {

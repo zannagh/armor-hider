@@ -61,11 +61,7 @@ public class WaveyCapesMixin {
         // var chestEquipment = avatarRenderState.getItemBySlot(EquipmentSlot.CHEST);
 
         var result = AhRenderInterceptionRegistryApi.getRenderer(RenderScope.CAPE).intercept(avatarRenderState, EquipmentSlot.CHEST, chestEquipment, ci);
-        if (!result.shouldIntercept()) {
-            return;
-        }
-        if (result.shouldCancel()) {
-            AhRenderManagementApi.exitScope(RenderScope.CAPE);
+        if (!result.shouldIntercept() || result.shouldCancel()) {
             return;
         }
         AhRenderManagementApi.enterScope(result);
