@@ -3,7 +3,8 @@ package de.zannagh.armorhider.client.common;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;import org.jspecify.annotations.NonNull;
+import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 /**
  * Duck interface injected onto {@code Player} (all versions) and
