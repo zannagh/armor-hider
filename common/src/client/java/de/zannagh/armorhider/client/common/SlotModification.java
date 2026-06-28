@@ -70,10 +70,8 @@ public record SlotModification(
         return of(config, slot).addItemInformation(new ItemInfo(itemStack));
     }
 
-    public static SlotModification of(PlayerConfig config, EquipmentSlot slot) {
-
         if (shouldUseVanilla(config)) {
-            return empty();
+            return empty(slot);
         }
 
         var transparency = switch (slot) {
