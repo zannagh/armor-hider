@@ -192,6 +192,7 @@ public class ItemRendererMixin {
         return renderType;
     }
 
+    //? if !neoforge {
     @WrapOperation(
             method = "renderQuadList(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;Ljava/util/List;[III)V",
             at = @At(
@@ -200,7 +201,7 @@ public class ItemRendererMixin {
             )
     )
     private static void wrapPutBulkData(VertexConsumer instance, PoseStack.Pose pose, BakedQuad quad, float r, float g, float b, float alpha, int light, int overlay, Operation<Void> original) {
-        
+
         var offCtx2 = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
         var hdCtx2 = AhRenderManagementApi.getActiveScope(RenderScope.HEAD);
         var activeCtx2 = !offCtx2.isEmpty() ? offCtx2 : hdCtx2;
@@ -211,5 +212,29 @@ public class ItemRendererMixin {
             original.call(instance, pose, quad, r, g, b, alpha, light, overlay);
         }
     }
+    //?}
+
+    //? if neoforge {
+    /^// NeoForge adds an extra boolean parameter to putBulkData
+    @WrapOperation(
+            method = "renderQuadList(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;Ljava/util/List;[III)V",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lcom/mojang/blaze3d/vertex/VertexConsumer;putBulkData(Lcom/mojang/blaze3d/vertex/PoseStack$Pose;Lnet/minecraft/client/renderer/block/model/BakedQuad;FFFFIIZ)V"
+            )
+    )
+    private static void wrapPutBulkData(VertexConsumer instance, PoseStack.Pose pose, BakedQuad quad, float r, float g, float b, float alpha, int light, int overlay, boolean useBlockLight, Operation<Void> original) {
+
+        var offCtx2 = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
+        var hdCtx2 = AhRenderManagementApi.getActiveScope(RenderScope.HEAD);
+        var activeCtx2 = !offCtx2.isEmpty() ? offCtx2 : hdCtx2;
+        if (!activeCtx2.isEmpty()) {
+            float modifiedAlpha = alpha * activeCtx2.renderModificationApi().getTransparencyAlpha();
+            original.call(instance, pose, quad, r, g, b, modifiedAlpha, light, overlay, useBlockLight);
+        } else {
+            original.call(instance, pose, quad, r, g, b, alpha, light, overlay, useBlockLight);
+        }
+    }
+    ^///?}
 }
 *///? }

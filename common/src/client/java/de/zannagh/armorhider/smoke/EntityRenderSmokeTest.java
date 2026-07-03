@@ -2,6 +2,9 @@
 package de.zannagh.armorhider.smoke;
 
 import de.zannagh.armorhider.ArmorHider;
+import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.client.api.impl.AhRenderStateImpl;
+import de.zannagh.armorhider.client.common.RenderScope;
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 import net.minecraft.client.CameraType;
@@ -68,12 +71,31 @@ public final class EntityRenderSmokeTest implements FabricClientGameTest {
 
                 // Third-person back so cape + body layer mixins fire (first-person skips most layers).
                 client.options.setCameraType(CameraType.THIRD_PERSON_BACK);
+
+                // Give the pipeline something to do: 50% helmet opacity means the ARMOR_PIECE
+                // scope must be entered with a real modification — asserted after the render window.
+                ArmorHiderClient.CLIENT_CONFIG_MANAGER
+                        .getConfigForPlayer(ArmorHiderClient.getCurrentPlayerName())
+                        .helmetOpacity.setValue(0.5);
             });
 
             // 20 ticks ≈ 1 s @ 20 TPS — enough for the render pipeline to draw several frames
             // covering every layer mixin. We're only checking "doesn't crash"; correctness
             // verification would need screenshot diffing (out of scope, see scripts/README.md).
             context.waitTicks(20);
+
+            // The render hooks fail *silently* when injection targets drift between MC
+            // versions (see NeoForge 1.21.4–1.21.8 pipeline regression) — assert the
+            // interception actually fired instead of only checking "didn't crash".
+            context.runOnClient(client -> {
+                long entries = AhRenderStateImpl.modifiedScopeEnterCount(RenderScope.ARMOR_PIECE);
+                if (entries == 0) {
+                    throw new IllegalStateException(
+                            "[smoke/fcgt] ARMOR_PIECE scope never entered with a modification"
+                                    + " — the render interception pipeline is dead on this version");
+                }
+                ArmorHider.LOGGER.info("[smoke/fcgt] ARMOR_PIECE modified scope entries: {}", entries);
+            });
 
             ArmorHider.LOGGER.info("[smoke/fcgt] Render window elapsed without crash, returning");
         }

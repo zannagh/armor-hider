@@ -57,7 +57,7 @@ public class NeoForgeArmorColorMixin {
     //private void wrapArmorModelPartAdd(ModelPartFeatureRenderer.Storage storage, RenderType renderType, SubmitNodeStorage.ModelPartSubmit submit, Operation<Void> original) {
         if (shouldApplyArmorTransparency()) {
 
-            float alpha = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE).renderModificationApi().getTransparencyAlpha();
+            float alpha = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE, RenderScope.ELYTRA).renderModificationApi().getTransparencyAlpha();
 
             int origColor = submit.tintedColor();
             int origAlpha = (origColor >> 24) & 0xFF;
@@ -101,7 +101,7 @@ public class NeoForgeArmorColorMixin {
     //private <S> void wrapArmorModelAdd(ModelFeatureRenderer.Storage storage, RenderType renderType, SubmitNodeStorage.ModelSubmit<S> submit, Operation<Void> original) {
         if (shouldApplyArmorTransparency()) {
 
-            float alpha = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE).renderModificationApi().getTransparencyAlpha();
+            float alpha = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE, RenderScope.ELYTRA).renderModificationApi().getTransparencyAlpha();
 
             int origColor = submit.tintedColor();
             int origAlpha = (origColor >> 24) & 0xFF;
@@ -144,7 +144,7 @@ public class NeoForgeArmorColorMixin {
             return;
         }
         if (shouldApplyArmorTransparency()) {
-            float alpha = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE).renderModificationApi().getTransparencyAlpha();
+            float alpha = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE, RenderScope.ELYTRA).renderModificationApi().getTransparencyAlpha();
 
             int origColor = modelSubmit.tintedColor();
             int origAlpha = (origColor >> 24) & 0xFF;
@@ -170,8 +170,15 @@ public class NeoForgeArmorColorMixin {
     //?}
 
     private static boolean shouldApplyArmorTransparency() {
-
-        return AhRenderManagementApi.hasScopeModification(RenderScope.ARMOR_PIECE);
+        if (!AhRenderManagementApi.hasScopeModification(RenderScope.ARMOR_PIECE)
+                && !AhRenderManagementApi.hasScopeModification(RenderScope.ELYTRA)) {
+            return false;
+        }
+        // An inert modification (exactly 100% opacity) must not swap submits to a translucent
+        // render type — at full alpha the translucent trim loses the depth contest against the
+        // opaque armor and gets overwritten.
+        return AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE, RenderScope.ELYTRA)
+                .renderModificationApi().getTransparencyAlpha() < 1.0f;
     }
 }
 *///?}

@@ -5,6 +5,7 @@ import java.util.concurrent.ConcurrentHashMap;
 //?if >= 1.21.11 {
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.renderer.rendertype.OutputTarget;
 import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.LayeringTransform;
@@ -274,7 +275,9 @@ public final class ArmorHiderRenderTypes {
             "armor_hider_item_translucent_cull_no_depth",
             RenderSetup.builder(ITEM_ENTITY_TRANSLUCENT_CULL_NO_DEPTH)
                     .withTexture("Sampler0", net.minecraft.client.renderer.texture.TextureAtlas.LOCATION_BLOCKS)
+                    .setOutputTarget(OutputTarget.ITEM_ENTITY_TARGET)
                     .useLightmap()
+                    .useOverlay()
                     .affectsCrumbling()
                     .sortOnUpload()
                     .setOutline(RenderSetup.OutlineProperty.AFFECTS_OUTLINE)
@@ -288,6 +291,7 @@ public final class ArmorHiderRenderTypes {
                     .setTextureState(new RenderStateShard.TextureStateShard(
                             net.minecraft.client.renderer.texture.TextureAtlas.LOCATION_BLOCKS, false))
                     .setLightmapState(LIGHTMAP)
+                    .setOverlayState(OVERLAY)
                     .createCompositeState(true)
     );
     *///?} elif >= 1.21.4 {
@@ -300,6 +304,7 @@ public final class ArmorHiderRenderTypes {
                             net.minecraft.client.renderer.texture.TextureAtlas.LOCATION_BLOCKS, TriState.FALSE, false))
                     .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
                     .setLightmapState(LIGHTMAP)
+                    .setOverlayState(OVERLAY)
                     .setWriteMaskState(COLOR_WRITE)
                     .createCompositeState(true)
     );
