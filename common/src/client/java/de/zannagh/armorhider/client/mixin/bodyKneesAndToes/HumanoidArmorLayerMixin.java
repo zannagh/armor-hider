@@ -9,6 +9,7 @@ import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -44,17 +45,39 @@ public class HumanoidArmorLayerMixin
 //<T extends LivingEntity, M extends HumanoidModel<T>, A extends HumanoidModel<T>>
 {
 
+    // ===== Render-state capture (render HEAD/RETURN, 1.21.4–1.21.8 only) =====
+    // In this range renderArmorPiece receives the armor model instead of the render state,
+    // so the identity-carrying state is stashed from the outer render call.
+
+    //? if >= 1.21.4 && < 1.21.9 {
+    /*@Unique
+    private static final ThreadLocal<Object> armorHider$renderState = new ThreadLocal<>();
+
+    @Inject(method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/renderer/entity/state/HumanoidRenderState;FF)V", at = @At("HEAD"))
+    private void captureRenderState(PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, HumanoidRenderState renderState, float f, float g, CallbackInfo ci) {
+        armorHider$renderState.set(renderState);
+    }
+
+    @Inject(method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/renderer/entity/state/HumanoidRenderState;FF)V", at = @At("RETURN"))
+    private void releaseRenderState(CallbackInfo ci) {
+        armorHider$renderState.remove();
+    }
+    *///?}
+
     // ===== Per-piece scope setup (renderArmorPiece HEAD) =====
 
     @Inject(method = "renderArmorPiece", at = @At("HEAD"), cancellable = true)
     //? if >= 1.21.9
     private <S extends HumanoidRenderState> void captureContext(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, ItemStack itemStack, EquipmentSlot slot, int i, S humanoidRenderState, CallbackInfo ci) {
     //? if >= 1.21.4 && < 1.21.9
-    //private void captureContext(PoseStack poseStack, MultiBufferSource multiBufferSource, ItemStack itemStack, EquipmentSlot slot, int i, HumanoidModel<?> humanoidRenderState, CallbackInfo ci) {
+    //private void captureContext(PoseStack poseStack, MultiBufferSource multiBufferSource, ItemStack itemStack, EquipmentSlot slot, int i, HumanoidModel<?> armorModel, CallbackInfo ci) {
     //? if < 1.21.4
     //private void onRenderArmorPiece(PoseStack poseStack, MultiBufferSource bufferSource, T humanoidRenderState, EquipmentSlot slot, int packedLight, A itemStack, CallbackInfo ci) {
 
+        //? if >= 1.21.9 || < 1.21.4
         IdentityCarrier carrier = humanoidRenderState instanceof IdentityCarrier ic ? ic : null;
+        //? if >= 1.21.4 && < 1.21.9
+        //IdentityCarrier carrier = armorHider$renderState.get() instanceof IdentityCarrier ic ? ic : null;
         if (carrier == null) return;
 
         
@@ -67,14 +90,11 @@ public class HumanoidArmorLayerMixin
     }
 
     // ===== Per-piece scope cleanup (renderArmorPiece RETURN) =====
-    // In 1.21.4–1.21.8 this is handled by EquipmentRenderMixin.resetContext at the renderLayers level.
 
-    //? if >= 1.21.9 || < 1.21.4 {
     @Inject(method = "renderArmorPiece", at = @At("RETURN"))
     private void onRenderArmorPieceReturn(CallbackInfo ci) {
         AhRenderManagementApi.exitScope(RenderScope.ARMOR_PIECE);
     }
-    //?}
 
     // === Render changes where MC does handle it within HumanoidArmorLayer ===
 
@@ -152,7 +172,7 @@ public class HumanoidArmorLayerMixin
     private void modifyTrimColor(A model, PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, Operation<Void> original) {
         var ctx = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE);
         if (ctx.isEmpty()) { original.call(model, poseStack, vertexConsumer, packedLight, packedOverlay); return; }
-        int modifiedColor = ctx.renderModificationApi().applyTransparencyFromWhite(packedOverlay);
+        int modifiedColor = ctx.renderModificationApi().applyTransparencyFromWhite(0xFFFFFFFF);
         model.renderToBuffer(poseStack, vertexConsumer, packedLight, packedOverlay, modifiedColor);
     }
     *///?}

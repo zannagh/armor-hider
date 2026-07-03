@@ -37,7 +37,8 @@ import net.minecraft.client.renderer.SubmitNodeCollector;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 //?}
 //? if < 1.21.9 {
-/*import net.minecraft.client.renderer.MultiBufferSource;
+/*import com.mojang.blaze3d.vertex.VertexConsumer;
+import net.minecraft.client.renderer.MultiBufferSource;
 *///?}
 
 //? if >= 1.21.11 {
@@ -113,6 +114,31 @@ public class EquipmentRenderMixin {
         armorHider$combatLayerType.remove();
     }
     //?}
+
+    // Scope entry happens per-piece in HumanoidArmorLayerMixin (renderLayers has no entity
+    // parameter here) — only the combat vanilla-model bookkeeping is driven from this level.
+    //? if < 1.21.9 {
+    /*@Inject(method = RENDER_LAYERS_ENTRY, at = @At("HEAD"))
+    private void interceptRender(EquipmentClientInfo.LayerType layerType, ResourceKey<EquipmentAsset> resourceKey, Model model, ItemStack itemStack, PoseStack poseStack, MultiBufferSource multiBufferSource, int i, CallbackInfo ci) {
+        var ctx = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE);
+        if (ctx.isEmpty()) {
+            return;
+        }
+        String playerName = ctx.modification().playerName();
+        if (playerName != null && armorHider$shouldForceVanillaCombatModel(playerName)) {
+            armorHider$combatSingleLayer.set(Boolean.FALSE);
+            armorHider$combatAssetKey.set(resourceKey);
+            armorHider$combatLayerType.set(layerType);
+        }
+    }
+
+    @Inject(method = RENDER_LAYERS_ENTRY, at = @At("RETURN"))
+    private void resetContext(CallbackInfo ci) {
+        armorHider$combatSingleLayer.remove();
+        armorHider$combatAssetKey.remove();
+        armorHider$combatLayerType.remove();
+    }
+    *///?}
 
     @ModifyExpressionValue(
             method = RENDER_LAYERS_DETAIL,
@@ -213,26 +239,45 @@ public class EquipmentRenderMixin {
             armorHider$combatSingleLayer.set(Boolean.TRUE);
         }
         int originalColor = original.call(layer, i);
-        return AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE).renderModificationApi().applyArmorTransparency(originalColor);
+        return AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE, RenderScope.ELYTRA).renderModificationApi().applyArmorTransparency(originalColor);
     }
     *///?}
 
+    // NeoForge patches renderLayers and never invokes getColorForLayer, so the color is
+    // modified at the renderToBuffer call itself — that call exists on both loaders.
     //? if < 1.21.9 {
     /*@WrapOperation(
             method = RENDER_LAYERS_DETAIL,
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/client/renderer/entity/layers/EquipmentLayerRenderer;getColorForLayer(Lnet/minecraft/client/resources/model/EquipmentClientInfo$Layer;I)I"
+                    target = "Lnet/minecraft/client/model/Model;renderToBuffer(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;III)V"
             )
     )
-    private int modifyArmorColor(EquipmentClientInfo.Layer layer, int i, Operation<Integer> original) {
+    private void modifyArmorColor(Model model, PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, int color, Operation<Void> original) {
         Boolean singleLayer = armorHider$combatSingleLayer.get();
         if (singleLayer != null) {
-            if (singleLayer) { return 0; }
+            if (singleLayer) { return; }
             armorHider$combatSingleLayer.set(Boolean.TRUE);
         }
-        int originalColor = original.call(layer, i);
-        return AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE).renderModificationApi().applyArmorTransparency(originalColor);
+        int modifiedColor = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE, RenderScope.ELYTRA).renderModificationApi().applyArmorTransparency(color);
+        original.call(model, poseStack, vertexConsumer, packedLight, packedOverlay, modifiedColor);
+    }
+
+    @WrapOperation(
+            method = RENDER_LAYERS_DETAIL,
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/model/Model;renderToBuffer(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;II)V"
+            )
+    )
+    private void modifyTrimColor(Model model, PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, Operation<Void> original) {
+        var ctx = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE, RenderScope.ELYTRA);
+        if (ctx.isEmpty()) {
+            original.call(model, poseStack, vertexConsumer, packedLight, packedOverlay);
+            return;
+        }
+        int color = ctx.renderModificationApi().applyTransparencyFromWhite(0xFFFFFFFF);
+        model.renderToBuffer(poseStack, vertexConsumer, packedLight, packedOverlay, color);
     }
     *///?}
     @Unique

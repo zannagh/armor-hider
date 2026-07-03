@@ -18,6 +18,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.EnumMap;
 import java.util.EnumSet;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * State holder for the render-management surface. Not part of the public API; reached through
@@ -31,6 +32,21 @@ public final class AhRenderStateImpl {
     private static final ThreadLocal<EnumMap<RenderScope, RenderScopeContext>> ACTIVE_SCOPES =
             ThreadLocal.withInitial(() -> new EnumMap<>(RenderScope.class));
     private static final ThreadLocal<String> CURRENT_PLAYER_NAME = ThreadLocal.withInitial(() -> "");
+
+    // Diagnostic counter: scope entries that carried a real (non-empty) modification.
+    // The render hooks fail silently when their injection targets drift between MC
+    // versions — smoke tests assert this counter moves to catch dead pipelines.
+    private static final EnumMap<RenderScope, AtomicLong> MODIFIED_ENTER_COUNTS = new EnumMap<>(RenderScope.class);
+
+    static {
+        for (RenderScope scope : RenderScope.values()) {
+            MODIFIED_ENTER_COUNTS.put(scope, new AtomicLong());
+        }
+    }
+
+    public static long modifiedScopeEnterCount(RenderScope scope) {
+        return MODIFIED_ENTER_COUNTS.get(scope).get();
+    }
 
     private AhRenderStateImpl() {}
 
@@ -74,6 +90,10 @@ public final class AhRenderStateImpl {
 
     public static void clearGlobalScope() {
         if (SCOPE_FLAGS.get().size() <= 1 && ACTIVE_SCOPES.get().isEmpty()) {
+            // The expected case: at most our own flag remains — but it MUST still be removed,
+            // otherwise isInLevelRender() stays true during game ticks and slot hiding leaks
+            // into gameplay checks (elytra takeoff, shield blocking).
+            SCOPE_FLAGS.get().clear();
             clearCurrentPlayer();
             DebugLogger.log("--- Global scope cleared ---");
             return;
@@ -121,6 +141,7 @@ public final class AhRenderStateImpl {
 
         DebugTracer.scopeEntered(scope.name(), identity, !mod.isEmpty());
         if (!mod.isEmpty()) {
+            MODIFIED_ENTER_COUNTS.get(scope).incrementAndGet();
             DebugTracer.scopeEnterItemRender(mod.slot(), mod.playerName(), mod.transparency());
         }
         return ctx;
@@ -136,6 +157,7 @@ public final class AhRenderStateImpl {
         var ctx = new RenderScopeContext(scope, null, modification, AhRenderModificationApi.getInstance(modification));
         ACTIVE_SCOPES.get().put(scope, ctx);
         setCurrentPlayer(modification.playerName());
+        MODIFIED_ENTER_COUNTS.get(scope).incrementAndGet();
         DebugTracer.scopeEntered(scope.name(), modification.playerName(), true);
         DebugTracer.scopeEnterItemRender(modification.slot(), modification.playerName(), modification.transparency());
         return ctx;
