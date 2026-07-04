@@ -63,11 +63,15 @@ public abstract class CustomHeadLayerMixin {
         enterHeadScope(entity, ci);
     }
 
+    // @At("RETURN") rather than "TAIL": the head layer's submit body is a single guarded if-block,
+    // and TAIL was observed not to fire on it (the HEAD scope entered at head then leaked for the
+    // rest of the entity render). RETURN targets the actual return opcode reliably. exitScope is a
+    // no-op when nothing was entered, so the not-intercepted / hide paths stay safe.
     @Inject(
             method = ENTRY_METHOD,
             //? if fabric
             order = MixinConstants.HIGH_PRIO,
-            at = @At("TAIL")
+            at = @At("RETURN")
     )
     private void releaseContext(CallbackInfo ci) {
         AhRenderManagementApi.exitScope(RenderScope.HEAD);

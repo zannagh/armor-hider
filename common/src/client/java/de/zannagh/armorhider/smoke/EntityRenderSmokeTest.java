@@ -64,7 +64,10 @@ public final class EntityRenderSmokeTest implements FabricClientGameTest {
                 }
                 // Drive every slot through the interceptors. Diamond chosen for trim-capable + iconic glint.
                 player.setItemSlot(EquipmentSlot.HEAD,    new ItemStack(Items.DIAMOND_HELMET));
-                player.setItemSlot(EquipmentSlot.CHEST,   new ItemStack(Items.DIAMOND_CHESTPLATE));
+                // Elytra (not a chestplate) so the WingsLayer interceptor fires; combined with a
+                // 0% chest opacity below this exercises the elytra *hide* path — the one that leaked
+                // its scope and turned every later model submit (skull/offhand) invisible.
+                player.setItemSlot(EquipmentSlot.CHEST,   new ItemStack(Items.ELYTRA));
                 player.setItemSlot(EquipmentSlot.LEGS,    new ItemStack(Items.DIAMOND_LEGGINGS));
                 player.setItemSlot(EquipmentSlot.FEET,    new ItemStack(Items.DIAMOND_BOOTS));
                 player.setItemSlot(EquipmentSlot.OFFHAND, new ItemStack(Items.SHIELD));
@@ -72,11 +75,12 @@ public final class EntityRenderSmokeTest implements FabricClientGameTest {
                 // Third-person back so cape + body layer mixins fire (first-person skips most layers).
                 client.options.setCameraType(CameraType.THIRD_PERSON_BACK);
 
-                // Give the pipeline something to do: 50% helmet opacity means the ARMOR_PIECE
-                // scope must be entered with a real modification — asserted after the render window.
-                ArmorHiderClient.CLIENT_CONFIG_MANAGER
-                        .getConfigForPlayer(ArmorHiderClient.getCurrentPlayerName())
-                        .helmetOpacity.setValue(0.5);
+                var config = ArmorHiderClient.CLIENT_CONFIG_MANAGER
+                        .getConfigForPlayer(ArmorHiderClient.getCurrentPlayerName());
+                // 50% helmet opacity → ARMOR_PIECE must enter with a real modification (asserted below).
+                config.helmetOpacity.setValue(0.5);
+                // 0% chest opacity → elytra is fully hidden, driving the cancel-at-HEAD path.
+                config.chestOpacity.setValue(0.0);
             });
 
             // 20 ticks ≈ 1 s @ 20 TPS — enough for the render pipeline to draw several frames
@@ -95,6 +99,23 @@ public final class EntityRenderSmokeTest implements FabricClientGameTest {
                                     + " — the render interception pipeline is dead on this version");
                 }
                 ArmorHider.LOGGER.info("[smoke/fcgt] ARMOR_PIECE modified scope entries: {}", entries);
+
+                // No scope may be left active for a bulk clear to sweep up: that means it was entered
+                // on a render path cancelled before its exit hook ran (e.g. elytra hidden at 0%), and
+                // a leaked hide-scope bleeds alpha 0 onto later model submits (invisible skull/offhand).
+                // The elytra above is hidden, so pre-fix this counter climbs every entity render.
+                StringBuilder leaks = new StringBuilder();
+                for (RenderScope scope : RenderScope.values()) {
+                    long leaked = AhRenderStateImpl.leakedScopeClears(scope);
+                    if (leaked > 0) {
+                        leaks.append(' ').append(scope).append('=').append(leaked);
+                    }
+                }
+                if (leaks.length() > 0) {
+                    throw new IllegalStateException(
+                            "[smoke/fcgt] render scope(s) leaked (entered but never exited, swept by a bulk"
+                                    + " clear) — a cancelled render path entered a scope:" + leaks);
+                }
             });
 
             ArmorHider.LOGGER.info("[smoke/fcgt] Render window elapsed without crash, returning");
