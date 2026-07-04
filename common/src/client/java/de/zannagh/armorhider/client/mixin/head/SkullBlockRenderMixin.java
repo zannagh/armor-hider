@@ -86,6 +86,13 @@ public abstract class SkullBlockRenderMixin {
 
     @Unique
     private static RenderType applyLayer(Identifier texture, RenderType original) {
+        // A null texture reaches here from resolveSkullRenderType's getSkullRenderType(type, null)
+        // call — the real texture is resolved *inside* getSkullRenderType (handled by
+        // getCutoutRenderLayer). Building a translucent type from a null texture would NPE the
+        // memoize cache, so leave it to the inner wrap.
+        if (texture == null) {
+            return original;
+        }
         var headCtx = AhRenderManagementApi.getActiveScope(RenderScope.HEAD);
         if (!headCtx.isEmpty() && headCtx.renderModificationApi().getSkullRenderLayer(texture, original) instanceof RenderType rt) {
             return rt;
@@ -136,7 +143,7 @@ public abstract class SkullBlockRenderMixin {
                     value = "INVOKE",
                     //? if >= 26.1-0.snapshot.6 {
                     target = "Lnet/minecraft/client/renderer/rendertype/RenderTypes;entityCutoutZOffset(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/rendertype/RenderType;"
-                    //? } elif >= 26.1-0.snapshot.1 {
+                    //? } elif >= 1.21.11 {
                     /*target = "Lnet/minecraft/client/renderer/rendertype/RenderTypes;entityCutoutNoCullZOffset(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/rendertype/RenderType;"*/
                     //? } else {
                     /*target = "Lnet/minecraft/client/renderer/rendertype/RenderType;entityCutoutNoCullZOffset(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/rendertype/RenderType;"*/

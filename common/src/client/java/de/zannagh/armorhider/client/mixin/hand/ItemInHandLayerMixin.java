@@ -19,6 +19,12 @@ import de.zannagh.armorhider.client.render.RenderModifications;
 import net.minecraft.client.renderer.ItemInHandRenderer;
 *///? }
 
+//? if >= 1.21.4 && < 1.21.9 {
+/*import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import de.zannagh.armorhider.client.render.RenderModifications;
+*///? }
+
 //? if >= 1.21.4 {
 import net.minecraft.client.renderer.entity.state.ArmedEntityRenderState;
 import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
@@ -95,6 +101,32 @@ public class ItemInHandLayerMixin {
             original.call(renderer, entity, itemStack, displayContext, isLeftHand, poseStack, wrapped, light);
         } else {
             original.call(renderer, entity, itemStack, displayContext, isLeftHand, poseStack, bufferSource, light);
+        }
+    }
+    *///? }
+
+    // Third-person offhand: swap the buffer source to translucent equivalents while the OFFHAND
+    // scope is active. Without this the item keeps its opaque render type, so the vertex-alpha
+    // applied by ItemRendererMixin is ignored (item stays fully opaque / whitens). First person
+    // does the equivalent wrap in OffHandRenderMixin. 1.21.9+ uses the submit-based mixins instead.
+    //? if >= 1.21.4 && < 1.21.9 {
+    /*@WrapOperation(
+            method = "renderArmWithItem",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/renderer/item/ItemStackRenderState;render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;II)V"
+            )
+    )
+    private void wrapOffhandBufferSource(ItemStackRenderState itemState, PoseStack poseStack, MultiBufferSource bufferSource, int light, int overlay, Operation<Void> original) {
+        var offhandCtx = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
+        if (!offhandCtx.isEmpty()
+                && offhandCtx.modification().transparency() < 1.0
+                && offhandCtx.modification().transparency() > 0) {
+            float alpha = offhandCtx.renderModificationApi().getTransparencyAlpha();
+            MultiBufferSource wrapped = RenderModifications.wrapTranslucentBufferSource(bufferSource, alpha);
+            original.call(itemState, poseStack, wrapped, light, overlay);
+        } else {
+            original.call(itemState, poseStack, bufferSource, light, overlay);
         }
     }
     *///? }

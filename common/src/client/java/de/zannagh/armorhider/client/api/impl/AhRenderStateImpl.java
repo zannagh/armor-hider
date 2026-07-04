@@ -38,14 +38,38 @@ public final class AhRenderStateImpl {
     // versions — smoke tests assert this counter moves to catch dead pipelines.
     private static final EnumMap<RenderScope, AtomicLong> MODIFIED_ENTER_COUNTS = new EnumMap<>(RenderScope.class);
 
+    // Count of scopes still active in the map when a bulk clear runs (entity-boundary reset or
+    // global-scope clear). Each per-scope enter is normally matched by an exitScope; anything left
+    // for the bulk clear to sweep up leaked — it was entered on a render path cancelled before its
+    // exit hook could run (e.g. an elytra hidden at 0%). That leaked hide-scope then bleeds alpha 0
+    // onto later model submits. Smoke asserts this stays 0. (A plain enter/exit *count* can't be
+    // used: ARMOR_PIECE is legitimately entered twice per piece — renderArmorPiece wraps the nested
+    // renderLayers — and the single-entry map self-corrects, so counts read 2:1 without any leak.)
+    private static final EnumMap<RenderScope, AtomicLong> LEAKED_SCOPE_CLEARS = new EnumMap<>(RenderScope.class);
+
     static {
         for (RenderScope scope : RenderScope.values()) {
             MODIFIED_ENTER_COUNTS.put(scope, new AtomicLong());
+            LEAKED_SCOPE_CLEARS.put(scope, new AtomicLong());
         }
     }
 
     public static long modifiedScopeEnterCount(RenderScope scope) {
         return MODIFIED_ENTER_COUNTS.get(scope).get();
+    }
+
+    public static long leakedScopeClears(RenderScope scope) {
+        return LEAKED_SCOPE_CLEARS.get(scope).get();
+    }
+
+    private static void armorHider$recordLeakedScopes() {
+        var active = ACTIVE_SCOPES.get();
+        if (active.isEmpty()) {
+            return;
+        }
+        for (RenderScope scope : active.keySet()) {
+            LEAKED_SCOPE_CLEARS.get(scope).incrementAndGet();
+        }
     }
 
     private AhRenderStateImpl() {}
@@ -77,6 +101,7 @@ public final class AhRenderStateImpl {
         // Reset any per-entity scope state that may have leaked from the previous entity render.
         // Without this, an armor render that's cancelled at @At("HEAD") never sees its @At("RETURN")
         // hook fire, leaving the scope context active for the next frame's body submit.
+        armorHider$recordLeakedScopes();
         ACTIVE_SCOPES.get().clear();
         SCOPE_FLAGS.get().add(GlobalRenderScope.ENTITY_RENDER);
     }
@@ -84,6 +109,7 @@ public final class AhRenderStateImpl {
     public static void exitEntityRender() {
         DebugTracer.scopeExitEntityRender();
         clearCurrentPlayer();
+        armorHider$recordLeakedScopes();
         ACTIVE_SCOPES.get().clear();
         SCOPE_FLAGS.get().remove(GlobalRenderScope.ENTITY_RENDER);
     }
@@ -100,6 +126,7 @@ public final class AhRenderStateImpl {
         }
         DebugLogger.log("--- Clearing global scopes ---");
         DebugLogger.log("Remaining scope flags: {}. Remaining uncleared active scopes: {}", SCOPE_FLAGS.get().size(), ACTIVE_SCOPES.get().size());
+        armorHider$recordLeakedScopes();
         SCOPE_FLAGS.get().clear();
         ACTIVE_SCOPES.get().clear();
         clearCurrentPlayer();

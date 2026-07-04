@@ -56,13 +56,16 @@ public class ArmorHiderElytraRenderer extends AbstractArmorHiderRenderer {
             return RenderInterceptionResult.ignore();
         }
 
-        RenderInterceptionResult result;
         if (mod.shouldHide()) {
+            // Cancel only — do NOT enter the scope. The WingsLayer render is cancelled at HEAD, so
+            // its RETURN (which exits the scope) never fires; entering here leaks a hide-scope
+            // (alpha 0) for the rest of the entity render. On NeoForge that leaked ELYTRA scope is
+            // read by NeoForgeArmorColorMixin (which wraps the shared SubmitNodeCollection) and
+            // applied to every later model submit — turning the skull, offhand, etc. invisible.
             cancel(ci);
-            result = new RenderInterceptionResult(true, true, getTargetScope(), carrier, mod);
-        } else {
-            result = new RenderInterceptionResult(true, false, getTargetScope(), carrier, mod);
+            return new RenderInterceptionResult(true, true, getTargetScope(), carrier, mod);
         }
+        var result = new RenderInterceptionResult(true, false, getTargetScope(), carrier, mod);
         AhRenderManagementApi.enterScope(result);
         return result;
     }
