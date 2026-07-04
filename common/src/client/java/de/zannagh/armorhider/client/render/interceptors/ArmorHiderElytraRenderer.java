@@ -35,7 +35,7 @@ public class ArmorHiderElytraRenderer extends AbstractArmorHiderRenderer {
             setEmptyModification();
             return RenderInterceptionResult.ignore();
         }
-        ItemStack elytraStack = stack != null ? stack : ItemsUtil.ELYTRA_ITEM_STACK;
+        ItemStack elytraStack = stack != null ? stack : ItemsUtil.elytraItemStack();
         var mod = resolveModification(carrier, EquipmentSlot.CHEST, elytraStack);
 
         // Pass-through branches: do NOT enter scope. enterScope-with-mod would still register a
