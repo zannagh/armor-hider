@@ -286,6 +286,10 @@ jobs:
       needs.check-modrinth.outputs.version_exists != 'true'
     strategy:
       fail-fast: false
+      # Serialize: parallel jobs hammer Modrinth's API and get rate-limited (429). mc-publish
+      # resolves loaders/game-versions against Modrinth's tag endpoints, and a throttled fetch
+      # silently yields empty metadata — the version publishes with no loaders/game_versions.
+      max-parallel: 1
       matrix:
         include: ${{ fromJSON(needs.build.outputs.supported_versions) }}
     steps:
@@ -382,6 +386,8 @@ jobs:
       needs.analyze.outputs.is_manual_release == 'true'
     strategy:
       fail-fast: false
+      # Serialize to avoid the same rate-limit race as Modrinth (see publish-modrinth above).
+      max-parallel: 1
       matrix:
         include: ${{ fromJSON(needs.build.outputs.supported_versions) }}
     steps:
