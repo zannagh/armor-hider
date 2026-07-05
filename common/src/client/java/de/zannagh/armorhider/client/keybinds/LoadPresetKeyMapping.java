@@ -4,16 +4,21 @@ import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.configuration.ConfigPreset;
 import net.minecraft.client.Minecraft;
-
-import java.awt.event.KeyEvent;
+import org.lwjgl.glfw.GLFW;
 
 public class LoadPresetKeyMapping extends CustomKeyMapping {
+
+    // Left-Alt is uncommon among vanilla defaults. GLFW keycodes only — an AWT VK
+    // value here would mis-map; VK_UNDEFINED (0) in particular collides with the
+    // number-row "0" key (both named "key.keyboard.0").
+    public static final int DEFAULT_KEY = GLFW.GLFW_KEY_LEFT_ALT;
+    public static final int UNBOUND_KEY = GLFW.GLFW_KEY_UNKNOWN;
 
     private static LoadPresetKeyMapping instance;
     private int activatedWhileHeld = -1;
 
-    public LoadPresetKeyMapping() {
-        super("key.armorhider.preset", KeyEvent.VK_UNDEFINED);
+    public LoadPresetKeyMapping(int preferredKey) {
+        super("key.armorhider.preset", preferredKey);
         instance = this;
     }
 
