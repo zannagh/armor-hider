@@ -36,7 +36,7 @@ class PlayerConfigurationTests {
     private static String getCurrentVersionPlayerConfig() {
         return """
                 {
-                  "configVersion": 4,
+                  "configVersion": %d,
                   "helmetOpacity": 0.35,
                   "chestOpacity": 0.35,
                   "legsOpacity": 0.2,
@@ -46,7 +46,7 @@ class PlayerConfigurationTests {
                   "enableCombatDetection": true,
                   "showSettingsInSkinCustomization": true,
                   "inCombatUseDefaultModel": false
-                }""";
+                }""".formatted(PlayerConfig.CURRENT_CONFIG_VERSION);
     }
 
     @Test

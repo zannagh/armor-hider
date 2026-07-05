@@ -427,6 +427,37 @@ public class ServerConfigurationTests {
     }
 
     @Test
+    @DisplayName("ServerWideSettings is migrated from pre-versioning format")
+    void upgradeServerWideSettingsPreVersioning() throws Exception {
+        // serverWideSettings without configVersion / disableArmorHiderOnInvisibilityGlobally
+        // (pre-versioning v4 format) must be migrated to current.
+        String preVersioningSwsJson = """
+                {
+                    "serverWideSettings": {
+                        "enableCombatDetection": false,
+                        "forceArmorHiderOff": true
+                    },
+                    "playerConfigs": {}
+                }""";
+
+        ServerConfiguration config = ServerConfiguration.deserialize(preVersioningSwsJson);
+        assertNotNull(config.serverWideSettings, "serverWideSettings should not be null");
+        assertEquals(de.zannagh.armorhider.net.packets.ServerWideSettings.CURRENT_CONFIG_VERSION,
+                config.serverWideSettings.configVersion,
+                "serverWideSettings.configVersion should be bumped to current");
+        assertEquals(false, config.serverWideSettings.enableCombatDetection.getValue(),
+                "enableCombatDetection preserved through migration");
+        assertEquals(true, config.serverWideSettings.forceArmorHiderOff.getValue(),
+                "forceArmorHiderOff preserved through migration");
+        assertNotNull(config.serverWideSettings.disableArmorHiderOnInvisibilityGlobally,
+                "newly added field should be initialized after migration");
+        assertEquals(false, config.serverWideSettings.disableArmorHiderOnInvisibilityGlobally.getValue(),
+                "newly added field defaults to false");
+        assertTrue(config.hasChangedFromSerializedContent(),
+                "config should be marked changed so migration is persisted");
+    }
+
+    @Test
     @DisplayName("Embedded player configs are migrated from pre-versioning format")
     void upgradeEmbeddedPlayerConfigs() throws Exception {
         // Simulates a server config from before config versioning (pre-0.10.0-pre.5).

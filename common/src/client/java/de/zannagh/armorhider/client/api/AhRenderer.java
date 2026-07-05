@@ -4,12 +4,14 @@ import de.zannagh.armorhider.client.common.IdentityCarrier;
 import de.zannagh.armorhider.client.common.RenderInterceptionResult;
 import de.zannagh.armorhider.client.common.RenderScope;
 import de.zannagh.armorhider.client.common.RenderScopeProvider;
+import de.zannagh.armorhider.client.suppressions.ConditionalSuppressor;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import org.jspecify.annotations.Nullable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.lang.reflect.Type;
+import java.util.HashSet;
 
 /**
  * Per-scope renderer that owns the interception decision for one {@link RenderScope}.
@@ -101,4 +103,37 @@ public interface AhRenderer extends RenderScopeProvider, AhRenderTypeFactory {
      * defaults.
      */
     void registerRenderTypeFactory(AhRenderTypeFactory factory);
+
+    /**
+     * Store a conditional suppressor for this renderer. The default is a no-op so third-party
+     * renderers implementing {@link AhRenderer} directly stay source/binary compatible; renderers
+     * that support conditional suppression override this together with {@link #getConditionalSuppressors()}.
+     */
+    default void addConditionalSuppressor(ConditionalSuppressor suppressor) {
+    }
+
+    /**
+     * @return the conditional suppressors registered for this renderer. The default returns an empty
+     * set (no suppression) for backward compatibility; override alongside {@link #addConditionalSuppressor}
+     * to opt in.
+     */
+    default HashSet<ConditionalSuppressor> getConditionalSuppressors() {
+        return new HashSet<>();
+    }
+
+    default boolean shouldBeConditionallySuppressed(RenderScope scope, @Nullable IdentityCarrier identityCarrier) {
+        if (identityCarrier == null) {
+            return false;
+        }
+        return getConditionalSuppressors().stream()
+                .anyMatch(suppressor -> suppressor.shouldSuppress(scope, identityCarrier));
+    }
+
+    default void registerConditionalSuppressor(RenderScope scope, ConditionalSuppressor suppressor) {
+        if (scope != this.getTargetScope() && scope != RenderScope.ALL) {
+            return;
+        }
+
+        addConditionalSuppressor(suppressor);
+    }
 }

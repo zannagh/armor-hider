@@ -36,9 +36,21 @@ public record SlotModification(
     public EquipmentSlot slot() { return slot; }
 
     public static boolean shouldUseVanilla(PlayerConfig config){
-        if (config.disableArmorHider.getValue()
-            || (config.disableArmorHiderForOthers.getValue() && !config.playerName.getValue().equals(ArmorHiderClient.getCurrentPlayerName()))
-            || config.playerName.getValue().isBlank()) {
+        // Server-wide force-off overrides everything for every player, including the local one.
+        var serverConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getServerConfig();
+        if (serverConfig != null && serverConfig.serverWideSettings.forceArmorHiderOff.getValue()) {
+            return true;
+        }
+
+        if (config.disableArmorHider.getValue() || config.playerName.getValue().isBlank()) {
+            return true;
+        }
+
+        // "Disable on other players" is a viewer-local preference, so it must be read from the
+        // local config rather than the rendered player's config (which may be defaults or the
+        // other player's own settings).
+        boolean isOtherPlayer = !config.playerName.getValue().equals(ArmorHiderClient.getCurrentPlayerName());
+        if (isOtherPlayer && ArmorHiderClient.CLIENT_CONFIG_MANAGER.local().disableArmorHiderForOthers.getValue()) {
             return true;
         }
 

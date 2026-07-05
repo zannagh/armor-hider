@@ -2,8 +2,10 @@ package de.zannagh.armorhider.client.api;
 
 import com.mojang.datafixers.util.Pair;
 import de.zannagh.armorhider.client.api.impl.AhRendererRegistryImpl;
+import de.zannagh.armorhider.client.common.IdentityCarrier;
 import de.zannagh.armorhider.client.common.RenderScope;
 import de.zannagh.armorhider.client.render.interceptors.ArmorHiderEmptyRenderer;
+import de.zannagh.armorhider.client.suppressions.ConditionalSuppressor;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
@@ -39,6 +41,8 @@ public interface AhRenderInterceptionRegistryApi {
      * @return the priority used by all built-in default renderers. Register at a lower number to
      * take precedence; at a higher number to act only as a fallback when the default has been
      * unregistered.
+     *
+     * @since 0.12.0
      */
     static int defaultPriority() {
         return AhRendererRegistryImpl.DEFAULT_PRIORITY;
@@ -53,6 +57,8 @@ public interface AhRenderInterceptionRegistryApi {
      * Re-registering the same renderer at a new priority is allowed and adds a second entry —
      * call {@link #unregister(AhRenderer, int)} for the old (priority, renderer) pair first if
      * that is not what you want.
+     *
+     * @since 0.12.0
      */
     static void register(AhRenderer renderer, int priority) {
         AhRendererRegistryImpl.register(renderer, priority);
@@ -65,15 +71,31 @@ public interface AhRenderInterceptionRegistryApi {
     /**
      * Remove the (priority, renderer) entry matching this exact priority and identity. No-op if
      * the renderer was never registered at that priority.
+     *
+     * @since 0.12.0
      */
     static void unregister(AhRenderer renderer, int priority) {
         AhRendererRegistryImpl.unregister(renderer, priority);
     }
 
     /**
-     * Registers a conditional suppressor to replace the actual instance of the renderer with an empty renderer
-     * whenever the evaluation returns true (since renderes are resolved via RenderScope).
+     * Registers a conditional suppressor. When the suppressor matches for a given carrier and scope,
+     * interception is skipped for that render call, so the game renders normally (as if Armor Hider
+     * were not intercepting).
+     * @param suppressor The suppressor to apply, based on {@link IdentityCarrier} and {@link RenderScope}.
+     *
+     * @since 0.12.1
+     */
+    static void suppressRenderInterceptionConditionallyForCarrier(RenderScope scope, ConditionalSuppressor suppressor) {
+        AhRendererRegistryImpl.suppressRenderInterceptionConditionallyForCarrier(scope, suppressor);
+    }
+
+    /**
+     * Registers a conditional suppressor. When the evaluation returns true for a resolved renderer and
+     * scope, interception is skipped so the game renders normally (renderers are resolved via RenderScope).
      * @param evaluation The evaluation to apply.
+     *
+     * @since 0.12.0
      */
     static void suppressRenderInterceptionConditionally(RenderScope scope, Function<Pair<RenderScope, AhRenderer>, Boolean> evaluation) {
         AhRendererRegistryImpl.suppressConditionally(scope, evaluation);
@@ -83,6 +105,8 @@ public interface AhRenderInterceptionRegistryApi {
      * Look up the active renderer for a scope. Resolution order: lowest-priority renderer
      * registered for {@code scope} → lowest-priority renderer registered for {@link RenderScope#ALL}
      * → a no-op empty renderer (never {@code null}).
+     *
+     * @since 0.12.0
      */
     static AhRenderer getRenderer(RenderScope scope) {
         return AhRendererRegistryImpl.getRenderer(scope);
@@ -97,6 +121,8 @@ public interface AhRenderInterceptionRegistryApi {
      * renderer — e.g. resolving a third-party compat interceptor like
      * {@code GeckoLibRenderInterceptor} that registers under {@link RenderScope#ALL} but is
      * addressed by type at the call site.
+     *
+     * @since 0.12.0
      */
     static <T extends AhRenderer> @Nullable T getRenderer(Class<T> type) {
         return AhRendererRegistryImpl.getRenderer(type);

@@ -21,6 +21,8 @@ public interface IdentityCarrier {
 
     default boolean isPlayerBlocking() { return false; }
 
+    default boolean armorHider$isPlayerInvisible() { return false; }
+
     PlayerModificationInfo armorHider$getPlayerModifications();
 
     default boolean armorHider$allSlotsFullyHidden() {

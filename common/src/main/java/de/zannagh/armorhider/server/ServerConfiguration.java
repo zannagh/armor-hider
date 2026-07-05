@@ -72,7 +72,7 @@ public class ServerConfiguration implements ConfigurationSource<ServerConfigurat
     public ServerConfiguration() {
         // Always initialize serverWideSettings with defaults to prevent null pointer exceptions
         // Migration logic will detect v3 format by checking for old field presence
-        this.serverWideSettings = new ServerWideSettings();
+        this.serverWideSettings = ServerWideSettings.defaults();
     }
 
     private ServerConfiguration(Map<UUID, PlayerConfig> playerConfigs, @NonNull ServerWideSettings serverWideSettings) {
@@ -96,11 +96,16 @@ public class ServerConfiguration implements ConfigurationSource<ServerConfigurat
                 // Detect v3 by presence of old field and absence of new field in JSON
                 if (obj.has("enableCombatDetection") && !obj.has("serverWideSettings")) {
                     Boolean legacyCombatDetection = obj.get("enableCombatDetection").getAsBoolean();
-                    configuration.serverWideSettings = new ServerWideSettings(legacyCombatDetection, false);
+                    configuration.serverWideSettings = new ServerWideSettings(legacyCombatDetection, false, false);
                     ArmorHider.LOGGER.info("Migrated server config from v3 to v4 format (enableCombatDetection -> serverWideSettings).");
                     configuration.setHasChangedFromSerializedContent();
                 } else {
                     ArmorHider.LOGGER.info("Loaded server config (v4 format).");
+                }
+
+                // Migrate serverWideSettings from older schema versions
+                if (configuration.serverWideSettings.configVersion < ServerWideSettings.CURRENT_CONFIG_VERSION) {
+                    configuration.serverWideSettings = ServerWideSettings.migrate(configuration.serverWideSettings);
                 }
 
                 // Migrate embedded player configs from older schema versions
@@ -144,7 +149,7 @@ public class ServerConfiguration implements ConfigurationSource<ServerConfigurat
 
     @Contract("_ -> new")
     private static @NotNull ServerConfiguration fromLegacyFormat(Map<UUID, PlayerConfig> playerConfigs) {
-        return new ServerConfiguration(playerConfigs, new ServerWideSettings(true, false));
+        return new ServerConfiguration(playerConfigs, new ServerWideSettings(true, false, false));
     }
 
 

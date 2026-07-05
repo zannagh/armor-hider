@@ -6,11 +6,13 @@ import de.zannagh.armorhider.client.api.AhRenderInterceptionRegistryApi;
 import de.zannagh.armorhider.client.api.AhRenderModificationApi;
 import de.zannagh.armorhider.client.api.AhRenderTypeFactory;
 import de.zannagh.armorhider.client.api.impl.AhRendererRegistryImpl;
+import de.zannagh.armorhider.client.common.IdentityCarrier;
 import de.zannagh.armorhider.client.common.RenderScope;
 import de.zannagh.armorhider.client.compat.CompatManager;
 import de.zannagh.armorhider.client.net.ClientCommunicationManager;
 import de.zannagh.armorhider.client.render.RenderModifications;
 import de.zannagh.armorhider.client.render.rendertype.RenderTypeFactory;
+import de.zannagh.armorhider.client.suppressions.InvisibilitySuppressor;
 import de.zannagh.armorhider.configuration.PresetManager;
 import de.zannagh.armorhider.log.DebugLogger;
 import de.zannagh.armorhider.util.PlayerNameUtil;
@@ -60,6 +62,8 @@ public class ArmorHiderClient {
             ArmorHider.LOGGER.info("Registering interceptor: {}", interceptor.getClass().getName());
             AhRenderInterceptionRegistryApi.register(interceptor, AhRendererRegistryImpl.DEFAULT_PRIORITY);
         }
+        AhRenderInterceptionRegistryApi.suppressRenderInterceptionConditionallyForCarrier(RenderScope.ALL,
+                new InvisibilitySuppressor());
         ArmorHider.LOGGER.info("Registered render interceptors.");
 
         ArmorHider.LOGGER.info("Setting up compatibilities...");

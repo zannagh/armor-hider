@@ -42,7 +42,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
     public int configVersion;
 
     /** The current config schema version. */
-    public static final int CURRENT_CONFIG_VERSION = 4;
+    public static final int CURRENT_CONFIG_VERSION = 5;
     
     //? if >= 1.21.11 {
     public static final Identifier PACKET_IDENTIFIER = Identifier.fromNamespaceAndPath("de.zannagh.armorhider", "settings_c2s_packet");
@@ -103,6 +103,8 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
     public @NonNull OffHandOpacity offHandOpacity;
     @SerializedName(value = "showShieldWhenBlocking")
     public @NonNull ShowShieldWhenBlocking showShieldWhenBlocking;
+    @SerializedName(value = "disableArmorHiderOnInvisibility")
+    public @NonNull DisableArmorHiderOnInvisibility disableArmorHiderOnInvisibility;
 
     public @NonNull PlayerUuid playerId;
 
@@ -141,6 +143,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         chestGlint = new EnableGlint();
         legsGlint = new EnableGlint();
         bootsGlint = new EnableGlint();
+        disableArmorHiderOnInvisibility = new DisableArmorHiderOnInvisibility();
         exclusionItems = ExclusionItemConfiguration.defaults();
     }
 
@@ -195,6 +198,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         fresh.showSettingsInSkinCustomization.setValue(old.showSettingsInSkinCustomization.getValue());
         fresh.offHandOpacity.setValue(old.offHandOpacity.getValue());
         fresh.showShieldWhenBlocking.setValue(old.showShieldWhenBlocking.getValue());
+        fresh.disableArmorHiderOnInvisibility.setValue(old.disableArmorHiderOnInvisibility.getValue());
         fresh.exclusionItems = old.exclusionItems.deepCopy();
 
         fresh.setHasChangedFromSerializedContent();
@@ -231,6 +235,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         newConfig.showSettingsInSkinCustomization.setValue(this.showSettingsInSkinCustomization.getValue());
         newConfig.offHandOpacity.setValue(this.offHandOpacity.getValue());
         newConfig.showShieldWhenBlocking.setValue(this.showShieldWhenBlocking.getValue());
+        newConfig.disableArmorHiderOnInvisibility.setValue(this.disableArmorHiderOnInvisibility.getValue());
         newConfig.helmetGlint.setValue(this.helmetGlint.getValue());
         newConfig.chestGlint.setValue(this.chestGlint.getValue());
         newConfig.legsGlint.setValue(this.legsGlint.getValue());

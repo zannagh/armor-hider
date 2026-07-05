@@ -80,11 +80,21 @@ public class OptionElementFactory {
                     }
                 }
         );
+        var third = new RespectInvisibilityButton(
+                configs.get(2).getFirst(),
+                onPress -> {
+                    if (onPress instanceof RespectInvisibilityButton btn) {
+                        var newValue = btn.toggle();
+                        configs.get(2).getSecond().accept(newValue);
+                    }
+                }
+        );
 
-        int totalButtons = 2 + PresetManager.PRESET_COUNT;
+        int totalButtons = 3 + PresetManager.PRESET_COUNT;
         var allButtons = new AbstractWidget[totalButtons];
         allButtons[0] = first;
         allButtons[1] = second;
+        allButtons[2] = third;
 
         var presetButtons = new PresetButton[PresetManager.PRESET_COUNT];
         for (int i = 0; i < PresetManager.PRESET_COUNT; i++) {
@@ -97,19 +107,19 @@ public class OptionElementFactory {
                 }
             });
             presetButtons[i] = btn;
-            allButtons[2 + i] = btn;
+            allButtons[3 + i] = btn;
         }
 
         var groups = new ArrayList<Pair<Integer, Integer>>();
-        groups.add(new Pair<>(0, 1));
-        groups.add(new Pair<>(2, totalButtons - 1));
+        groups.add(new Pair<>(0, 2));
+        groups.add(new Pair<>(3, totalButtons - 1));
 
         int sq = UiConstants.SQUARE_BUTTON_WIDTH;
         int g = UiConstants.DEFAULT_BUTTON_SPACING / 2;
         int presetCount = PresetManager.PRESET_COUNT;
         int groupBWidth = presetCount * sq + (presetCount - 1) * g;
         int groupAWidth = rowWidth - groupBWidth - g;
-        int minGroupA = 2 * sq + g;
+        int minGroupA = 3 * sq + 2 * g;
         var spacing = new ElementSpacingOptions(rowWidth)
                 .forEvenElements(sq, totalButtons)
                 .withGroups(groups)
