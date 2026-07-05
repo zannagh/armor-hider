@@ -5,9 +5,9 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.rendering.RenderModifications;
-import de.zannagh.armorhider.client.scopes.IdentityCarrier;
+import de.zannagh.armorhider.client.api.AhRenderManagementApi;
+import de.zannagh.armorhider.client.common.RenderScope;
+import de.zannagh.armorhider.client.common.IdentityCarrier;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.Model;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -57,9 +57,10 @@ public class NeoForgeHumanoidArmorLayerMixin<T extends LivingEntity, M extends H
             return;
         }
 
-        var mod = carrier.createModification(slot, itemStack);
-        if (mod != null && mod.shouldHide()) {
-            ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
+        
+        var ctx = AhRenderManagementApi.enterScope(RenderScope.ARMOR_PIECE, carrier, slot, itemStack);
+        if (ctx.shouldCancel()) {
+            AhRenderManagementApi.exitScope(RenderScope.ARMOR_PIECE);
             ci.cancel();
         }
     }
@@ -69,7 +70,7 @@ public class NeoForgeHumanoidArmorLayerMixin<T extends LivingEntity, M extends H
             at = @At("RETURN")
     )
     private void onRenderArmorPieceReturn(PoseStack poseStack, MultiBufferSource bufferSource, T entity, EquipmentSlot slot, int packedLight, A armorModel, float limbSwing, float limbSwingAmount, float partialTick, float ageInTicks, float netHeadYaw, float headPitch, CallbackInfo ci) {
-        ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
+        AhRenderManagementApi.exitScope(RenderScope.ARMOR_PIECE);
     }
 
     // --- Render type: swap armorCutoutNoCull → translucent in renderModel ---
@@ -82,7 +83,12 @@ public class NeoForgeHumanoidArmorLayerMixin<T extends LivingEntity, M extends H
             )
     )
     private RenderType modifyArmorRenderLayer(ResourceLocation texture, Operation<RenderType> original) {
-        return RenderModifications.getTranslucentArmorRenderType(ArmorHiderClient.RENDER_CONTEXT, texture, original.call(texture));
+        var modApi = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE).renderModificationApi();
+        var originalType = original.call(texture);
+        if (modApi.getTranslucentArmorRenderType(texture, originalType) instanceof RenderType rt) {
+            return rt;
+        }
+        return originalType;
     }
 
     // --- Armor color: target Model.renderToBuffer in renderModel ---
@@ -95,7 +101,7 @@ public class NeoForgeHumanoidArmorLayerMixin<T extends LivingEntity, M extends H
             )
     )
     private void modifyArmorColor(Model model, PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, int color, Operation<Void> original) {
-        int modifiedColor = RenderModifications.applyArmorTransparency(ArmorHiderClient.RENDER_CONTEXT, color);
+        int modifiedColor = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE).renderModificationApi().applyArmorTransparency(color);
         original.call(model, poseStack, vertexConsumer, packedLight, packedOverlay, modifiedColor);
     }
 
@@ -109,7 +115,12 @@ public class NeoForgeHumanoidArmorLayerMixin<T extends LivingEntity, M extends H
             )
     )
     private RenderType modifyTrimRenderLayer(boolean decal, Operation<RenderType> original) {
-        return RenderModifications.getTrimRenderLayer(ArmorHiderClient.RENDER_CONTEXT, decal, original.call(decal));
+        var modApi = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE).renderModificationApi();
+        var originalType = original.call(decal);
+        if (modApi.getTrimRenderLayer(decal, originalType) instanceof RenderType rt) {
+            return rt;
+        }
+        return originalType;
     }
 
     // --- Trim color: target Model.renderToBuffer in renderTrim ---
@@ -123,7 +134,7 @@ public class NeoForgeHumanoidArmorLayerMixin<T extends LivingEntity, M extends H
             require = 0
     )
     private void modifyTrimColor(Model model, PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, Operation<Void> original) {
-        int modifiedColor = RenderModifications.applyTransparencyFromWhite(ArmorHiderClient.RENDER_CONTEXT, packedOverlay);
+        int modifiedColor = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE).renderModificationApi().applyTransparencyFromWhite(packedOverlay);
         model.renderToBuffer(poseStack, vertexConsumer, packedLight, packedOverlay, modifiedColor);
     }
 }

@@ -40,6 +40,8 @@ public final class MixinUtil {
         CompatFlags.FA_LOADED = isModPresent(cl, "net.kenddie.fantasyarmor.FantasyArmor");
         CompatFlags.WFGM_LOADED = isModPresent(cl, "com.wildfire.render.GenderArmorLayer");
         CompatFlags.FIGURA_LOADED = isModPresent(cl, "org.figuramc.figura.FiguraMod");
+        CompatFlags.LUCKPERMS_LOADED = isModPresent(cl, "net.luckperms.api.LuckPermsProvider");
+        CompatFlags.FABRIC_API_RESOURCE_LOADER_LOADED = isModPresent(cl, "net.fabricmc.fabric.api.resource.ResourceManagerHelper");
     }
 
     /**

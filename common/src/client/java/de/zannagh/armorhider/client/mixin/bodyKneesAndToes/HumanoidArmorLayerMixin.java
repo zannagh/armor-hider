@@ -1,13 +1,12 @@
 package de.zannagh.armorhider.client.mixin.bodyKneesAndToes;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.scopes.ActiveModification;
-import de.zannagh.armorhider.client.scopes.IdentityCarrier;
-import de.zannagh.armorhider.util.ItemsUtil;
+import de.zannagh.armorhider.client.api.AhRenderManagementApi;
+import de.zannagh.armorhider.client.api.AhRenderInterceptionRegistryApi;
+import de.zannagh.armorhider.client.common.IdentityCarrier;
+import de.zannagh.armorhider.client.common.RenderScope;
 import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
 import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -27,8 +26,16 @@ import net.minecraft.client.renderer.MultiBufferSource;
 *///?}
 
 //? if < 1.21.4 {
-/*import net.minecraft.client.model.HumanoidModel;
+/*import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import de.zannagh.armorhider.client.render.VanillaArmorTextureManager;
+import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.Sheets;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.LivingEntity;
 *///?}
 
@@ -37,179 +44,167 @@ public class HumanoidArmorLayerMixin
 //? if < 1.21.4
 //<T extends LivingEntity, M extends HumanoidModel<T>, A extends HumanoidModel<T>>
 {
-    @Unique
-    private static boolean armorHider$allSlotsFullyHidden(IdentityCarrier carrier) {
-        return armorHider$shouldSkipSlot(carrier.armorHider$getHeadMod())
-                && armorHider$shouldSkipSlot(carrier.armorHider$getChestMod())
-                && armorHider$shouldSkipSlot(carrier.armorHider$getLegsMod())
-                && armorHider$shouldSkipSlot(carrier.armorHider$getFeetMod());
-    }
 
-    @Unique
-    private static boolean armorHider$shouldSkipSlot(ActiveModification mod) {
-        if (mod == null) {
-            return false;
-        }
-        return mod.shouldHide();
-    }
-    
-    // ===== Player/state capture + early-out (render HEAD) =====
+    // ===== Render-state capture (render HEAD/RETURN, 1.21.4–1.21.8 only) =====
+    // In this range renderArmorPiece receives the armor model instead of the render state,
+    // so the identity-carrying state is stashed from the outer render call.
 
     //? if >= 1.21.4 && < 1.21.9 {
-    /*@Inject(
-            method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/renderer/entity/state/HumanoidRenderState;FF)V",
-            at = @At("HEAD"),
-            cancellable = true
-    )
-    private <S extends HumanoidRenderState> void captureRenderState(PoseStack poseStack, MultiBufferSource multiBufferSource, int i, S humanoidRenderState, float f, float g, CallbackInfo ci) {
-        if (humanoidRenderState instanceof IdentityCarrier carrier) {
-            ArmorHiderClient.RENDER_CONTEXT.setCurrentPlayer(carrier.armorHider$playerName());
-            if (armorHider$allSlotsFullyHidden(carrier)) {
-                ci.cancel();
-            }
-        }
-    }
-    *///?}
+    /*@Unique
+    private static final ThreadLocal<Object> armorHider$renderState = new ThreadLocal<>();
 
-    //? if >= 1.21 && < 1.21.4 {
-    /*@Inject(
-            method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/world/entity/LivingEntity;FFFFFF)V",
-            at = @At("HEAD"),
-            cancellable = true
-    )
-    private void capturePlayerName(PoseStack poseStack, MultiBufferSource bufferSource, int light, T entity, float f1, float f2, float f3, float f4, float f5, float f6, CallbackInfo ci) {
-        if (entity instanceof IdentityCarrier carrier) {
-            ArmorHiderClient.RENDER_CONTEXT.setCurrentPlayer(carrier.armorHider$playerName());
-            if (armorHider$allSlotsFullyHidden(carrier)) {
-                ci.cancel();
-            }
-        }
+    @Inject(method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/renderer/entity/state/HumanoidRenderState;FF)V", at = @At("HEAD"))
+    private void captureRenderState(PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, HumanoidRenderState renderState, float f, float g, CallbackInfo ci) {
+        armorHider$renderState.set(renderState);
     }
-    *///?}
 
-    //? if < 1.21 {
-    /*@Inject(
-            method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/world/entity/LivingEntity;FFFFFF)V",
-            at = @At("HEAD"),
-            cancellable = true
-    )
-    private void skipIfAllHidden(PoseStack poseStack, MultiBufferSource bufferSource, int light, T entity, float f1, float f2, float f3, float f4, float f5, float f6, CallbackInfo ci) {
-        if (entity instanceof IdentityCarrier carrier) {
-            ArmorHiderClient.RENDER_CONTEXT.setCurrentPlayer(carrier.armorHider$playerName());
-            if (armorHider$allSlotsFullyHidden(carrier)) {
-                ci.cancel();
-            }
-        }
+    @Inject(method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/renderer/entity/state/HumanoidRenderState;FF)V", at = @At("RETURN"))
+    private void releaseRenderState(CallbackInfo ci) {
+        armorHider$renderState.remove();
     }
     *///?}
 
     // ===== Per-piece scope setup (renderArmorPiece HEAD) =====
 
-    //? if >= 1.21.9 {
     @Inject(method = "renderArmorPiece", at = @At("HEAD"), cancellable = true)
-    private <S extends HumanoidRenderState> void captureContext(
-            PoseStack poseStack, SubmitNodeCollector submitNodeCollector, ItemStack itemStack, EquipmentSlot equipmentSlot, int i, S humanoidRenderState, CallbackInfo ci) {
-        if (!(humanoidRenderState instanceof IdentityCarrier identityCarrier)) {
-            return;
-        }
-        if (itemStack.is(Items.AIR) 
-                || (ItemsUtil.itemStackContainsElytra(itemStack) && identityCarrier.isPlayerFlying())) {
-            return;
-        }
-        var mod = identityCarrier.createModification(equipmentSlot, itemStack);
+    //? if >= 1.21.9
+    private <S extends HumanoidRenderState> void captureContext(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, ItemStack itemStack, EquipmentSlot slot, int i, S humanoidRenderState, CallbackInfo ci) {
+    //? if >= 1.21.4 && < 1.21.9
+    //private void captureContext(PoseStack poseStack, MultiBufferSource multiBufferSource, ItemStack itemStack, EquipmentSlot slot, int i, HumanoidModel<?> armorModel, CallbackInfo ci) {
+    //? if < 1.21.4
+    //private void onRenderArmorPiece(PoseStack poseStack, MultiBufferSource bufferSource, T humanoidRenderState, EquipmentSlot slot, int packedLight, A itemStack, CallbackInfo ci) {
 
-        if (mod != null && mod.shouldHide()) {
-            ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
-            ci.cancel();
-        }
+        //? if >= 1.21.9 || < 1.21.4
+        IdentityCarrier carrier = humanoidRenderState instanceof IdentityCarrier ic ? ic : null;
+        //? if >= 1.21.4 && < 1.21.9
+        //IdentityCarrier carrier = armorHider$renderState.get() instanceof IdentityCarrier ic ? ic : null;
+        if (carrier == null) return;
+
+        
+        //? if >= 1.21.4
+        var result = AhRenderInterceptionRegistryApi.getRenderer(RenderScope.ARMOR_PIECE).intercept(carrier, slot, itemStack, ci);
+        //? if < 1.21.4
+        //var result = AhRenderInterceptionRegistryApi.getRenderer(RenderScope.ARMOR_PIECE).intercept(carrier, slot, null, ci);
+        if (result.shouldCancel() || !result.shouldIntercept()) return;
+        AhRenderManagementApi.enterScope(result);
     }
-    //?}
 
-    //? if >= 1.21.4 && < 1.21.9 {
-    /*@Inject(method = "renderArmorPiece", at = @At("HEAD"), cancellable = true)
-    private void captureContext(PoseStack poseStack, MultiBufferSource multiBufferSource, ItemStack itemStack, EquipmentSlot equipmentSlot, int i, HumanoidModel<?> model, CallbackInfo ci) {
-        var ctx = ArmorHiderClient.RENDER_CONTEXT;
-        String playerName = ctx.currentPlayerName();
-        if (playerName == null) {
-            return;
+    // ===== Per-piece scope cleanup (renderArmorPiece RETURN) =====
+
+    @Inject(method = "renderArmorPiece", at = @At("RETURN"))
+    private void onRenderArmorPieceReturn(CallbackInfo ci) {
+        AhRenderManagementApi.exitScope(RenderScope.ARMOR_PIECE);
+    }
+
+    // === Render changes where MC does handle it within HumanoidArmorLayer ===
+
+    //? if < 1.21.4 {
+    /*@ModifyExpressionValue(
+            method = "renderArmorPiece",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/world/item/ItemStack;hasFoil()Z"
+            )
+    )
+    private boolean modifyGlint(boolean original) {
+        var ctx = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE);
+        return ctx.renderModificationApi().getHasFoil(original);
+    }
+
+    @WrapOperation(
+            method = "renderModel",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/renderer/rendertype/RenderType;armorCutoutNoCull(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/rendertype/RenderType;"
+            )
+    )
+    private RenderType modifyArmorRenderLayer(Identifier texture, Operation<RenderType> original) {
+        var ctx = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE);
+        if (ctx.isEmpty()) return original.call(texture);
+        Identifier resolved = VanillaArmorTextureManager.resolveArmorTexture(ctx.modification(), texture);
+        var originalType = original.call(resolved);
+        if (ctx.renderModificationApi().getTranslucentArmorRenderType(resolved, originalType) instanceof RenderType rt) {
+            return rt;
         }
-        if (itemStack.is(Items.AIR)) {
-            return;
-        }
-        var mod = ActiveModification.create(playerName, equipmentSlot, itemStack);
-        if (mod != null) {
-            ctx.setActiveModification(mod);
-        }
-        if (mod != null && mod.shouldHide()) {
-            ctx.clearActiveModification();
-            ci.cancel();
-        }
+        return originalType;
     }
     *///?}
 
     //? if >= 1.21 && < 1.21.4 {
-    /*@Inject(
-            method = "renderArmorPiece",
-            at = @At("HEAD"),
-            cancellable = true
+    /*@WrapOperation(
+            method = "renderModel",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/model/HumanoidModel;renderToBuffer(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;III)V"
+            )
     )
-    private void onRenderArmorPiece(PoseStack poseStack, MultiBufferSource bufferSource, T entity, EquipmentSlot slot, int packedLight, A armorModel, CallbackInfo ci) {
-        if (!(entity instanceof IdentityCarrier carrier)) {
-            return;
-        }
-        ItemStack itemStack = entity.getItemBySlot(slot);
-        if (itemStack.is(Items.AIR)) {
-            return;
-        }
+    private void modifyArmorColor(A model, PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, int color, Operation<Void> original) {
+        var ctx = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE);
+        if (ctx.isEmpty()) { original.call(model, poseStack, vertexConsumer, packedLight, packedOverlay, color); return; }
+        int modifiedColor = ctx.renderModificationApi().applyArmorTransparency(color);
+        original.call(model, poseStack, vertexConsumer, packedLight, packedOverlay, modifiedColor);
+    }
 
-        var mod = carrier.createModification(slot, itemStack);
-        if (mod != null && mod.shouldHide()) {
-            ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
-            ci.cancel();
+    @WrapOperation(
+            method = "renderTrim",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/renderer/Sheets;armorTrimsSheet(Z)Lnet/minecraft/client/renderer/rendertype/RenderType;"
+            )
+    )
+    private RenderType modifyTrimRenderLayer(boolean decal, Operation<RenderType> original) {
+        var ctx = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE);
+        if (ctx.isEmpty()) return original.call(decal);
+        var originalType = original.call(decal);
+        if (ctx.renderModificationApi().getTrimRenderLayer(decal, originalType) instanceof RenderType rt) {
+            return rt;
         }
+        return originalType;
+    }
+
+    @WrapOperation(
+            method = "renderTrim",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/model/HumanoidModel;renderToBuffer(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;II)V"
+            )
+    )
+    private void modifyTrimColor(A model, PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, Operation<Void> original) {
+        var ctx = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE);
+        if (ctx.isEmpty()) { original.call(model, poseStack, vertexConsumer, packedLight, packedOverlay); return; }
+        int modifiedColor = ctx.renderModificationApi().applyTransparencyFromWhite(0xFFFFFFFF);
+        model.renderToBuffer(poseStack, vertexConsumer, packedLight, packedOverlay, modifiedColor);
     }
     *///?}
 
     //? if < 1.21 {
-    /*@Inject(
-            method = "renderArmorPiece",
-            at = @At("HEAD"),
-            cancellable = true
+    /*@WrapOperation(
+            method = "renderModel",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/model/HumanoidModel;renderToBuffer(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;IIFFFF)V"
+            )
     )
-    private void onRenderArmorPiece(PoseStack poseStack, MultiBufferSource bufferSource, T entity, EquipmentSlot slot, int packedLight, A armorModel, CallbackInfo ci) {
-        if (!(entity instanceof IdentityCarrier carrier)) {
-            return;
-        }
-        if (entity.getItemBySlot(slot).is(Items.AIR)) {
-            return;
-        }
-        var mod = carrier.createModification(slot, entity.getItemBySlot(slot));
-        if (mod != null && mod.shouldHide()) {
-            ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
-            ci.cancel();
-        }
+    private void modifyArmorColor(A model, PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, float red, float green, float blue, float v, Operation<Void> original) {
+        var ctx = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE);
+        if (ctx.isEmpty()) { original.call(model, poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, v); return; }
+        float modifiedAlpha = ctx.renderModificationApi().getTransparencyAlpha();
+        original.call(model, poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, modifiedAlpha);
+    }
+
+    @WrapOperation(
+            method = "renderTrim",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/model/HumanoidModel;renderToBuffer(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;IIFFFF)V"
+            ),
+            require = 0
+    )
+    private void modifyTrimColor(HumanoidModel<?> model, PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, float red, float green, float blue, float alpha, Operation<Void> original) {
+        var ctx = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE);
+        if (ctx.isEmpty()) { original.call(model, poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha); return; }
+        float modifiedAlpha = ctx.renderModificationApi().getTransparencyAlpha();
+        original.call(model, poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, modifiedAlpha);
     }
     *///?}
-
-    // ===== Per-piece scope cleanup (renderArmorPiece RETURN) =====
-    // In 1.21.4–1.21.8 this is handled by EquipmentRenderMixin.resetContext at the renderLayers level.
-
-    //? if >= 1.21.9 {
-    @Inject(method = "renderArmorPiece", at = @At("RETURN"))
-    private <S extends HumanoidRenderState> void onRenderArmorPieceReturn(
-            PoseStack poseStack, SubmitNodeCollector submitNodeCollector, ItemStack itemStack, EquipmentSlot equipmentSlot, int i, S humanoidRenderState, CallbackInfo ci) {
-        ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
-    }
-    //?}
-
-    //? if < 1.21.4 {
-    /*@Inject(
-            method = "renderArmorPiece",
-            at = @At("RETURN")
-    )
-    private void onRenderArmorPieceReturn(PoseStack poseStack, MultiBufferSource bufferSource, T entity, EquipmentSlot slot, int packedLight, A armorModel, CallbackInfo ci) {
-        ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
-    }
-    *///?}
-
 }

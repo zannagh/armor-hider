@@ -4,8 +4,10 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.scopes.ActiveModification;
-import de.zannagh.armorhider.client.scopes.IdentityCarrier;
+import de.zannagh.armorhider.client.api.AhRenderManagementApi;
+import de.zannagh.armorhider.client.api.AhRenderInterceptionRegistryApi;
+import de.zannagh.armorhider.client.common.IdentityCarrier;
+import de.zannagh.armorhider.client.common.RenderScope;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.ItemInHandRenderer;
 import net.minecraft.world.InteractionHand;
@@ -24,7 +26,8 @@ import net.minecraft.client.renderer.item.ItemStackRenderState;
 //? if < 1.21.9 {
 /*import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.ItemRenderer;
-import de.zannagh.armorhider.client.rendering.RenderModifications;
+import de.zannagh.armorhider.client.render.RenderModifications;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.level.Level;
@@ -36,29 +39,27 @@ import net.minecraft.world.level.Level;
 public class OffHandRenderMixin {
 
     @Inject(
-            method = "renderArmWithItem",
-            at = @At("HEAD")
+            //? if < 26.2
+            //method = "renderArmWithItem",
+            //? if >= 26.2
+            method = "submitArmWithItem",
+            at = @At("HEAD"),
+            cancellable = true
     )
     //? if >= 1.21.9
     private void onRenderItem(AbstractClientPlayer abstractClientPlayer, float f, float g, InteractionHand interactionHand, float h, ItemStack itemStack, float i, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int j, CallbackInfo ci){
     //? if < 1.21.9
     //private void onRenderItem(AbstractClientPlayer abstractClientPlayer, float f, float g, InteractionHand interactionHand, float h, ItemStack itemStack, float i, PoseStack poseStack, MultiBufferSource multiBufferSource, int j, CallbackInfo ci){
-        
-        if (!(abstractClientPlayer instanceof IdentityCarrier carrier)) {
+
+        if (interactionHand == InteractionHand.MAIN_HAND) {
             return;
         }
-        
-        if (itemStack.is(Items.AIR)) {
+
+        var result = AhRenderInterceptionRegistryApi.getRenderer(RenderScope.OFFHAND).intercept(abstractClientPlayer, EquipmentSlot.OFFHAND, itemStack, ci);
+        if (result.shouldCancel() || !result.shouldIntercept()) {
             return;
         }
-        if (interactionHand == InteractionHand.MAIN_HAND){
-            return;
-        }
-        if (carrier.isPlayerBlocking()
-                && ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().showShieldWhenBlocking.getValue()) {
-            return;
-        }
-        carrier.createModification(EquipmentSlot.OFFHAND, itemStack);
+        AhRenderManagementApi.enterScope(result);
     }
 
     @WrapOperation(
@@ -83,9 +84,9 @@ public class OffHandRenderMixin {
     //private void modifyItemSubmit(ItemRenderer instance, LivingEntity livingEntity, ItemStack itemStack, ItemDisplayContext itemDisplayContext, boolean b, PoseStack poseStack, MultiBufferSource multiBufferSource, Level level, int i, int j, int k, Operation<Void> original) {
     //? if 1.21.5
     //private void modifyItemSubmit(ItemRenderer instance, LivingEntity livingEntity, ItemStack itemStack, ItemDisplayContext itemDisplayContext, PoseStack poseStack, MultiBufferSource multiBufferSource, Level level, int i, int j, int k, Operation<Void> original) {
-        var ctx = ArmorHiderClient.RENDER_CONTEXT;
-        if (ctx.hasActiveModification(EquipmentSlot.OFFHAND) 
-                && ctx.activeModification().shouldHide()) {
+
+        var offhandCtx = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
+        if (!offhandCtx.isEmpty() && offhandCtx.shouldCancel()) {
             return;
         }
         //? if >= 1.21.9
@@ -93,11 +94,11 @@ public class OffHandRenderMixin {
         //? if < 1.21.9 {
         /*// Wrap buffer source for transparency: swap opaque render types to translucent
         MultiBufferSource source = multiBufferSource;
-        if (ctx.hasActiveModification(EquipmentSlot.OFFHAND)
-                && ctx.activeModification().transparency() < 1.0
-                && ctx.activeModification().transparency() > 0) {
+        if (!offhandCtx.isEmpty()
+                && offhandCtx.modification().transparency() < 1.0
+                && offhandCtx.modification().transparency() > 0) {
             source = RenderModifications.wrapTranslucentBufferSource(multiBufferSource,
-                    RenderModifications.getTransparencyAlpha(ctx));
+                    offhandCtx.renderModificationApi().getTransparencyAlpha());
         }
         *///? }
         //? if >= 1.21.6 && < 1.21.9
@@ -109,13 +110,13 @@ public class OffHandRenderMixin {
     }
 
     @Inject(
-            method = "renderArmWithItem",
+            //? if < 26.2
+            //method = "renderArmWithItem",
+            //? if >= 26.2
+            method = "submitArmWithItem",
             at = @At("TAIL")
     )
-    //? if >= 1.21.9
-    private void releaseContext(AbstractClientPlayer abstractClientPlayer, float f, float g, InteractionHand interactionHand, float h, ItemStack itemStack, float i, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int j, CallbackInfo ci) {
-    //? if < 1.21.9
-    //private void releaseContext(AbstractClientPlayer abstractClientPlayer, float f, float g, InteractionHand interactionHand, float h, ItemStack itemStack, float i, PoseStack poseStack, MultiBufferSource multiBufferSource, int j, CallbackInfo ci) {
-        ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
+    private void releaseContext(CallbackInfo ci) {
+        AhRenderManagementApi.exitScope(RenderScope.OFFHAND);
     }
 }

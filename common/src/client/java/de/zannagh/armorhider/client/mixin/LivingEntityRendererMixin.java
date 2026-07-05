@@ -1,40 +1,45 @@
 package de.zannagh.armorhider.client.mixin;
 
-import de.zannagh.armorhider.CompatFlags;
-import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.scopes.ActiveModification;
-import de.zannagh.armorhider.client.scopes.IdentityCarrier;
-import de.zannagh.armorhider.client.scopes.IdentityStateCarrier;
-import de.zannagh.armorhider.log.DebugLogger;
+import de.zannagh.armorhider.client.api.AhRenderManagementApi;
+import de.zannagh.armorhider.client.common.IdentityCarrier;
+import de.zannagh.armorhider.client.common.IdentityStateCarrier;
+import de.zannagh.armorhider.client.compat.*;
 import net.minecraft.client.model.EntityModel;
-import net.minecraft.client.model.player.PlayerModel;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 //? if >= 1.21.4 {
 import net.minecraft.client.renderer.entity.state.AvatarRenderState;
-import net.minecraft.client.renderer.entity.state.EntityRenderState;
-import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 //?}
 
 //? if < 1.21.9 {
 /*import com.mojang.blaze3d.vertex.PoseStack;
+import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.client.common.SlotModification;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.world.entity.EquipmentSlot;
+*///?}
+
+//? if >= 1.21.4 && < 1.21.9 {
+/*import net.minecraft.client.model.player.PlayerModel;
+import net.minecraft.client.renderer.entity.state.EntityRenderState;
+import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 *///?}
 
 //? if < 1.21.4 {
 /*import net.minecraft.client.model.HumanoidModel;
+import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.client.common.SlotModification;
+import net.minecraft.world.entity.EquipmentSlot;
 *///?}
 
 /**
@@ -81,7 +86,10 @@ public abstract class LivingEntityRendererMixin
         if (!(state instanceof AvatarRenderState)) {
             return;
         }
-        ArmorHiderClient.RENDER_CONTEXT.enterEntityRender();
+        AhRenderManagementApi.setInEntityRender();
+        if (entity instanceof IdentityCarrier carrier) {
+            AhRenderManagementApi.setCurrentPlayer(carrier.armorHider$playerName());
+        }
     }
 
     /**
@@ -95,98 +103,29 @@ public abstract class LivingEntityRendererMixin
     )
     private void capturePlayerIdentity(LivingEntity entity, LivingEntityRenderState state, float partialTick, CallbackInfo ci) {
         if (entity instanceof IdentityCarrier carrier
-                && state instanceof IdentityStateCarrier stateCarrier
-                && state instanceof AvatarRenderState avRenderState) {
+                && state instanceof IdentityStateCarrier stateCarrier) {
             stateCarrier.attachCarrier(carrier);
-            armorHider$clearHiddenEquipment(carrier, avRenderState);
-        }
-    }
-
-    @Unique
-    private static void armorHider$clearHiddenEquipment(IdentityCarrier carrier, AvatarRenderState avRenderState) {
-        // When EMF is loaded, skip clearing equipment from the render state.
-        // Fresh Animations reads equipment state to determine arm/body poses;
-        // clearing it causes arms to separate from the torso (#217).
-        // Armor rendering is already prevented at the layer level by other mixins.
-        if (CompatFlags.EMF_LOADED) return;
-        if (carrier.armorHider$getHeadMod() instanceof ActiveModification mod && mod.shouldHide()) {
-            avRenderState.headEquipment.copyAndClear();
-        }
-        if (carrier.armorHider$getChestMod() instanceof ActiveModification mod && mod.shouldHide()) {
-            avRenderState.chestEquipment.copyAndClear();
-        }
-        if (carrier.armorHider$getLegsMod() instanceof ActiveModification mod && mod.shouldHide()) {
-            avRenderState.legsEquipment.copyAndClear();
-        }
-        if (carrier.armorHider$getFeetMod() instanceof ActiveModification mod && mod.shouldHide()) {
-            avRenderState.feetEquipment.copyAndClear();
+            EmfCompat.clearEquipment(carrier, state);
         }
     }
     //?}
 
-    //? if >= 1.21.4 && < 1.21.9 {
-    /*@Inject(method = "render", at = @At("HEAD"))
-    private void forceArmVisibility(LivingEntityRenderState state, PoseStack poseStack,
+    //? if < 1.21.9 {
+    /*
+    //? if >= 1.21.4 {
+    /^@Inject(method = "render", at = @At("HEAD"))
+    private void forceArmVisibility(LivingEntityRenderState entity, PoseStack poseStack,
             MultiBufferSource bufferSource, int light, CallbackInfo ci) {
-        forceArmVisibilityFromState(state);
-    }
-
-    @Unique
-    private void forceArmVisibilityFromState(EntityRenderState state) {
-        if (!ArmorHiderClient.GECKOLIB_LOADED || !ArmorHiderClient.FA_LOADED) {
-            return;
-        }
-        
-        if (!(state instanceof IdentityCarrier carrier)) {
-            return;
-        }
-        if (!(state instanceof HumanoidRenderState humanoidState)) {
-            return;
-        }
-
-        String name = carrier.armorHider$playerName();
-        if (name == null) { 
-            return;
-        }
-
-        if (ActiveModification.isSlotModified(name, EquipmentSlot.CHEST, humanoidState.chestEquipment)) {
-            var model = ((LivingEntityRenderer<?, ?, ?>) (Object) this).getModel();
-            if (model instanceof PlayerModel humanoid) {
-                humanoid.leftArm.visible = true;
-                humanoid.leftSleeve.visible = true;
-                humanoid.rightArm.visible = true;
-                humanoid.rightSleeve.visible = true;
-            }
-        }
-    }
-    *///?}
-
-    //? if < 1.21.4 {
-    /*@Inject(
+    ^///? } elif < 1.21.4 {
+    /^@Inject(
             method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
             at = @At("HEAD")
     )
     private void forceArmVisibility(LivingEntity entity, float yBodyRot, float partialTick,
             PoseStack poseStack, MultiBufferSource bufferSource, int light, CallbackInfo ci) {
-        if (!ArmorHiderClient.GECKOLIB_LOADED || !ArmorHiderClient.FA_LOADED) {
-            return;
-        }
-        if (!(entity instanceof IdentityCarrier carrier)) {
-            return;
-        }
 
-        String name = carrier.armorHider$playerName();
-        if (name == null) {
-            return;
-        }
-
-        if (ActiveModification.isSlotModified(name, EquipmentSlot.CHEST, entity.getItemBySlot(EquipmentSlot.CHEST))) {
-            var model = ((LivingEntityRenderer<?, ?>) (Object) this).getModel();
-            if (model instanceof HumanoidModel<?> humanoid) {
-                humanoid.leftArm.visible = true;
-                humanoid.rightArm.visible = true;
-            }
-        }
+    ^///? }
+        FantasyArmorCompat.forceArmVisibility(entity, (Object) this);
     }
-    *///?}
+    *///? }
 }

@@ -48,7 +48,7 @@ jobs:
       commits_since: ${{ steps.version.outputs.commitsSinceVersionSource }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -80,7 +80,7 @@ jobs:
     if: needs.analyze.outputs.is_manual_release == 'true'
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -114,7 +114,7 @@ jobs:
       version_exists: ${{ steps.modrinth-check.outputs.version_exists }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Determine version to check
         id: mod-ver
@@ -148,7 +148,7 @@ jobs:
       supported_versions: ${{ steps.versions.outputs.matrix }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -156,7 +156,7 @@ jobs:
         uses: zannagh/versionizer/setup-gradle-env@v1
 
       - name: Cache NeoForge NFRT Artifacts
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: neoforge/versions/*/build/moddev/artifacts/
           key: nfrt-${{ runner.os }}-${{ hashFiles('neoforge/versions/*/gradle.properties') }}
@@ -188,7 +188,7 @@ jobs:
           echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
 
       - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: armor-hider-${{ steps.mod-ver.outputs.version }}
           path: |
@@ -206,7 +206,7 @@ jobs:
       user-facing: ${{ steps.user-changelog.outputs.content }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -263,7 +263,7 @@ jobs:
       contents: write
     steps:
       - name: Download Artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           path: artifacts
 
@@ -286,14 +286,18 @@ jobs:
       needs.check-modrinth.outputs.version_exists != 'true'
     strategy:
       fail-fast: false
+      # Serialize: parallel jobs hammer Modrinth's API and get rate-limited (429). mc-publish
+      # resolves loaders/game-versions against Modrinth's tag endpoints, and a throttled fetch
+      # silently yields empty metadata — the version publishes with no loaders/game_versions.
+      max-parallel: 1
       matrix:
         include: ${{ fromJSON(needs.build.outputs.supported_versions) }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Download Artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: armor-hider-${{ needs.build.outputs.mod_version }}
           path: artifacts
@@ -382,14 +386,16 @@ jobs:
       needs.analyze.outputs.is_manual_release == 'true'
     strategy:
       fail-fast: false
+      # Serialize to avoid the same rate-limit race as Modrinth (see publish-modrinth above).
+      max-parallel: 1
       matrix:
         include: ${{ fromJSON(needs.build.outputs.supported_versions) }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Download Artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: armor-hider-${{ needs.build.outputs.mod_version }}
           path: artifacts
@@ -476,7 +482,7 @@ jobs:
     steps:
       - name: Download Artifacts
         if: inputs.dry_run == true && needs.build.result == 'success'
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: armor-hider-${{ needs.build.outputs.mod_version }}
           path: artifacts

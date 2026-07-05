@@ -50,6 +50,12 @@ neoForge {
         register("client") {
             client()
             taskBefore(expandResourcesForIdea)
+            if (project.hasProperty("smoke")) {
+                taskBefore(tasks.named("fetchCompatJars"))
+                jvmArgument("-Darmorhider.smoke.exit=true")
+                val delayMs = project.findProperty("smoke.delay.ms")?.toString() ?: "15000"
+                jvmArgument("-Darmorhider.smoke.delay.ms=${delayMs}")
+            }
             if (devProfile != null) {
                 programArguments.addAll("--username", devProfile.username, "--uuid", devProfile.uuid)
                 if (devProfile.skinTexturesValue != null) {

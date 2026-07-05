@@ -1,0 +1,395 @@
+name: Publish Existing Release
+
+# Manually re-publish an already-built GitHub release/prerelease to Modrinth and
+# CurseForge without rebuilding. Artifacts are pulled from the release assets and
+# all version metadata is reconstructed from the jar names + stonecutter.properties.toml.
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing release tag to publish (e.g. v0.12.0-pre.3)'
+        required: true
+        type: string
+      platforms:
+        description: 'Which portals to publish to'
+        required: true
+        default: both
+        type: choice
+        options:
+          - both
+          - modrinth
+          - curseforge
+      dry_run:
+        description: 'Preview only — resolve metadata but do not upload'
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: publish-existing-${{ inputs.tag }}
+  cancel-in-progress: false
+
+env:
+  MODRINTH_PROJECT_ID: 'zannaghs-armor-hider'
+  CURSEFORGE_PROJECT_ID: '1475841'
+
+jobs:
+  # ============================================================================
+  # PREPARE: gate to admins, pull release assets, reconstruct version metadata
+  # ============================================================================
+  prepare:
+    name: Prepare Release Assets
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      matrix: ${{ steps.metadata.outputs.matrix }}
+      mod_version: ${{ steps.release.outputs.mod_version }}
+      is_prerelease: ${{ steps.release.outputs.is_prerelease }}
+      changelog: ${{ steps.changelog.outputs.content }}
+    steps:
+      - name: Verify actor is a repository admin
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PERM=$(gh api "repos/${{ github.repository }}/collaborators/${{ github.actor }}/permission" --jq '.permission')
+          echo "Actor '${{ github.actor }}' has repository permission: $PERM"
+          if [[ "$PERM" != "admin" ]]; then
+            echo "::error::Only repository admins/owners may run this workflow (actor has '$PERM')."
+            exit 1
+          fi
+
+      # Check out the default branch (not the tag): we need the current workflow
+      # actions and the version-mapping TOML. Release jars + body come from the API.
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Download release assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p release-assets
+          gh release download "${{ inputs.tag }}" \
+            --repo "${{ github.repository }}" \
+            --pattern '*.jar' \
+            --dir release-assets
+          echo "Downloaded assets:"
+          ls -1 release-assets
+
+      - name: Resolve release info
+        id: release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ inputs.tag }}"
+          MOD_VERSION="${TAG#v}"
+          IS_PRERELEASE=$(gh release view "$TAG" --repo "${{ github.repository }}" --json isPrerelease --jq '.isPrerelease')
+          echo "mod_version=$MOD_VERSION" >> "$GITHUB_OUTPUT"
+          echo "is_prerelease=$IS_PRERELEASE" >> "$GITHUB_OUTPUT"
+          echo "Mod version: $MOD_VERSION (prerelease: $IS_PRERELEASE)"
+
+      - name: Read release body
+        id: body
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BODY=$(gh release view "${{ inputs.tag }}" --repo "${{ github.repository }}" --json body --jq '.body')
+          {
+            echo "content<<RELEASE_BODY_EOF"
+            echo "$BODY"
+            echo "RELEASE_BODY_EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Reconstruct version metadata
+        id: metadata
+        run: |
+          python3 - <<'PY'
+          import json, os, re, tomllib
+
+          # display_version -> sorted unique game_versions, from the per-MC TOML sections.
+          # This is the same mapping stageArtifacts uses to emit staging/versions.json.
+          cfg = tomllib.load(open("stonecutter.properties.toml", "rb"))
+          display_to_games = {}
+          for section in cfg.values():
+              if isinstance(section, dict) and "display_version" in section and "game_versions" in section:
+                  games = sorted({g.strip() for g in section["game_versions"].split(",") if g.strip()})
+                  display_to_games.setdefault(section["display_version"], games)
+
+          # Derive (loader, display_version) pairs from the release jar names.
+          pattern = re.compile(r"^armor-hider-(fabric|neoforge)-.+\+(.+)\.jar$")
+          versions = {}
+          matrix = []
+          seen = set()
+          for name in sorted(os.listdir("release-assets")):
+              if name.endswith("-sources.jar"):
+                  continue
+              m = pattern.match(name)
+              if not m:
+                  print(f"::warning::Skipping unrecognized asset: {name}")
+                  continue
+              loader, display = m.group(1), m.group(2)
+              key = (loader, display)
+              if key in seen:
+                  continue
+              seen.add(key)
+              games = display_to_games.get(display)
+              if games is None:
+                  print(f"::warning::No game_versions mapping for '{display}' — falling back to ['{display}']")
+                  games = [display]
+              versions.setdefault(loader, {})[display] = games
+              matrix.append({"loader": loader, "minecraft": display})
+
+          if not matrix:
+              raise SystemExit("::error::No publishable armor-hider jars found in the release assets.")
+
+          with open("release-assets/versions.json", "w") as fh:
+              json.dump(versions, fh, indent=2, sort_keys=True)
+
+          with open(os.environ["GITHUB_OUTPUT"], "a") as out:
+              out.write("matrix=" + json.dumps(matrix) + "\n")
+
+          print("versions.json:")
+          print(json.dumps(versions, indent=2, sort_keys=True))
+          print("matrix:", json.dumps(matrix))
+          PY
+
+      - name: Generate changelog from release description
+        id: changelog
+        uses: ./.github/actions/generate-user-changelog
+        with:
+          is-manual-release: 'true'
+          release-body: ${{ steps.body.outputs.content }}
+          mod-version: ${{ steps.release.outputs.mod_version }}
+          repository: ${{ github.repository }}
+
+      - name: Upload prepared artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-assets-${{ inputs.tag }}
+          path: |
+            release-assets/*.jar
+            release-assets/versions.json
+          if-no-files-found: error
+
+  # ============================================================================
+  # PUBLISH TO MODRINTH
+  # ============================================================================
+  publish-modrinth:
+    name: Publish to Modrinth
+    runs-on: ubuntu-latest
+    needs: prepare
+    if: inputs.platforms == 'both' || inputs.platforms == 'modrinth'
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      # Serialize: parallel jobs hammer Modrinth's API and get rate-limited (429),
+      # which silently yields empty loaders/game_versions metadata. See publish.yml.
+      max-parallel: 1
+      matrix:
+        include: ${{ fromJSON(needs.prepare.outputs.matrix) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Download prepared artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: release-assets-${{ inputs.tag }}
+          path: artifacts
+
+      - name: Get game versions
+        id: game-versions
+        run: |
+          VERSIONS=$(jq -r '."${{ matrix.loader }}"."${{ matrix.minecraft }}" // ["${{ matrix.minecraft }}"] | .[]' artifacts/versions.json)
+          echo "list<<EOF" >> $GITHUB_OUTPUT
+          echo "$VERSIONS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Prepare Modrinth Upload
+        id: modrinth
+        uses: ./.github/actions/prepare-modrinth-upload
+        with:
+          display-version: ${{ matrix.minecraft }}
+          mod-version: ${{ needs.prepare.outputs.mod_version }}
+          is-prerelease: ${{ needs.prepare.outputs.is_prerelease }}
+          artifact-path: artifacts
+          loader: ${{ matrix.loader }}
+
+      - name: Preview Modrinth Upload
+        if: steps.modrinth.outputs.found == 'true'
+        env:
+          CHANGELOG: ${{ needs.prepare.outputs.changelog }}
+        run: |
+          echo "=========================================="
+          echo "MODRINTH UPLOAD PREVIEW"
+          echo "=========================================="
+          echo "File:          ${{ steps.modrinth.outputs.jar_path }}"
+          echo "Project ID:    ${{ env.MODRINTH_PROJECT_ID }}"
+          echo "Version:       ${{ steps.modrinth.outputs.version_number }}"
+          echo "Display Name:  ${{ steps.modrinth.outputs.version_name }}"
+          echo "Version Type:  ${{ steps.modrinth.outputs.version_type }}"
+          echo "Game Versions: ${{ matrix.minecraft }}"
+          echo "Loader:        ${{ matrix.loader }}${{ matrix.loader == 'fabric' && ', quilt' || '' }}"
+          echo "Changelog:"
+          printf '%s\n' "$CHANGELOG"
+          if [[ "${{ inputs.dry_run }}" == "true" ]]; then
+            echo "DRY RUN - Skipping actual Modrinth upload"
+          fi
+          echo "=========================================="
+
+      - name: Publish to Modrinth
+        if: ${{ steps.modrinth.outputs.found == 'true' && !inputs.dry_run }}
+        uses: Kira-NT/mc-publish@v3.3
+        with:
+          modrinth-id: ${{ env.MODRINTH_PROJECT_ID }}
+          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+          files: ${{ steps.modrinth.outputs.jar_path }}
+          name: ${{ steps.modrinth.outputs.version_name }}
+          version: ${{ steps.modrinth.outputs.version_number }}
+          version-type: ${{ steps.modrinth.outputs.version_type }}
+          loaders: |
+            ${{ matrix.loader }}
+            ${{ matrix.loader == 'fabric' && 'quilt' || '' }}
+          game-versions: |
+            ${{ steps.game-versions.outputs.list }}
+          game-version-filter: any
+          changelog: ${{ needs.prepare.outputs.changelog }}
+          modrinth-featured: false
+          retry-attempts: 2
+          retry-delay: 10000
+
+  # ============================================================================
+  # PUBLISH TO CURSEFORGE
+  # ============================================================================
+  publish-curseforge:
+    name: Publish to CurseForge
+    runs-on: ubuntu-latest
+    needs: prepare
+    if: inputs.platforms == 'both' || inputs.platforms == 'curseforge'
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      # Serialize to avoid the same rate-limit race as Modrinth (see publish.yml).
+      max-parallel: 1
+      matrix:
+        include: ${{ fromJSON(needs.prepare.outputs.matrix) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Download prepared artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: release-assets-${{ inputs.tag }}
+          path: artifacts
+
+      - name: Get game versions
+        id: game-versions
+        run: |
+          VERSIONS=$(jq -r '."${{ matrix.loader }}"."${{ matrix.minecraft }}" // ["${{ matrix.minecraft }}"] | .[]' artifacts/versions.json)
+          echo "list<<EOF" >> $GITHUB_OUTPUT
+          echo "$VERSIONS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Prepare CurseForge Upload
+        id: curseforge
+        uses: ./.github/actions/prepare-modrinth-upload
+        with:
+          display-version: ${{ matrix.minecraft }}
+          mod-version: ${{ needs.prepare.outputs.mod_version }}
+          is-prerelease: ${{ needs.prepare.outputs.is_prerelease }}
+          artifact-path: artifacts
+          loader: ${{ matrix.loader }}
+
+      - name: Preview CurseForge Upload
+        if: steps.curseforge.outputs.found == 'true'
+        env:
+          CHANGELOG: ${{ needs.prepare.outputs.changelog }}
+        run: |
+          echo "=========================================="
+          echo "CURSEFORGE UPLOAD PREVIEW"
+          echo "=========================================="
+          echo "File:          ${{ steps.curseforge.outputs.jar_path }}"
+          echo "Project ID:    ${{ env.CURSEFORGE_PROJECT_ID }}"
+          echo "Version:       ${{ steps.curseforge.outputs.version_number }}"
+          echo "Display Name:  ${{ steps.curseforge.outputs.version_name }}"
+          echo "Version Type:  ${{ steps.curseforge.outputs.version_type }}"
+          echo "Game Versions: ${{ matrix.minecraft }}"
+          echo "Loader:        ${{ matrix.loader }}${{ matrix.loader == 'fabric' && ', quilt' || '' }}"
+          echo "Changelog:"
+          printf '%s\n' "$CHANGELOG"
+          if [[ "${{ inputs.dry_run }}" == "true" ]]; then
+            echo "DRY RUN - Skipping actual CurseForge upload"
+          fi
+          echo "=========================================="
+
+      - name: Publish to CurseForge
+        if: ${{ steps.curseforge.outputs.found == 'true' && !inputs.dry_run }}
+        uses: Kira-NT/mc-publish@v3.3
+        with:
+          curseforge-id: ${{ env.CURSEFORGE_PROJECT_ID }}
+          curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
+          files: ${{ steps.curseforge.outputs.jar_path }}
+          name: ${{ steps.curseforge.outputs.version_name }}
+          version: ${{ steps.curseforge.outputs.version_number }}
+          version-type: ${{ steps.curseforge.outputs.version_type }}
+          loaders: |
+            ${{ matrix.loader }}
+            ${{ matrix.loader == 'fabric' && 'quilt' || '' }}
+          game-versions: |
+            ${{ steps.game-versions.outputs.list }}
+          game-version-filter: any
+          changelog: ${{ needs.prepare.outputs.changelog }}
+          retry-attempts: 2
+          retry-delay: 10000
+
+  # ============================================================================
+  # ANNOUNCE: link the release to an Announcements discussion (notifies Discord)
+  # ============================================================================
+  announce:
+    name: Announce Release
+    runs-on: ubuntu-latest
+    needs: [prepare, publish-modrinth, publish-curseforge]
+    # Only announce a real (non-dry-run) publish where nothing failed and at least
+    # one portal actually uploaded. A skipped portal (platform not selected) is fine.
+    if: >-
+      !cancelled() &&
+      !inputs.dry_run &&
+      needs.prepare.result == 'success' &&
+      needs.publish-modrinth.result != 'failure' &&
+      needs.publish-curseforge.result != 'failure' &&
+      (needs.publish-modrinth.result == 'success' || needs.publish-curseforge.result == 'success')
+    permissions:
+      contents: write
+      discussions: write
+    steps:
+      # Best-effort: automated prereleases have no linked discussion yet, so this
+      # creates one. If it can't (permissions, etc.) the run still succeeds.
+      - name: Create linked Announcements discussion
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ inputs.tag }}"
+          REL=$(gh api "repos/${{ github.repository }}/releases/tags/$TAG")
+          REL_ID=$(echo "$REL" | jq -r '.id')
+          EXISTING=$(echo "$REL" | jq -r '.discussion_url // empty')
+
+          if [[ -n "$EXISTING" ]]; then
+            echo "Release already has a linked discussion: $EXISTING"
+            exit 0
+          fi
+
+          # Setting discussion_category_name on a published release makes GitHub create
+          # a linked discussion from the release body — same as the release UI does.
+          gh api --method PATCH "repos/${{ github.repository }}/releases/$REL_ID" \
+            -f discussion_category_name='Announcements' > updated.json
+
+          NEW=$(jq -r '.discussion_url // empty' updated.json)
+          if [[ -n "$NEW" ]]; then
+            echo "Created announcement discussion: $NEW"
+          else
+            echo "::warning::No discussion_url returned — the linked discussion may not have been created. Check the Announcements category."
+          fi

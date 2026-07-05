@@ -48,7 +48,7 @@ jobs:
             build-mode: none
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup Gradle Environment
         uses: zannagh/versionizer/setup-gradle-env@v1
@@ -56,7 +56,7 @@ jobs:
           java-distribution: 'microsoft'
 
       - name: Cache NeoForge NFRT Artifacts
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: neoforge/versions/*/build/moddev/artifacts/
           key: nfrt-${{ runner.os }}-${{ hashFiles('neoforge/versions/*/gradle.properties') }}

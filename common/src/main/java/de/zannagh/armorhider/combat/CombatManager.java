@@ -1,67 +1,92 @@
 package de.zannagh.armorhider.combat;
 
-import de.zannagh.armorhider.log.DebugLogger;
+import com.mojang.datafixers.util.Pair;
+import de.zannagh.armorhider.api.ArmorHiderApi;
+import de.zannagh.armorhider.api.combat.ArmorHiderCombatEvent;
+import de.zannagh.armorhider.api.combat.ArmorHiderCombatEventConsumer;
+import de.zannagh.armorhider.api.combat.ArmorHiderCombatManagementApi;
+import de.zannagh.armorhider.common.InjectorFactory;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
-public final class CombatManager {
+/**
+ * A default implementation of {@link ArmorHiderCombatManagementApi}.
+ */
+public class CombatManager extends InjectorFactory<ArmorHiderCombatEvent, ArmorHiderCombatEventConsumer> implements ArmorHiderCombatManagementApi  {
 
-    private static final double fadePer25Ms = 0.005;
-    private static final Map<String, Long> combatTimes = new HashMap<>();
+    private final ArrayList<Pair<ArmorHiderCombatManagementApi, Integer>> customManagers = new ArrayList<>();
 
-    private static void clearCombatTimesOlderThanTenSeconds() {
-        var removalKeys = new ArrayList<String>();
-        combatTimes.forEach((k, v) -> {
-            if (System.currentTimeMillis() - v > 10000f) {
-                removalKeys.add(k);
-            }
-        });
-        removalKeys.forEach(combatTimes::remove);
+    public CombatManager() {
+        super(new CombatEventConsumerImpl());
     }
 
+    // Static delegates for backwards compatibility with existing call sites.
     public static void logCombat(String playerDisplayName) {
-        clearCombatTimesOlderThanTenSeconds();
-        if (!playerDisplayName.isEmpty()) {
-            combatTimes.put(playerDisplayName, System.currentTimeMillis());
-        }
+        ArmorHiderApi.getInstance().getCombatManagement().registerCombatEvent(new DefaultCombatEvent(playerDisplayName, System.currentTimeMillis()));
     }
 
     public static void logCombat(String playerDisplayName, long timestamp) {
-        clearCombatTimesOlderThanTenSeconds();
-        if (!playerDisplayName.isEmpty()) {
-            combatTimes.put(playerDisplayName, timestamp);
-        }
+        ArmorHiderApi.getInstance().getCombatManagement().registerCombatEvent(new DefaultCombatEvent(playerDisplayName, timestamp));
     }
 
-    public static boolean isInCombat(String playerDisplayName) {
-        clearCombatTimesOlderThanTenSeconds();
-        return !playerDisplayName.isEmpty() && combatTimes.containsKey(playerDisplayName);
+    public static boolean isPlayerInCombat(String playerDisplayName) {
+        return ArmorHiderApi.getInstance().getCombatManagement().isInCombat(playerDisplayName);
     }
 
     public static double transformTransparencyBasedOnCombat(String playerDisplayName, double transparency) {
-        clearCombatTimesOlderThanTenSeconds();
-        if (playerDisplayName.isEmpty()) {
-            DebugLogger.log("Combat logger queried for transparency but player display name was empty.");
-            return transparency;
-        }
-        if (combatTimes.containsKey(playerDisplayName)) {
-            var lastCombatTime = combatTimes.get(playerDisplayName);
-            var milliSecondDiff = System.currentTimeMillis() - lastCombatTime;
-            var steps = milliSecondDiff / 25;
-            var fade = steps * fadePer25Ms;
+        return ArmorHiderApi.getInstance().getCombatManagement().getCombatFade(playerDisplayName, transparency);
+    }
 
-            double result = 1 - fade;
-            if (result < transparency) {
-                result = transparency;
-            }
-            if (result >= 1) {
-                result = 1;
-            }
-            DebugLogger.log("Combat logger finalized evaluation, returning transparency: {}", result);
-            return result;
+    public void registerCombatEvent(String playerDisplayName) {
+        if (!customManagers.isEmpty()) {
+            customManagers.get(0).getFirst().registerCombatEvent(new DefaultCombatEvent(playerDisplayName, System.currentTimeMillis()));
+            return;
         }
-        return transparency;
+        if (!playerDisplayName.isEmpty()) {
+            registerCombatEvent(new DefaultCombatEvent(playerDisplayName, System.currentTimeMillis()));
+        }
+    }
+
+    public void registerCombatEvent(String playerDisplayName, long timestamp) {
+        if (!customManagers.isEmpty()) {
+            customManagers.get(0).getFirst().registerCombatEvent(new DefaultCombatEvent(playerDisplayName, timestamp));
+            return;
+        }
+        if (!playerDisplayName.isEmpty()) {
+            registerCombatEvent(new DefaultCombatEvent(playerDisplayName, timestamp));
+        }
+    }
+
+    @Override
+    public void overrideDefaultBehavior(ArmorHiderCombatManagementApi customManagement, int priority) {
+        customManagers.add(Pair.of(customManagement, priority));
+        customManagers.sort(Comparator.comparingInt(Pair::getSecond));
+    }
+
+    @Override
+    public void registerCombatEventConsumer(ArmorHiderCombatEventConsumer consumer) {
+        addHandler(consumer);
+    }
+
+    @Override
+    public void registerCombatEvent(ArmorHiderCombatEvent event) {
+        if (!customManagers.isEmpty()) {
+            customManagers.get(0).getFirst().registerCombatEvent(event);
+            return;
+        }
+        handle(event);
+    }
+
+    public boolean isInCombat(String playerDisplayName) {
+        return !playerDisplayName.isEmpty() && anyHandler(handler -> handler.isPlayerConsideredInCombat(playerDisplayName));
+    }
+
+    public double getCombatFade(String playerDisplayName, double originalTransparency) {
+        if (!customManagers.isEmpty()) {
+            return customManagers.get(0).getFirst().getCombatFade(playerDisplayName, originalTransparency);
+        }
+        return findHandler(handler -> handler.isPlayerConsideredInCombat(playerDisplayName))
+                .map(handler -> handler.getFadeFor(playerDisplayName, originalTransparency))
+                .orElse(originalTransparency);
     }
 }

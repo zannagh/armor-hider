@@ -7,10 +7,14 @@
 package de.zannagh.armorhider.client.mixin;
 
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
+import de.zannagh.armorhider.client.api.AhRenderManagementApi;
+import de.zannagh.armorhider.api.ArmorHiderApi;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.scopes.ActiveModification;
-import de.zannagh.armorhider.client.scopes.IdentityCarrier;
-import de.zannagh.armorhider.combat.CombatManager;
+import de.zannagh.armorhider.client.common.PlayerModificationInfo;
+import de.zannagh.armorhider.client.common.SlotModification;
+import de.zannagh.armorhider.client.common.RenderScope;
+import de.zannagh.armorhider.client.common.IdentityCarrier;
+import de.zannagh.armorhider.common.ItemInfo;
 import de.zannagh.armorhider.log.DebugLogger;
 import de.zannagh.armorhider.log.DebugTracer;
 import de.zannagh.armorhider.util.PlayerNameUtil;
@@ -34,22 +38,14 @@ public abstract class PlayerMixin
     //extends LivingEntity implements IdentityCarrier {
 
     @Unique
-    private boolean armorHider$needsArmRerender;
-
-    @Unique
     private boolean armorHider$modsDirty = true;
-
     @Unique
-    private ActiveModification armorHider$headMod;
+    private PlayerModificationInfo armorHider$playerModInfo;
 
-    @Unique
-    private ActiveModification armorHider$chestMod;
-
-    @Unique
-    private ActiveModification armorHider$legsMod;
-
-    @Unique
-    private ActiveModification armorHider$bootsMod;
+    public PlayerModificationInfo armorHider$getPlayerModifications() {
+        armorHider$rebuildModsIfDirty();
+        return armorHider$playerModInfo;
+    }
 
     @Unique
     private Consumer<@Nullable String> armorHider$configListener = (changedPlayerName) -> {
@@ -92,65 +88,21 @@ public abstract class PlayerMixin
         }
         DebugLogger.log("Rebuilding armor mods for " + armorHider$playerName());
         armorHider$modsDirty = false;
-        armorHider$headMod = getModification(EquipmentSlot.HEAD, getItemBySlot(EquipmentSlot.HEAD));
-        armorHider$chestMod = getModification(EquipmentSlot.CHEST, getItemBySlot(EquipmentSlot.CHEST));
-        armorHider$legsMod = getModification(EquipmentSlot.LEGS, getItemBySlot(EquipmentSlot.LEGS));
-        armorHider$bootsMod = getModification(EquipmentSlot.FEET, getItemBySlot(EquipmentSlot.FEET));
+        var name = armorHider$playerName();
+        armorHider$playerModInfo = new PlayerModificationInfo(
+                SlotModification.of(name, EquipmentSlot.HEAD, getItemBySlot(EquipmentSlot.HEAD)),
+                SlotModification.of(name, EquipmentSlot.CHEST, getItemBySlot(EquipmentSlot.CHEST)),
+                SlotModification.of(name, EquipmentSlot.LEGS, getItemBySlot(EquipmentSlot.LEGS)),
+                SlotModification.of(name, EquipmentSlot.FEET, getItemBySlot(EquipmentSlot.FEET))
+        );
     }
 
     @Unique
     private boolean armorHider$isCombatActive() {
         String name = armorHider$playerName();
-        return name != null && CombatManager.isInCombat(name);
+        return name != null && ArmorHiderApi.getInstance().getCombatManagement().isInCombat(name);
     }
 
-    @Nullable
-    @Override
-    public ActiveModification armorHider$getHeadMod() {
-        if (armorHider$isCombatActive()) armorHider$modsDirty = true;
-        armorHider$rebuildModsIfDirty();
-        return armorHider$headMod;
-    }
-
-    @Nullable
-    @Override
-    public ActiveModification armorHider$getChestMod() {
-        if (armorHider$isCombatActive()) armorHider$modsDirty = true;
-        armorHider$rebuildModsIfDirty();
-        if (this.isPlayerFlying() && de.zannagh.armorhider.util.ItemsUtil.itemStackContainsElytra(getItemBySlot(EquipmentSlot.CHEST))) {
-            return null;
-        }
-        return armorHider$chestMod;
-    }
-
-    @Override
-    @Nullable
-    public ActiveModification armorHider$getLegsMod() {
-        if (armorHider$isCombatActive()) armorHider$modsDirty = true;
-        armorHider$rebuildModsIfDirty();
-        return armorHider$legsMod;
-    }
-
-    @Override
-    @Nullable
-    public ActiveModification armorHider$getFeetMod() {
-        if (armorHider$isCombatActive()) armorHider$modsDirty = true;
-        armorHider$rebuildModsIfDirty();
-        return armorHider$bootsMod;
-    }
-
-    @Override
-    public void setNeedsArmRerender() {
-        armorHider$needsArmRerender = true;
-    }
-
-    @Override
-    public boolean pollNeedsArmRerender() {
-        boolean needs = armorHider$needsArmRerender;
-        armorHider$needsArmRerender = false;
-        return needs;
-    }
-    
     @Override
     public @Nullable String armorHider$playerName() {
         return PlayerNameUtil.getPlayerName(this);
@@ -180,31 +132,27 @@ public abstract class PlayerMixin
         if (original.isEmpty()) {
             return original;
         }
-
-        var ctx = ArmorHiderClient.RENDER_CONTEXT;
-
-        if (ctx.hasActiveModification()) {
+        if (AhRenderManagementApi.hasScopeModification(RenderScope.of(slot, new ItemInfo(original)))) {
             return original;
         }
 
         // Only fake empty slots during level rendering (3D world) — never during
         // game logic (tick processing, inventory interactions) or HUD/GUI rendering.
-        if (!ctx.isInLevelRender()) {
+        if (!AhRenderManagementApi.isInLevelRender()) {
             return original;
         }
 
+        var playerName = armorHider$playerName();
         // During entity rendering (extractRenderState + layer rendering), return the
         // real item so that renderArmorPiece is called (for downstream render processing).
-        if (ctx.isInEntityRender()) {
+        if (AhRenderManagementApi.isInEntityRender() || playerName == null) {
             return original;
         }
 
-        if (ActiveModification.isSlotFullyHidden(armorHider$playerName(), slot, original)) {
-            DebugTracer.equipmentSlotHidingFired(armorHider$playerName(), slot, true, "isSlotFullyHidden");
+        if (AhRenderManagementApi.getActiveScope(RenderScope.of(slot, new ItemInfo(original))).renderModificationApi().isSlotFullyHiddenForPlayer(playerName, slot, original)) {
+            DebugTracer.equipmentSlotHidingFired(playerName, slot, true, "isSlotFullyHidden");
             return ItemStack.EMPTY;
         }
         return original;
     }
-    
-    
 }

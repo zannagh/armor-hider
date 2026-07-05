@@ -38,6 +38,8 @@ public class MixinPlugin implements IMixinConfigPlugin {
             "cape.ElytraRenderMixin",
             "head.CustomHeadLayerMixin",
             "head.SkullBlockRenderMixin",
+            // Fabric-only — programmatic mod-resource-pack registration when fabric-resource-loader-v0 is absent
+            "resources.PackRepositoryMixin",
             // All versions — Stonecutter guards per version range
             "bodyKneesAndToes.HumanoidArmorLayerMixin",
             "bodyKneesAndToes.HumanoidArmorLayerRenderMixin",
@@ -52,6 +54,7 @@ public class MixinPlugin implements IMixinConfigPlugin {
             "PlayerModelMixin",
             // Compat — @Pseudo, auto-skipped if target mod absent
             "compat.wildfiregender.GenderArmorLayerMixin",
+            "compat.wildfiregender.GenderLegacyLayerMixin",
             "compat.geckolib.GeckoLibArmorMixin",
             "compat.waveycapes.WaveyCapesMixin",
             "compat.emf.EmfModelPartMixin",

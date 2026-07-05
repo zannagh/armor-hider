@@ -4,10 +4,9 @@ package de.zannagh.armorhider.client.mixin.hand;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
-import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.rendering.RenderModifications;
+import de.zannagh.armorhider.client.api.AhRenderManagementApi;
+import de.zannagh.armorhider.client.common.RenderScope;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemDisplayContext;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -45,7 +44,7 @@ public class ItemRenderStateMixin {
                 //? if >= 1.21.11 && < 26.1-0.snapshot.7
                 //target = "Lnet/minecraft/client/renderer/SubmitNodeCollector;submitItem(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/world/item/ItemDisplayContext;III[ILjava/util/List;Lnet/minecraft/client/renderer/rendertype/RenderType;Lnet/minecraft/client/renderer/item/ItemStackRenderState$FoilType;)V"
                 //? if 1.21.9 || 1.21.10
-                //target = "Lnet/minecraft/client/renderer/SubmitNodeCollector;submitItem(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/world/item/ItemDisplayContext;III[ILjava/util/List;Lnet/minecraft/client/renderer/RenderType;Lnet/minecraft/client/renderer/item/ItemStackRenderState$FoilType;)V"
+                //target = "Lnet/minecraft/client/renderer/SubmitNodeCollector;submitItem(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/world/item/ItemDisplayContext;III[ILjava/util/List;Lnet/minecraft/client/renderer/rendertype/RenderType;Lnet/minecraft/client/renderer/item/ItemStackRenderState$FoilType;)V"
             )
     )
     //? if >= 26.1-0.snapshot.7
@@ -54,27 +53,27 @@ public class ItemRenderStateMixin {
     //private void wrapSubmitItem(SubmitNodeCollector instance, PoseStack poseStack, ItemDisplayContext itemDisplayContext, int light, int overlay, int color, int[] tintLayers, List<BakedQuad> quads, RenderType renderType, ItemStackRenderState.FoilType foilType, Operation<Void> original) {
     //? if 1.21.9 || 1.21.10
     //private void wrapSubmitItem(SubmitNodeCollector instance, PoseStack poseStack, ItemDisplayContext itemDisplayContext, int light, int overlay, int color, int[] tintLayers, List<BakedQuad> quads, RenderType renderType, ItemStackRenderState.FoilType foilType, Operation<Void> original) {
-        var ctx = ArmorHiderClient.RENDER_CONTEXT;
         
-        boolean shouldInterceptOffHandRender = ctx.hasActiveModification(EquipmentSlot.OFFHAND);
-        boolean shouldInterceptCustomHeadRender = ctx.hasActiveModification(EquipmentSlot.HEAD);
-        if (shouldInterceptOffHandRender || shouldInterceptCustomHeadRender) {
+        
+        var offhandCtx = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
+        var headCtx = AhRenderManagementApi.getActiveScope(RenderScope.HEAD);
+        var activeCtx = !offhandCtx.isEmpty() ? offhandCtx : headCtx;
+        if (!activeCtx.isEmpty()) {
             // Note to future me: This can actually hide main hands.
-            float alpha = RenderModifications.getTransparencyAlpha(ctx);
+            var modApi = activeCtx.renderModificationApi();
+            float alpha = modApi.getTransparencyAlpha();
             //? if < 26.1-0.snapshot.7
-            //RenderType translucentType = RenderModifications.getTranslucentItemRenderType(ctx, renderType);
+            //RenderType translucentType = modApi.getTranslucentItemRenderType(renderType) instanceof RenderType rt ? rt : renderType;
 
             // Use one extra slot for non-tinted quads: white with our alpha
             int syntheticTintIndex = tintLayers.length;
-            int alphaInt = Math.round(alpha * 255);
+            var colors = modApi.colors();
 
             int[] modifiedTints = new int[syntheticTintIndex + 1];
             for (int t = 0; t < tintLayers.length; t++) {
-                int origAlpha = (tintLayers[t] >> 24) & 0xFF;
-                int newAlpha = Math.round(alpha * origAlpha);
-                modifiedTints[t] = (tintLayers[t] & 0x00FFFFFF) | (newAlpha << 24);
+                modifiedTints[t] = colors.scaleAlpha(tintLayers[t], alpha);
             }
-            modifiedTints[syntheticTintIndex] = (alphaInt << 24) | 0x00FFFFFF;
+            modifiedTints[syntheticTintIndex] = colors.whiteWithTransparency(alpha);
 
             // Reassign non-tinted quads to the synthetic tint index so they pick up alpha
             List<BakedQuad> modifiedQuads = new ArrayList<>(quads.size());

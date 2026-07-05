@@ -1,6 +1,7 @@
 package de.zannagh.armorhider.client;
 
 import de.zannagh.armorhider.ArmorHider;
+import de.zannagh.armorhider.client.utils.McClientUtils;
 import de.zannagh.armorhider.configuration.ConfigurationProvider;
 import de.zannagh.armorhider.client.net.*;
 import de.zannagh.armorhider.net.packets.PlayerConfig;
@@ -70,7 +71,7 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
     public void save(PlayerConfig config) {
         playerConfigProvider.save(config);
         ClientPacketListener clientNetwork = Minecraft.getInstance().getConnection();
-        if (serverConfiguration != null && ArmorHiderClient.isClientConnectedToServer() && clientNetwork != null) {
+        if (serverConfiguration != null && McClientUtils.isClientConnectedToServer() && clientNetwork != null) {
             ArmorHider.LOGGER.info("Sending to server...");
             ClientPacketSender.sendToServer(config);
             ArmorHider.LOGGER.info("Send client config package to server.");

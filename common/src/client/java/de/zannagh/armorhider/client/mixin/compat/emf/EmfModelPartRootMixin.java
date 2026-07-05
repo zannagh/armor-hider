@@ -1,6 +1,6 @@
 package de.zannagh.armorhider.client.mixin.compat.emf;
 
-import de.zannagh.armorhider.client.scopes.VanillaRootAccessor;
+import de.zannagh.armorhider.client.common.VanillaRootAccessor;
 import net.minecraft.client.model.geom.ModelPart;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;

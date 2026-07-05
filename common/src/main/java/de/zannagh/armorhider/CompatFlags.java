@@ -24,7 +24,9 @@ public final class CompatFlags {
     public static boolean FA_LOADED = false;
     public static boolean GECKOLIB_LOADED = false;
     public static boolean WFGM_LOADED = false;
+    public static boolean LUCKPERMS_LOADED = false;
     public static boolean FIGURA_LOADED = false;
+    public static boolean FABRIC_API_RESOURCE_LOADER_LOADED = false;
 
     private CompatFlags() {}
 }

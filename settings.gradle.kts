@@ -19,3 +19,7 @@ stonecutter {
 
     create(rootProject, file("versions.json5"))
 }
+
+// Smoke matrix tests — IDE-visible JUnit suite that forks runClient per
+// (loader, version, compat-set) combo. Not part of stonecutter; lives as a sibling subproject.
+include(":smoke")

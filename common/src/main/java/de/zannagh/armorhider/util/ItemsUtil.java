@@ -26,7 +26,18 @@ public final class ItemsUtil {
                     Items.CREEPER_HEAD,
                     Items.PIGLIN_HEAD));
 
-    public static final ItemStack ELYTRA_ITEM_STACK = new ItemStack(Items.ELYTRA);
+    // Lazily created so this class can be loaded before item registries / data components are
+    // bound. Some UI / picture-in-picture mods force early class loading, and eagerly building an
+    // ItemStack at <clinit> then crashes with "Components not bound yet" (issue #260). The holder
+    // defers construction to first use (render time, registries ready) and is thread-safe via the
+    // JVM class-init lock.
+    private static final class ElytraStackHolder {
+        private static final ItemStack STACK = new ItemStack(Items.ELYTRA);
+    }
+
+    public static ItemStack elytraItemStack() {
+        return ElytraStackHolder.STACK;
+    }
 
     public static ItemStack getItemStackFromSkullBlockType(@Nullable SkullBlock.Type type) {
         if (type == null) {
@@ -61,8 +72,8 @@ public final class ItemsUtil {
             return false;
         }
         //? if < 1.21.9 {
-        /*return itemStack.is(ELYTRA_ITEM_STACK.getItem()) || itemStack.getItem().toString().toLowerCase().contains("elytra");
+        /*return itemStack.is(Items.ELYTRA) || itemStack.getItem().toString().toLowerCase().contains("elytra");
         *///?} else
-        return itemStack.getComponents().has(DataComponents.GLIDER) || itemStack.is(ELYTRA_ITEM_STACK.getItem()) || itemStack.getItem().toString().toLowerCase().contains("elytra");
+        return itemStack.getComponents().has(DataComponents.GLIDER) || itemStack.is(Items.ELYTRA) || itemStack.getItem().toString().toLowerCase().contains("elytra");
     }
 }

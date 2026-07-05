@@ -1,10 +1,9 @@
 //? if < 1.21.9 {
 /*package de.zannagh.armorhider.client.mixin.hand;
 
-import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.rendering.RenderModifications;
+import de.zannagh.armorhider.client.api.AhRenderManagementApi;
+import de.zannagh.armorhider.client.common.RenderScope;
 import net.minecraft.client.model.geom.ModelPart;
-import net.minecraft.world.entity.EquipmentSlot;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
@@ -21,9 +20,12 @@ public class ModelPartMixin {
             argsOnly = true
     )
     private int modifyRenderColor(int color) {
-        var ctx = ArmorHiderClient.RENDER_CONTEXT;
-        if (ctx.hasActiveModification(EquipmentSlot.OFFHAND) || ctx.hasActiveModification(EquipmentSlot.HEAD)) {
-            return RenderModifications.applyArmorTransparency(ctx, color);
+        
+        var offCtx = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
+        var hdCtx = AhRenderManagementApi.getActiveScope(RenderScope.HEAD);
+        var activeCtx = !offCtx.isEmpty() ? offCtx : hdCtx;
+        if (!activeCtx.isEmpty()) {
+            return activeCtx.renderModificationApi().applyArmorTransparency(color);
         }
         return color;
     }
@@ -37,9 +39,12 @@ public class ModelPartMixin {
             argsOnly = true
     )
     private float modifyRenderAlpha(float alpha) {
-        var ctx = ArmorHiderClient.RENDER_CONTEXT;
-        if (ctx.hasActiveModification(EquipmentSlot.OFFHAND) || ctx.hasActiveModification(EquipmentSlot.HEAD)) {
-            return alpha * RenderModifications.getTransparencyAlpha(ctx);
+        
+        var offCtx2 = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
+        var hdCtx2 = AhRenderManagementApi.getActiveScope(RenderScope.HEAD);
+        var activeCtx2 = !offCtx2.isEmpty() ? offCtx2 : hdCtx2;
+        if (!activeCtx2.isEmpty()) {
+            return alpha * activeCtx2.renderModificationApi().getTransparencyAlpha();
         }
         return alpha;
     }

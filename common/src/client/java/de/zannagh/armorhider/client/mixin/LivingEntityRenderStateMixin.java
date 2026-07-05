@@ -1,15 +1,17 @@
 //? if >= 1.21.4 {
 package de.zannagh.armorhider.client.mixin;
 
-import de.zannagh.armorhider.client.scopes.ActiveModification;
-import de.zannagh.armorhider.client.scopes.IdentityCarrier;
-import de.zannagh.armorhider.client.scopes.IdentityStateCarrier;
+import de.zannagh.armorhider.client.common.PlayerModificationInfo;
+import de.zannagh.armorhider.client.common.IdentityCarrier;
+import de.zannagh.armorhider.client.common.IdentityStateCarrier;
 import de.zannagh.armorhider.util.ItemsUtil;
 import net.minecraft.client.renderer.entity.state.AvatarRenderState;
 import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
@@ -33,29 +35,6 @@ public class LivingEntityRenderStateMixin implements IdentityStateCarrier {
         return armorHider$carrier != null ? armorHider$carrier.armorHider$playerName() : null;
     }
 
-    @Nullable
-    @Override
-    public ActiveModification armorHider$getHeadMod() {
-        return armorHider$carrier != null ? armorHider$carrier.armorHider$getHeadMod() : null;
-    }
-
-    @Nullable
-    @Override
-    public ActiveModification armorHider$getChestMod() {
-        return armorHider$carrier != null ? armorHider$carrier.armorHider$getChestMod() : null;
-    }
-
-    @Override
-    @Nullable
-    public ActiveModification armorHider$getLegsMod() {
-        return armorHider$carrier != null ? armorHider$carrier.armorHider$getLegsMod() : null;
-    }
-
-    @Override
-    @Nullable
-    public ActiveModification armorHider$getFeetMod() {
-        return armorHider$carrier != null ? armorHider$carrier.armorHider$getFeetMod() : null;
-    }
 
     @Override
     public void attachCarrier(@Nullable IdentityCarrier carrier) {
@@ -88,34 +67,20 @@ public class LivingEntityRenderStateMixin implements IdentityStateCarrier {
         return armorHider$carrier != null && armorHider$carrier.armorHider$isPlayerInvisible();
     }
 
-    @Unique
-    private boolean armorHider$needsArmRerender;
-
     @Override
-    public void setNeedsArmRerender() {
-        armorHider$needsArmRerender = true;
+    public boolean isPlayerBlocking() {
+        return armorHider$carrier != null && armorHider$carrier.isPlayerBlocking();
     }
 
     @Override
-    public boolean pollNeedsArmRerender() {
-        boolean needs = armorHider$needsArmRerender;
-        armorHider$needsArmRerender = false;
-        return needs;
-    }
-
-    @Unique
-    private @Nullable Integer armorHider$savedGeckoLibColor;
-
-    @Override
-    public void saveGeckoLibColor(int color) {
-        armorHider$savedGeckoLibColor = color;
+    public PlayerModificationInfo armorHider$getPlayerModifications() {
+        return armorHider$carrier != null ? armorHider$carrier.armorHider$getPlayerModifications() : null;
     }
 
     @Override
-    public @Nullable Integer pollSavedGeckoLibColor() {
-        Integer color = armorHider$savedGeckoLibColor;
-        armorHider$savedGeckoLibColor = null;
-        return color;
+    public @NonNull ItemStack getItemBySlot(EquipmentSlot slot) {
+        return armorHider$carrier == null ? ItemStack.EMPTY : armorHider$carrier.getItemBySlot(slot);
     }
+
 }
 //?}

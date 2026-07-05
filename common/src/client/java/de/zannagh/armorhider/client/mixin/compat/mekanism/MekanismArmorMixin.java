@@ -2,9 +2,10 @@
 /*package de.zannagh.armorhider.client.mixin.compat.mekanism;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.client.api.AhRenderManagementApi;
+import de.zannagh.armorhider.client.common.RenderScope;
 import de.zannagh.armorhider.client.compat.mekanism.MekanismRenderCompat;
-import de.zannagh.armorhider.client.scopes.IdentityCarrier;
+import de.zannagh.armorhider.client.common.IdentityCarrier;
 import mekanism.client.render.layer.MekanismArmorLayer;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -41,15 +42,16 @@ public abstract class MekanismArmorMixin <T extends LivingEntity, M extends Huma
         if (!(entity instanceof IdentityCarrier carrier)) {
             return;
         }
-        var mod = carrier.createModification(slot, entity.getItemBySlot(slot));
-        
+        var ctx = AhRenderManagementApi.enterScope(RenderScope.ARMOR_PIECE, carrier, slot, entity.getItemBySlot(slot));
+        var mod = ctx.modification();
+
         if (mod != null && mod.transparency() < 1.0) {
             HumanoidModel<T> parentModel = this.getParentModel();
             MekanismRenderCompat.renderBodyUnderArmor(parentModel, poseStack, bufferSource, entity, slot, light, partialTicks);
         }
-        
-        if (mod != null && mod.shouldHide()) {
-            ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
+
+        if (mod.shouldHide()) {
+            AhRenderManagementApi.exitScope(RenderScope.ARMOR_PIECE);
             ci.cancel();
         }
     }
@@ -61,8 +63,8 @@ public abstract class MekanismArmorMixin <T extends LivingEntity, M extends Huma
             index = 2,
             require = 0)
     private MultiBufferSource wrapBufferForTransparency(MultiBufferSource original) {
-        var mod = ArmorHiderClient.RENDER_CONTEXT.activeModification();
-        if (mod != null && mod.transparency() < 1.0) {
+        var armorCtx = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE);
+        if (!armorCtx.isEmpty() && armorCtx.modification().transparency() < 1.0) {
             return MekanismRenderCompat.wrapForTransparency(original);
         }
         return original;
@@ -77,7 +79,7 @@ public abstract class MekanismArmorMixin <T extends LivingEntity, M extends Huma
             int light,
             float partialTicks,
             CallbackInfo ci) {
-        ArmorHiderClient.RENDER_CONTEXT.clearActiveModification();
+        AhRenderManagementApi.exitScope(RenderScope.ARMOR_PIECE);
     }
 }
 *///?}

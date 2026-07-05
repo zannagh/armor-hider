@@ -9,7 +9,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.options.OptionsSubScreen;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.gui.screens.SkinCustomizationScreen;
+import net.minecraft.client.gui.screens.options.SkinCustomizationScreen;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import org.spongepowered.asm.mixin.Mixin;

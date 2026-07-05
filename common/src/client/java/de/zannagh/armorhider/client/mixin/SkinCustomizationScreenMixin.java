@@ -13,6 +13,7 @@ import net.minecraft.client.gui.layouts.HeaderAndFooterLayout;
 import net.minecraft.client.Options;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -25,24 +26,24 @@ import net.minecraft.client.gui.screens.options.OptionsSubScreen;
 import net.minecraft.client.gui.screens.options.SkinCustomizationScreen;
 //?} else {
 /*import net.minecraft.client.gui.screens.options.OptionsSubScreen;
-import net.minecraft.client.gui.screens.SkinCustomizationScreen;
+import net.minecraft.client.gui.screens.options.SkinCustomizationScreen;
 *///?}
 
 @Mixin(OptionsSubScreen.class)
 public abstract class SkinCustomizationScreenMixin extends Screen {
 
+    protected SkinCustomizationScreenMixin(Component title) {
+        super(title);
+    }
+
     //? if >= 1.21 {
     @Shadow
     protected OptionsList list;
 
+    @Final
     @Shadow
     protected Options options;
 
-    @Shadow
-    public HeaderAndFooterLayout layout;
-    //?}
-
-    //? if >= 1.21 {
     @Unique
     private boolean armorHider$settingsChanged;
 
@@ -51,16 +52,24 @@ public abstract class SkinCustomizationScreenMixin extends Screen {
 
     @Unique
     private PlayerPreviewWidget armorHider$preview;
-    //?}
 
-    protected SkinCustomizationScreenMixin(Component title) {
-        super(title);
+    @Unique
+    private boolean isSkinCustomizationScreen() {
+        try {
+            var screen = (SkinCustomizationScreen) (Object) this;
+            return screen != null;
+        }
+        catch (ClassCastException ignored) {
+            return false;
+        }
     }
 
-    //? if >= 1.21 {
     @Inject(method = "init", at = @At("TAIL"))
     private void armorHider$attachOptionsPanel(CallbackInfo ci) {
-        if (!((Object) this instanceof SkinCustomizationScreen)) return;
+        if (!isSkinCustomizationScreen()) {
+            return;
+        }
+
         if (!ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().showSettingsInSkinCustomization.getValue()) {
             this.armorHider$panel = null;
             this.armorHider$preview = null;
@@ -98,13 +107,17 @@ public abstract class SkinCustomizationScreenMixin extends Screen {
 
     @Inject(method = "repositionElements", at = @At("TAIL"))
     private void armorHider$repositionPanel(CallbackInfo ci) {
-        if (!((Object) this instanceof SkinCustomizationScreen)) return;
+        if (!isSkinCustomizationScreen()) {
+            return;
+        }
         armorHider$layoutPanel();
     }
 
     @Unique
     private void armorHider$layoutPanel() {
-        if (this.armorHider$panel == null) return;
+        if (this.armorHider$panel == null) {
+            return;
+        }
 
         int listBottom = this.list.getY() + 4 * UiConstants.DEFAULT_BUTTON_HEIGHT + 3 * UiConstants.DEFAULT_BUTTON_SPACING;
         int gap = 4;
@@ -145,7 +158,9 @@ public abstract class SkinCustomizationScreenMixin extends Screen {
 
     @Inject(method = "onClose", at = @At("HEAD"))
     private void armorHider$onClose(CallbackInfo ci) {
-        if (!((Object) this instanceof SkinCustomizationScreen)) return;
+        if (!isSkinCustomizationScreen()) {
+            return;
+        }
         if (this.armorHider$settingsChanged) {
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.saveCurrent();
             this.armorHider$settingsChanged = false;

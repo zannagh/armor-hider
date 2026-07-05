@@ -2,37 +2,36 @@ package de.zannagh.armorhider.client;
 
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.CompatFlags;
-import de.zannagh.armorhider.client.gui.screens.ArmorHiderOptionsScreen;
+import de.zannagh.armorhider.client.api.AhRenderInterceptionRegistryApi;
+import de.zannagh.armorhider.client.api.AhRenderModificationApi;
+import de.zannagh.armorhider.client.api.AhRenderTypeFactory;
+import de.zannagh.armorhider.client.api.impl.AhRendererRegistryImpl;
+import de.zannagh.armorhider.client.common.RenderScope;
+import de.zannagh.armorhider.client.compat.CompatManager;
 import de.zannagh.armorhider.client.net.ClientCommunicationManager;
-import de.zannagh.armorhider.client.scopes.RenderContext;
+import de.zannagh.armorhider.client.render.RenderModifications;
+import de.zannagh.armorhider.client.render.rendertype.RenderTypeFactory;
 import de.zannagh.armorhider.configuration.PresetManager;
 import de.zannagh.armorhider.log.DebugLogger;
 import de.zannagh.armorhider.util.PlayerNameUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.multiplayer.PlayerInfo;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.NonNull;
 import oshi.util.tuples.Pair;
-
-//? if >= 1.21 {
-import net.minecraft.client.gui.screens.options.SkinCustomizationScreen;
-//?} else {
-/*import net.minecraft.client.gui.screens.SkinCustomizationScreen;
-*///?}
 
 public class ArmorHiderClient {
 
     public static int permissionLevel = 0; // Default to lowest.
     public static ClientConfigManager CLIENT_CONFIG_MANAGER = new ClientConfigManager();
     public static PresetManager PRESET_MANAGER = new PresetManager();
-    public static RenderContext RENDER_CONTEXT = new RenderContext();
 
     public static final boolean FA_LOADED = CompatFlags.FA_LOADED || classExists("net.kenddie.fantasyarmor.FantasyArmor");
     public static final boolean GECKOLIB_LOADED = CompatFlags.GECKOLIB_LOADED || classExists("com.geckolib.renderer.GeoArmorRenderer");
     public static final boolean ET_LOADED = CompatFlags.ET_LOADED || classExists("dev.kikugie.elytratrims.ep.ETClientEntrypoint");
+    public static final boolean EMF_LOADED = CompatFlags.EMF_LOADED || classExists("traben.entity_model_features.EMFManager");
     public static final boolean IRIS_LOADED = classExists("net.irisshaders.iris.api.v0.IrisApi");
     public static final boolean FIGURA_LOADED = CompatFlags.FIGURA_LOADED || classExists("org.figuramc.figura.FiguraMod");
 
@@ -53,50 +52,26 @@ public class ArmorHiderClient {
     public static void init() {
         ArmorHider.LOGGER.info("Armor Hider client initializing...");
         ClientCommunicationManager.initClient();
-        if (IRIS_LOADED) {
-            initIrisCompat();
+
+        initRenderTypes();
+
+        ArmorHider.LOGGER.info("Registering render interceptors...");
+        for (var interceptor : AhRendererRegistryImpl.getDefaultInterceptors()) {
+            ArmorHider.LOGGER.info("Registering interceptor: {}", interceptor.getClass().getName());
+            AhRenderInterceptionRegistryApi.register(interceptor, AhRendererRegistryImpl.DEFAULT_PRIORITY);
         }
-        if (CompatFlags.EMF_LOADED) {
-            initEmfCompat();
-        }
+        ArmorHider.LOGGER.info("Registered render interceptors.");
+
+        ArmorHider.LOGGER.info("Setting up compatibilities...");
+        CompatManager.init();
+        ArmorHider.LOGGER.info("Compatibilities set up.");
     }
 
-    private static void initEmfCompat() {
-        try {
-            de.zannagh.armorhider.client.compat.emf.EmfCompat.register();
-        } catch (Exception e) {
-            ArmorHider.LOGGER.warn("Failed to register vanilla model condition with EMF", e);
-        }
-    }
-
-    private static void initIrisCompat() {
-        try {
-            de.zannagh.armorhider.client.compat.iris.IrisCompat.registerPipelines();
-        } catch (Exception e) {
-            ArmorHider.LOGGER.warn("Failed to register pipelines with Iris", e);
-        }
-    }
-    
-    public static @NonNull Boolean isClientConnectedToServer() {
-        return Minecraft.getInstance().isLocalServer()
-                || Minecraft.getInstance().getCurrentServer() != null
-                || (Minecraft.getInstance().getConnection() != null && Minecraft.getInstance().getConnection().getServerData() != null);
-    }
-    
-    public static Screen getPreferredSettingsScreen(Screen parent, net.minecraft.client.Options options) {
-        //? if >= 1.21.9 {
-        return CLIENT_CONFIG_MANAGER.getValue().showSettingsInSkinCustomization.getValue()
-                ? new SkinCustomizationScreen(parent, options)
-                : new ArmorHiderOptionsScreen(parent, options);
-        //?}
-        //? if < 1.21.9
-        //return new ArmorHiderOptionsScreen(parent, options);
-    }
-
-    public static void openPreferredSettingsScreen(Screen parent, net.minecraft.client.Options options) {
-        var minecraft = Minecraft.getInstance();
-        var target = getPreferredSettingsScreen(parent, options);
-        minecraft.setScreenAndShow(target);
+    /**
+     * Mixin to this method to adjust render types or use {@link AhRenderModificationApi#registerRenderTypeFactory(AhRenderTypeFactory, int)} to change render type behavior.
+     */
+    public static void initRenderTypes() {
+        AhRenderModificationApi.registerRenderTypeFactory(new RenderTypeFactory(), AhRenderModificationApi.getDefaultPriority());
     }
 
     public static String getCurrentPlayerName() {

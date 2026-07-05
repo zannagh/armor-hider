@@ -3,8 +3,8 @@
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.rendering.RenderModifications;
+import de.zannagh.armorhider.client.api.AhRenderManagementApi;
+import de.zannagh.armorhider.client.common.RenderScope;
 import net.minecraft.client.renderer.SubmitNodeCollection;
 //? if < 26.2-1.pre
 //import net.minecraft.client.renderer.SubmitNodeStorage;
@@ -56,8 +56,8 @@ public class NeoForgeArmorColorMixin {
     //? if 1.21.9 || 1.21.10
     //private void wrapArmorModelPartAdd(ModelPartFeatureRenderer.Storage storage, RenderType renderType, SubmitNodeStorage.ModelPartSubmit submit, Operation<Void> original) {
         if (shouldApplyArmorTransparency()) {
-            var scopes = ArmorHiderClient.RENDER_CONTEXT;
-            float alpha = RenderModifications.getTransparencyAlpha(scopes);
+
+            float alpha = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE, RenderScope.ELYTRA).renderModificationApi().getTransparencyAlpha();
 
             int origColor = submit.tintedColor();
             int origAlpha = (origColor >> 24) & 0xFF;
@@ -100,8 +100,8 @@ public class NeoForgeArmorColorMixin {
     //? if 1.21.9 || 1.21.10
     //private <S> void wrapArmorModelAdd(ModelFeatureRenderer.Storage storage, RenderType renderType, SubmitNodeStorage.ModelSubmit<S> submit, Operation<Void> original) {
         if (shouldApplyArmorTransparency()) {
-            var scopes = ArmorHiderClient.RENDER_CONTEXT;
-            float alpha = RenderModifications.getTransparencyAlpha(scopes);
+
+            float alpha = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE, RenderScope.ELYTRA).renderModificationApi().getTransparencyAlpha();
 
             int origColor = submit.tintedColor();
             int origAlpha = (origColor >> 24) & 0xFF;
@@ -144,7 +144,7 @@ public class NeoForgeArmorColorMixin {
             return;
         }
         if (shouldApplyArmorTransparency()) {
-            float alpha = RenderModifications.getTransparencyAlpha(ArmorHiderClient.RENDER_CONTEXT);
+            float alpha = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE, RenderScope.ELYTRA).renderModificationApi().getTransparencyAlpha();
 
             int origColor = modelSubmit.tintedColor();
             int origAlpha = (origColor >> 24) & 0xFF;
@@ -170,9 +170,15 @@ public class NeoForgeArmorColorMixin {
     //?}
 
     private static boolean shouldApplyArmorTransparency() {
-        var ctx = ArmorHiderClient.RENDER_CONTEXT;
-        var mod = ctx.activeModification();
-        return mod != null && mod.slot() != EquipmentSlot.OFFHAND;
+        if (!AhRenderManagementApi.hasScopeModification(RenderScope.ARMOR_PIECE)
+                && !AhRenderManagementApi.hasScopeModification(RenderScope.ELYTRA)) {
+            return false;
+        }
+        // An inert modification (exactly 100% opacity) must not swap submits to a translucent
+        // render type — at full alpha the translucent trim loses the depth contest against the
+        // opaque armor and gets overwritten.
+        return AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE, RenderScope.ELYTRA)
+                .renderModificationApi().getTransparencyAlpha() < 1.0f;
     }
 }
 *///?}

@@ -40,6 +40,17 @@ with(sc) {
     constants["fabric"] = current.project.contains("fabric")
     constants["neoforge"] = current.project.contains("neoforge")
     constants["mekanism"] = hasProperty("mekanism.version")
+    constants["waveycapes"] = hasProperty("waveycapes.version")
+    // `gender` activates the modern GenderArmorLayer-based mixin.
+    // `gender_legacy` activates the GenderLayer.render() coarse mixin for older
+    // mod builds (e.g. female-gender NeoForge 1.21/1.21.1, hash kKffHCGl) whose
+    // jar ships only the legacy GenderLayer API.
+    constants["gender"] = hasProperty("gender.version") && findProperty("gender_legacy_api") != "true"
+    constants["gender_legacy"] = hasProperty("gender.version") && findProperty("gender_legacy_api") == "true"
+    // `fcgt` activates the Phase 2 smoke test (fabric-client-gametest-api-v1) — true on
+    // Fabric variants that pin `fabricapi.semver` so the FCGT module classpath wiring,
+    // entrypoint, run task and stonecutter-gated test class line up consistently.
+    constants["fcgt"] = hasProperty("fabricapi.semver") && current.project.contains("fabric")
 }
 
 // ── Common branch ──
@@ -90,11 +101,23 @@ if (branch == "common") {
         if (hasProperty("mekanism.version")) {
             add(modClientDep, "maven.modrinth:mekanism:${findProperty("mekanism.version")}")
         }
+        if (hasProperty("waveycapes.version")) {
+            add(modClientDep, "maven.modrinth:wavey-capes:${findProperty("waveycapes.version")}")
+        }
         if (hasProperty("figura.version")) {
             add(modClientDep, "maven.modrinth:figura:${findProperty("figura.version")}")
         }
         if (hasProperty("modmenu.version")) {
             add(modClientDep, "maven.modrinth:modmenu:${findProperty("modmenu.version")}")
+        }
+        if (hasProperty("gender.version")) {
+            add(modClientDep, "maven.modrinth:female-gender:${findProperty("gender.version")}")
+        }
+        // Phase 2 smoke: FCGT (fabric-client-gametest-api-v1) compile-time dep on common.
+        if (sc.current.project.contains("fabric") && hasProperty("fabricapi.semver")) {
+            val fabricApiSemver = findProperty("fabricapi.semver")!!.toString()
+            val fabricApi = project.extensions.getByType(net.fabricmc.loom.api.fabricapi.FabricApiExtension::class.java)
+            add(modClientDep, fabricApi.module("fabric-client-gametest-api-v1", fabricApiSemver))
         }
         add("compileOnly", "net.luckperms:api:5.4")
         add("compileOnly", "org.jspecify:jspecify:1.0.0")
@@ -148,6 +171,11 @@ if (branch == "fabric") {
             if (isDeobf) {
                 vmArg("-Dfabric.gameVersion=${fabricVersion}")
             }
+            if (project.hasProperty("smoke")) {
+                vmArg("-Darmorhider.smoke.exit=true")
+                val delayMs = project.findProperty("smoke.delay.ms")?.toString() ?: "15000"
+                vmArg("-Darmorhider.smoke.delay.ms=${delayMs}")
+            }
             if (devProfile != null) {
                 programArg("--username")
                 programArg(devProfile.username)
@@ -178,13 +206,39 @@ if (branch == "fabric") {
             val modMenuDep = if (isDeobf) "compileOnly" else "modCompileOnly"
             add(modMenuDep, "maven.modrinth:modmenu:${findProperty("modmenu.version")}")
         }
+        // FCGT module — multiloader-loader adds common's src as srcDirs, so the test class
+        // compiles here too, AND it must be on the dev runtime classpath because the
+        // upstream Modrinth fabric-api jar (the one in run/mods/) does not bundle the
+        // experimental FCGT module. Without this loom-side runtime entry the FCGT mixin
+        // plugin's lifecycle hooks never load, MC boots vanilla and idles at the title.
+        // Phase 2 smoke: FCGT (fabric-client-gametest-api-v1) compile classpath on the fabric
+        // loader. The runtime side is handled via a copy-to-run/mods task below — the
+        // upstream Modrinth fabric-api jar is the experimental-stripped umbrella and doesn't
+        // include the FCGT module, so even with fabric-api in run/mods FCGT's mixin plugin
+        // doesn't load.
+        if (hasProperty("fabricapi.semver")) {
+            val fabricApiSemver = findProperty("fabricapi.semver")!!.toString()
+            val fabricApi = project.extensions.getByType(net.fabricmc.loom.api.fabricapi.FabricApiExtension::class.java)
+            val fcgtModule = fabricApi.module("fabric-client-gametest-api-v1", fabricApiSemver)
+            val compileDep = if (isDeobf) "clientCompileOnly" else "modClientCompileOnly"
+            add(compileDep, fcgtModule)
+        }
     }
+
+    // FCGT (fabric-client-gametest-api-v1) entrypoint registered only on Fabric variants
+    // that pin `fabricapi.semver` (currently fabric-26.2). Other variants emit "[]" so the
+    // JSON stays valid and fabric-loader simply ignores it.
+    val fcgtEntries = if (hasProperty("fabricapi.semver"))
+        "[\"de.zannagh.armorhider.smoke.EntityRenderSmokeTest\"]"
+    else
+        "[]"
 
     val expandProps = mapOf(
         "version" to project.version,
         "java_version" to (findProperty("java.version")?.toString() ?: error("No Java version")),
         "fabric_minecraft_version" to (findProperty("fabric.minecraft_version_range")?.toString() ?: error("No Fabric version range")),
-        "accesswidener" to (findProperty("accesswidener.version")?.toString() ?: "current")
+        "accesswidener" to (findProperty("accesswidener.version")?.toString() ?: "current"),
+        "fcgt_entries" to fcgtEntries
     )
 
     tasks.named<ProcessResources>("processResources") {
@@ -207,4 +261,67 @@ if (branch == "fabric") {
     )
     expandTask.configure { dependsOn(tasks.named("classes"), tasks.named("clientClasses")) }
     patchLoomIdeRunConfigs(expandTask)
+
+    // When -Psmoke is set, populate run/mods with the configured compat jars before launching.
+    if (project.hasProperty("smoke")) {
+        tasks.named("runClient") { dependsOn("fetchCompatJars") }
+    }
+
+    // ── Phase 2 smoke: FCGT-driven entity render run config ──────────────────────────
+    // Registers `runClientGametest` on Fabric variants that pin `fabricapi.semver`.
+    // FCGT discovers the `fabric-client-gametest` entrypoint, swaps the main loop for the
+    // test driver, runs EntityRenderSmokeTest.runTest, exits cleanly.
+    if (sc.current.project.contains("fabric") && hasProperty("fabricapi.semver")) {
+        loom.apply {
+            runConfigs.create("clientGametest") {
+                client()
+                runDir = "run"
+                name = "Client GameTest"
+                ideConfigGenerated(true)
+                // FCGT activates via TWO properties (verified by decompiling the runner):
+                //  - `fabric.client.gametest` (any value) → ClientGameTestMixinConfigPlugin
+                //     applies the lifecycle/threading mixins that hand control to the runner.
+                //  - `fabric.client.gametest.modid` → FabricClientGameTestRunner uses this to
+                //     filter `fabric-client-gametest` entrypoints to dispatch. Without it,
+                //     the mixins fire but no test class runs and MC sits at the title screen.
+                vmArg("-Dfabric.client.gametest=true")
+                vmArg("-Dfabric.client.gametest.modid=armor-hider")
+                // Phase 1's exit timer would race FCGT's own shutdown — disable on this run.
+                vmArg("-Darmorhider.smoke.exit=false")
+            }
+        }
+        // Resolve the FCGT module artifact via a dedicated configuration so we can copy the
+        // resolved (already named-mapped) jar into run/mods. fabric-api's umbrella jar
+        // doesn't include FCGT (it's marked experimental upstream), so this is the only path
+        // that actually puts the module classes on fabric-loader's runtime classpath.
+        val fcgtRuntimeMod = configurations.create("fcgtRuntimeMod") {
+            isCanBeResolved = true
+            isCanBeConsumed = false
+            isVisible = false
+        }
+        val fabricApiExt = project.extensions.getByType(net.fabricmc.loom.api.fabricapi.FabricApiExtension::class.java)
+        dependencies.add(
+            "fcgtRuntimeMod",
+            fabricApiExt.module("fabric-client-gametest-api-v1", findProperty("fabricapi.semver")!!.toString())
+        )
+        val copyFcgtToMods = tasks.register<Copy>("copyFcgtToMods") {
+            group = "verification"
+            description = "Drop the FCGT module jar into run/mods/ so its mixin plugin loads at runtime"
+            from(fcgtRuntimeMod)
+            into(project.layout.projectDirectory.dir("run/mods"))
+            // fetchFcgtCompatJars wipes run/mods first — make sure that runs before this copy.
+            mustRunAfter("fetchFcgtCompatJars")
+            // Never cache: pair task is also non-cached, and we want the FCGT jar to land
+            // every time runClientGametest fires so cross-row leaks can't strand us with a
+            // stale mods/ dir between BOOT and ENTITY_RENDER rows.
+            outputs.upToDateWhen { false }
+        }
+
+        if (project.hasProperty("smoke")) {
+            tasks.named("runClientGametest") {
+                dependsOn("fetchFcgtCompatJars")
+                dependsOn(copyFcgtToMods)
+            }
+        }
+    }
 }

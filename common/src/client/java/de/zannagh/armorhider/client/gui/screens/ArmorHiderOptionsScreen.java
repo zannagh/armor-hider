@@ -5,12 +5,10 @@ import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.gui.elements.ArmorHiderOptionsPanelWidget;
 import de.zannagh.armorhider.client.gui.elements.ElementSpacingOptions;
 import de.zannagh.armorhider.client.gui.elements.PlayerPreviewWidget;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.entity.EquipmentSlot;
 import org.jetbrains.annotations.Nullable;
 
 public class ArmorHiderOptionsScreen extends ArmorHiderConfigurationScreen {
@@ -23,7 +21,6 @@ public class ArmorHiderOptionsScreen extends ArmorHiderConfigurationScreen {
 
     @Override
     protected void init() {
-        //? if >= 1.21.9 {
         boolean inGame = super.isPlayerInGame();
         var spacing = new ElementSpacingOptions(this.width)
                 .forVaryingElements(1, inGame ? 1 : 0)
@@ -50,129 +47,11 @@ public class ArmorHiderOptionsScreen extends ArmorHiderConfigurationScreen {
             int previewY = topMargin + previewMargin / 2;
             addRenderableWidget(new PlayerPreviewWidget(previewX, previewY, previewWidth, previewHeight));
         }
-        //?}
-        //? if < 1.21.9 {
-        /*boolean inGameLegacy = super.isPlayerInGame();
-        var spacingLegacy = new ElementSpacingOptions(this.width)
-                .forVaryingElements(1, inGameLegacy ? 1 : 0)
-                .withPercentageWidthForPrimaryElement(60)
-                .withGap(0);
-        super.initWidgetList(spacingLegacy.getWidth(0));
-        super.init();
-
-        if (inGameLegacy) {
-            int previewWidth = spacingLegacy.getWidth(1) - previewMargin;
-            if (previewWidth > 150) {
-                previewWidth = 150;
-            }
-            int previewHeight = previewWidth;
-            int previewX = spacingLegacy.getX(1) + previewMargin / 2;
-            int previewY = topMargin + previewMargin / 2;
-            addRenderableWidget(new PlayerPreviewWidget(previewX, previewY, previewWidth, previewHeight));
-        }
-        *///?}
     }
 
     @Override
     protected void addOptions() {
-        //? if < 1.21.9 {
-        /*var config = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue();
-
-        var helmetOption = factory.buildDoubleOption(
-                "armorhider.helmet.transparency",
-                Component.translatable("armorhider.options.helmet.tooltip"),
-                Component.translatable("armorhider.options.helmet.tooltip_narration"),
-                currentValue -> Component.translatable("armorhider.options.helmet.button_text",
-                        String.format("%.0f%%", currentValue * 100)),
-                config.helmetOpacity.getValue(),
-                val -> setSetting(val, config.helmetOpacity::setValue)
-        );
-        factory.addSliderWithToggles(
-                EquipmentSlot.HEAD,
-                helmetOption,
-                gameOptions,
-                config.helmetGlint.getValue(),
-                config.opacityAffectingHatOrSkull.getValue(),
-                val -> setSetting(val, config.helmetGlint::setValue),
-                val -> setSetting(val, config.opacityAffectingHatOrSkull::setValue));
-
-        var chestOption = factory.buildDoubleOption(
-                "armorhider.chestplate.transparency",
-                Component.translatable("armorhider.options.chestplate.tooltip"),
-                Component.translatable("armorhider.options.chestplate.tooltip_narration"),
-                currentValue -> Component.translatable("armorhider.options.chestplate.button_text",
-                        String.format("%.0f%%", currentValue * 100)),
-                config.chestOpacity.getValue(),
-                val -> setSetting(val, config.chestOpacity::setValue));
-        factory.addSliderWithToggles(EquipmentSlot.CHEST,
-                chestOption,
-                gameOptions,
-                config.chestGlint.getValue(),
-                config.opacityAffectingElytra.getValue(),
-                val -> setSetting(val, config.chestGlint::setValue),
-                val -> setSetting(val, config.opacityAffectingElytra::setValue));
-
-        var legsOption = factory.buildDoubleOption(
-                "armorhider.legs.transparency",
-                Component.translatable("armorhider.options.leggings.tooltip"),
-                Component.translatable("armorhider.options.leggings.tooltip_narration"),
-                currentValue -> Component.translatable("armorhider.options.leggings.button_text",
-                        String.format("%.0f%%", currentValue * 100)),
-                config.legsOpacity.getValue(),
-                val -> setSetting(val, config.legsOpacity::setValue)
-        );
-        factory.addSliderWithToggles(EquipmentSlot.LEGS,
-                legsOption,
-                gameOptions,
-                config.legsGlint.getValue(),
-                null,
-                val -> setSetting(val, config.legsGlint::setValue),
-                null);
-
-        var bootsOption = factory.buildDoubleOption(
-                "armorhider.boots.transparency",
-                Component.translatable("armorhider.options.boots.tooltip"),
-                Component.translatable("armorhider.options.boots.tooltip_narration"),
-                currentValue -> Component.translatable("armorhider.options.boots.button_text",
-                        String.format("%.0f%%", currentValue * 100)),
-                config.bootsOpacity.getValue(),
-                val -> setSetting(val, config.bootsOpacity::setValue));
-        factory.addSliderWithToggles(EquipmentSlot.FEET,
-                bootsOption,
-                gameOptions,
-                config.bootsGlint.getValue(),
-                null,
-                val -> setSetting(val, config.bootsGlint::setValue),
-                null);
-
-        var offhandOption = factory.buildDoubleOption(
-                "armorhider.offhand.transparency",
-                Component.translatable("armorhider.options.offhand.tooltip"),
-                Component.translatable("armorhider.options.offhand.tooltip_narration"),
-                currentValue -> Component.translatable("armorhider.options.offhand.button_text",
-                        String.format("%.0f%%", currentValue * 100)),
-                config.offHandOpacity.getValue(),
-                val -> setSetting(val, config.offHandOpacity::setValue)
-        );
-        factory.addSliderWithToggles(EquipmentSlot.OFFHAND,
-                offhandOption,
-                gameOptions,
-                null, null, null, null);
-
-        var enableCombatDetection = factory.buildBooleanOption(
-                Component.translatable("armorhider.options.combat_detection.title"),
-                Component.translatable("armorhider.options.combat_detection.tooltip"),
-                Component.translatable("armorhider.options.combat_detection.tooltip_narration"),
-                config.enableCombatDetection.getValue(),
-                val -> setSetting(val, config.enableCombatDetection::setValue)
-        );
-        factory.addSimpleOptionAsWidget(enableCombatDetection);
-
-        factory.addElementAsWidget(Button.builder(
-                Component.translatable("armorhider.options.regular.title"),
-                btn -> Minecraft.getInstance().setScreenAndShow(new AdvancedArmorHiderSettingsScreen(this, gameOptions, this.title))
-        ).tooltip(net.minecraft.client.gui.components.Tooltip.create(Component.translatable("armorhider.options.regular.title"))).build());
-        *///?}
+        // Options are built by ArmorHiderOptionsPanelWidget in init() on all versions.
     }
 
     @Override
