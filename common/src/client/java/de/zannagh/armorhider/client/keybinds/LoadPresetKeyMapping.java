@@ -2,7 +2,6 @@ package de.zannagh.armorhider.client.keybinds;
 
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.configuration.ConfigPreset;
 import net.minecraft.client.Minecraft;
 import org.lwjgl.glfw.GLFW;
 
@@ -12,7 +11,6 @@ public class LoadPresetKeyMapping extends CustomKeyMapping {
     // value here would mis-map; VK_UNDEFINED (0) in particular collides with the
     // number-row "0" key (both named "key.keyboard.0").
     public static final int DEFAULT_KEY = GLFW.GLFW_KEY_LEFT_ALT;
-    public static final int UNBOUND_KEY = GLFW.GLFW_KEY_UNKNOWN;
 
     private static LoadPresetKeyMapping instance;
     private int activatedWhileHeld = -1;
