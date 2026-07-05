@@ -128,10 +128,8 @@ public abstract class AbstractArmorHiderRenderer implements AhRenderer {
      * before reaching this method.
      */
     protected RenderInterceptionResult standardIntercept(@NonNull IdentityCarrier carrier, @Nullable EquipmentSlot slot, @Nullable ItemStack stack, CallbackInfo ci) {
-        if (shouldBeConditionallySuppressed(getTargetScope(), carrier)) {
-            return RenderInterceptionResult.ignore();
-        }
-
+        // Conditional suppression is handled inside resolveModification, which sets an empty
+        // modification (clearing any stale per-thread state) and yields an empty mod → ignore().
         var mod = resolveModification(carrier, slot, stack);
         if (mod.isEmpty()) {
             return RenderInterceptionResult.ignore();

@@ -104,9 +104,22 @@ public interface AhRenderer extends RenderScopeProvider, AhRenderTypeFactory {
      */
     void registerRenderTypeFactory(AhRenderTypeFactory factory);
 
-    void addConditionalSuppressor(ConditionalSuppressor suppressor);
+    /**
+     * Store a conditional suppressor for this renderer. The default is a no-op so third-party
+     * renderers implementing {@link AhRenderer} directly stay source/binary compatible; renderers
+     * that support conditional suppression override this together with {@link #getConditionalSuppressors()}.
+     */
+    default void addConditionalSuppressor(ConditionalSuppressor suppressor) {
+    }
 
-    HashSet<ConditionalSuppressor> getConditionalSuppressors();
+    /**
+     * @return the conditional suppressors registered for this renderer. The default returns an empty
+     * set (no suppression) for backward compatibility; override alongside {@link #addConditionalSuppressor}
+     * to opt in.
+     */
+    default HashSet<ConditionalSuppressor> getConditionalSuppressors() {
+        return new HashSet<>();
+    }
 
     default boolean shouldBeConditionallySuppressed(RenderScope scope, @Nullable IdentityCarrier identityCarrier) {
         if (identityCarrier == null) {

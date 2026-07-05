@@ -79,8 +79,9 @@ public interface AhRenderInterceptionRegistryApi {
     }
 
     /**
-     * Reigsters a conditional suppressor to replace the actual instance of the renderer with an empty renderer, whenever
-     * the evaluation returns true (since renderes are resolved via RenderScope).
+     * Registers a conditional suppressor. When the suppressor matches for a given carrier and scope,
+     * interception is skipped for that render call, so the game renders normally (as if Armor Hider
+     * were not intercepting).
      * @param suppressor The suppressor to apply, based on {@link IdentityCarrier} and {@link RenderScope}.
      *
      * @since 0.12.1
@@ -90,8 +91,8 @@ public interface AhRenderInterceptionRegistryApi {
     }
 
     /**
-     * Registers a conditional suppressor to replace the actual instance of the renderer with an empty renderer
-     * whenever the evaluation returns true (since renderes are resolved via RenderScope).
+     * Registers a conditional suppressor. When the evaluation returns true for a resolved renderer and
+     * scope, interception is skipped so the game renders normally (renderers are resolved via RenderScope).
      * @param evaluation The evaluation to apply.
      *
      * @since 0.12.0
