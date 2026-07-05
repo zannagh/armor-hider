@@ -6,6 +6,7 @@ import de.zannagh.armorhider.client.api.AhRenderInterceptionRegistryApi;
 import de.zannagh.armorhider.client.api.AhRenderModificationApi;
 import de.zannagh.armorhider.client.api.AhRenderTypeFactory;
 import de.zannagh.armorhider.client.api.impl.AhRendererRegistryImpl;
+import de.zannagh.armorhider.client.common.IdentityCarrier;
 import de.zannagh.armorhider.client.common.RenderScope;
 import de.zannagh.armorhider.client.compat.CompatManager;
 import de.zannagh.armorhider.client.net.ClientCommunicationManager;
@@ -60,6 +61,26 @@ public class ArmorHiderClient {
             ArmorHider.LOGGER.info("Registering interceptor: {}", interceptor.getClass().getName());
             AhRenderInterceptionRegistryApi.register(interceptor, AhRendererRegistryImpl.DEFAULT_PRIORITY);
         }
+        AhRenderInterceptionRegistryApi.suppressRenderInterceptionConditionallyForCarrier(RenderScope.ALL,
+                (input) -> {
+                    RenderScope scope = input.getFirst().getFirst();
+                    IdentityCarrier carrier = input.getFirst().getSecond();
+                    var render = input.getSecond();
+                    var config = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getConfigForPlayer(carrier.armorHider$playerName());
+                    boolean isInvisible = carrier.armorHider$isPlayerInvisible();
+                    if (!isInvisible) {
+                        return false;
+                    }
+
+                    var serverConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getServerConfig();
+                    if (serverConfig != null) {
+                        var shouldSuppressByServer = (Boolean) serverConfig.serverWideSettings.disableArmorHiderOnInvisibilityGlobally.getValue();
+                        if (shouldSuppressByServer) {
+                            return true;
+                        }
+                    }
+                    return (Boolean) config.disableArmorHiderOnInvisibility.getValue();
+                });
         ArmorHider.LOGGER.info("Registered render interceptors.");
 
         ArmorHider.LOGGER.info("Setting up compatibilities...");

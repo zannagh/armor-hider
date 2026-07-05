@@ -1,8 +1,10 @@
 package de.zannagh.armorhider.client.render.interceptors;
 
+import com.mojang.datafixers.util.Pair;
 import de.zannagh.armorhider.client.api.AhRenderModificationApi;
 import de.zannagh.armorhider.client.api.AhRenderTypeFactory;
 import de.zannagh.armorhider.client.api.AhRenderer;
+import de.zannagh.armorhider.client.common.IdentityCarrier;
 import de.zannagh.armorhider.client.common.RenderInterceptionResult;
 import de.zannagh.armorhider.client.common.RenderScope;
 import de.zannagh.armorhider.client.render.RenderModifications;
@@ -14,7 +16,13 @@ import net.minecraft.world.item.ItemStack;
 import org.jspecify.annotations.Nullable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.HashSet;
+import java.util.function.Function;
+
 public class ArmorHiderEmptyRenderer implements AhRenderer {
+
+    private final HashSet<Function<Pair<Pair<RenderScope, IdentityCarrier>, AhRenderer>, Boolean>> conditionalSuppressors = new HashSet<>();
+
     @Override
     public RenderInterceptionResult intercept(@Nullable Object identityCarrier, @Nullable EquipmentSlot slot, @Nullable ItemStack stack, CallbackInfo ci) {
         return RenderInterceptionResult.ignore();
@@ -29,6 +37,16 @@ public class ArmorHiderEmptyRenderer implements AhRenderer {
 
     public void registerRenderTypeFactory(AhRenderTypeFactory renderTypeFactory){
         customRenderTypeFactory = renderTypeFactory;
+    }
+
+    @Override
+    public void addConditionalSuppressor(Function<Pair<Pair<RenderScope, IdentityCarrier>, AhRenderer>, Boolean> evaluation) {
+        conditionalSuppressors.add(evaluation);
+    }
+
+    @Override
+    public HashSet<Function<Pair<Pair<RenderScope, IdentityCarrier>, AhRenderer>, Boolean>> getConditionalSuppressors() {
+        return conditionalSuppressors;
     }
 
     @Override

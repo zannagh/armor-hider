@@ -1,12 +1,10 @@
 package de.zannagh.armorhider.client.render.interceptors;
 
+import com.mojang.datafixers.util.Pair;
 import de.zannagh.armorhider.client.api.AhRenderModificationApi;
 import de.zannagh.armorhider.client.api.AhRenderTypeFactory;
 import de.zannagh.armorhider.client.api.AhRenderer;
-import de.zannagh.armorhider.client.common.EquippableInformation;
-import de.zannagh.armorhider.client.common.IdentityCarrier;
-import de.zannagh.armorhider.client.common.RenderInterceptionResult;
-import de.zannagh.armorhider.client.common.SlotModification;
+import de.zannagh.armorhider.client.common.*;
 import de.zannagh.armorhider.client.render.RenderModifications;
 import de.zannagh.armorhider.client.render.rendertype.ArmorHiderRenderTypes;
 import net.minecraft.client.renderer.rendertype.RenderType;
@@ -16,6 +14,9 @@ import net.minecraft.world.item.ItemStack;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import java.util.HashSet;
+import java.util.function.Function;
 
 /**
  * Shared scaffolding for built-in renderers: stores the most recent {@link AhRenderModificationApi}
@@ -29,8 +30,21 @@ public abstract class AbstractArmorHiderRenderer implements AhRenderer {
 
     protected final ThreadLocal<AhRenderModificationApi> modificationApi = new ThreadLocal<>();
 
+    protected final HashSet<Function<Pair<Pair<RenderScope, IdentityCarrier>, AhRenderer>, Boolean>> conditionalSuppressors = new HashSet<>();
+
     @Nullable
     private AhRenderTypeFactory customRenderTypeFactory;
+
+    @Override
+    public void addConditionalSuppressor(Function<Pair<Pair<RenderScope, IdentityCarrier>, AhRenderer>, Boolean> evaluation) {
+        conditionalSuppressors.add(evaluation);
+    }
+
+    @Override
+    public HashSet<Function<Pair<Pair<RenderScope, IdentityCarrier>, AhRenderer>, Boolean>> getConditionalSuppressors() {
+        return conditionalSuppressors;
+    }
+
 
     @Override
     public AhRenderModificationApi getRenderModificationApi() {
@@ -87,6 +101,10 @@ public abstract class AbstractArmorHiderRenderer implements AhRenderer {
      * modification API so {@link #getRenderModificationApi()} reflects the latest interception.
      */
     protected SlotModification resolveModification(@NonNull IdentityCarrier carrier, @Nullable EquipmentSlot slot, @Nullable ItemStack stack) {
+        if (shouldBeConditionallySuppressed(getTargetScope(), carrier)) {
+            return setEmptyModification();
+        }
+
         if (carrier.armorHider$playerName() == null) {
             return setEmptyModification();
         }
@@ -111,6 +129,10 @@ public abstract class AbstractArmorHiderRenderer implements AhRenderer {
      * before reaching this method.
      */
     protected RenderInterceptionResult standardIntercept(@NonNull IdentityCarrier carrier, @Nullable EquipmentSlot slot, @Nullable ItemStack stack, CallbackInfo ci) {
+        if (shouldBeConditionallySuppressed(getTargetScope(), carrier)) {
+            return RenderInterceptionResult.ignore();
+        }
+
         var mod = resolveModification(carrier, slot, stack);
         if (mod.isEmpty()) {
             return RenderInterceptionResult.ignore();

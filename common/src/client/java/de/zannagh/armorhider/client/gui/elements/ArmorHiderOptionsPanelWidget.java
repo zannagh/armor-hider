@@ -55,6 +55,7 @@ public class ArmorHiderOptionsPanelWidget extends AbstractWidget {
         ArrayList<Pair<Boolean, Consumer<Boolean>>> configs = new ArrayList<>();
         configs.add(new Pair<>(config.enableCombatDetection.getValue(), val -> setSetting(val, config.enableCombatDetection::setValue)));
         configs.add(new Pair<>(config.inCombatUseDefaultModel.getValue(), val -> setSetting(val, config.inCombatUseDefaultModel::setValue)));
+        configs.add(new Pair<>(config.disableArmorHiderOnInvisibility.getValue(), val -> setSetting(val, config.disableArmorHiderOnInvisibility::setValue)));
 
         var generalSettingsButtons = factory.createCompoundButtonWidget(
                 configs, presetManager, presetManager.getActiveIndex(), this::onPresetActivated

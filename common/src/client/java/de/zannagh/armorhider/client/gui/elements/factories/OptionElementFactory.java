@@ -80,11 +80,21 @@ public class OptionElementFactory {
                     }
                 }
         );
+        var third = new RespectInvisibilityButton(
+                configs.get(2).getFirst(),
+                onPress -> {
+                    if (onPress instanceof RespectInvisibilityButton btn) {
+                        var newValue = btn.toggle();
+                        configs.get(1).getSecond().accept(newValue);
+                    }
+                }
+        );
 
-        int totalButtons = 2 + PresetManager.PRESET_COUNT;
+        int totalButtons = 3 + PresetManager.PRESET_COUNT;
         var allButtons = new AbstractWidget[totalButtons];
         allButtons[0] = first;
         allButtons[1] = second;
+        allButtons[2] = third;
 
         var presetButtons = new PresetButton[PresetManager.PRESET_COUNT];
         for (int i = 0; i < PresetManager.PRESET_COUNT; i++) {

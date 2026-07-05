@@ -2,6 +2,7 @@ package de.zannagh.armorhider.client.api.impl;
 
 import com.mojang.datafixers.util.Pair;
 import de.zannagh.armorhider.client.api.AhRenderer;
+import de.zannagh.armorhider.client.common.IdentityCarrier;
 import de.zannagh.armorhider.client.common.RenderScope;
 import de.zannagh.armorhider.client.render.interceptors.*;
 import org.jetbrains.annotations.ApiStatus;
@@ -28,6 +29,8 @@ public final class AhRendererRegistryImpl {
 
     private static final HashMap<RenderScope, HashSet<Function<Pair<RenderScope, AhRenderer>, Boolean>>> SUPPRESSORS = new HashMap<>();
 
+    private static final HashMap<RenderScope, HashSet<Function<Pair<Pair<RenderScope, IdentityCarrier>, AhRenderer>, Boolean>>> IC_SUPPRESSORS = new HashMap<>();
+
     private static final List<AhRenderer> DEFAULT_INTERCEPTORS = List.of(new ArmorHiderItemRenderer(), new ArmorHiderCapeRenderer(), new ArmorHiderElytraRenderer(), new ArmorHiderOffhandRenderer(), new ArmorHiderHeadRenderer(), new AhGeckoLibRenderer());
 
     private AhRendererRegistryImpl() {}
@@ -36,6 +39,7 @@ public final class AhRendererRegistryImpl {
         var list = RENDERERS.computeIfAbsent(renderer.getTargetScope(), k -> new ArrayList<>());
         list.add(Pair.of(priority, renderer));
         list.sort(Comparator.comparingInt(Pair::getFirst));
+        // TODO: Add ic_suppressors to newly registered renderers.
     }
 
     public static void unregister(AhRenderer renderer, int priority) {
@@ -77,7 +81,9 @@ public final class AhRendererRegistryImpl {
     }
 
     public static <T extends AhRenderer> T getRenderer(Class<T> type) {
-        if (type == null) return null;
+        if (type == null) {
+            return null;
+        }
         for (var registrations : RENDERERS.values()) {
             for (var renderPair : registrations) {
                 var renderer = renderPair.getSecond();
@@ -87,6 +93,18 @@ public final class AhRendererRegistryImpl {
             }
         }
         return null;
+    }
+
+    public static void suppressRenderInterceptionConditionallyForCarrier(RenderScope scope, Function<Pair<Pair<RenderScope, IdentityCarrier>, AhRenderer>, Boolean> evaluation) {
+        if (IC_SUPPRESSORS.containsKey(scope)) {
+            var set = IC_SUPPRESSORS.get(scope);
+            set.add(evaluation);
+        } else {
+            var set = new HashSet<Function<Pair<Pair<RenderScope, IdentityCarrier>, AhRenderer>, Boolean>>();
+            set.add(evaluation);
+            IC_SUPPRESSORS.put(scope, set);
+        }
+        // TODO: Add suppressor to renderers.
     }
 
     public static void suppressConditionally(RenderScope scope, Function<Pair<RenderScope, AhRenderer>, Boolean> evaluation) {

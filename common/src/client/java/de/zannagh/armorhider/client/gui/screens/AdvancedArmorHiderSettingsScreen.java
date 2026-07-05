@@ -21,6 +21,8 @@ public class AdvancedArmorHiderSettingsScreen extends ArmorHiderConfigurationScr
     private boolean setDisableLocal = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableArmorHider.getValue();
     private boolean forceServerOffDefaultSetting;
     private boolean combatDetectionDefaultSetting;
+
+    private boolean visibilityRespectDefaultSetting;
     private Button debugButton;
 
     public AdvancedArmorHiderSettingsScreen(Screen parent, Options gameOptions, Component title) {
@@ -48,6 +50,10 @@ public class AdvancedArmorHiderSettingsScreen extends ArmorHiderConfigurationScr
 
         forceServerOffDefaultSetting = serverConfig != null
                 ? serverConfig.serverWideSettings.forceArmorHiderOff.getValue()
+                : getFallbackDefault(false);
+
+        visibilityRespectDefaultSetting = serverConfig != null
+                ? serverConfig.serverWideSettings.disableArmorHiderOnInvisibilityGlobally.getValue()
                 : getFallbackDefault(false);
 
         var combatDetectionServerText = Component.translatable("armorhider.options.combat_detection_server.title");
@@ -100,6 +106,25 @@ public class AdvancedArmorHiderSettingsScreen extends ArmorHiderConfigurationScr
                     });
                 }
         );
+
+        var visibilityButton = cyclingWidgetBuilder.withTooltip(newValue -> {
+            if (ArmorHiderClient.permissionLevel < 3) {
+                return Tooltip.create(Component.translatable("armorhider.options.invisibility_respect_server.tooltip.disabled"));
+            }
+            return Tooltip.create(Component.translatable("armorhider.options.invisibility_respect_server.tooltip"));
+        }).create(
+                combatDetectionServerText,
+                (widget, newValue) -> {
+                    if (ArmorHiderClient.permissionLevel < 3) {
+                        widget.setValue(visibilityRespectDefaultSetting);
+                        return;
+                    }
+                    setSetting(newValue, val -> {
+                        this.visibilityRespectDefaultSetting = val;
+                        serverSettingsChanged = true;
+                    });
+                }
+        );
         //?}
 
         //? if < 1.21.9 {
@@ -146,9 +171,11 @@ public class AdvancedArmorHiderSettingsScreen extends ArmorHiderConfigurationScr
 
         combatButton.active = ArmorHiderClient.permissionLevel >= 3;
         armorHiderOffButton.active = ArmorHiderClient.permissionLevel >= 3;
+        visibilityButton.active = ArmorHiderClient.permissionLevel >= 3;
 
         factory.addElementAsWidget(combatButton);
         factory.addElementAsWidget(armorHiderOffButton);
+        factory.addElementAsWidget(visibilityButton);
 
         factory.addTextWidget(Component.translatable("armorhider.options.regular.title"));
 

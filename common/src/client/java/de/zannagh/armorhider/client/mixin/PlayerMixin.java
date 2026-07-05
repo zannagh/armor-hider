@@ -18,6 +18,7 @@ import de.zannagh.armorhider.common.ItemInfo;
 import de.zannagh.armorhider.log.DebugLogger;
 import de.zannagh.armorhider.log.DebugTracer;
 import de.zannagh.armorhider.util.PlayerNameUtil;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -119,6 +120,12 @@ public abstract class PlayerMixin
     public boolean isPlayerFlying() {
         Player player = (Player) (Object) this;
         return player.isFallFlying() || player.getAbilities().flying;
+    }
+
+    @Override
+    public boolean armorHider$isPlayerInvisible() {
+        Player player = (Player) (Object) this;
+        return player.isInvisible() || player.hasEffect(MobEffects.INVISIBILITY);
     }
     
     @Override
