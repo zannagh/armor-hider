@@ -1,20 +1,17 @@
 package de.zannagh.armorhider.client.api;
 
-import com.mojang.datafixers.util.Pair;
 import de.zannagh.armorhider.client.common.IdentityCarrier;
 import de.zannagh.armorhider.client.common.RenderInterceptionResult;
 import de.zannagh.armorhider.client.common.RenderScope;
 import de.zannagh.armorhider.client.common.RenderScopeProvider;
+import de.zannagh.armorhider.client.suppressions.ConditionalSuppressor;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import org.jspecify.annotations.Nullable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.lang.reflect.Type;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
-import java.util.function.Function;
 
 /**
  * Per-scope renderer that owns the interception decision for one {@link RenderScope}.
@@ -107,23 +104,23 @@ public interface AhRenderer extends RenderScopeProvider, AhRenderTypeFactory {
      */
     void registerRenderTypeFactory(AhRenderTypeFactory factory);
 
-    void addConditionalSuppressor(Function<Pair<Pair<RenderScope, IdentityCarrier>, AhRenderer>, Boolean> evaluation);
+    void addConditionalSuppressor(ConditionalSuppressor suppressor);
 
-    HashSet<Function<Pair<Pair<RenderScope, IdentityCarrier>, AhRenderer>, Boolean>> getConditionalSuppressors();
+    HashSet<ConditionalSuppressor> getConditionalSuppressors();
 
     default boolean shouldBeConditionallySuppressed(RenderScope scope, @Nullable IdentityCarrier identityCarrier) {
         if (identityCarrier == null) {
             return false;
         }
         return getConditionalSuppressors().stream()
-                .anyMatch(evaluation -> evaluation.apply(new Pair<>(new Pair<>(scope, identityCarrier), this)));
+                .anyMatch(suppressor -> suppressor.shouldSuppress(scope, identityCarrier));
     }
 
-    default void registerConditionalSuppressor(RenderScope scope, Function<Pair<Pair<RenderScope, IdentityCarrier>, AhRenderer>, Boolean> evaluation) {
+    default void registerConditionalSuppressor(RenderScope scope, ConditionalSuppressor suppressor) {
         if (scope != this.getTargetScope() && scope != RenderScope.ALL) {
             return;
         }
 
-        addConditionalSuppressor(evaluation);
+        addConditionalSuppressor(suppressor);
     }
 }

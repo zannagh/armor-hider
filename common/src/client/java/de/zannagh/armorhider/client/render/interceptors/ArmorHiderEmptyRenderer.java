@@ -1,14 +1,13 @@
 package de.zannagh.armorhider.client.render.interceptors;
 
-import com.mojang.datafixers.util.Pair;
 import de.zannagh.armorhider.client.api.AhRenderModificationApi;
 import de.zannagh.armorhider.client.api.AhRenderTypeFactory;
 import de.zannagh.armorhider.client.api.AhRenderer;
-import de.zannagh.armorhider.client.common.IdentityCarrier;
 import de.zannagh.armorhider.client.common.RenderInterceptionResult;
 import de.zannagh.armorhider.client.common.RenderScope;
 import de.zannagh.armorhider.client.render.RenderModifications;
 import de.zannagh.armorhider.client.render.rendertype.ArmorHiderRenderTypes;
+import de.zannagh.armorhider.client.suppressions.ConditionalSuppressor;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -17,11 +16,10 @@ import org.jspecify.annotations.Nullable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.HashSet;
-import java.util.function.Function;
 
 public class ArmorHiderEmptyRenderer implements AhRenderer {
 
-    private final HashSet<Function<Pair<Pair<RenderScope, IdentityCarrier>, AhRenderer>, Boolean>> conditionalSuppressors = new HashSet<>();
+    private final HashSet<ConditionalSuppressor> conditionalSuppressors = new HashSet<>();
 
     @Override
     public RenderInterceptionResult intercept(@Nullable Object identityCarrier, @Nullable EquipmentSlot slot, @Nullable ItemStack stack, CallbackInfo ci) {
@@ -40,12 +38,12 @@ public class ArmorHiderEmptyRenderer implements AhRenderer {
     }
 
     @Override
-    public void addConditionalSuppressor(Function<Pair<Pair<RenderScope, IdentityCarrier>, AhRenderer>, Boolean> evaluation) {
-        conditionalSuppressors.add(evaluation);
+    public void addConditionalSuppressor(ConditionalSuppressor suppressor) {
+        conditionalSuppressors.add(suppressor);
     }
 
     @Override
-    public HashSet<Function<Pair<Pair<RenderScope, IdentityCarrier>, AhRenderer>, Boolean>> getConditionalSuppressors() {
+    public HashSet<ConditionalSuppressor> getConditionalSuppressors() {
         return conditionalSuppressors;
     }
 

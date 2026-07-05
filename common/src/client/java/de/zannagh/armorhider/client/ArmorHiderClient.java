@@ -12,6 +12,7 @@ import de.zannagh.armorhider.client.compat.CompatManager;
 import de.zannagh.armorhider.client.net.ClientCommunicationManager;
 import de.zannagh.armorhider.client.render.RenderModifications;
 import de.zannagh.armorhider.client.render.rendertype.RenderTypeFactory;
+import de.zannagh.armorhider.client.suppressions.InvisibilitySuppressor;
 import de.zannagh.armorhider.configuration.PresetManager;
 import de.zannagh.armorhider.log.DebugLogger;
 import de.zannagh.armorhider.util.PlayerNameUtil;
@@ -62,25 +63,7 @@ public class ArmorHiderClient {
             AhRenderInterceptionRegistryApi.register(interceptor, AhRendererRegistryImpl.DEFAULT_PRIORITY);
         }
         AhRenderInterceptionRegistryApi.suppressRenderInterceptionConditionallyForCarrier(RenderScope.ALL,
-                (input) -> {
-                    RenderScope scope = input.getFirst().getFirst();
-                    IdentityCarrier carrier = input.getFirst().getSecond();
-                    var render = input.getSecond();
-                    var config = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getConfigForPlayer(carrier.armorHider$playerName());
-                    boolean isInvisible = carrier.armorHider$isPlayerInvisible();
-                    if (!isInvisible) {
-                        return false;
-                    }
-
-                    var serverConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getServerConfig();
-                    if (serverConfig != null) {
-                        var shouldSuppressByServer = (Boolean) serverConfig.serverWideSettings.disableArmorHiderOnInvisibilityGlobally.getValue();
-                        if (shouldSuppressByServer) {
-                            return true;
-                        }
-                    }
-                    return (Boolean) config.disableArmorHiderOnInvisibility.getValue();
-                });
+                new InvisibilitySuppressor());
         ArmorHider.LOGGER.info("Registered render interceptors.");
 
         ArmorHider.LOGGER.info("Setting up compatibilities...");

@@ -5,6 +5,7 @@ import de.zannagh.armorhider.client.api.impl.AhRendererRegistryImpl;
 import de.zannagh.armorhider.client.common.IdentityCarrier;
 import de.zannagh.armorhider.client.common.RenderScope;
 import de.zannagh.armorhider.client.render.interceptors.ArmorHiderEmptyRenderer;
+import de.zannagh.armorhider.client.suppressions.ConditionalSuppressor;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
@@ -80,12 +81,12 @@ public interface AhRenderInterceptionRegistryApi {
     /**
      * Reigsters a conditional suppressor to replace the actual instance of the renderer with an empty renderer, whenever
      * the evaluation returns true (since renderes are resolved via RenderScope).
-     * @param evaluation The evaluation to apply, based on {@link IdentityCarrier} and {@link RenderScope}.
+     * @param suppressor The suppressor to apply, based on {@link IdentityCarrier} and {@link RenderScope}.
      *
      * @since 0.12.1
      */
-    static void suppressRenderInterceptionConditionallyForCarrier(RenderScope scope, Function<Pair<Pair<RenderScope, IdentityCarrier>, AhRenderer>, Boolean> evaluation) {
-        AhRendererRegistryImpl.suppressRenderInterceptionConditionallyForCarrier(scope, evaluation);
+    static void suppressRenderInterceptionConditionallyForCarrier(RenderScope scope, ConditionalSuppressor suppressor) {
+        AhRendererRegistryImpl.suppressRenderInterceptionConditionallyForCarrier(scope, suppressor);
     }
 
     /**

@@ -87,7 +87,7 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
         return PlayerConfig.empty();
     }
 
-    public void setAndSendServerConfig(boolean combatDetection, boolean forceArmorHiderOff) {
+    public void setAndSendServerConfig(boolean combatDetection, boolean forceArmorHiderOff, boolean disableArmorHiderOnInvisibilityGlobally) {
         if (ArmorHiderClient.permissionLevel < 3) {
             return;
         }
@@ -96,6 +96,7 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
         }
         serverConfiguration.serverWideSettings.enableCombatDetection.setValue(combatDetection);
         serverConfiguration.serverWideSettings.forceArmorHiderOff.setValue(forceArmorHiderOff);
+        serverConfiguration.serverWideSettings.disableArmorHiderOnInvisibilityGlobally.setValue(disableArmorHiderOnInvisibilityGlobally);
         setAndSendServerWideSettings(serverConfiguration.serverWideSettings);
     }
 
@@ -214,17 +215,6 @@ public class ClientConfigManager implements ConfigurationProvider<PlayerConfig> 
         return serverConfig != null && serverConfig.serverWideSettings.forceArmorHiderOff.getValue();
     }
 
-    public boolean shouldNotReactWhenInvisible() {
-        ServerConfiguration serverConfig = getServerConfig();
-        if (serverConfig != null && serverConfig.serverWideSettings.disableArmorHiderOnInvisibilityGlobally.getValue()) {
-            return true;
-        }
-        if (getValue().disableArmorHiderOnInvisibility.getValue()) {
-            return true;
-        }
-        return false;
-    }
-    
     public boolean shouldApplyCombatDetection(PlayerConfig config) {
         if (config.enableCombatDetection.getValue()) {
             return true;
