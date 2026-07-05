@@ -28,7 +28,7 @@ jobs:
         run: |
           RUNNER='["ubuntu-latest"]'
           # Fetch all runners once, then pick by priority: Linux, then Windows.
-          if RUNNERS=$(gh api "repos/${{ github.repository }}/actions/runners" 2>&1); then
+          if RUNNERS=$(gh api "repos/${{ github.repository }}/actions/runners"); then
             UBUNTU_STATUS=$(echo "$RUNNERS" | jq -r '.runners[] | select(.name == "armor-hider-ubuntu") | .status')
             WINDOWS_STATUS=$(echo "$RUNNERS" | jq -r '.runners[] | select(.name == "armor-hider-runner") | .status')
             if [ "$UBUNTU_STATUS" = "online" ]; then
