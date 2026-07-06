@@ -17,6 +17,7 @@
       "fabric-26.2-snapshot-3:26.2-0.snapshot.3:build.deobfuscated.gradle.kts",
       "fabric-26.2-pre-1:26.2-1.pre.1:build.deobfuscated.gradle.kts",
       "fabric-26.2:26.2:build.deobfuscated.gradle.kts",
+      "fabric-26.3-snapshot-2:26.3-0.snapshot.2:build.deobfuscated.gradle.kts",
       "neoforge-1.21.1:1.21.1",
       "neoforge-1.21.4:1.21.4",
       "neoforge-1.21.8:1.21.8",
@@ -39,7 +40,8 @@
       "fabric-26.1.2:26.1.2:build.deobfuscated.gradle.kts",
       "fabric-26.2-snapshot-3:26.2-0.snapshot.3:build.deobfuscated.gradle.kts",
       "fabric-26.2-pre-1:26.2-1.pre.1:build.deobfuscated.gradle.kts",
-      "fabric-26.2:26.2:build.deobfuscated.gradle.kts"
+      "fabric-26.2:26.2:build.deobfuscated.gradle.kts",
+      "fabric-26.3-snapshot-2:26.3-0.snapshot.2:build.deobfuscated.gradle.kts"
     ],
     "neoforge": [
       "neoforge-1.21.1:1.21.1",

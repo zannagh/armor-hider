@@ -45,6 +45,8 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.OrderedSubmitNodeCollector;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+//? if >= 26.3-0.snapshot.2
+//import net.minecraft.client.renderer.texture.UvMapping;
 //?}
 
 @SuppressWarnings("UnusedMixin")
@@ -182,12 +184,28 @@ public class EquipmentRenderMixin {
             method = RENDER_LAYERS_DETAIL,
             at = @At(
                     value = "INVOKE",
-                    //? if >= 1.21.11
+                    //? if >= 26.3-0.snapshot.2 {
+                    /*target = "Lnet/minecraft/client/renderer/rendertype/RenderTypes;armorTrim(Lnet/minecraft/resources/Identifier;Z)Lnet/minecraft/client/renderer/rendertype/RenderType;"
+                    *///? } elif >= 1.21.11 {
                     target = "Lnet/minecraft/client/renderer/Sheets;armorTrimsSheet(Z)Lnet/minecraft/client/renderer/rendertype/RenderType;"
-                    //? if < 1.21.11
-                    //target = "Lnet/minecraft/client/renderer/Sheets;armorTrimsSheet(Z)Lnet/minecraft/client/renderer/rendertype/RenderType;"
+                    //? } else {
+                    /*target = "Lnet/minecraft/client/renderer/Sheets;armorTrimsSheet(Z)Lnet/minecraft/client/renderer/rendertype/RenderType;"*/
+                    //? }
             )
     )
+    // 26.3 renders trims via RenderTypes.armorTrim(texture, decal) using a per-material paletted
+    // texture (the single ARMOR_TRIMS_SHEET atlas is gone). We now have the real trim texture, so
+    // build the translucent type from it directly via the armor-render-type path.
+    //? if >= 26.3-0.snapshot.2 {
+    /*private RenderType modifyTrimRenderLayer(Identifier texture, boolean decal, Operation<RenderType> original) {
+        var modApi = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE, RenderScope.ELYTRA).renderModificationApi();
+        var originalType = original.call(texture, decal);
+        if (modApi.getTranslucentArmorRenderType(texture, originalType) instanceof RenderType renderType) {
+            return renderType;
+        }
+        return originalType;
+    }
+    *///? } else {
     private RenderType modifyTrimRenderLayer(boolean decal, Operation<RenderType> original) {
         var modApi = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE, RenderScope.ELYTRA).renderModificationApi();
         var originalType = original.call(decal);
@@ -196,15 +214,40 @@ public class EquipmentRenderMixin {
         }
         return originalType;
     }
+    //? }
 
     //? if >= 1.21.11 {
     @WrapOperation(
             method = RENDER_LAYERS_DETAIL,
             at = @At(
                     value = "INVOKE",
+                    //? if >= 26.3-0.snapshot.2 {
+                    /*target = "Lnet/minecraft/client/renderer/OrderedSubmitNodeCollector;submitModel(Lnet/minecraft/client/model/Model;Ljava/lang/Object;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/rendertype/RenderType;IIILnet/minecraft/client/renderer/texture/UvMapping;I)V"
+                    *///? } else {
                     target = "Lnet/minecraft/client/renderer/OrderedSubmitNodeCollector;submitModel(Lnet/minecraft/client/model/Model;Ljava/lang/Object;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/rendertype/RenderType;IIILnet/minecraft/client/renderer/texture/TextureAtlasSprite;ILnet/minecraft/client/renderer/feature/ModelFeatureRenderer$CrumblingOverlay;)V"
+                    //? }
             )
     )
+    // 26.3 submitModel dropped the CrumblingOverlay arg and swapped the sprite for a UvMapping.
+    //? if >= 26.3-0.snapshot.2 {
+    /*private <S> void modifyArmorColor(OrderedSubmitNodeCollector collector, Model<? super S> model, S state, PoseStack poseStack, RenderType renderType, int light, int overlay, int color, UvMapping uvMapping, int param9, Operation<Void> original) {
+        Boolean singleLayer = armorHider$combatSingleLayer.get();
+        if (singleLayer != null) {
+            if (singleLayer) {
+                if (DebugLogger.isEnabled()) {
+                    DebugLogger.log("[CombatSingleLayer] Blocked extra layer submit | renderType={}", renderType);
+                }
+                return;
+            }
+            armorHider$combatSingleLayer.set(Boolean.TRUE);
+            if (DebugLogger.isEnabled()) {
+                DebugLogger.log("[CombatSingleLayer] Allowed first layer submit | renderType={}", renderType);
+            }
+        }
+        var modifiedColor = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE, RenderScope.ELYTRA).renderModificationApi().applyArmorTransparency(color);
+        original.call(collector, model, state, poseStack, renderType, light, overlay, modifiedColor, uvMapping, param9);
+    }
+    *///? } else {
     private <S> void modifyArmorColor(OrderedSubmitNodeCollector collector, Model<? super S> model, S state, PoseStack poseStack, RenderType renderType, int light, int overlay, int color, TextureAtlasSprite sprite, int param9, ModelFeatureRenderer.CrumblingOverlay crumblingOverlay, Operation<Void> original) {
         Boolean singleLayer = armorHider$combatSingleLayer.get();
         if (singleLayer != null) {
@@ -222,6 +265,7 @@ public class EquipmentRenderMixin {
         var modifiedColor = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE, RenderScope.ELYTRA).renderModificationApi().applyArmorTransparency(color);
         original.call(collector, model, state, poseStack, renderType, light, overlay, modifiedColor, sprite, param9, crumblingOverlay);
     }
+    //? }
     //?}
 
     //? if >= 1.21.9 && < 1.21.11 {

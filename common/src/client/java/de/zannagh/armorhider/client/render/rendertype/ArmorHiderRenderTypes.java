@@ -73,7 +73,13 @@ public final class ArmorHiderRenderTypes {
     }
 
     private static final RenderPipeline ARMOR_TRANSLUCENT_NO_DEPTH = clonePipelineNoDepthWrite(
+            // 26.3 removed RenderPipelines.ARMOR_TRANSLUCENT; armor now renders through the
+            // entity translucent pipeline, so we clone that as the depth-disabled armor base.
+            //? if >= 26.3-0.snapshot.2 {
+            /*RenderPipelines.ENTITY_TRANSLUCENT,
+            *///?} else {
             RenderPipelines.ARMOR_TRANSLUCENT,
+            //?}
             Identifier.fromNamespaceAndPath("armor_hider", "pipeline/armor_translucent_no_depth"));
 
     private static final RenderPipeline ENTITY_TRANSLUCENT_NO_DEPTH = clonePipelineNoDepthWrite(
@@ -275,6 +281,9 @@ public final class ArmorHiderRenderTypes {
             "armor_hider_item_translucent_cull_no_depth",
             RenderSetup.builder(ITEM_ENTITY_TRANSLUCENT_CULL_NO_DEPTH)
                     .withTexture("Sampler0", net.minecraft.client.renderer.texture.TextureAtlas.LOCATION_BLOCKS)
+                    // 26.3 removed RenderSetupBuilder.setOutputTarget (and OutputTarget.ITEM_ENTITY_TARGET);
+                    // item entities now draw to the default target, so the call is simply dropped.
+                    //? if < 26.3-0.snapshot.2
                     .setOutputTarget(OutputTarget.ITEM_ENTITY_TARGET)
                     .useLightmap()
                     .useOverlay()
@@ -334,7 +343,16 @@ public final class ArmorHiderRenderTypes {
     }
 
     public static RenderType translucentArmorTrim() {
+        // 26.3 removed the single Sheets.ARMOR_TRIMS_SHEET atlas — trims are now per-material
+        // paletted textures (EquipmentLayerRenderer.TrimTextureKey / PalettedTextureManager).
+        // This translucent-trim path is dormant on 26.3 (the trim-interception mixins target the
+        // now-removed Sheets.armorTrimsSheet and no-op), so we return a valid translucent item
+        // sheet as a compile-safe placeholder pending a paletted-trim redesign.
+        //? if >= 26.3-0.snapshot.2 {
+        /*return translucentItemSheet();
+        *///?} else {
         return translucentArmor(Sheets.ARMOR_TRIMS_SHEET);
+        //?}
     }
 
     public static RenderType translucentItemSheet() {

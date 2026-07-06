@@ -28,6 +28,9 @@ import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Shadow;
 //?}
 
+//? if >= 26.3-0.snapshot.2
+//import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+
 @SuppressWarnings({"unused", "UnusedMixin"})
 @Mixin(SubmitNodeCollection.class)
 public class SubmitNodeCollectorMixin {
@@ -161,6 +164,18 @@ public class SubmitNodeCollectorMixin {
         int modifiedColor = modApi.colors().scaleAlpha(modelSubmit.tintedColor(), alpha);
 
         RenderType translucentType = modelSubmit.renderType();
+        // 26.3: Submit stores a UvMapping instead of a TextureAtlasSprite; narrow to recover the atlas.
+        //? if >= 26.3-0.snapshot.2 {
+        /*if (modelSubmit.uvMapping() instanceof TextureAtlasSprite sprite) {
+            translucentType = modApi.renderTypes().getTranslucentEntityRenderType(sprite.atlasLocation());
+        }
+
+        var modified = new ModelFeatureRenderer.Submit(
+                translucentType, modelSubmit.pose(), modelSubmit.model(), modelSubmit.state(),
+                modelSubmit.lightCoords(), modelSubmit.overlayCoords(), modifiedColor,
+                modelSubmit.uvMapping(), modelSubmit.sheetedDecalPose()
+        );
+        *///?} else {
         if (modelSubmit.sprite() != null) {
             translucentType = modApi.renderTypes().getTranslucentEntityRenderType(modelSubmit.sprite().atlasLocation());
         }
@@ -170,6 +185,7 @@ public class SubmitNodeCollectorMixin {
                 modelSubmit.lightCoords(), modelSubmit.overlayCoords(), modifiedColor,
                 modelSubmit.sprite(), modelSubmit.sheetedDecalPose()
         );
+        //?}
 
         original.call(phase, (TranslucentSubmit) modified);
     }

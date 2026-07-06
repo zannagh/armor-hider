@@ -92,6 +92,12 @@ display_version = "26.2"
 accesswidener.version = "current"
 game_versions = "26.2"
 
+["26.3-snapshot-2"]
+java.version = "25"
+display_version = "26.3-snap.2"
+accesswidener.version = "current"
+game_versions = "26.3-snapshot-2"
+
 # ──────────────────────────────────────────────────────────────────────────────
 # Per project — loader-specific properties.
 # Matched via the default project tag (e.g. "fabric-1.20.1").
@@ -297,6 +303,24 @@ fabricapi.version = "M8Kbv865"
 # of individual API modules off fabric maven (e.g. fabric-client-gametest-api-v1 for the
 # Phase 2 entity-render smoke test). Mirrors `fabricapi.version`'s Modrinth hash.
 fabricapi.semver = "0.153.0+26.2"
+
+["fabric-26.3-snapshot-2"]
+"fabric.minecraft_version" = "26.3-alpha.2"
+"fabric.minecraft_version_range" = ">=26.3-alpha.2"
+elytratrims.version = "tKGLQKLD"
+geckolib.version = "GdrAq4td"
+iris.version = "3uIIps8q"
+emf.version = "xQeW3qQB"
+etf.version = "HLCBKYFD"
+gender.version = "BGSsrIlj"
+loader_version = "0.19.3"
+waveycapes.version = "cp2elfPy"
+modmenu.version = "dTGuPZ91"
+fabricapi.version = "SjRlJFmW"
+# Upstream fabric-api version_number — needed for loom's `fabricApi.module(...)` resolution
+# of individual API modules off fabric maven (e.g. fabric-client-gametest-api-v1 for the
+# Phase 2 entity-render smoke test). Mirrors `fabricapi.version`'s Modrinth hash.
+fabricapi.semver = "0.154.0+26.3"
 
 # ── NeoForge ──────────────────────────────────────────────────────────────────
 
