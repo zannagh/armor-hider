@@ -37,7 +37,7 @@ public class ArmorHiderOffhandRenderer extends AbstractArmorHiderRenderer {
             setEmptyModification();
             return RenderInterceptionResult.ignore();
         }
-        ItemStack offhand = stack != null ? stack : carrier.getItemBySlot(slot);
+        ItemStack offhand = stack != null ? stack : carrier.armorHider$getItemBySlot(slot);
         if (offhand.isEmpty()) {
             resolveModification(carrier, slot, ItemStack.EMPTY);
             return RenderInterceptionResult.ignore();

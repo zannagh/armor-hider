@@ -34,7 +34,10 @@ public interface IdentityCarrier {
                 && mods.feet().shouldHide();
     }
 
-    @NonNull ItemStack getItemBySlot(EquipmentSlot slot);
+    // Uniquely namespaced: the name must NOT collide with the vanilla LivingEntity#getItemBySlot,
+    // otherwise in a remapped (production) environment Player has no method matching this interface
+    // signature and any interface-typed call throws AbstractMethodError.
+    @NonNull ItemStack armorHider$getItemBySlot(EquipmentSlot slot);
 
     /**
      * Creates a rendering modification for the given equipment slot and item without setting the render context.

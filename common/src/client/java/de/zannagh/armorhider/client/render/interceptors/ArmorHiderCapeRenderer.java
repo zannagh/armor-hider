@@ -31,7 +31,7 @@ public class ArmorHiderCapeRenderer extends AbstractArmorHiderRenderer {
             setEmptyModification();
             return RenderInterceptionResult.ignore();
         }
-        ItemStack chest = stack != null ? stack : carrier.getItemBySlot(EquipmentSlot.CHEST);
+        ItemStack chest = stack != null ? stack : carrier.armorHider$getItemBySlot(EquipmentSlot.CHEST);
         var mod = resolveModification(carrier, EquipmentSlot.CHEST, chest);
         if (mod.isEmpty()) {
             return RenderInterceptionResult.ignore();

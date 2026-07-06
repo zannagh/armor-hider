@@ -47,7 +47,7 @@ public class EquippableInformation {
                 return;
             }
             if (slot != null && stack == null) {
-                this.stack = identityCarrier.getItemBySlot(slot);
+                this.stack = identityCarrier.armorHider$getItemBySlot(slot);
                 this.slot = slot;
                 this.itemInfo = new ItemInfo(this.stack);
                 isValid = true;

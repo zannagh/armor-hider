@@ -110,6 +110,11 @@ public abstract class PlayerMixin
     }
 
     @Override
+    public ItemStack armorHider$getItemBySlot(EquipmentSlot slot) {
+        return ((Player) (Object) this).getItemBySlot(slot);
+    }
+
+    @Override
     public @Nullable ItemStack customHeadItem() {
         Player player = (Player) (Object) this;
         ItemStack head = player.getItemBySlot(EquipmentSlot.HEAD);

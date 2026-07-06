@@ -27,7 +27,7 @@ public final class FantasyArmorCompat {
             return;
         }
 
-        if (SlotModification.isSlotModified(name, EquipmentSlot.CHEST, carrier.getItemBySlot(EquipmentSlot.CHEST))) {
+        if (SlotModification.isSlotModified(name, EquipmentSlot.CHEST, carrier.armorHider$getItemBySlot(EquipmentSlot.CHEST))) {
             //? if >= 1.21.4
             var model = ((LivingEntityRenderer<?, ?, ?>) (Object) playerModel).getModel();
             //? if < 1.21.4
@@ -56,7 +56,7 @@ public final class FantasyArmorCompat {
         if (!(state instanceof IdentityCarrier carrier)) {
             return;
         }
-        var mod = SlotModification.of(carrier.armorHider$playerName(), EquipmentSlot.CHEST, carrier.getItemBySlot(EquipmentSlot.CHEST));
+        var mod = SlotModification.of(carrier.armorHider$playerName(), EquipmentSlot.CHEST, carrier.armorHider$getItemBySlot(EquipmentSlot.CHEST));
         if (!mod.needsModification()) {
             return;
         }

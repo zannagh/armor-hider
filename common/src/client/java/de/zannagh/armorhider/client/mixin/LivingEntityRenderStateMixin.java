@@ -78,8 +78,8 @@ public class LivingEntityRenderStateMixin implements IdentityStateCarrier {
     }
 
     @Override
-    public @NonNull ItemStack getItemBySlot(EquipmentSlot slot) {
-        return armorHider$carrier == null ? ItemStack.EMPTY : armorHider$carrier.getItemBySlot(slot);
+    public @NonNull ItemStack armorHider$getItemBySlot(EquipmentSlot slot) {
+        return armorHider$carrier == null ? ItemStack.EMPTY : armorHider$carrier.armorHider$getItemBySlot(slot);
     }
 
 }

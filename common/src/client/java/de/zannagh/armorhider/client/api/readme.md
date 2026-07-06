@@ -37,7 +37,7 @@ public class MyCapeRenderer extends AbstractArmorHiderRenderer {
     @Override public RenderScope getTargetScope() { return RenderScope.CAPE; }
     @Override public RenderInterceptionResult interceptFrom(IdentityCarrier carrier, CallbackInfo ci) {
         // ... compute the modification you want; call super for the standard path
-        return standardIntercept(carrier, EquipmentSlot.CHEST, carrier.getItemBySlot(EquipmentSlot.CHEST), ci);
+        return standardIntercept(carrier, EquipmentSlot.CHEST, carrier.armorHider$getItemBySlot(EquipmentSlot.CHEST), ci);
     }
 }
 
