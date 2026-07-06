@@ -24,6 +24,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -110,6 +111,7 @@ public abstract class PlayerMixin
     }
 
     @Override
+    @NonNull
     public ItemStack armorHider$getItemBySlot(EquipmentSlot slot) {
         return ((Player) (Object) this).getItemBySlot(slot);
     }
