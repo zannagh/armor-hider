@@ -156,24 +156,24 @@ public class ItemRenderStateMixin {
         RenderType current = info.itemRenderType();
         if (current == Sheets.cutoutBlockItemSheet()) {
             //? if >= 26.3-0.snapshot.2 {
-            /*return new BakedQuad.MaterialInfo(info.sprite(), info.layer(), Sheets.translucentBlockItemSheet(), info.itemGlintRenderType(), info.itemGlintSpecialRenderType(), tintIndex, info.shade(), info.lightEmission());
-            *///?} else {
-            return new BakedQuad.MaterialInfo(info.sprite(), info.layer(), Sheets.translucentBlockItemSheet(), tintIndex, info.shade(), info.lightEmission());
-            //?}
+            return new BakedQuad.MaterialInfo(info.sprite(), info.layer(), Sheets.translucentBlockItemSheet(), info.itemGlintRenderType(), info.itemGlintSpecialRenderType(), tintIndex, info.shade(), info.lightEmission());
+            //?} else {
+            /*return new BakedQuad.MaterialInfo(info.sprite(), info.layer(), Sheets.translucentBlockItemSheet(), tintIndex, info.shade(), info.lightEmission());
+            *///?}
         }
         if (current == Sheets.cutoutItemSheet()) {
             //? if >= 26.3-0.snapshot.2 {
-            /*return new BakedQuad.MaterialInfo(info.sprite(), info.layer(), Sheets.translucentItemSheet(), info.itemGlintRenderType(), info.itemGlintSpecialRenderType(), tintIndex, info.shade(), info.lightEmission());
-            *///?} else {
-            return new BakedQuad.MaterialInfo(info.sprite(), info.layer(), Sheets.translucentItemSheet(), tintIndex, info.shade(), info.lightEmission());
-            //?}
+            return new BakedQuad.MaterialInfo(info.sprite(), info.layer(), Sheets.translucentItemSheet(), info.itemGlintRenderType(), info.itemGlintSpecialRenderType(), tintIndex, info.shade(), info.lightEmission());
+            //?} else {
+            /*return new BakedQuad.MaterialInfo(info.sprite(), info.layer(), Sheets.translucentItemSheet(), tintIndex, info.shade(), info.lightEmission());
+            *///?}
         }
         if (tintIndex != info.tintIndex()) {
             //? if >= 26.3-0.snapshot.2 {
-            /*return new BakedQuad.MaterialInfo(info.sprite(), info.layer(), current, info.itemGlintRenderType(), info.itemGlintSpecialRenderType(), tintIndex, info.shade(), info.lightEmission());
-            *///?} else {
-            return new BakedQuad.MaterialInfo(info.sprite(), info.layer(), current, tintIndex, info.shade(), info.lightEmission());
-            //?}
+            return new BakedQuad.MaterialInfo(info.sprite(), info.layer(), current, info.itemGlintRenderType(), info.itemGlintSpecialRenderType(), tintIndex, info.shade(), info.lightEmission());
+            //?} else {
+            /*return new BakedQuad.MaterialInfo(info.sprite(), info.layer(), current, tintIndex, info.shade(), info.lightEmission());
+            *///?}
         }
         return info;
     }
