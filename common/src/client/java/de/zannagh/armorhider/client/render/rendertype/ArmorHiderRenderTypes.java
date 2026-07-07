@@ -76,10 +76,10 @@ public final class ArmorHiderRenderTypes {
             // 26.3 removed RenderPipelines.ARMOR_TRANSLUCENT; armor now renders through the
             // entity translucent pipeline, so we clone that as the depth-disabled armor base.
             //? if >= 26.3-0.snapshot.2 {
-            RenderPipelines.ENTITY_TRANSLUCENT,
-            //?} else {
-            /*RenderPipelines.ARMOR_TRANSLUCENT,
-            *///?}
+            /*RenderPipelines.ENTITY_TRANSLUCENT,
+            *///?} else {
+            RenderPipelines.ARMOR_TRANSLUCENT,
+            //?}
             Identifier.fromNamespaceAndPath("armor_hider", "pipeline/armor_translucent_no_depth"));
 
     private static final RenderPipeline ENTITY_TRANSLUCENT_NO_DEPTH = clonePipelineNoDepthWrite(
@@ -192,8 +192,8 @@ public final class ArmorHiderRenderTypes {
                             // the whole model's alpha uniformly, that opaque copy just renders it fully
                             // opaque. OIT-only (no opaque parts) fades the entire piece.
                             //? if >= 26.3-0.snapshot.2 {
-                            .setOitPipelines(RenderPipelines.OIT_ENTITY)
-                            //?}
+                            /*.setOitPipelines(RenderPipelines.OIT_ENTITY)
+                            *///?}
                             .withTexture("Sampler0", texture)
                             .useLightmap()
                             .useOverlay()
@@ -208,8 +208,8 @@ public final class ArmorHiderRenderTypes {
             texture -> RenderType.create("armor_hider_entity_translucent_no_depth",
                     RenderSetup.builder(ENTITY_TRANSLUCENT_NO_DEPTH)
                             //? if >= 26.3-0.snapshot.2 {
-                            .setOitPipelines(RenderPipelines.OIT_ENTITY)
-                            //?}
+                            /*.setOitPipelines(RenderPipelines.OIT_ENTITY)
+                            *///?}
                             .withTexture("Sampler0", texture)
                             .useLightmap()
                             .useOverlay()
@@ -293,13 +293,13 @@ public final class ArmorHiderRenderTypes {
             "armor_hider_item_translucent_cull_no_depth",
             RenderSetup.builder(ITEM_ENTITY_TRANSLUCENT_CULL_NO_DEPTH)
                     //? if >= 26.3-0.snapshot.2 {
-                    .setOitPipelines(RenderPipelines.OIT_ITEM)
-                    //?}
+                    /*.setOitPipelines(RenderPipelines.OIT_ITEM)
+                    *///?}
                     .withTexture("Sampler0", net.minecraft.client.renderer.texture.TextureAtlas.LOCATION_BLOCKS)
                     // 26.3 removed RenderSetupBuilder.setOutputTarget (and OutputTarget.ITEM_ENTITY_TARGET);
                     // item entities now draw to the default target, so the call is simply dropped.
                     //? if < 26.3-0.snapshot.2
-                    //.setOutputTarget(OutputTarget.ITEM_ENTITY_TARGET)
+                    .setOutputTarget(OutputTarget.ITEM_ENTITY_TARGET)
                     .useLightmap()
                     .useOverlay()
                     .affectsCrumbling()
@@ -364,10 +364,10 @@ public final class ArmorHiderRenderTypes {
         // now-removed Sheets.armorTrimsSheet and no-op), so we return a valid translucent item
         // sheet as a compile-safe placeholder pending a paletted-trim redesign.
         //? if >= 26.3-0.snapshot.2 {
-        return translucentItemSheet();
-        //?} else {
-        /*return translucentArmor(Sheets.ARMOR_TRIMS_SHEET);
-        *///?}
+        /*return translucentItemSheet();
+        *///?} else {
+        return translucentArmor(Sheets.ARMOR_TRIMS_SHEET);
+        //?}
     }
 
     public static RenderType translucentItemSheet() {

@@ -36,9 +36,9 @@ public class RenderTypeFactory implements AhRenderTypeFactory {
     public RenderType getTranslucentArmorRenderType(Identifier texture) {
         if (isEmpty) {
             //? if >= 26.3-0.snapshot.2
-            return RenderTypes.entityTranslucent(texture);
+            //return RenderTypes.entityTranslucent(texture);
             //? if > 1.21.10 && < 26.3-0.snapshot.2
-            //return RenderTypes.armorTranslucent(texture);
+            return RenderTypes.armorTranslucent(texture);
             //? if <= 1.21.10 && > 1.21.1
             //return RenderType.armorTranslucent(texture);
             //? if <= 1.21.1
@@ -60,9 +60,9 @@ public class RenderTypeFactory implements AhRenderTypeFactory {
     public RenderType getTranslucentArmorTrimRenderType(boolean decal) {
         if (isEmpty) {
             //? if >= 26.3-0.snapshot.2
-            return Sheets.translucentItemSheet();
+            //return Sheets.translucentItemSheet();
             //? if > 1.20.1 && < 26.3-0.snapshot.2
-            //return Sheets.armorTrimsSheet(decal);
+            return Sheets.armorTrimsSheet(decal);
             //? if <= 1.20.1
             //return Sheets.armorTrimsSheet();
         }

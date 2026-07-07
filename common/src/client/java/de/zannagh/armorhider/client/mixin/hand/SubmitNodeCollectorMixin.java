@@ -30,7 +30,7 @@ import org.spongepowered.asm.mixin.Shadow;
 //?}
 
 //? if >= 26.3-0.snapshot.2
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+//import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 
 @SuppressWarnings({"unused", "UnusedMixin"})
 @Mixin(SubmitNodeCollection.class)
@@ -158,7 +158,7 @@ public class SubmitNodeCollectorMixin {
     // PreparedRenderType.drawFromBufferOit with no OIT pipelines and hard-crashes. Target the
     // interface invoke instead so the swap runs on 26.3.
     //? if >= 26.3-0.snapshot.2 {
-    @WrapOperation(
+    /*@WrapOperation(
             method = "submitModel",
             at = @At(
                     value = "INVOKE",
@@ -195,8 +195,8 @@ public class SubmitNodeCollectorMixin {
 
         original.call(phase, (SubmitNode) modified);
     }
-    //?} else {
-    /*@WrapOperation(
+    *///?} else {
+    @WrapOperation(
             method = "submitModel",
             at = @At(
                     value = "INVOKE",
@@ -232,7 +232,7 @@ public class SubmitNodeCollectorMixin {
 
         original.call(phase, (TranslucentSubmit) modified);
     }
-    *///?}
+    //?}
 
     // Only rebuild the offhand submit as translucent when it is genuinely being faded. At full
     // opacity forcing the OIT/translucent route makes the item invisible (OIT weight = 1 - alpha).
