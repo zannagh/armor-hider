@@ -35,7 +35,9 @@ public abstract class SkullBlockRenderMixin {
 
     @Unique
     private static final String RENDER_TARGET =
-            //? if >= 1.21.9 {
+            //? if >= 26.3-0.snapshot.2 {
+            /*"Lnet/minecraft/client/renderer/SubmitNodeCollector;submitModel(Lnet/minecraft/client/model/Model;Ljava/lang/Object;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/rendertype/RenderType;III)V";
+            *///? } elif >= 1.21.9 {
             "Lnet/minecraft/client/renderer/SubmitNodeCollector;submitModel(Lnet/minecraft/client/model/Model;Ljava/lang/Object;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/rendertype/RenderType;IIILnet/minecraft/client/renderer/feature/ModelFeatureRenderer$CrumblingOverlay;)V";
             //? } elif >= 1.21 {
             /*"Lnet/minecraft/client/model/SkullModelBase;renderToBuffer(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;II)V";*/
@@ -47,7 +49,9 @@ public abstract class SkullBlockRenderMixin {
             method = RENDER_ENTRY,
             at = @At(value = "INVOKE", target = RENDER_TARGET)
     )
-    //? if >= 1.21.9 {
+    //? if >= 26.3-0.snapshot.2 {
+    /*private static <S> void modifyTransparency(SubmitNodeCollector instance, Model<? super S> model, S o, PoseStack poseStack, RenderType renderType, int i, int j, int k, Operation<Void> original) {
+    *///? } elif >= 1.21.9 {
     private static <S> void modifyTransparency(SubmitNodeCollector instance, Model<? super S> model, S o, PoseStack poseStack, RenderType renderType, int i, int j, int k, ModelFeatureRenderer.CrumblingOverlay crumblingOverlay, Operation<Void> original) {
     //? } elif >= 1.21 {
     /*private static void modifyTransparency(SkullModelBase instance, PoseStack poseStack, VertexConsumer vertexConsumer, int light, int overlay, Operation<Void> original) {*/
@@ -63,7 +67,9 @@ public abstract class SkullBlockRenderMixin {
         // applyTransparencyFromWhite with the no-modification fallback color invisibly returns
         // 255 (= ARGB 0x000000FF, alpha 0), which would render the skull as transparent black.
         if (!headCtx.needsModification()) {
-            //? if >= 1.21.9 {
+            //? if >= 26.3-0.snapshot.2 {
+            /*original.call(instance, model, o, poseStack, renderType, i, j, k);
+            *///? } elif >= 1.21.9 {
             original.call(instance, model, o, poseStack, renderType, i, j, k, crumblingOverlay);
             //? } elif >= 1.21 {
             /*original.call(instance, poseStack, vertexConsumer, light, overlay);*/
@@ -72,7 +78,15 @@ public abstract class SkullBlockRenderMixin {
             //? }
             return;
         }
-        //? if >= 1.21.9 {
+        //? if >= 26.3-0.snapshot.2 {
+        /*// The wrapped 7-arg submitModel(...,int,int,int) hardcodes the model color to -1 (opaque)
+        // and maps its 3rd int to OUTLINE COLOR, not model color (verified in the 26.3 default impl).
+        // Passing the transparency color there painted a selection-style outline and left the skull
+        // fully opaque. Call the 9-arg form directly so the alpha-reduced color lands in the real
+        // color slot; the original 3rd int (i, j, k = light, overlay, outlineColor) is preserved.
+        var modifiedColor = headCtx.renderModificationApi().applyTransparencyFromWhite(0xFFFFFFFF);
+        instance.order(RenderModifications.SKULL_RENDER_PRIORITY).submitModel(model, o, poseStack, renderType, i, j, modifiedColor, null, k);
+        *///? } elif >= 1.21.9 {
         var modifiedColor = headCtx.renderModificationApi().applyTransparencyFromWhite(0xFFFFFFFF);
         instance.order(RenderModifications.SKULL_RENDER_PRIORITY).submitModel(model, o, poseStack, renderType, i, j, modifiedColor, null, k, crumblingOverlay);
         //? } elif >= 1.21 {

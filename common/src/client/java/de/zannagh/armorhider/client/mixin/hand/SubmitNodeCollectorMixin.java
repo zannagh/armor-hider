@@ -20,6 +20,7 @@ import net.minecraft.client.renderer.rendertype.RenderType;
 
 //? if >= 26.2-1.pre {
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+import net.minecraft.client.renderer.feature.phase.FeatureRenderPhase;
 import net.minecraft.client.renderer.feature.phase.SimpleFeatureRenderPhase;
 import net.minecraft.client.renderer.feature.phase.TranslucentFeatureRenderPhase;
 import net.minecraft.client.renderer.feature.submit.SubmitNode;
@@ -27,6 +28,9 @@ import net.minecraft.client.renderer.feature.submit.TranslucentSubmit;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Shadow;
 //?}
+
+//? if >= 26.3-0.snapshot.2
+//import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 
 @SuppressWarnings({"unused", "UnusedMixin"})
 @Mixin(SubmitNodeCollection.class)
@@ -134,9 +138,63 @@ public class SubmitNodeCollectorMixin {
         // OFFHAND only — HEAD scope can be open while CustomHeadLayer's bracket is active and
         // would erroneously force unrelated opaque models (e.g. ElytraTrims trim layers) onto
         // the translucent path with helmet-opacity alpha applied.
-        return !AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND).isEmpty();
+        var ctx = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
+        if (ctx.isEmpty()) {
+            return false;
+        }
+        // Only force the translucent/OIT route when the item is actually being faded. At full
+        // opacity (>=1.0) forcing the OIT route makes the item vanish — OIT weight is (1 - alpha),
+        // so alpha 1.0 contributes nothing and there is no opaque copy. Leave it on the normal path.
+        return armorHider$isFading(ctx.modification().transparency());
     }
 
+    // 26.3 retyped SubmitNodeCollection.translucentModels from the concrete
+    // TranslucentFeatureRenderPhase to the FeatureRenderPhase interface, so submitModel now emits
+    // `invokeinterface FeatureRenderPhase.submit(SubmitNode)`. Targeting the old concrete
+    // TranslucentFeatureRenderPhase.submit silently misses (the render type is never swapped to a
+    // translucent one). Under "Improved Transparency" the translucentModels phase IS the OIT phase,
+    // so a forced-but-unswapped opaque offhand item (e.g. a shield's entity_solid) reaches
+    // PreparedRenderType.drawFromBufferOit with no OIT pipelines and hard-crashes. Target the
+    // interface invoke instead so the swap runs on 26.3.
+    //? if >= 26.3-0.snapshot.2 {
+    /*@WrapOperation(
+            method = "submitModel",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/renderer/feature/phase/FeatureRenderPhase;submit(Lnet/minecraft/client/renderer/feature/submit/SubmitNode;)V"
+            )
+    )
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private void wrapModelSubmit(FeatureRenderPhase phase, SubmitNode submit, Operation<Void> original) {
+        if (!(submit instanceof ModelFeatureRenderer.Submit<?> modelSubmit)) {
+            original.call(phase, submit);
+            return;
+        }
+        // OFFHAND only — see comment on forceTranslucentRoute.
+        var activeCtx = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
+        if (activeCtx.isEmpty() || !armorHider$isFading(activeCtx.modification().transparency())) {
+            original.call(phase, submit);
+            return;
+        }
+        var modApi = activeCtx.renderModificationApi();
+        float alpha = modApi.getTransparencyAlpha();
+        int modifiedColor = modApi.colors().scaleAlpha(modelSubmit.tintedColor(), alpha);
+
+        RenderType translucentType = modelSubmit.renderType();
+        // 26.3: Submit stores a UvMapping instead of a TextureAtlasSprite; narrow to recover the atlas.
+        if (modelSubmit.uvMapping() instanceof TextureAtlasSprite sprite) {
+            translucentType = modApi.renderTypes().getTranslucentEntityRenderType(sprite.atlasLocation());
+        }
+
+        var modified = new ModelFeatureRenderer.Submit(
+                translucentType, modelSubmit.pose(), modelSubmit.model(), modelSubmit.state(),
+                modelSubmit.lightCoords(), modelSubmit.overlayCoords(), modifiedColor,
+                modelSubmit.uvMapping(), modelSubmit.sheetedDecalPose()
+        );
+
+        original.call(phase, (SubmitNode) modified);
+    }
+    *///?} else {
     @WrapOperation(
             method = "submitModel",
             at = @At(
@@ -152,7 +210,7 @@ public class SubmitNodeCollectorMixin {
         }
         // OFFHAND only — see comment on forceTranslucentRoute.
         var activeCtx = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
-        if (activeCtx.isEmpty()) {
+        if (activeCtx.isEmpty() || !armorHider$isFading(activeCtx.modification().transparency())) {
             original.call(phase, submit);
             return;
         }
@@ -172,6 +230,14 @@ public class SubmitNodeCollectorMixin {
         );
 
         original.call(phase, (TranslucentSubmit) modified);
+    }
+    //?}
+
+    // Only rebuild the offhand submit as translucent when it is genuinely being faded. At full
+    // opacity forcing the OIT/translucent route makes the item invisible (OIT weight = 1 - alpha).
+    @Unique
+    private static boolean armorHider$isFading(double transparency) {
+        return transparency > 0.0 && transparency < 1.0;
     }
     //?}
 }
