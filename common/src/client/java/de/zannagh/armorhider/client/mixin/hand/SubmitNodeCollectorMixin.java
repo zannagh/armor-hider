@@ -145,8 +145,7 @@ public class SubmitNodeCollectorMixin {
         // Only force the translucent/OIT route when the item is actually being faded. At full
         // opacity (>=1.0) forcing the OIT route makes the item vanish — OIT weight is (1 - alpha),
         // so alpha 1.0 contributes nothing and there is no opaque copy. Leave it on the normal path.
-        double transparency = ctx.modification().transparency();
-        return transparency > 0.0 && transparency < 1.0;
+        return armorHider$isFading(ctx.modification().transparency());
     }
 
     // 26.3 retyped SubmitNodeCollection.translucentModels from the concrete

@@ -306,7 +306,7 @@ fabricapi.semver = "0.153.0+26.2"
 
 ["fabric-26.3-snapshot-2"]
 "fabric.minecraft_version" = "26.3-alpha.2"
-"fabric.minecraft_version_range" = ">=26.3-alpha.2"
+"fabric.minecraft_version_range" = ">=26.3-alpha.2 <=26.3-alpha.2"
 elytratrims.version = "tKGLQKLD"
 geckolib.version = "GdrAq4td"
 iris.version = "3uIIps8q"
