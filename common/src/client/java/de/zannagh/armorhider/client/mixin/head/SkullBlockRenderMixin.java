@@ -63,9 +63,9 @@ public abstract class SkullBlockRenderMixin {
             return;
         }
         // Short-circuit on !needsModification, not just isEmpty: the scope is non-empty whenever
-        // a slot modification is in effect (even for full opacity), and falling through to
-        // applyTransparencyFromWhite with the no-modification fallback color invisibly returns
-        // 255 (= ARGB 0x000000FF, alpha 0), which would render the skull as transparent black.
+        // a slot modification is in effect (even for full opacity). When nothing needs to change
+        // we want the exact vanilla call — not the rebuilt submit with a priority reorder below —
+        // so full-opacity skulls keep their original render path untouched.
         if (!headCtx.needsModification()) {
             //? if >= 26.3-0.snapshot.2 {
             /*original.call(instance, model, o, poseStack, renderType, i, j, k);
@@ -84,13 +84,13 @@ public abstract class SkullBlockRenderMixin {
         // Passing the transparency color there painted a selection-style outline and left the skull
         // fully opaque. Call the 9-arg form directly so the alpha-reduced color lands in the real
         // color slot; the original 3rd int (i, j, k = light, overlay, outlineColor) is preserved.
-        var modifiedColor = headCtx.renderModificationApi().applyTransparencyFromWhite(0xFFFFFFFF);
+        var modifiedColor = headCtx.renderModificationApi().applyTransparencyFromWhite();
         instance.order(RenderModifications.SKULL_RENDER_PRIORITY).submitModel(model, o, poseStack, renderType, i, j, modifiedColor, null, k);
         *///? } elif >= 1.21.9 {
-        var modifiedColor = headCtx.renderModificationApi().applyTransparencyFromWhite(0xFFFFFFFF);
+        var modifiedColor = headCtx.renderModificationApi().applyTransparencyFromWhite();
         instance.order(RenderModifications.SKULL_RENDER_PRIORITY).submitModel(model, o, poseStack, renderType, i, j, modifiedColor, null, k, crumblingOverlay);
         //? } elif >= 1.21 {
-        /*int modifiedColor = headCtx.renderModificationApi().applyTransparencyFromWhite(0xFFFFFFFF);
+        /*int modifiedColor = headCtx.renderModificationApi().applyTransparencyFromWhite();
         instance.renderToBuffer(poseStack, vertexConsumer, light, overlay, modifiedColor);*/
         //? } else {
         /*float newAlpha = headCtx.renderModificationApi().getTransparencyAlpha();

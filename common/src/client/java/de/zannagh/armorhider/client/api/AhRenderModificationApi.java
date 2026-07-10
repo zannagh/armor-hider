@@ -107,11 +107,12 @@ public interface AhRenderModificationApi {
     int applyArmorTransparency(int originalColor);
 
     /**
-     * Produce a translucent white color (alpha scaled by the active transparency) from a packed
-     * overlay value. Used by render layers that drive their color from {@code packedOverlay} —
-     * the original value is returned when no modification is active.
+     * Produce a translucent white color (opaque white with its alpha scaled by the active
+     * transparency). Used by render layers whose vanilla color is white (e.g. armor trims,
+     * skulls). Returns opaque white ({@code 0xFFFFFFFF}) when no modification is active, so
+     * callers never have to supply — or accidentally mis-supply — a fallback color.
      */
-    int applyTransparencyFromWhite(int original);
+    int applyTransparencyFromWhite();
 
     /**
      * @return the active transparency as an alpha factor in {@code [0.0, 1.0]}, or {@code 1.0} when

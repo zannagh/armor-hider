@@ -87,9 +87,14 @@ public class RenderModifications implements AhRenderModificationApi {
         return colors().applyTransparency(originalColor, (float) slotModification.transparency());
     }
 
-    public int applyTransparencyFromWhite(int original) {
+    public int applyTransparencyFromWhite() {
         if (slotModification.isEmpty() || !slotModification.needsModification()) {
-            return original;
+            // Opaque white is the no-op tint for a white-based render (vanilla renders these
+            // pieces with color -1). Returning a caller-supplied fallback here is a footgun:
+            // passing anything else (e.g. packedOverlay) tints the piece invisible when the
+            // modification is inert. Keeping the fallback in one place is what lets both
+            // loaders' mixins call this identically without drifting.
+            return 0xFFFFFFFF;
         }
         return colors().whiteWithTransparency((float) slotModification.transparency());
     }

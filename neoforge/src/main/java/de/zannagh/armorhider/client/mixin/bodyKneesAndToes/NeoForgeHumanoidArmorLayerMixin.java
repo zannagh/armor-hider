@@ -134,7 +134,7 @@ public class NeoForgeHumanoidArmorLayerMixin<T extends LivingEntity, M extends H
             require = 0
     )
     private void modifyTrimColor(Model model, PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, Operation<Void> original) {
-        int modifiedColor = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE).renderModificationApi().applyTransparencyFromWhite(packedOverlay);
+        int modifiedColor = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE).renderModificationApi().applyTransparencyFromWhite();
         model.renderToBuffer(poseStack, vertexConsumer, packedLight, packedOverlay, modifiedColor);
     }
 }

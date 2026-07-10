@@ -172,7 +172,7 @@ public class HumanoidArmorLayerMixin
     private void modifyTrimColor(A model, PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, Operation<Void> original) {
         var ctx = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE);
         if (ctx.isEmpty()) { original.call(model, poseStack, vertexConsumer, packedLight, packedOverlay); return; }
-        int modifiedColor = ctx.renderModificationApi().applyTransparencyFromWhite(0xFFFFFFFF);
+        int modifiedColor = ctx.renderModificationApi().applyTransparencyFromWhite();
         model.renderToBuffer(poseStack, vertexConsumer, packedLight, packedOverlay, modifiedColor);
     }
     *///?}
