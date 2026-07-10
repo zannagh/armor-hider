@@ -341,7 +341,7 @@ public class EquipmentRenderMixin {
             original.call(model, poseStack, vertexConsumer, packedLight, packedOverlay);
             return;
         }
-        int color = ctx.renderModificationApi().applyTransparencyFromWhite(0xFFFFFFFF);
+        int color = ctx.renderModificationApi().applyTransparencyFromWhite();
         model.renderToBuffer(poseStack, vertexConsumer, packedLight, packedOverlay, color);
     }
     *///?}
