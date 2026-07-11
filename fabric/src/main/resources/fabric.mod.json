@@ -43,7 +43,7 @@
     }
   ],
   "depends": {
-    "fabricloader": ">=0.15.0",
+    "fabricloader": ">=${fabricloader_min}",
     "minecraft": "${fabric_minecraft_version}",
     "java": ">=${java_version}"
   },
