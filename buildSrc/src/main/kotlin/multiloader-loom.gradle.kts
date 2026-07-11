@@ -233,11 +233,22 @@ if (branch == "fabric") {
     else
         "[]"
 
+    // The declared fabricloader floor must track the access-widener FORMAT, not the loader we
+    // build against: a classTweaker v1 header requires Fabric Loader >= 0.18.0, while the older
+    // accessWidener v2 format is understood since >= 0.15.0. Deriving it from the file (rather
+    // than hardcoding it in fabric.mod.json) keeps the floor honest if a bucket's format changes,
+    // so a user on a too-old loader gets a clean "update Fabric Loader" dependency error instead
+    // of a hard, unhandled accessWidener parse crash during Knot.init.
+    val awFloorVersion = findProperty("accesswidener.version")?.toString() ?: "current"
+    val awFloorSource = rootProject.file("common/accesswideners/armorhider.$awFloorVersion.accesswideners")
+    val fabricLoaderMin = if (awFloorSource.readText().trimStart().startsWith("classTweaker")) "0.18.0" else "0.15.0"
+
     val expandProps = mapOf(
         "version" to project.version,
         "java_version" to (findProperty("java.version")?.toString() ?: error("No Java version")),
         "fabric_minecraft_version" to (findProperty("fabric.minecraft_version_range")?.toString() ?: error("No Fabric version range")),
         "accesswidener" to (findProperty("accesswidener.version")?.toString() ?: "current"),
+        "fabricloader_min" to fabricLoaderMin,
         "fcgt_entries" to fcgtEntries
     )
 

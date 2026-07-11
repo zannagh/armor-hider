@@ -1,4 +1,4 @@
-classTweaker v1 named
+accessWidener v2 named
 # Access wideners for game versions 1.21.5 - 1.21.10
 accessible class net/minecraft/client/renderer/RenderType$CompositeState
 accessible method net/minecraft/client/renderer/RenderType create (Ljava/lang/String;IZZLcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/client/renderer/RenderType$CompositeState;)Lnet/minecraft/client/renderer/RenderType$CompositeRenderType;
