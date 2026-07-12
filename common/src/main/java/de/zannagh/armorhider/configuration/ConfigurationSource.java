@@ -13,7 +13,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
  *
  * @since 0.5.0
  */
-public interface ConfigurationSource<T>
+public interface ConfigurationSource<T extends ConfigurationSource<T>>
     //? if >= 1.20.5
     extends CustomPacketPayload
 {
@@ -65,12 +65,19 @@ public interface ConfigurationSource<T>
 
     T migrateFrom(T old);
 
+    /**
+     * Returns {@code old} migrated to the current schema, or {@code old} unchanged when it is already current.
+     * The decision and the changed-flag are driven by {@code old} itself (not the receiver), so the result is
+     * independent of which instance this default method is dispatched on — the intended call is
+     * {@code x.ensureSchemaFrom(x)}. When a migration produces a new instance, the changed-flag is set on that
+     * returned instance rather than on {@code old}.
+     */
     default T ensureSchemaFrom(T old) {
-        if (!shouldMigrate()) {
+        if (!old.shouldMigrate()) {
             return old;
         }
-        var migrated = migrateFrom(old);
-        setHasChangedFromSerializedContent();
+        T migrated = old.migrateFrom(old);
+        migrated.setHasChangedFromSerializedContent();
         return migrated;
     }
 }
