@@ -63,6 +63,23 @@ public class PlayerHeadBarWidget extends AbstractWidget {
     private static final int CELL_GAP = 4;
     private static final int FACE_INSET = 3;
 
+    // Scroll-affordance arrows shown at the bar edges when there is more content to scroll to. Both
+    // textures are 23x13 and are drawn at native size, vertically centered, overlaid on top of the cells.
+    private static final int ARROW_W = 23;
+    private static final int ARROW_H = 13;
+    private static final int ARROW_EDGE_PAD = 2;
+    private static final Identifier ARROW_BACK = sprite("textures/gui/sprites/arrow_back.png");
+    private static final Identifier ARROW_FORWARD = sprite("textures/gui/sprites/arrow_forward.png");
+
+    private static Identifier sprite(String path) {
+        //? if >= 1.21 {
+        return Identifier.fromNamespaceAndPath("armor-hider", path);
+        //?}
+        //? if < 1.21 {
+        /*return new Identifier("armor-hider", path);
+        *///?}
+    }
+
     private final List<Entry> entries;
     private final Consumer<Entry> onSelect;
     private int scrollOffset = 0;
@@ -177,7 +194,23 @@ public class PlayerHeadBarWidget extends AbstractWidget {
         }
         context.disableScissor();
 
+        // Scroll affordances: forward arrow on the right when more entries lie to the right, back arrow on
+        // the left when more lie to the left. Drawn on top of the (clipped) cells at the bar edges.
+        int arrowY = getY() + (this.height - ARROW_H) / 2;
+        if (scrollOffset > 0) {
+            drawArrow(context, ARROW_BACK, getX() + ARROW_EDGE_PAD, arrowY);
+        }
+        if (scrollOffset < maxScroll()) {
+            drawArrow(context, ARROW_FORWARD, getX() + this.width - ARROW_W - ARROW_EDGE_PAD, arrowY);
+        }
+
         setTooltip(hovered >= 0 ? Tooltip.create(Component.literal(entries.get(hovered).name)) : null);
+    }
+
+    private void drawArrow(net.minecraft.client.gui.GuiGraphicsExtractor context, Identifier arrow, int x, int y) {
+        // Subtle dark backdrop so the arrow stays legible over face icons behind it.
+        context.fill(x - 1, y - 1, x + ARROW_W + 1, y + ARROW_H + 1, 0x99000000);
+        drawTextureRegion(context, arrow, x, y, ARROW_W, ARROW_H, 0.0F, 0.0F, ARROW_W, ARROW_H, ARROW_W, ARROW_H);
     }
 
     private void drawBorder(net.minecraft.client.gui.GuiGraphicsExtractor context, int x, int y, int w, int h, int color) {
@@ -190,25 +223,25 @@ public class PlayerHeadBarWidget extends AbstractWidget {
     private void drawCell(net.minecraft.client.gui.GuiGraphicsExtractor context, Entry entry, int x, int y, int size) {
         if (entry.fullIcon()) {
             // Full 16x16 icon (e.g. the global-configuration icon), scaled into the cell.
-            drawTextureRegion(context, entry.texture(), x, y, size, 0.0F, 0.0F, 16, 16, 16, 16);
+            drawTextureRegion(context, entry.texture(), x, y, size, size, 0.0F, 0.0F, 16, 16, 16, 16);
         } else {
             // Face layer (skin UV 8,8) and hat overlay (skin UV 40,8), each an 8x8 region of the 64x64 skin.
-            drawTextureRegion(context, entry.texture(), x, y, size, 8.0F, 8.0F, 8, 8, 64, 64);
-            drawTextureRegion(context, entry.texture(), x, y, size, 40.0F, 8.0F, 8, 8, 64, 64);
+            drawTextureRegion(context, entry.texture(), x, y, size, size, 8.0F, 8.0F, 8, 8, 64, 64);
+            drawTextureRegion(context, entry.texture(), x, y, size, size, 40.0F, 8.0F, 8, 8, 64, 64);
         }
     }
 
-    /** Blits a texture region scaled into a size x size cell. The blit overload differs per rendering epoch. */
+    /** Blits a texture region scaled into a drawW x drawH rect. The blit overload differs per rendering epoch. */
     private void drawTextureRegion(net.minecraft.client.gui.GuiGraphicsExtractor context, Identifier texture,
-                                   int x, int y, int size, float u, float v, int regionW, int regionH, int texW, int texH) {
+                                   int x, int y, int drawW, int drawH, float u, float v, int regionW, int regionH, int texW, int texH) {
         //? if >= 1.21.6 {
-        context.blit(RenderPipelines.GUI_TEXTURED, texture, x, y, u, v, size, size, regionW, regionH, texW, texH);
+        context.blit(RenderPipelines.GUI_TEXTURED, texture, x, y, u, v, drawW, drawH, regionW, regionH, texW, texH);
         //?}
         //? if >= 1.21.4 && < 1.21.6 {
-        /*context.blit((t) -> net.minecraft.client.renderer.rendertype.RenderType.guiTextured(t), texture, x, y, u, v, size, size, regionW, regionH, texW, texH);
+        /*context.blit((t) -> net.minecraft.client.renderer.rendertype.RenderType.guiTextured(t), texture, x, y, u, v, drawW, drawH, regionW, regionH, texW, texH);
         *///?}
         //? if < 1.21.4 {
-        /*context.blit(texture, x, y, size, size, u, v, regionW, regionH, texW, texH);
+        /*context.blit(texture, x, y, drawW, drawH, u, v, regionW, regionH, texW, texH);
         *///?}
     }
 
