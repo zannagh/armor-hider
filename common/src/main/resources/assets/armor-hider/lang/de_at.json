@@ -78,7 +78,7 @@
   "armorhider.individual.global.all.tooltip": "Wende die globale Konfiguration unten auf JEDEN anderen Spieler an und überschreibe dessen eigene Einstellungen. Von dir festgelegte individuelle Spielerüberschreibungen haben weiterhin Vorrang, und das serverweite erzwungene Deaktivieren hat ebenfalls weiterhin Vorrang.",
   "armorhider.individual.global.others.gated": "Andere Spieler: Vanilla",
   "armorhider.individual.global.unknown.gated": "Unbekannt: Vanilla",
-  "armorhider.individual.global.all.gated": "Globale Konfig. für Andere: Aus",
+  "armorhider.individual.global.all.gated": "Globale Konfig. für Andere: AUS",
   "armorhider.individual.global.gated.forceoff": "Armor Hider wird vom Server erzwungen deaktiviert.",
   "armorhider.individual.global.gated.disallowed": "Der Server erlaubt keine individuellen Spielerkonfigurationen, daher haben diese Einstellungen hier keine Wirkung.",
   "armorhider.individual.global.gated.others_vanilla": "Du hast ausgewählt, alle anderen Spieler als Vanilla darzustellen. Setze „Andere“ auf „Anpassen“, um detailliertere Einstellungen zu aktivieren.",

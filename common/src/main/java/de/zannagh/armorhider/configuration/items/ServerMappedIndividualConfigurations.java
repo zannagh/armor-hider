@@ -30,19 +30,19 @@ public class ServerMappedIndividualConfigurations extends HashMapConfigItem<Indi
         return perServer == null ? null : perServer.getValue().get(playerName);
     }
 
-    public boolean hasOverride(String serverKey, String playerName) {
+    public boolean hasOverride(@Nullable String serverKey, String playerName) {
         IndividualConfigurations perServer = getValue().get(serverKey);
         return perServer != null && perServer.getValue().containsKey(playerName);
     }
 
     /** Stores (or replaces) the override for a player on a server, creating the per-server bucket as needed. */
-    public void putOverride(String serverKey, String playerName, PlayerConfig config) {
+    public void putOverride(@Nullable String serverKey, String playerName, PlayerConfig config) {
         getValue().computeIfAbsent(serverKey, key -> new IndividualConfigurations())
                 .getValue().put(playerName, config);
     }
 
     /** Removes the override for a player on a server, pruning the per-server bucket when it becomes empty. */
-    public void removeOverride(String serverKey, String playerName) {
+    public void removeOverride(@Nullable String serverKey, String playerName) {
         IndividualConfigurations perServer = getValue().get(serverKey);
         if (perServer == null) {
             return;

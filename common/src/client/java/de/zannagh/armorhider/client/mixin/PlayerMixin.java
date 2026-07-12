@@ -74,7 +74,7 @@ public abstract class PlayerMixin
 
     @Inject(method = "remove", at = @At("HEAD"))
     private void unregisterConfigListener(Entity.RemovalReason reason, CallbackInfo ci) {
-        if (armorHider$configListener != null) {
+        if (armorHider$configListener != null && ArmorHiderClient.CLIENT_CONFIG_MANAGER != null) {
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.removeConfigChangeListener(armorHider$configChangeListenerGuid);
             armorHider$configListener = null;
         }

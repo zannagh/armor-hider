@@ -59,7 +59,11 @@ public class AdvancedArmorHiderSettingsScreen extends ArmorHiderConfigurationScr
         allowIndividualConfigsDefaultSetting = serverConfig != null
                 ? serverConfig.serverWideSettings.allowIndividualPlayerConfigurations.getValue()
                 : getFallbackDefault(true);
+        // Seed every "new value" field to the current server default so that saving after changing only one
+        // setting doesn't reset the untouched ones (saveSettingsOnClose sends all four together).
         setAllowIndividualConfigs = allowIndividualConfigsDefaultSetting;
+        newServerCombatDetection = combatDetectionDefaultSetting;
+        setForceArmorHiderOff = forceServerOffDefaultSetting;
 
         var combatDetectionServerText = Component.translatable("armorhider.options.combat_detection_server.title");
         var forceArmorHiderOffText = Component.translatable("armorhider.options.force_armor_hider_off.title");

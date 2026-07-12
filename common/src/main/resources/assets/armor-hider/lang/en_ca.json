@@ -78,7 +78,7 @@
   "armorhider.individual.global.all.tooltip": "Apply the global configuration below to EVERY other player, overriding their own settings. Individual player overrides you set still take precedence, and the server-wide force-off still wins.",
   "armorhider.individual.global.others.gated": "Other Players: Vanilla",
   "armorhider.individual.global.unknown.gated": "Unknown: Vanilla",
-  "armorhider.individual.global.all.gated": "Use Global Config For Others: Off",
+  "armorhider.individual.global.all.gated": "Use Global Config For Others: OFF",
   "armorhider.individual.global.gated.forceoff": "Armor Hider is forced off by the server.",
   "armorhider.individual.global.gated.disallowed": "The server does not allow individual player configurations, so these settings have no effect here.",
   "armorhider.individual.global.gated.others_vanilla": "You've selected to vanilla-render all other players. Set 'Others' to 'Adjust' to enable more granular settings.",
