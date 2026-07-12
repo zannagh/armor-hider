@@ -434,9 +434,10 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
 
     /**
      * Returns a copy of this config suitable for transmission to the server. It carries every
-     * render-relevant setting but deliberately omits {@link #individualConfigurations}: a viewer's private
-     * per-player overrides are a purely client-side concern, so they must never be broadcast to the server
-     * or other players. ({@link #deepCopy} already leaves {@code individualConfigurations} empty.)
+     * render-relevant setting but deliberately omits all of the viewer's client-only "how I view others"
+     * state: {@link #individualConfigurations}, the {@link #useGlobalOverrideForAllPlayers} flag and the
+     * {@link #globalPlayerOverride}. Those are a purely client-side concern and must never be broadcast to
+     * the server or other players. ({@link #deepCopy} copies none of them, so this delegates straight to it.)
      */
     public PlayerConfig forNetwork() {
         return deepCopy(playerName.getValue(), playerId.getValue());

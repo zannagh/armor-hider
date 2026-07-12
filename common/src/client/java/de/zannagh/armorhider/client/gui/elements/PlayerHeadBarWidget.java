@@ -148,7 +148,8 @@ public class PlayerHeadBarWidget extends AbstractWidget {
         if (relative < 0) {
             return -1;
         }
-        if (relative % stride() > cellSize()) {
+        if (relative % stride() >= cellSize()) {
+            // In the inter-cell gap (the first gap pixel is exactly at cellSize()), not over a cell.
             return -1;
         }
         int index = relative / stride();

@@ -9,7 +9,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 /**
  * Marker interface for configuration classes that should have their
  * ConfigurationItemBase fields automatically initialized when missing from JSON.
- * In < 1.20.5 the CustomPacketPayload is not yet existant, so the imports and extends are not needed.
+ * In < 1.20.5 the CustomPacketPayload does not yet exist, so the imports and extends are not needed.
  *
  * @since 0.5.0
  */

@@ -10,12 +10,13 @@ import java.util.HashMap;
  * that will be used instead of the {@link UsePlayerSettingsWhenUndeterminable}'s determination for
  * rendering other players.<br/><br/>
  *
- * The logical flow is:
- * Server does not suppress AH > Client does not suppress AH > Server allows individual configs >
- * --> when global override is set -> use global override
- * --> when individual configs contains the player name -> use individual config
- * --> when use player settings for undeterminable -> use player settings
- * --> else use default settings (vanilla)
+ * The resolution order (see {@code AhPlayerConfigApiImpl.resolveConfig}) is:
+ * Server does not force AH off > Client does not disable AH for others > Server allows individual configs >
+ * --> an individual config set for the player name wins (it takes precedence over the global override)
+ * --> else "use global config for all others" -> use the global override
+ * --> else a server-transmitted config for that player -> use that config
+ * --> else "apply your settings to unknown players" -> use the viewer's own settings
+ * --> else use the global override
  *
  * @since 0.12.0-pre.10
  */
