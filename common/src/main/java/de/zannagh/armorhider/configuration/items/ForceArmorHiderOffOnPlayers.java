@@ -3,7 +3,8 @@ package de.zannagh.armorhider.configuration.items;
 import de.zannagh.armorhider.configuration.abstractions.BooleanConfigItem;
 
 /**
- * A client-side {@link BooleanConfigItem} that determines whether armor hider is forced off on other players.
+ * A server-wide {@link BooleanConfigItem} (stored in {@code ServerWideSettings.forceArmorHiderOff}) that,
+ * when enabled, forces Armor Hider off for all players on the server, overriding client settings.
  */
 public class ForceArmorHiderOffOnPlayers extends BooleanConfigItem {
 

@@ -77,7 +77,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
     public @NonNull ArmorOpacity helmetOpacity;
 
     /**
-     * The opacity that the helmet slot should be rendered at. Also see {@link ArmorOpacity}.<br/><br/>
+     * The opacity that the chest slot should be rendered at. Also see {@link ArmorOpacity}.<br/><br/>
      *
      * This was part of the initial release and is considered core functionality of Armor Hider.<br/>
      * Note that until 0.10.0-pre.5 the configuration items were not versionized but stored as plain values (schema 1 was introduced in 0.10.0-pre.5).
@@ -88,7 +88,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
     public @NonNull ArmorOpacity chestOpacity;
 
     /**
-     * The opacity that the helmet slot should be rendered at. Also see {@link ArmorOpacity}.<br/><br/>
+     * The opacity that the legs slot should be rendered at. Also see {@link ArmorOpacity}.<br/><br/>
      *
      * This was part of the initial release and is considered core functionality of Armor Hider.<br/>
      * Note that until 0.10.0-pre.5 the configuration items were not versionized but stored as plain values (schema 1 was introduced in 0.10.0-pre.5).
@@ -99,7 +99,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
     public @NonNull ArmorOpacity legsOpacity;
 
     /**
-     * The opacity that the helmet slot should be rendered at. Also see {@link ArmorOpacity}.<br/><br/>
+     * The opacity that the boots slot should be rendered at. Also see {@link ArmorOpacity}.<br/><br/>
      *
      * This was part of the initial release and is considered core functionality of Armor Hider.<br/>
      * Note that until 0.10.0-pre.5 the configuration items were not versionized but stored as plain values (schema 1 was introduced in 0.10.0-pre.5).

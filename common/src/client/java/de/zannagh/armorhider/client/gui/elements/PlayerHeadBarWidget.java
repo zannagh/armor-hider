@@ -165,9 +165,22 @@ public class PlayerHeadBarWidget extends AbstractWidget {
         return true;
     }
 
-    private void scrollBy(double scrollY) {
+    private boolean isWithinBar(double mouseX, double mouseY) {
+        return mouseX >= getX() && mouseX <= getX() + this.width
+                && mouseY >= getY() && mouseY <= getY() + this.height;
+    }
+
+    /**
+     * Scrolls the bar if the pointer is over it and there is overflow to scroll. Returns whether the event
+     * was handled, so it isn't swallowed from other widgets when the pointer is elsewhere or nothing scrolls.
+     */
+    private boolean scrollBy(double mouseX, double mouseY, double scrollY) {
+        if (!this.active || !this.visible || !isWithinBar(mouseX, mouseY) || maxScroll() <= 0) {
+            return false;
+        }
         scrollOffset -= (int) (scrollY * stride());
         clampScroll();
+        return true;
     }
 
     private void renderBar(net.minecraft.client.gui.GuiGraphicsExtractor context, int mouseX, int mouseY) {
@@ -280,15 +293,13 @@ public class PlayerHeadBarWidget extends AbstractWidget {
     //? if >= 1.21 {
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-        scrollBy(scrollY);
-        return true;
+        return scrollBy(mouseX, mouseY, scrollY);
     }
     //?}
     //? if < 1.21 {
     /*@Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollY) {
-        scrollBy(scrollY);
-        return true;
+        return scrollBy(mouseX, mouseY, scrollY);
     }
     *///?}
 

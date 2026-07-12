@@ -49,7 +49,7 @@
   "armorhider.options.invisibility_respect_server.tooltip": "Disables Armor Hider server-wide for invisible players, so their armor stays visible. If enabled, this will override individual's settings.",
   "armorhider.options.invisibility_respect_server.tooltip.disabled": "Permissions couldn't be determined or are insufficient to change the setting.",
   "armorhider.options.invisibility_respect_server.tooltip_narration": "Disables Armor Hider server-wide for invisible players, so their armor stays visible. If enabled, this will override individual's settings.",
-  "armorhider.options.other_player_settings.tooltip": "Set Armor Hider settings for other players individually (this overrides 'show my settings on unknown players' and has to be allowed by the server).",
+  "armorhider.options.other_player_settings.tooltip": "Set Armor Hider settings for other players individually (this overrides 'Apply your settings to unknown players' and has to be allowed by the server).",
   "armorhider.options.other_player_server.title": "Individual player configs",
   "armorhider.options.other_player_server.tooltip": "Allow players on the server to individually configure the looks of other players.",
   "armorhider.options.other_player_server.tooltip.disabled": "Permissions couldn't be determined or are insufficient to change the setting.",

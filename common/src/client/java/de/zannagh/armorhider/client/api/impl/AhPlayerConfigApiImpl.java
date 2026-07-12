@@ -52,7 +52,11 @@ public class AhPlayerConfigApiImpl implements ArmorHiderPlayerConfigApi, Configu
 
     @Override
     public void notifyConfigListeners(@Nullable String playerName) {
-        configListeners.forEach((uuid, listener) -> listener.accept(playerName));
+        // Iterate a snapshot: a listener may (de)register listeners while being notified, which would
+        // otherwise throw a ConcurrentModificationException or skip listeners.
+        for (Consumer<@Nullable String> listener : new java.util.ArrayList<>(configListeners.values())) {
+            listener.accept(playerName);
+        }
     }
 
     public PlayerConfig load() {
@@ -94,7 +98,8 @@ public class AhPlayerConfigApiImpl implements ArmorHiderPlayerConfigApi, Configu
     @Override
     public void updateLocalPlayerName(String playerName, Optional<Boolean> withSave) {
         CURRENT.playerName.setValue(playerName);
-        if (withSave.isPresent() && withSave.get()) {
+        // Per the documented contract, saving defaults to enabled when withSave is empty.
+        if (withSave.orElse(true)) {
             save(CURRENT);
         }
     }
@@ -102,7 +107,8 @@ public class AhPlayerConfigApiImpl implements ArmorHiderPlayerConfigApi, Configu
     @Override
     public void updateLocalPlayerUuid(UUID id, Optional<Boolean> withSave) {
         CURRENT.playerId.setValue(id);
-        if (withSave.isPresent() && withSave.get()) {
+        // Per the documented contract, saving defaults to enabled when withSave is empty.
+        if (withSave.orElse(true)) {
             save(CURRENT);
         }
     }
