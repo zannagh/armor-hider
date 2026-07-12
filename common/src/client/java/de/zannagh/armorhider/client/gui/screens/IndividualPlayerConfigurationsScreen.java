@@ -180,33 +180,38 @@ public class IndividualPlayerConfigurationsScreen extends ArmorHiderConfiguratio
         addCenteredNotice(Component.translatable("armorhider.individual.global.title"), controlsY);
         int y = controlsY + 13;
 
-        // Row A — "Armor Hider on Others": Off renders every other player vanilla. Gated only by the server.
+        // Row A — Armor Hider on other players: Adjust (apply) or Vanilla (no-op). A single toggle whose
+        // label reflects the current state; gated to a disabled "Vanilla" state only by the server.
         Component othersTooltip = Component.translatable("armorhider.individual.global.others.tooltip");
-        addGatedRow(y, Component.translatable("armorhider.individual.global.others.gated"), serverReason,
-                Component.translatable("armorhider.individual.global.others.on"), othersTooltip, !othersVanilla,
-                () -> manager.setArmorHiderDisabledForOthersTo(false, Optional.of(true)),
-                Component.translatable("armorhider.individual.global.others.off"), othersTooltip, othersVanilla,
-                () -> manager.setArmorHiderDisabledForOthersTo(true, Optional.of(true)));
+        addToggleRow(y, serverReason, Component.translatable("armorhider.individual.global.others.gated"),
+                Component.translatable(othersVanilla
+                        ? "armorhider.individual.global.others.off"
+                        : "armorhider.individual.global.others.on"),
+                othersTooltip,
+                () -> manager.setArmorHiderDisabledForOthersTo(!othersVanilla, Optional.of(true)));
         y += 22;
 
-        // Row B — unknown players use the viewer's own settings, or the global configuration.
+        // Row B — unknown players use the viewer's own settings, or the global configuration. A single toggle
+        // between the two; gated to a disabled "Vanilla" state by the server or when "Others: Vanilla".
         boolean ownForUnknown = manager.shouldUseLocalSettingsForUnknowns();
         Component unknownTooltip = Component.translatable("armorhider.individual.global.unknown.tooltip");
-        addGatedRow(y, Component.translatable("armorhider.individual.global.unknown.gated"), granularReason,
-                Component.translatable("armorhider.individual.global.unknown.own"), unknownTooltip, ownForUnknown,
-                () -> manager.setUseOwnSettingsForUnknowns(true, Optional.of(true)),
-                Component.translatable("armorhider.individual.global.unknown.global"), unknownTooltip, !ownForUnknown,
-                () -> manager.setUseOwnSettingsForUnknowns(false, Optional.of(true)));
+        addToggleRow(y, granularReason, Component.translatable("armorhider.individual.global.unknown.gated"),
+                Component.translatable(ownForUnknown
+                        ? "armorhider.individual.global.unknown.own"
+                        : "armorhider.individual.global.unknown.global"),
+                unknownTooltip,
+                () -> manager.setUseOwnSettingsForUnknowns(!ownForUnknown, Optional.of(true)));
         y += 22;
 
-        // Row C — apply the global configuration to every other player.
+        // Row C — apply the global configuration to every other player. A single ON/OFF toggle.
         boolean globalForAll = manager.shouldUseGlobalOverrideForAllPlayers();
         Component allTooltip = Component.translatable("armorhider.individual.global.all.tooltip");
-        addGatedRow(y, Component.translatable("armorhider.individual.global.all.gated"), granularReason,
-                Component.translatable("armorhider.individual.global.all.on"), allTooltip, globalForAll,
-                () -> manager.setUseGlobalOverrideForAllPlayersTo(true, Optional.of(true)),
-                Component.translatable("armorhider.individual.global.all.off"), allTooltip, !globalForAll,
-                () -> manager.setUseGlobalOverrideForAllPlayersTo(false, Optional.of(true)));
+        addToggleRow(y, granularReason, Component.translatable("armorhider.individual.global.all.gated"),
+                Component.translatable(globalForAll
+                        ? "armorhider.individual.global.all.on"
+                        : "armorhider.individual.global.all.off"),
+                allTooltip,
+                () -> manager.setUseGlobalOverrideForAllPlayersTo(!globalForAll, Optional.of(true)));
         y += 24;
 
         // The global configuration panel + preview are always shown.
@@ -251,45 +256,29 @@ public class IndividualPlayerConfigurationsScreen extends ArmorHiderConfiguratio
     }
 
     /**
-     * A choice row that, when {@code gateReason} is non-null, collapses to a single disabled "Vanilla"
-     * button (with the reason as its tooltip) instead of the normal two-button choice — used when the server
-     * forces off / disallows, or when "Others: Vanilla" makes the finer controls irrelevant.
+     * A single full-width toggle button whose {@code label} reflects the current state and whose click runs
+     * {@code onToggle} (which flips the underlying setting) then rebuilds. When {@code gateReason} is non-null
+     * it collapses to a disabled button showing {@code gatedLabel} with the reason as its tooltip — used when
+     * the server forces off / disallows, or when "Others: Vanilla" makes the finer controls irrelevant.
      */
-    private void addGatedRow(int y, Component gatedLabel, @Nullable Component gateReason,
-                             Component leftLabel, Component leftTooltip, boolean leftSelected, Runnable onLeft,
-                             Component rightLabel, Component rightTooltip, boolean rightSelected, Runnable onRight) {
-        if (gateReason == null) {
-            addChoiceRow(y, leftLabel, leftTooltip, leftSelected, onLeft, rightLabel, rightTooltip, rightSelected, onRight);
-            return;
-        }
+    private void addToggleRow(int y, @Nullable Component gateReason, Component gatedLabel,
+                              Component label, Component tooltip, Runnable onToggle) {
         int width = rowButtonWidth(120) * 2 + 8;
         int rowX = this.width / 2 - width / 2;
-        Button disabled = Button.builder(gatedLabel, btn -> {})
-                .tooltip(Tooltip.create(gateReason)).bounds(rowX, y, width, 20).build();
-        disabled.active = false;
-        addRenderableWidget(disabled);
-    }
-
-    /** A two-button choice row; the currently selected option is shown greyed, the other is clickable. */
-    private void addChoiceRow(int y, Component leftLabel, Component leftTooltip, boolean leftSelected, Runnable onLeft,
-                              Component rightLabel, Component rightTooltip, boolean rightSelected, Runnable onRight) {
-        int btnWidth = rowButtonWidth(120);
-        int btnGap = 8;
-        int rowX = this.width / 2 - (btnWidth * 2 + btnGap) / 2;
-        Button left = Button.builder(leftLabel, btn -> {
-                    onLeft.run();
+        if (gateReason != null) {
+            Button disabled = Button.builder(gatedLabel, btn -> {})
+                    .tooltip(Tooltip.create(gateReason)).bounds(rowX, y, width, 20).build();
+            disabled.active = false;
+            addRenderableWidget(disabled);
+            return;
+        }
+        Button toggle = Button.builder(label, btn -> {
+                    onToggle.run();
                     this.settingsChanged = true;
                     this.rebuildWidgets();
-                }).tooltip(Tooltip.create(leftTooltip)).bounds(rowX, y, btnWidth, 20).build();
-        left.active = !leftSelected;
-        Button right = Button.builder(rightLabel, btn -> {
-                    onRight.run();
-                    this.settingsChanged = true;
-                    this.rebuildWidgets();
-                }).tooltip(Tooltip.create(rightTooltip)).bounds(rowX + btnWidth + btnGap, y, btnWidth, 20).build();
-        right.active = !rightSelected;
-        addRenderableWidget(left);
-        addRenderableWidget(right);
+                })
+                .tooltip(Tooltip.create(tooltip)).bounds(rowX, y, width, 20).build();
+        addRenderableWidget(toggle);
     }
 
     /** Adds the left-hand options panel (bound to {@code boundConfig}, or a hint when null) and the preview. */
