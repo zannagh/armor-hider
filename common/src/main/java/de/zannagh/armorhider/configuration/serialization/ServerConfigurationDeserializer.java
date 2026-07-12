@@ -57,11 +57,10 @@ public class ServerConfigurationDeserializer implements TypeAdapterFactory {
                     ArmorHider.LOGGER.warn("ServerWideSettings was null after network deserialization, initialized with defaults.");
                 }
 
-                // Migrate serverWideSettings schema if it was loaded at an older version
-                if (config.serverWideSettings.configVersion < ServerWideSettings.CURRENT_CONFIG_VERSION) {
-                    config.serverWideSettings = ServerWideSettings.migrate(config.serverWideSettings);
-                    config.setHasChangedFromSerializedContent();
-                }
+                // Route linear schema migration of every embedded item (server-wide settings + per-player
+                // configs) through the shared container mechanism, rebuilding the by-name index if anything
+                // was migrated.
+                config = config.ensureSchemaFrom(config);
 
                 @SuppressWarnings("unchecked")
                 T result = (T) config;

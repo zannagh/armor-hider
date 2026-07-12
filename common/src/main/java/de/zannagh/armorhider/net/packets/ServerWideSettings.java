@@ -18,22 +18,48 @@ import org.jspecify.annotations.NonNull;
 
 import net.minecraft.resources.Identifier;
 
+
+/**
+ * Represents the server-wide configuration settings for the ArmorHider mod.
+ * This class defines various options that can be applied globally to modify
+ * behavior relating to combat detection, armor visibility, and player-specific settings.
+ * It also includes versioning information to facilitate migrations of the
+ * configuration schema when updates or structural changes are introduced.<br/>
+ *
+ * Implements the {@link ConfigurationSource} interface for serialization and
+ * deserialization of these settings.
+ *
+ * @since 0.4.0
+ */
 public class ServerWideSettings implements ConfigurationSource<ServerWideSettings> {
 
+    /** The current config schema version. */
+    public static final int CURRENT_CONFIG_VERSION = 2;
+
     /**
-     * Config schema version. Absent (0) in configs from before versioning was introduced.
-     * Incremented when the structure changes in a way that requires migration.
      * <ul>
-     *   <li>0 = pre-versioning format (initial v4 ServerConfiguration shape — only enableCombatDetection + forceArmorHiderOff)</li>
-     *   <li>1 = added disableArmorHiderOnInvisibilityGlobally</li>
-     *   <li>2 = added allowIndividualPlayerConfigurations</li>
+     * <li>0 = pre-versioning format (initial v4 ServerConfiguration shape — only enableCombatDetection + forceArmorHiderOff)</li>
+     * <li>1 = added disableArmorHiderOnInvisibilityGlobally</li>
+     * <li>2 = added allowIndividualPlayerConfigurations</li>
      * </ul>
      */
     @SerializedName(value = "configVersion")
     public int configVersion;
 
-    /** The current config schema version. */
-    public static final int CURRENT_CONFIG_VERSION = 2;
+    @Override
+    public int getSchemaVersion() {
+        return configVersion;
+    }
+
+    @Override
+    public int getCurrentSchemaVersion() {
+        return CURRENT_CONFIG_VERSION;
+    }
+
+    @Override
+    public ServerWideSettings migrateFrom(ServerWideSettings old) {
+        return ServerWideSettings.migrate(old);
+    }
 
     //? if >= 1.21.11 {
     public static final Identifier PACKET_IDENTIFIER = Identifier.fromNamespaceAndPath("de.zannagh.armorhider", "server_wide_settings");
@@ -58,15 +84,43 @@ public class ServerWideSettings implements ConfigurationSource<ServerWideSetting
     }
     //?}
 
+    /**
+     * @since 0.4.0
+     */
     @SerializedName(value = "enableCombatDetection")
     @NonNull
     public CombatDetection enableCombatDetection;
+
+    /**
+     * Whether the server forces Armor Hider to be disabled for all connected players.
+     * This is pretty much only intended for when the server is a PvP environment where
+     * Armor Hider can be considered a competitive advantage over other players not using the mod.
+     *
+     * @since 0.5.3
+     */
     @SerializedName(value = "forceArmorHiderOff")
     @NonNull
     public ForceArmorHiderOffOnPlayers forceArmorHiderOff;
+
+    /**
+     * Whether the server overrides that armor hider's functionality is disabled when the player is invisible (via the invisibility effect).
+     * This can prevent players getting fully invisible via Armor Hider while still wearing armor, which can be used as a competitive advantage.<br/>
+     *
+     * If this setting is enforced via the server, individual player configuration for invisibility respect is ignored.
+     * If this setting is not enforced via the server (i.e. set to false), the individual user can choose whether armor hider's functionality gets disabled when the player is invisible.
+     *
+     * @since 0.12.0
+     */
     @SerializedName(value = "disableArmorHiderOnInvisibilityGlobally")
     @NonNull
     public DisableArmorHiderOnInvisibilityGlobally disableArmorHiderOnInvisibilityGlobally;
+
+    /**
+     * Whether the server allows individual player configurations by the user. This setting is intended
+     * to prevent the user to set individual player configurations or overrides when, for example, the server is used in a PvP environment.
+     *
+     * @since 0.12.0
+     */
     @SerializedName(value = "allowIndividualPlayerConfigurations")
     @NonNull
     public AllowIndividualPlayerConfigurations allowIndividualPlayerConfigurations;

@@ -17,6 +17,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>
  * Default behavior: items NOT in the list are intercepted (mod handles them).
  * Items in the list with {@code shouldIgnore = true} are skipped by the mod.
+ *
+ * @since 0.10.0-pre.5
  */
 public class ExclusionItemConfiguration {
 
@@ -220,7 +222,7 @@ public class ExclusionItemConfiguration {
                 "minecraft:diamond_boots", "Diamond Boots",
                 "minecraft:netherite_boots", "Netherite Boots"
         );
-        
+
         addDefaults(config, EquipmentSlot.OFFHAND,
                 "minecraft:shield", "Shield");
 

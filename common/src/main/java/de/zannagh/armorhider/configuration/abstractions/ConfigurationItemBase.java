@@ -1,5 +1,12 @@
 package de.zannagh.armorhider.configuration.abstractions;
 
+/**
+ * Represents a base class for configuration items, encapsulating a single value of a generic type.
+ * This class provides mechanisms for managing the value, defaulting it where necessary,
+ * and enforcing type safety.
+ *
+ * @param <T> The type of the value held by this configuration item.
+ */
 public abstract class ConfigurationItemBase<T> {
 
     protected T value;

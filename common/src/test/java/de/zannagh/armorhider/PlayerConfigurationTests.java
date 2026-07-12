@@ -345,6 +345,40 @@ class PlayerConfigurationTests {
     }
 
     @Test
+    @DisplayName("ensureSchemaFrom migrates an outdated PlayerConfig and is a no-op for a current one")
+    void ensureSchemaFromMigratesPlayerConfig() {
+        // Up-to-date -> no migration, the same instance is returned.
+        var current = PlayerConfig.defaults(UUID.randomUUID(), "Viewer");
+        assertFalse(current.shouldMigrate(), "a current-version config must not report needing migration");
+        assertSame(current, current.ensureSchemaFrom(current), "no-op migration must return the same instance");
+
+        // Outdated -> migrate to the current version, preserving values, and flag the change.
+        var old = PlayerConfig.defaults(UUID.randomUUID(), "Viewer");
+        old.configVersion = 5;
+        old.helmetOpacity.setValue(0.3);
+        assertTrue(old.shouldMigrate(), "an older-version config must report needing migration");
+        var migrated = old.ensureSchemaFrom(old);
+        assertEquals(PlayerConfig.CURRENT_CONFIG_VERSION, migrated.configVersion, "migration must bump the schema version");
+        assertEquals(0.3, migrated.helmetOpacity.getValue(), "migration must preserve existing values");
+        assertTrue(migrated.hasChangedFromSerializedContent(), "migration must flag the config as changed");
+    }
+
+    @Test
+    @DisplayName("ensureSchemaFrom migrates an outdated ServerWideSettings")
+    void ensureSchemaFromMigratesServerWideSettings() {
+        var current = de.zannagh.armorhider.net.packets.ServerWideSettings.defaults();
+        assertFalse(current.shouldMigrate());
+        assertSame(current, current.ensureSchemaFrom(current));
+
+        var old = new de.zannagh.armorhider.net.packets.ServerWideSettings(); // no-arg leaves configVersion at 0
+        old.forceArmorHiderOff.setValue(true);
+        assertTrue(old.shouldMigrate());
+        var migrated = old.ensureSchemaFrom(old);
+        assertEquals(de.zannagh.armorhider.net.packets.ServerWideSettings.CURRENT_CONFIG_VERSION, migrated.configVersion);
+        assertTrue(migrated.forceArmorHiderOff.getValue(), "migration must preserve existing values");
+    }
+
+    @Test
     @DisplayName("Read from Config Manager")
     void readFromConfigManager() {
         var configManager = new AhPlayerConfigApiImpl(new StringPlayerConfigProvider(getVersion3PlayerConfig()));

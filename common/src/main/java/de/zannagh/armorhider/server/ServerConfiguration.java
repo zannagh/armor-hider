@@ -103,29 +103,21 @@ public class ServerConfiguration implements ConfigurationSource<ServerConfigurat
                     ArmorHider.LOGGER.info("Loaded server config (v4 format).");
                 }
 
-                // Migrate serverWideSettings from older schema versions
-                if (configuration.serverWideSettings.configVersion < ServerWideSettings.CURRENT_CONFIG_VERSION) {
-                    configuration.serverWideSettings = ServerWideSettings.migrate(configuration.serverWideSettings);
-                }
+                // Route the linear schema migration of every embedded config item (server-wide settings +
+                // per-player configs) through the shared mechanism. ensureSchemaFrom(...) flags this
+                // container as changed whenever any embedded item was migrated.
+                configuration = configuration.ensureSchemaFrom(configuration);
 
-                // Migrate embedded player configs from older schema versions
-                configuration.playerConfigs.replaceAll((uuid, pc) -> {
-                    if (pc.configVersion < PlayerConfig.CURRENT_CONFIG_VERSION) {
-                        return PlayerConfig.migrate(pc);
-                    }
-                    return pc;
-                });
-
-                // Check if any player configs changed during deserialization/migration
-                if (configuration.playerConfigs.values().stream().anyMatch(PlayerConfig::hasChangedFromSerializedContent) ||
-                        configuration.serverWideSettings.hasChangedFromSerializedContent()) {
+                // Also propagate a changed flag that an embedded item may have set for a non-schema reason
+                // (e.g. a missing field default-initialized during deserialization) so it gets re-saved.
+                if (configuration.serverWideSettings.hasChangedFromSerializedContent()
+                        || configuration.playerConfigs.values().stream()
+                                .anyMatch(PlayerConfig::hasChangedFromSerializedContent)) {
                     configuration.setHasChangedFromSerializedContent();
                 }
 
                 // Rebuild playerNameConfigs from the (possibly migrated) playerConfigs
-                configuration.playerNameConfigs.clear();
-                configuration.playerConfigs.values().forEach(c ->
-                        configuration.playerNameConfigs.put(c.playerName.getValue(), c));
+                configuration.rebuildPlayerNameConfigs();
 
                 return configuration;
             } else {
@@ -216,5 +208,52 @@ public class ServerConfiguration implements ConfigurationSource<ServerConfigurat
     @Override
     public void setHasChangedFromSerializedContent() {
         hasChangedComparedToSerializedContent = true;
+    }
+
+    // ServerConfiguration is a container. Its structural (shape) migration — legacy UUID map -> v3 -> v4 —
+    // is format-aware and stays in deserialize(...)/ServerConfigurationDeserializer, because those input
+    // shapes aren't ServerConfiguration objects yet and so can't be expressed as migrateFrom(old). Everything
+    // downstream of that is per-item linear schema migration (the embedded ServerWideSettings' schema and
+    // every embedded PlayerConfig's schema) and is routed through the shared ConfigurationSource mechanism
+    // via shouldMigrate()/migrateFrom()/ensureSchemaFrom().
+
+    @Override
+    public int getSchemaVersion() {
+        return serverWideSettings.getSchemaVersion();
+    }
+
+    @Override
+    public int getCurrentSchemaVersion() {
+        return serverWideSettings.getCurrentSchemaVersion();
+    }
+
+    /**
+     * A container is out of date whenever any embedded config item is: the server-wide settings or any
+     * per-player config. The default ({@code schema < currentSchema}) only reflects the server-wide
+     * settings, so it is widened here to also account for the embedded player configs.
+     */
+    @Override
+    public boolean shouldMigrate() {
+        return serverWideSettings.shouldMigrate()
+                || playerConfigs.values().stream().anyMatch(PlayerConfig::shouldMigrate);
+    }
+
+    /**
+     * Migrates every embedded config item to the current schema through its own
+     * {@link ConfigurationSource#ensureSchemaFrom} and rebuilds the by-name index from the migrated player
+     * configs. The container is mutated in place and returned.
+     */
+    @Override
+    public ServerConfiguration migrateFrom(ServerConfiguration old) {
+        old.serverWideSettings = old.serverWideSettings.ensureSchemaFrom(old.serverWideSettings);
+        old.playerConfigs.replaceAll((uuid, pc) -> pc.ensureSchemaFrom(pc));
+        old.rebuildPlayerNameConfigs();
+        return old;
+    }
+
+    /** Rebuilds {@link #playerNameConfigs} from the current {@link #playerConfigs} values. */
+    private void rebuildPlayerNameConfigs() {
+        playerNameConfigs.clear();
+        playerConfigs.values().forEach(c -> playerNameConfigs.put(c.playerName.getValue(), c));
     }
 }

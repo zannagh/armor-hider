@@ -391,6 +391,44 @@ public class ServerConfigurationTests {
     }
 
     @Test
+    @DisplayName("Embedded player configs are migrated via Gson network deserialization")
+    void embeddedPlayerConfigsMigratedViaGsonNetwork() {
+        // The network (Gson) path now routes the whole container through ensureSchemaFrom, so embedded
+        // pre-versioning player configs are migrated over the wire just like on the disk path.
+        String preVersioningServerJson = """
+                {
+                    "serverWideSettings": {
+                        "enableCombatDetection": true,
+                        "forceArmorHiderOff": false
+                    },
+                    "playerConfigs": {
+                        "2eef3335-8d1f-3428-af42-f3cec9010d4c": {
+                            "helmetOpacity": 0.25,
+                            "chestOpacity": 1.0,
+                            "legsOpacity": 1.0,
+                            "bootsOpacity": 1.0,
+                            "enableCombatDetection": true,
+                            "playerId": "2eef3335-8d1f-3428-af42-f3cec9010d4c",
+                            "playerName": "Player336"
+                        }
+                    }
+                }""";
+
+        ServerConfiguration config = ArmorHider.GSON.fromJson(preVersioningServerJson, ServerConfiguration.class);
+        var playerConfig = config.getPlayerConfigOrDefault(
+                UUID.fromString("2eef3335-8d1f-3428-af42-f3cec9010d4c"));
+
+        assertNotNull(playerConfig, "player config should exist");
+        assertEquals(0.25, playerConfig.helmetOpacity.getValue(), "opacity preserved through network migration");
+        assertEquals(de.zannagh.armorhider.net.packets.PlayerConfig.CURRENT_CONFIG_VERSION,
+                playerConfig.configVersion, "embedded config schema bumped to current over the network");
+        assertNotNull(playerConfig.exclusionItems, "exclusionItems initialized after network migration");
+        // The by-name index must be rebuilt from the migrated configs so name lookups resolve.
+        assertEquals(0.25, config.getPlayerConfigOrDefault("Player336").helmetOpacity.getValue(),
+                "by-name lookup resolves the migrated config");
+    }
+
+    @Test
     @DisplayName("ServerWideSettings should always be initialized with defaults")
     void testServerWideSettingsAlwaysInitialized() throws Exception {
         // Test 1: New ServerConfiguration instance should have serverWideSettings initialized
