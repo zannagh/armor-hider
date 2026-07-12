@@ -70,7 +70,7 @@ public abstract class SkinCustomizationScreenMixin extends Screen {
             return;
         }
 
-        if (!ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().showSettingsInSkinCustomization.getValue()) {
+        if (!ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig().showSettingsInSkinCustomization.getValue()) {
             this.armorHider$panel = null;
             this.armorHider$preview = null;
             return;

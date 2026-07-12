@@ -29,7 +29,7 @@ public final class EmfCompat {
                     return false;
                 }
 
-                PlayerConfig config = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getConfigForPlayer(playerName);
+                PlayerConfig config = ArmorHiderClient.CLIENT_CONFIG_MANAGER.resolveConfig(playerName);
 
                 boolean useDefault = config.inCombatUseDefaultModel.getValue();
 

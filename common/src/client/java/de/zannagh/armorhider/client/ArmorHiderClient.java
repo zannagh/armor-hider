@@ -2,9 +2,11 @@ package de.zannagh.armorhider.client;
 
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.CompatFlags;
+import de.zannagh.armorhider.api.ArmorHiderPlayerConfigApi;
 import de.zannagh.armorhider.client.api.AhRenderInterceptionRegistryApi;
 import de.zannagh.armorhider.client.api.AhRenderModificationApi;
 import de.zannagh.armorhider.client.api.AhRenderTypeFactory;
+import de.zannagh.armorhider.client.api.impl.AhPlayerConfigApiImpl;
 import de.zannagh.armorhider.client.api.impl.AhRendererRegistryImpl;
 import de.zannagh.armorhider.client.common.IdentityCarrier;
 import de.zannagh.armorhider.client.common.RenderScope;
@@ -27,7 +29,7 @@ import oshi.util.tuples.Pair;
 public class ArmorHiderClient {
 
     public static int permissionLevel = 0; // Default to lowest.
-    public static ClientConfigManager CLIENT_CONFIG_MANAGER = new ClientConfigManager();
+    public static ArmorHiderPlayerConfigApi CLIENT_CONFIG_MANAGER = new AhPlayerConfigApiImpl();
     public static PresetManager PRESET_MANAGER = new PresetManager();
 
     public static final boolean FA_LOADED = CompatFlags.FA_LOADED || classExists("net.kenddie.fantasyarmor.FantasyArmor");
@@ -45,7 +47,7 @@ public class ArmorHiderClient {
             return false;
         }
     }
-    
+
     /**
      * A static initializer for client-related methods (communication, payloads, etc.).
      * Required so it can be called from loader-specific client-side mod implementations.
@@ -80,7 +82,7 @@ public class ArmorHiderClient {
 
     public static String getCurrentPlayerName() {
         String name = PlayerNameUtil.getPlayerName(Minecraft.getInstance().player);
-        return name != null ? name : ClientConfigManager.DEFAULT_PLAYER_NAME;
+        return name != null ? name : ArmorHiderPlayerConfigApi.DEFAULT_PLAYER_NAME;
     }
 
     @Contract("_ -> new")
@@ -110,7 +112,7 @@ public class ArmorHiderClient {
         *///?}
         return new Pair<>(!isLocal, entry);
     }
-    
+
     public static void toggleDebugLogging() {
         if (DebugLogger.isEnabled()) {
             disableDebugLogging();
@@ -118,14 +120,14 @@ public class ArmorHiderClient {
             enableDebugLogging();
         }
     }
-    
+
     private static void enableDebugLogging() {
         DebugLogger.enable();
         DebugLogger.log("Started debug logging.");
 
         StringBuilder config = new StringBuilder();
         config.append("--- Mod configuration ---\n");
-        config.append("Local: ").append(ArmorHiderClient.CLIENT_CONFIG_MANAGER.local().toJson()).append("\n");
+        config.append("Local: ").append(ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig().toJson()).append("\n");
         if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.getServerConfig() != null) {
             config.append("Server: ").append(ArmorHiderClient.CLIENT_CONFIG_MANAGER.getServerConfig().toJson()).append("\n");
         } else {

@@ -36,14 +36,17 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
      *   <li>2 = added client-side settings placement preference</li>
      *   <li>3 = added per-slot in-combat default armor skin setting</li>
      *   <li>4 = consolidated per-slot combat skin into single global toggle</li>
+     *   <li>6 = added client-side per-player individual configuration overrides</li>
+     *   <li>7 = added client-side global override configuration (server-independent)</li>
+     *   <li>8 = split global override application into per-unknown vs all-players controls</li>
      * </ul>
      */
     @SerializedName(value = "configVersion")
     public int configVersion;
 
     /** The current config schema version. */
-    public static final int CURRENT_CONFIG_VERSION = 5;
-    
+    public static final int CURRENT_CONFIG_VERSION = 8;
+
     //? if >= 1.21.11 {
     public static final Identifier PACKET_IDENTIFIER = Identifier.fromNamespaceAndPath("de.zannagh.armorhider", "settings_c2s_packet");
     //?}
@@ -105,6 +108,22 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
     public @NonNull ShowShieldWhenBlocking showShieldWhenBlocking;
     @SerializedName(value = "disableArmorHiderOnInvisibility")
     public @NonNull DisableArmorHiderOnInvisibility disableArmorHiderOnInvisibility;
+    @SerializedName(value = "individualConfigurations")
+    public @NonNull ServerMappedIndividualConfigurations individualConfigurations;
+
+    /** Whether the server-independent global override (below) is applied to EVERY other player (Row C). */
+    @SerializedName(value = "useGlobalOverrideForAllPlayers")
+    public @NonNull UseGlobalOverrideForAllPlayers useGlobalOverrideForAllPlayers;
+
+    /**
+     * The client-side, server-independent global override configuration applied to unknown players when
+     * {@link #useGlobalPlayerOverride} is on. Lazily created (left {@code null} until the user enables it) so
+     * the no-arg constructor doesn't recurse — a {@code PlayerConfig} field that always built another
+     * {@code PlayerConfig} would never terminate. Nested overrides never populate their own, so
+     * serialization terminates too.
+     */
+    @SerializedName(value = "globalPlayerOverride")
+    public @org.jetbrains.annotations.Nullable PlayerConfig globalPlayerOverride;
 
     public @NonNull PlayerUuid playerId;
 
@@ -114,7 +133,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
     public @NonNull ExclusionItemConfiguration exclusionItems;
 
     private transient boolean hasChangedFromSerializedContent;
-    
+
     public PlayerConfig(UUID uuid, String name) {
         this();
         this.playerId = new PlayerUuid(uuid);
@@ -144,6 +163,9 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         legsGlint = new EnableGlint();
         bootsGlint = new EnableGlint();
         disableArmorHiderOnInvisibility = new DisableArmorHiderOnInvisibility();
+        individualConfigurations = new ServerMappedIndividualConfigurations();
+        useGlobalOverrideForAllPlayers = new UseGlobalOverrideForAllPlayers();
+        // globalPlayerOverride is intentionally left null here (lazy) to avoid infinite ctor recursion.
         exclusionItems = ExclusionItemConfiguration.defaults();
     }
 
@@ -200,6 +222,14 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         fresh.showShieldWhenBlocking.setValue(old.showShieldWhenBlocking.getValue());
         fresh.disableArmorHiderOnInvisibility.setValue(old.disableArmorHiderOnInvisibility.getValue());
         fresh.exclusionItems = old.exclusionItems.deepCopy();
+        if (old.individualConfigurations != null) {
+            fresh.individualConfigurations = old.individualConfigurations.deepCopy();
+        }
+        fresh.useGlobalOverrideForAllPlayers.setValue(old.useGlobalOverrideForAllPlayers.getValue());
+        if (old.globalPlayerOverride != null) {
+            fresh.globalPlayerOverride = old.globalPlayerOverride.deepCopy(
+                    old.globalPlayerOverride.playerName.getValue(), old.globalPlayerOverride.playerId.getValue());
+        }
 
         fresh.setHasChangedFromSerializedContent();
         return fresh;
@@ -214,9 +244,19 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
     public void setHasChangedFromSerializedContent() {
         hasChangedFromSerializedContent = true;
     }
-    
+
     public String toJson() {
-        return ArmorHider.GSON.toJson(this);   
+        return ArmorHider.GSON.toJson(this);
+    }
+
+    /**
+     * Returns a copy of this config suitable for transmission to the server. It carries every
+     * render-relevant setting but deliberately omits {@link #individualConfigurations}: a viewer's private
+     * per-player overrides are a purely client-side concern, so they must never be broadcast to the server
+     * or other players. ({@link #deepCopy} already leaves {@code individualConfigurations} empty.)
+     */
+    public PlayerConfig forNetwork() {
+        return deepCopy(playerName.getValue(), playerId.getValue());
     }
 
     public PlayerConfig deepCopy(String playerName, UUID playerId) {

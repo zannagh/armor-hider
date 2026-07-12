@@ -89,12 +89,28 @@ public class OptionElementFactory {
                     }
                 }
         );
+        var fourth = new IndividualPlayerSettingsButton(
+                onPress -> {
+                    var mc = Minecraft.getInstance();
+                    //? if <= 26.1.2
+                    //var currentScreen = mc.screen;
+                    //? if > 26.1.2
+                    var currentScreen = mc.gui.screen();
+                    if (currentScreen == null) {
+                        return;
+                    }
+                    mc.setScreenAndShow(new de.zannagh.armorhider.client.gui.screens.IndividualPlayerConfigurationsScreen(
+                            currentScreen, gameOptions, Component.translatable("armorhider.individual.title")));
+                }
+        );
 
-        int totalButtons = 3 + PresetManager.PRESET_COUNT;
+        int globalButtonCount = 4;
+        int totalButtons = globalButtonCount + PresetManager.PRESET_COUNT;
         var allButtons = new AbstractWidget[totalButtons];
         allButtons[0] = first;
         allButtons[1] = second;
         allButtons[2] = third;
+        allButtons[3] = fourth;
 
         var presetButtons = new PresetButton[PresetManager.PRESET_COUNT];
         for (int i = 0; i < PresetManager.PRESET_COUNT; i++) {
@@ -107,19 +123,19 @@ public class OptionElementFactory {
                 }
             });
             presetButtons[i] = btn;
-            allButtons[3 + i] = btn;
+            allButtons[globalButtonCount + i] = btn;
         }
 
         var groups = new ArrayList<Pair<Integer, Integer>>();
-        groups.add(new Pair<>(0, 2));
-        groups.add(new Pair<>(3, totalButtons - 1));
+        groups.add(new Pair<>(0, globalButtonCount - 1));
+        groups.add(new Pair<>(globalButtonCount, totalButtons - 1));
 
         int sq = UiConstants.SQUARE_BUTTON_WIDTH;
         int g = UiConstants.DEFAULT_BUTTON_SPACING / 2;
         int presetCount = PresetManager.PRESET_COUNT;
         int groupBWidth = presetCount * sq + (presetCount - 1) * g;
         int groupAWidth = rowWidth - groupBWidth - g;
-        int minGroupA = 3 * sq + 2 * g;
+        int minGroupA = globalButtonCount * sq + (globalButtonCount - 1) * g;
         var spacing = new ElementSpacingOptions(rowWidth)
                 .forEvenElements(sq, totalButtons)
                 .withGroups(groups)
@@ -129,7 +145,46 @@ public class OptionElementFactory {
 
         return new CompoundButtonWidget(allButtons, rowWidth, 20, spacing);
     }
-    
+
+    /**
+     * Builds a left-aligned row of just the three general behaviour toggles (combat detection, vanilla armor
+     * in combat, respect invisibility) — no presets and no "individual settings" button. Used by the
+     * per-player override panel, where presets are not applicable but the behaviour toggles still are.
+     */
+    public AbstractWidget createGeneralTogglesRow(ArrayList<Pair<Boolean, Consumer<Boolean>>> configs) {
+        var first = new CombatDetectionButton(
+                configs.get(0).getFirst(),
+                onPress -> {
+                    if (onPress instanceof CombatDetectionButton btn) {
+                        configs.get(0).getSecond().accept(btn.toggle());
+                    }
+                }
+        );
+        var second = new VanillaArmorInCombatButton(
+                configs.get(1).getFirst(),
+                onPress -> {
+                    if (onPress instanceof VanillaArmorInCombatButton btn) {
+                        configs.get(1).getSecond().accept(btn.toggle());
+                    }
+                }
+        );
+        var third = new RespectInvisibilityButton(
+                configs.get(2).getFirst(),
+                onPress -> {
+                    if (onPress instanceof RespectInvisibilityButton btn) {
+                        configs.get(2).getSecond().accept(btn.toggle());
+                    }
+                }
+        );
+
+        var allButtons = new AbstractWidget[]{first, second, third};
+        int sq = UiConstants.SQUARE_BUTTON_WIDTH;
+        var spacing = new ElementSpacingOptions(rowWidth)
+                .forEvenElements(sq, 3)
+                .withLeftAlignment();
+        return new CompoundButtonWidget(allButtons, rowWidth, 20, spacing);
+    }
+
     public void addSliderWithToggles(EquipmentSlot slot,
                                      OptionInstance<Double> slider,
                                      Options options,
@@ -151,7 +206,7 @@ public class OptionElementFactory {
         var widget = createSliderWithToggleForSlot(slot, slider, options, initialGlint, initialOtherAffect, glintConsumer, additionalAffectConsumer, customToggle);
         addElementAsWidget(widget);
     }
-    
+
     public AbstractWidget createSliderWithToggleForSlot(EquipmentSlot slot,
                                                        OptionInstance<Double> slider,
                                                        Options options,

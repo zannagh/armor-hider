@@ -13,6 +13,9 @@ import de.zannagh.armorhider.configuration.abstractions.ConfigurationItemBase;
 import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Function;
 
 public class ConfigurationItemSerializer implements TypeAdapterFactory {
@@ -55,20 +58,73 @@ public class ConfigurationItemSerializer implements TypeAdapterFactory {
         return adapter;
     }
 
+    /**
+     * Resolves the actual {@code value} type of a {@link ConfigurationItemBase} implementation, i.e. the
+     * concrete type argument of {@code ConfigurationItemBase<V>} for the given class, resolving type
+     * variables through the whole superclass chain.
+     *
+     * <p>We deliberately resolve against {@code ConfigurationItemBase} itself rather than the first
+     * parameterized superclass we encounter. That distinction matters for map-backed items: for example
+     * {@code HashMapConfigItem<T> extends ConfigurationItemBase<HashMap<String, T>>}, so a subclass such as
+     * {@code ServerMappedIndividualConfigurations extends HashMapConfigItem<IndividualConfigurations>} has a
+     * value type of {@code HashMap<String, IndividualConfigurations>} — NOT {@code IndividualConfigurations}.
+     * Returning the latter would build the wrong value adapter and break (de)serialization of nested maps.
+     */
     private Type getTypeParameter(Class<?> implementation) {
-        Type genericSuperclass = implementation.getGenericSuperclass();
-        if (genericSuperclass instanceof ParameterizedType parameterized) {
-            Type rawType = parameterized.getRawType();
-            if (rawType instanceof Class<?> superClass && ConfigurationItemBase.class.isAssignableFrom(superClass)) {
-                return parameterized.getActualTypeArguments()[0];
+        Map<TypeVariable<?>, Type> substitutions = new HashMap<>();
+        Class<?> raw = implementation;
+        while (raw != null && raw != Object.class) {
+            Type genericSuperclass = raw.getGenericSuperclass();
+            if (genericSuperclass instanceof Class<?> plainSuperclass) {
+                // A non-parameterized superclass (e.g. BooleanConfigItem) contributes no substitutions.
+                raw = plainSuperclass;
+                continue;
             }
-        }
+            if (!(genericSuperclass instanceof ParameterizedType parameterized)
+                    || !(parameterized.getRawType() instanceof Class<?> superRaw)) {
+                return null;
+            }
 
-        if (genericSuperclass instanceof Class<?> superClass && !superClass.equals(Object.class)) {
-            return getTypeParameter(superClass);
+            TypeVariable<?>[] variables = superRaw.getTypeParameters();
+            Type[] arguments = parameterized.getActualTypeArguments();
+            Map<TypeVariable<?>, Type> resolvedForSuperclass = new HashMap<>();
+            for (int i = 0; i < variables.length; i++) {
+                resolvedForSuperclass.put(variables[i], resolveTypeVariables(arguments[i], substitutions));
+            }
+
+            if (superRaw == ConfigurationItemBase.class) {
+                return resolvedForSuperclass.get(variables[0]);
+            }
+
+            substitutions = resolvedForSuperclass;
+            raw = superRaw;
         }
 
         return null;
+    }
+
+    /** Substitutes any type variables in {@code type} using the supplied mapping, recursing into generics. */
+    private Type resolveTypeVariables(Type type, Map<TypeVariable<?>, Type> substitutions) {
+        if (type instanceof TypeVariable<?> variable) {
+            Type mapped = substitutions.get(variable);
+            return mapped != null ? mapped : variable;
+        }
+        if (type instanceof ParameterizedType parameterized) {
+            Type[] arguments = parameterized.getActualTypeArguments();
+            Type[] resolved = new Type[arguments.length];
+            boolean changed = false;
+            for (int i = 0; i < arguments.length; i++) {
+                resolved[i] = resolveTypeVariables(arguments[i], substitutions);
+                if (resolved[i] != arguments[i]) {
+                    changed = true;
+                }
+            }
+            if (!changed) {
+                return parameterized;
+            }
+            return TypeToken.getParameterized(parameterized.getRawType(), resolved).getType();
+        }
+        return type;
     }
 
     private static class ConfigurationItemTypeAdapter<T> extends TypeAdapter<ConfigurationItemBase<T>> {

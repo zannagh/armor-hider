@@ -76,7 +76,7 @@ public final class EntityRenderSmokeTest implements FabricClientGameTest {
                 client.options.setCameraType(CameraType.THIRD_PERSON_BACK);
 
                 var config = ArmorHiderClient.CLIENT_CONFIG_MANAGER
-                        .getConfigForPlayer(ArmorHiderClient.getCurrentPlayerName());
+                        .resolveConfig(ArmorHiderClient.getCurrentPlayerName());
                 // 50% helmet opacity → ARMOR_PIECE must enter with a real modification (asserted below).
                 config.helmetOpacity.setValue(0.5);
                 // 0% chest opacity → elytra is fully hidden, driving the cancel-at-HEAD path.

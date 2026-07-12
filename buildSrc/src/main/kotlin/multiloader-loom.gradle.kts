@@ -229,7 +229,7 @@ if (branch == "fabric") {
     // that pin `fabricapi.semver` (currently fabric-26.2). Other variants emit "[]" so the
     // JSON stays valid and fabric-loader simply ignores it.
     val fcgtEntries = if (hasProperty("fabricapi.semver"))
-        "[\"de.zannagh.armorhider.smoke.EntityRenderSmokeTest\"]"
+        "[\"de.zannagh.armorhider.smoke.EntityRenderSmokeTest\", \"de.zannagh.armorhider.smoke.IndividualConfigSmokeTest\"]"
     else
         "[]"
 

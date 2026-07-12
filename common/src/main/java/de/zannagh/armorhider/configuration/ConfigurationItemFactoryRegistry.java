@@ -41,6 +41,10 @@ public class ConfigurationItemFactoryRegistry {
         registerFactoriesForClass(ShowShieldWhenBlocking.class);
         registerFactoriesForClass(DisableArmorHiderOnInvisibility.class);
         registerFactoriesForClass(DisableArmorHiderOnInvisibilityGlobally.class);
+        registerFactoriesForClass(AllowIndividualPlayerConfigurations.class);
+        registerFactoriesForClass(IndividualConfigurations.class);
+        registerFactoriesForClass(ServerMappedIndividualConfigurations.class);
+        registerFactoriesForClass(UseGlobalOverrideForAllPlayers.class);
 
         initialized = true;
     }

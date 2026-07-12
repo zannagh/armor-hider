@@ -5,24 +5,33 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 import java.awt.Color;
+import java.util.function.Supplier;
 
 public class PlayerPreviewWidget extends AbstractWidget {
 
+    /** Supplies the entity to preview; defaults to the local player. Returns null when nothing to show. */
+    private final Supplier<LivingEntity> entitySupplier;
+
     public PlayerPreviewWidget(int x, int y, int width, int height) {
-        super(x, y, width, height, Component.empty());
+        this(x, y, width, height, () -> Minecraft.getInstance().player);
     }
-    
+
+    public PlayerPreviewWidget(int x, int y, int width, int height, Supplier<LivingEntity> entitySupplier) {
+        super(x, y, width, height, Component.empty());
+        this.entitySupplier = entitySupplier;
+    }
+
     @Override
     //? if >= 26.1-1.pre.1
     protected void extractWidgetRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY, float a) {
     //? if < 26.1-1.pre.1
     //public void renderWidget(GuiGraphics context, int mouseX, int mouseY, float delta) {
-        LocalPlayer player = Minecraft.getInstance().player;
+        LivingEntity player = entitySupplier.get();
         if (player == null) {
             return;
         }
@@ -82,7 +91,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.LivingEntity;
@@ -91,16 +99,24 @@ import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 
 import java.awt.Color;
+import java.util.function.Supplier;
 
 public class PlayerPreviewWidget extends AbstractWidget {
 
+    private final Supplier<LivingEntity> entitySupplier;
+
     public PlayerPreviewWidget(int x, int y, int width, int height) {
+        this(x, y, width, height, () -> Minecraft.getInstance().player);
+    }
+
+    public PlayerPreviewWidget(int x, int y, int width, int height, Supplier<LivingEntity> entitySupplier) {
         super(x, y, width, height, Component.empty());
+        this.entitySupplier = entitySupplier;
     }
 
     @Override
     public void renderWidget(GuiGraphics context, int mouseX, int mouseY, float delta) {
-        LocalPlayer player = Minecraft.getInstance().player;
+        LivingEntity player = entitySupplier.get();
         if (player == null) {
             return;
         }

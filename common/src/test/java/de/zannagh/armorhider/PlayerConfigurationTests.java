@@ -1,6 +1,6 @@
 package de.zannagh.armorhider;
 
-import de.zannagh.armorhider.client.ClientConfigManager;
+import de.zannagh.armorhider.client.api.impl.AhPlayerConfigApiImpl;
 import de.zannagh.armorhider.configuration.ConfigurationItemFactoryRegistry;
 import de.zannagh.armorhider.configuration.items.ArmorOpacity;
 import de.zannagh.armorhider.net.packets.PlayerConfig;
@@ -272,10 +272,83 @@ class PlayerConfigurationTests {
     }
 
     @Test
+    @DisplayName("Individual per-player override map round-trips through JSON")
+    void individualOverridesRoundTrip() {
+        var config = PlayerConfig.defaults(UUID.randomUUID(), "Viewer");
+
+        var override = PlayerConfig.defaults(UUID.randomUUID(), "TargetPlayer");
+        override.helmetOpacity.setValue(0.1);
+        override.chestOpacity.setValue(0.42);
+        config.individualConfigurations.putOverride("mc.example.com", "TargetPlayer", override);
+
+        String json = config.toJson();
+        var restored = PlayerConfig.deserialize(json);
+
+        assertNotNull(restored.individualConfigurations, "individualConfigurations must survive deserialization");
+        var restoredOverride = restored.individualConfigurations.getOverride("mc.example.com", "TargetPlayer");
+        assertNotNull(restoredOverride, "the nested per-player override must round-trip");
+        assertEquals(0.1, restoredOverride.helmetOpacity.getValue(), "override helmet opacity must round-trip");
+        assertEquals(0.42, restoredOverride.chestOpacity.getValue(), "override chest opacity must round-trip");
+        assertEquals("TargetPlayer", restoredOverride.playerName.getValue(), "override player name must round-trip");
+        assertNull(restored.individualConfigurations.getOverride("mc.example.com", "SomeoneElse"),
+                "unrelated players must not gain overrides");
+    }
+
+    @Test
+    @DisplayName("forNetwork() strips the private override map")
+    void forNetworkStripsOverrides() {
+        var config = PlayerConfig.defaults(UUID.randomUUID(), "Viewer");
+        config.individualConfigurations.putOverride("mc.example.com", "TargetPlayer",
+                PlayerConfig.defaults(UUID.randomUUID(), "TargetPlayer"));
+        config.useGlobalOverrideForAllPlayers.setValue(true);
+        config.globalPlayerOverride = PlayerConfig.defaults(UUID.randomUUID(), "GlobalOverride");
+
+        var network = config.forNetwork();
+
+        assertTrue(network.individualConfigurations.getValue().isEmpty(),
+                "the override map must never be transmitted to the server");
+        assertNull(network.globalPlayerOverride, "the global override must never be transmitted to the server");
+        assertFalse(network.useGlobalOverrideForAllPlayers.getValue(),
+                "the global-override flag must not be transmitted to the server");
+    }
+
+    @Test
+    @DisplayName("Global override config round-trips through JSON")
+    void globalOverrideRoundTrips() {
+        var config = PlayerConfig.defaults(UUID.randomUUID(), "Viewer");
+        config.useGlobalOverrideForAllPlayers.setValue(true);
+        var override = PlayerConfig.defaults(UUID.randomUUID(), "GlobalOverride");
+        override.helmetOpacity.setValue(0.15);
+        override.chestOpacity.setValue(0.65);
+        config.globalPlayerOverride = override;
+
+        var restored = PlayerConfig.deserialize(config.toJson());
+
+        assertTrue(restored.useGlobalOverrideForAllPlayers.getValue(), "the global-override flag must round-trip");
+        assertNotNull(restored.globalPlayerOverride, "the global override config must round-trip");
+        assertEquals(0.15, restored.globalPlayerOverride.helmetOpacity.getValue(),
+                "global override helmet opacity must round-trip");
+        assertEquals(0.65, restored.globalPlayerOverride.chestOpacity.getValue(),
+                "global override chest opacity must round-trip");
+        // The nested override must not recurse into its own global override.
+        assertNull(restored.globalPlayerOverride.globalPlayerOverride,
+                "nested global override must stay null (no infinite nesting)");
+    }
+
+    @Test
+    @DisplayName("No-arg constructor leaves globalPlayerOverride null (no recursion)")
+    void noArgConstructorLeavesGlobalOverrideNull() {
+        var config = new PlayerConfig();
+        assertNull(config.globalPlayerOverride,
+                "globalPlayerOverride must be lazily null so the constructor doesn't recurse");
+        assertFalse(config.useGlobalOverrideForAllPlayers.getValue(), "global override defaults to off");
+    }
+
+    @Test
     @DisplayName("Read from Config Manager")
     void readFromConfigManager() {
-        ClientConfigManager configManager = new ClientConfigManager(new StringPlayerConfigProvider(getVersion3PlayerConfig()));
-        var currentConfig = configManager.getValue();
+        var configManager = new AhPlayerConfigApiImpl(new StringPlayerConfigProvider(getVersion3PlayerConfig()));
+        var currentConfig = configManager.getLocalPlayerConfig();
         assertEquals(0.35, currentConfig.helmetOpacity.getValue());
         assertEquals(0.35, currentConfig.chestOpacity.getValue());
         assertEquals(0.2, currentConfig.legsOpacity.getValue());

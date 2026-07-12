@@ -15,14 +15,14 @@ public class AdvancedArmorHiderSettingsScreen extends ArmorHiderConfigurationScr
     private boolean newServerCombatDetection;
     private boolean setForceArmorHiderOff;
     private boolean localSettingsChanged;
-    private boolean setDisableOthers = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableArmorHiderForOthers.getValue();
-    private boolean setUseLocalSettingsForOthersWhenUnknown = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().usePlayerSettingsWhenUndeterminable.getValue();
-    private boolean setShowSettingsInSkinCustomization = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().showSettingsInSkinCustomization.getValue();
-    private boolean setDisableLocal = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableArmorHider.getValue();
+    private boolean setShowSettingsInSkinCustomization = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig().showSettingsInSkinCustomization.getValue();
+    private boolean setDisableLocal = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig().disableArmorHider.getValue();
     private boolean forceServerOffDefaultSetting;
     private boolean combatDetectionDefaultSetting;
 
     private boolean visibilityRespectDefaultSetting;
+    private boolean allowIndividualConfigsDefaultSetting;
+    private boolean setAllowIndividualConfigs;
     private Button debugButton;
 
     public AdvancedArmorHiderSettingsScreen(Screen parent, Options gameOptions, Component title) {
@@ -56,9 +56,15 @@ public class AdvancedArmorHiderSettingsScreen extends ArmorHiderConfigurationScr
                 ? serverConfig.serverWideSettings.disableArmorHiderOnInvisibilityGlobally.getValue()
                 : getFallbackDefault(false);
 
+        allowIndividualConfigsDefaultSetting = serverConfig != null
+                ? serverConfig.serverWideSettings.allowIndividualPlayerConfigurations.getValue()
+                : getFallbackDefault(true);
+        setAllowIndividualConfigs = allowIndividualConfigsDefaultSetting;
+
         var combatDetectionServerText = Component.translatable("armorhider.options.combat_detection_server.title");
         var forceArmorHiderOffText = Component.translatable("armorhider.options.force_armor_hider_off.title");
         var invisibilityRespectServerText = Component.translatable("armorhider.options.invisibility_respect_server.title");
+        var allowIndividualConfigsText = Component.translatable("armorhider.options.other_player_server.title");
 
         //? if >= 1.21.9 {
         //? if >= 1.21.11
@@ -73,6 +79,10 @@ public class AdvancedArmorHiderSettingsScreen extends ArmorHiderConfigurationScr
         var visibilityRespectBuilder = CycleButton.booleanBuilder(onText, offText, visibilityRespectDefaultSetting);
         //? if >= 1.21.9 && < 1.21.11
         //var visibilityRespectBuilder = CycleButton.booleanBuilder(onText, offText).withInitialValue(visibilityRespectDefaultSetting);
+        //? if >= 1.21.11
+        var allowIndividualConfigsBuilder = CycleButton.booleanBuilder(onText, offText, allowIndividualConfigsDefaultSetting);
+        //? if >= 1.21.9 && < 1.21.11
+        //var allowIndividualConfigsBuilder = CycleButton.booleanBuilder(onText, offText).withInitialValue(allowIndividualConfigsDefaultSetting);
 
         var combatButton = cyclingWidgetBuilder.withTooltip(newValue -> {
             if (ArmorHiderClient.permissionLevel < 3) {
@@ -126,6 +136,25 @@ public class AdvancedArmorHiderSettingsScreen extends ArmorHiderConfigurationScr
                     }
                     setSetting(newValue, val -> {
                         this.visibilityRespectDefaultSetting = val;
+                        serverSettingsChanged = true;
+                    });
+                }
+        );
+
+        var allowIndividualConfigsButton = allowIndividualConfigsBuilder.withTooltip(newValue -> {
+            if (ArmorHiderClient.permissionLevel < 3) {
+                return Tooltip.create(Component.translatable("armorhider.options.other_player_server.tooltip.disabled"));
+            }
+            return Tooltip.create(Component.translatable("armorhider.options.other_player_server.tooltip"));
+        }).create(
+                allowIndividualConfigsText,
+                (widget, newValue) -> {
+                    if (ArmorHiderClient.permissionLevel < 3) {
+                        widget.setValue(allowIndividualConfigsDefaultSetting);
+                        return;
+                    }
+                    setSetting(newValue, val -> {
+                        this.setAllowIndividualConfigs = val;
                         serverSettingsChanged = true;
                     });
                 }
@@ -188,68 +217,67 @@ public class AdvancedArmorHiderSettingsScreen extends ArmorHiderConfigurationScr
                 }
         );
 
+        OptionInstance<Boolean> allowIndividualConfigsOption = factory.buildBooleanOption(
+                allowIndividualConfigsText,
+                ArmorHiderClient.permissionLevel >= 3
+                        ? Component.translatable("armorhider.options.other_player_server.tooltip")
+                        : Component.translatable("armorhider.options.other_player_server.tooltip.disabled"),
+                null,
+                allowIndividualConfigsDefaultSetting,
+                val -> {
+                    if (ArmorHiderClient.permissionLevel < 3) {
+                        return;
+                    }
+                    setSetting(val, v -> {
+                        this.setAllowIndividualConfigs = v;
+                        serverSettingsChanged = true;
+                    });
+                }
+        );
+
         var combatButton = combatDetectionServerOption.createButton(gameOptions, 0, 0, rowWidth);
         var armorHiderOffButton = forceOffOption.createButton(gameOptions, 0, 0, rowWidth);
         var visibilityButton = visibilityRespectOption.createButton(gameOptions, 0, 0, rowWidth);
+        var allowIndividualConfigsButton = allowIndividualConfigsOption.createButton(gameOptions, 0, 0, rowWidth);
         *///?}
 
         combatButton.active = ArmorHiderClient.permissionLevel >= 3;
         armorHiderOffButton.active = ArmorHiderClient.permissionLevel >= 3;
         visibilityButton.active = ArmorHiderClient.permissionLevel >= 3;
+        allowIndividualConfigsButton.active = ArmorHiderClient.permissionLevel >= 3;
 
         factory.addElementAsWidget(combatButton);
         factory.addElementAsWidget(armorHiderOffButton);
         factory.addElementAsWidget(visibilityButton);
+        factory.addElementAsWidget(allowIndividualConfigsButton);
 
         factory.addTextWidget(Component.translatable("armorhider.options.regular.title"));
 
-        var settingsToUse = factory.buildBooleanOption(
-                Component.translatable("armorhider.options.use_settings_for_unknown.title"),
-                Component.translatable("armorhider.options.use_settings_for_unknown.tooltip"),
-                Component.translatable("armorhider.options.use_settings_for_unknown.tooltip_narration"),
-                ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().usePlayerSettingsWhenUndeterminable.getValue(),
-                val -> setSetting(val, v -> {
-                    setUseLocalSettingsForOthersWhenUnknown = v;
-                    localSettingsChanged = true;
-                })
-        );
-
+        // The "apply settings to unknown players" and "disable for others" toggles moved to the
+        // Global Configuration tab of the Individual Player Configurations screen.
         var globalToggle = factory.buildBooleanOption(
                 Component.translatable("armorhider.options.disable_local.title"),
                 Component.translatable("armorhider.options.disable_local.tooltip"),
                 Component.translatable("armorhider.options.disable_local.tooltip_narration"),
-                ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableArmorHider.getValue(),
+                ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig().disableArmorHider.getValue(),
                 val -> setSetting(val, v -> {
                     setDisableLocal = v;
                     localSettingsChanged = true;
                 })
         );
 
-        var otherToggle = factory.buildBooleanOption(
-                Component.translatable("armorhider.options.disable_others.title"),
-                Component.translatable("armorhider.options.disable_others.tooltip"),
-                Component.translatable("armorhider.options.disable_others.tooltip_narration"),
-                ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableArmorHiderForOthers.getValue(),
-                val -> setSetting(val, v -> {
-                    setDisableOthers = v;
-                    localSettingsChanged = true;
-                })
-        );
-
-        factory.addSimpleOptionAsWidget(settingsToUse);
-        factory.addSimpleOptionAsWidget(globalToggle);
         var settingsLocationToggle = factory.buildBooleanOption(
                 Component.translatable("armorhider.options.show_settings_in_skin.title"),
                 Component.translatable("armorhider.options.show_settings_in_skin.tooltip"),
                 Component.translatable("armorhider.options.show_settings_in_skin.tooltip_narration"),
-                ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().showSettingsInSkinCustomization.getValue(),
+                ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig().showSettingsInSkinCustomization.getValue(),
                 val -> setSetting(val, v -> {
                     setShowSettingsInSkinCustomization = v;
                     localSettingsChanged = true;
                 })
         );
+        factory.addSimpleOptionAsWidget(globalToggle);
         factory.addSimpleOptionAsWidget(settingsLocationToggle);
-        factory.addSimpleOptionAsWidget(otherToggle);
 
         factory.addTextWidget(Component.translatable("armorhider.options.debug.title"));
 
@@ -268,13 +296,11 @@ public class AdvancedArmorHiderSettingsScreen extends ArmorHiderConfigurationScr
     protected void saveSettingsOnClose() {
         if (!hasUsedFallbackWhereServerDidntTranspondSettings && serverSettingsChanged) {
             ArmorHider.LOGGER.info("Updating current server settings (if possible)...");
-            ArmorHiderClient.CLIENT_CONFIG_MANAGER.setAndSendServerConfig(newServerCombatDetection, setForceArmorHiderOff, visibilityRespectDefaultSetting);
+            ArmorHiderClient.CLIENT_CONFIG_MANAGER.setAndSendServerConfig(newServerCombatDetection, setForceArmorHiderOff, visibilityRespectDefaultSetting, setAllowIndividualConfigs);
         }
         if (localSettingsChanged) {
-            ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableArmorHiderForOthers.setValue(setDisableOthers);
-            ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableArmorHider.setValue(setDisableLocal);
-            ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().usePlayerSettingsWhenUndeterminable.setValue(setUseLocalSettingsForOthersWhenUnknown);
-            ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().showSettingsInSkinCustomization.setValue(setShowSettingsInSkinCustomization);
+            ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig().disableArmorHider.setValue(setDisableLocal);
+            ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig().showSettingsInSkinCustomization.setValue(setShowSettingsInSkinCustomization);
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.saveCurrent();
         }
     }

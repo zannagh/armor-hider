@@ -17,7 +17,7 @@ public final class McClientUtils {
 
     public static Screen getPreferredSettingsScreen(Screen parent, Options options) {
         //? if >= 1.21.9 {
-        return ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().showSettingsInSkinCustomization.getValue()
+        return ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig().showSettingsInSkinCustomization.getValue()
                 ? new SkinCustomizationScreen(parent, options)
                 : new ArmorHiderOptionsScreen(parent, options);
         //?}

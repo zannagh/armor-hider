@@ -30,10 +30,12 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import java.util.UUID;
 import java.util.function.Consumer;
 
 @Mixin(Player.class)
-public abstract class PlayerMixin 
+public abstract class PlayerMixin
     //? if >= 1.21.11
     extends Avatar implements ContainerUser, IdentityCarrier {
     //? if < 1.21.11
@@ -43,6 +45,9 @@ public abstract class PlayerMixin
     private boolean armorHider$modsDirty = true;
     @Unique
     private PlayerModificationInfo armorHider$playerModInfo;
+
+    @Unique
+    private UUID armorHider$configChangeListenerGuid = UUID.randomUUID();
 
     public PlayerModificationInfo armorHider$getPlayerModifications() {
         armorHider$rebuildModsIfDirty();
@@ -63,14 +68,14 @@ public abstract class PlayerMixin
     @Inject(method = "<init>", at = @At("TAIL"))
     private void registerConfigListener(CallbackInfo ci) {
         if (ArmorHiderClient.CLIENT_CONFIG_MANAGER != null) {
-            ArmorHiderClient.CLIENT_CONFIG_MANAGER.addConfigChangeListener(armorHider$configListener);
+            armorHider$configChangeListenerGuid = ArmorHiderClient.CLIENT_CONFIG_MANAGER.addConfigChangeListener(armorHider$configListener);
         }
     }
 
     @Inject(method = "remove", at = @At("HEAD"))
     private void unregisterConfigListener(Entity.RemovalReason reason, CallbackInfo ci) {
         if (armorHider$configListener != null) {
-            ArmorHiderClient.CLIENT_CONFIG_MANAGER.removeConfigChangeListener(armorHider$configListener);
+            ArmorHiderClient.CLIENT_CONFIG_MANAGER.removeConfigChangeListener(armorHider$configChangeListenerGuid);
             armorHider$configListener = null;
         }
     }
@@ -134,7 +139,7 @@ public abstract class PlayerMixin
         Player player = (Player) (Object) this;
         return player.isInvisible() || player.hasEffect(MobEffects.INVISIBILITY);
     }
-    
+
     @Override
     public boolean isPlayerBlocking() {
         Player player = (Player) (Object) this;

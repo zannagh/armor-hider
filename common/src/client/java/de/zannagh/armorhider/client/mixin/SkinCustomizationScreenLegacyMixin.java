@@ -36,7 +36,7 @@ public abstract class SkinCustomizationScreenLegacyMixin extends OptionsSubScree
 
     @Inject(method = "init", at = @At("TAIL"))
     private void armorHider$attachOptionsPanel(CallbackInfo ci) {
-        if (!ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().showSettingsInSkinCustomization.getValue()) {
+        if (!ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig().showSettingsInSkinCustomization.getValue()) {
             this.armorHider$panel = null;
             this.armorHider$preview = null;
             return;

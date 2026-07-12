@@ -19,6 +19,7 @@ public class MixinPlugin implements IMixinConfigPlugin {
             "PlayerMixin",
             "GameRendererMixin",
             "DevSkinMixin",
+            "TitleScreenSmokeMixin",
             // All versions — Stonecutter guards per version range
             "EntityRenderDispatcherMixin",
             "LivingEntityMixin",

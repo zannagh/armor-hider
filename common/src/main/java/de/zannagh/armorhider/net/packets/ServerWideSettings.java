@@ -3,6 +3,7 @@ package de.zannagh.armorhider.net.packets;
 import com.google.gson.annotations.SerializedName;
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.configuration.ConfigurationSource;
+import de.zannagh.armorhider.configuration.items.AllowIndividualPlayerConfigurations;
 import de.zannagh.armorhider.configuration.items.CombatDetection;
 import de.zannagh.armorhider.configuration.items.DisableArmorHiderOnInvisibilityGlobally;
 import de.zannagh.armorhider.configuration.items.ForceArmorHiderOffOnPlayers;
@@ -25,13 +26,14 @@ public class ServerWideSettings implements ConfigurationSource<ServerWideSetting
      * <ul>
      *   <li>0 = pre-versioning format (initial v4 ServerConfiguration shape — only enableCombatDetection + forceArmorHiderOff)</li>
      *   <li>1 = added disableArmorHiderOnInvisibilityGlobally</li>
+     *   <li>2 = added allowIndividualPlayerConfigurations</li>
      * </ul>
      */
     @SerializedName(value = "configVersion")
     public int configVersion;
 
     /** The current config schema version. */
-    public static final int CURRENT_CONFIG_VERSION = 1;
+    public static final int CURRENT_CONFIG_VERSION = 2;
 
     //? if >= 1.21.11 {
     public static final Identifier PACKET_IDENTIFIER = Identifier.fromNamespaceAndPath("de.zannagh.armorhider", "server_wide_settings");
@@ -65,6 +67,9 @@ public class ServerWideSettings implements ConfigurationSource<ServerWideSetting
     @SerializedName(value = "disableArmorHiderOnInvisibilityGlobally")
     @NonNull
     public DisableArmorHiderOnInvisibilityGlobally disableArmorHiderOnInvisibilityGlobally;
+    @SerializedName(value = "allowIndividualPlayerConfigurations")
+    @NonNull
+    public AllowIndividualPlayerConfigurations allowIndividualPlayerConfigurations;
 
     private transient boolean hasChangedFromSerializedContent = false;
 
@@ -72,13 +77,15 @@ public class ServerWideSettings implements ConfigurationSource<ServerWideSetting
         this.enableCombatDetection = new CombatDetection();
         this.forceArmorHiderOff = new ForceArmorHiderOffOnPlayers();
         this.disableArmorHiderOnInvisibilityGlobally = new DisableArmorHiderOnInvisibilityGlobally();
+        this.allowIndividualPlayerConfigurations = new AllowIndividualPlayerConfigurations();
     }
 
-    public ServerWideSettings(Boolean enableCombatDetection, Boolean forceArmorHiderOff, Boolean disableArmorHiderOnInvisibilityGlobally) {
+    public ServerWideSettings(Boolean enableCombatDetection, Boolean forceArmorHiderOff, Boolean disableArmorHiderOnInvisibilityGlobally, Boolean allowIndividualPlayerConfigurations) {
         this();
         this.enableCombatDetection = new CombatDetection(enableCombatDetection);
         this.forceArmorHiderOff = new ForceArmorHiderOffOnPlayers(forceArmorHiderOff);
         this.disableArmorHiderOnInvisibilityGlobally = new DisableArmorHiderOnInvisibilityGlobally(disableArmorHiderOnInvisibilityGlobally);
+        this.allowIndividualPlayerConfigurations = new AllowIndividualPlayerConfigurations(allowIndividualPlayerConfigurations);
         this.configVersion = CURRENT_CONFIG_VERSION;
     }
 
@@ -102,6 +109,7 @@ public class ServerWideSettings implements ConfigurationSource<ServerWideSetting
         fresh.enableCombatDetection.setValue(old.enableCombatDetection.getValue());
         fresh.forceArmorHiderOff.setValue(old.forceArmorHiderOff.getValue());
         fresh.disableArmorHiderOnInvisibilityGlobally.setValue(old.disableArmorHiderOnInvisibilityGlobally.getValue());
+        fresh.allowIndividualPlayerConfigurations.setValue(old.allowIndividualPlayerConfigurations.getValue());
         fresh.setHasChangedFromSerializedContent();
         return fresh;
     }

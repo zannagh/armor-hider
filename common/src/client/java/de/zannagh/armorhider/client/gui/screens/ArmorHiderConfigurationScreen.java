@@ -6,6 +6,7 @@ import de.zannagh.armorhider.client.gui.elements.WidgetList;
 import net.minecraft.client.Options;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.MultiLineTextWidget;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.CommonComponents;
@@ -92,5 +93,25 @@ public abstract class ArmorHiderConfigurationScreen extends Screen {
         setter.accept(value);
         settingsChanged = true;
         ArmorHiderClient.CLIENT_CONFIG_MANAGER.markLocalDirty();
+    }
+
+    /** Adds a horizontally-centered, wrapping text notice at the given y (centered on the screen). */
+    protected void addCenteredNotice(Component text, int y) {
+        var widget = new MultiLineTextWidget(0, 0, text, this.font)
+                .setMaxWidth(this.width - 60)
+                .setCentered(true);
+        widget.setX(this.width / 2 - widget.getWidth() / 2);
+        widget.setY(y);
+        addRenderableWidget(widget);
+    }
+
+    /** Adds a wrapping text notice centered within the horizontal band {@code [x, x + areaWidth]}. */
+    protected void addCenteredNoteAt(Component text, int x, int y, int areaWidth) {
+        var widget = new MultiLineTextWidget(0, 0, text, this.font)
+                .setMaxWidth(Math.max(60, areaWidth - previewMargin))
+                .setCentered(true);
+        widget.setX(x + areaWidth / 2 - widget.getWidth() / 2);
+        widget.setY(y);
+        addRenderableWidget(widget);
     }
 }
