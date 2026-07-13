@@ -25,25 +25,23 @@ import net.minecraft.resources.Identifier;
 /*import net.minecraft.resources.Identifier;
 *///?}
 
+/**
+ * Represents the configuration settings for a player with various customizable options.
+ * This class provides serialization, deserialization, deep copy, and migration capabilities.
+ * It also supports network-related data transmission and handles configurations in different contexts.<br/><br/>
+ *
+ * Also see {@link ConfigurationSource}.
+ *
+ * @since 0.5.0
+ */
 public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
 
-    /**
-     * Config schema version. Absent (0) in configs from before versioning was introduced.
-     * Incremented when the config structure changes in a way that requires migration.
-     * <ul>
-     *   <li>0 = pre-versioning format (before 0.10.0-pre.5)</li>
-     *   <li>1 = introduced explicit configVersion/schema versioning (0.10.0-pre.5+)</li>
-     *   <li>2 = added client-side settings placement preference</li>
-     *   <li>3 = added per-slot in-combat default armor skin setting</li>
-     *   <li>4 = consolidated per-slot combat skin into single global toggle</li>
-     * </ul>
-     */
     @SerializedName(value = "configVersion")
     public int configVersion;
 
     /** The current config schema version. */
-    public static final int CURRENT_CONFIG_VERSION = 5;
-    
+    public static final int CURRENT_CONFIG_VERSION = 8;
+
     //? if >= 1.21.11 {
     public static final Identifier PACKET_IDENTIFIER = Identifier.fromNamespaceAndPath("de.zannagh.armorhider", "settings_c2s_packet");
     //?}
@@ -67,54 +65,243 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
     }
     //?}
 
+    /**
+     * The opacity that the helmet slot should be rendered at. Also see {@link ArmorOpacity}.<br/><br/>
+     *
+     * This was part of the initial release and is considered core functionality of Armor Hider.<br/>
+     * Note that until 0.10.0-pre.5 the configuration items were not versionized but stored as plain values (schema 1 was introduced in 0.10.0-pre.5).
+     *
+     * @since AH 0.1.0, schema 1
+     */
     @SerializedName(value = "helmetOpacity", alternate = {"helmetTransparency"})
     public @NonNull ArmorOpacity helmetOpacity;
-    @SerializedName(value = "helmetGlint")
-    public @NonNull EnableGlint helmetGlint;
+
+    /**
+     * The opacity that the chest slot should be rendered at. Also see {@link ArmorOpacity}.<br/><br/>
+     *
+     * This was part of the initial release and is considered core functionality of Armor Hider.<br/>
+     * Note that until 0.10.0-pre.5 the configuration items were not versionized but stored as plain values (schema 1 was introduced in 0.10.0-pre.5).
+     *
+     * @since AH 0.1.0, schema 1
+     */
     @SerializedName(value = "chestOpacity", alternate = {"chestTransparency"})
     public @NonNull ArmorOpacity chestOpacity;
-    @SerializedName(value = "chestGlint")
-    public @NonNull EnableGlint chestGlint;
+
+    /**
+     * The opacity that the legs slot should be rendered at. Also see {@link ArmorOpacity}.<br/><br/>
+     *
+     * This was part of the initial release and is considered core functionality of Armor Hider.<br/>
+     * Note that until 0.10.0-pre.5 the configuration items were not versionized but stored as plain values (schema 1 was introduced in 0.10.0-pre.5).
+     *
+     * @since AH 0.1.0, schema 1
+     */
     @SerializedName(value = "legsOpacity", alternate = {"legsTransparency"})
     public @NonNull ArmorOpacity legsOpacity;
-    @SerializedName(value = "legsGlint")
-    public @NonNull EnableGlint legsGlint;
+
+    /**
+     * The opacity that the boots slot should be rendered at. Also see {@link ArmorOpacity}.<br/><br/>
+     *
+     * This was part of the initial release and is considered core functionality of Armor Hider.<br/>
+     * Note that until 0.10.0-pre.5 the configuration items were not versionized but stored as plain values (schema 1 was introduced in 0.10.0-pre.5).
+     *
+     * @since AH 0.1.0, schema 1
+     */
     @SerializedName(value = "bootsOpacity", alternate = {"bootsTransparency"})
     public @NonNull ArmorOpacity bootsOpacity;
+
+    /**
+     * Whether enchantment glint should be drawn on the helmet slot. Also
+     * see {@link EnableGlint}.<br/><br/>
+     * This was introduced on 8th March 2026 in PR #114.
+     *
+     * @since AH 0.8.9, schema 1
+     */
+    @SerializedName(value = "helmetGlint")
+    public @NonNull EnableGlint helmetGlint;
+
+    /**
+     * Whether enchantment glint should be drawn on the chest slot. Also
+     * see {@link EnableGlint}.<br/><br/>
+     * This was introduced on 8th March 2026 in PR #114.
+     *
+     * @since AH 0.8.9, schema 1
+     */
+    @SerializedName(value = "chestGlint")
+    public @NonNull EnableGlint chestGlint;
+
+    /**
+     * Whether enchantment glint should be drawn on the legs slot. Also
+     * see {@link EnableGlint}.<br/><br/>
+     * This was introduced on 8th March 2026 in PR #114.
+     *
+     * @since AH 0.8.9, schema 1
+     */
+    @SerializedName(value = "legsGlint")
+    public @NonNull EnableGlint legsGlint;
+
+    /**
+     * Whether enchantment glint should be drawn on the boot slot. Also
+     * see {@link EnableGlint}.<br/><br/>
+     * This was introduced on 8th March 2026 in PR #114.
+     *
+     * @since AH 0.8.9, schema 1
+     */
     @SerializedName(value = "bootsGlint")
     public @NonNull EnableGlint bootsGlint;
-    @SerializedName(value = "inCombatUseDefaultModel")
-    public @NonNull InCombatUseDefaultArmorSkin inCombatUseDefaultModel;
+
+    /**
+     * Whether combat detection (for combat fade-off on transparency) should be enabled or not. Also see {@link CombatDetection}.<br/><br/>
+     * This was part of the initial release and is core functionality of Armor Hider.
+     *
+     * @since AH 0.1.0, schema 1
+     */
     @SerializedName(value = "enableCombatDetection")
     public @NonNull CombatDetection enableCombatDetection;
+
+    /**
+     * Gets the configuration item {@link OpacityAffectingElytraItem} that determines whether the chest opacity slider should affect Elytra rendering too.
+     *
+     * @since AH 0.5.0, schema 1
+     */
     @SerializedName(value = "opacityAffectingElytra")
     public @NonNull OpacityAffectingElytraItem opacityAffectingElytra;
+
+    /**
+     * Whether Armor Hider's helmet opacity {@link PlayerConfig helmetOpacity} should affect skulls.<br/><br/>
+     *
+     * This setting initially affected hats, but has since changed to only affect skull transparency.<br/><br/>
+     *
+     * This was introduced in PR#28 on 8th Jan 2026.
+     *
+     * @since AH 0.5.0, schema 1
+     */
     @SerializedName(value = "opacityAffectingHatOrSkull")
     public @NonNull OpacityAffectingHatOrSkullItem opacityAffectingHatOrSkull;
+
+    /**
+     * Whether Armor Hider should be disabled globally for the user themselves and for the other players drawn via the {@link DisableArmorHiderGlobally} configuration item.<br/>
+     * Also see {@link PlayerConfig#disableArmorHiderForOthers}
+     *
+     * @since AH 0.6.0, schema 1
+     */
     @SerializedName(value = "disableArmorHider", alternate = "globalArmorHiderToggle")
     public @NonNull DisableArmorHiderGlobally disableArmorHider;
+
+    /**
+     * Whether Armor Hider should be disabled for other players drawn,
+     * via the {@link DisableArmorHiderForOthers} configuration item.
+     *
+     * @since AH 0.6.0, schema 1
+     */
     @SerializedName(value = "disableArmorHiderForOthers", alternate = "toggleArmorHiderForOthers")
     public @NonNull DisableArmorHiderForOthers disableArmorHiderForOthers;
+
+    /**
+     * Whether the player's own configuration should be used when an unknown player is probed (i.e. someone not using the mod). Uses the {@link UsePlayerSettingsWhenUndeterminable} configuration item.
+     *
+     * @since AH 0.6.0, schema 1
+     */
     @SerializedName(value = "usePlayerSettingsWhenUndeterminable")
     public @NonNull UsePlayerSettingsWhenUndeterminable usePlayerSettingsWhenUndeterminable;
-    @SerializedName(value = "showSettingsInSkinCustomization")
-    public @NonNull ShowSettingsInSkinCustomization showSettingsInSkinCustomization;
+
+    /**
+     * The opacity value of the offhand item (e.g. shield/totem/...).
+     * See: {@link OffHandOpacity}.<br/><br/>
+     *
+     * This was introduced on 15th February 2026 in 31fda5f888d59fa0c3b33b6484ccbc4a5febec77.
+     *
+     * @since 0.7.8-pre.1, schema 1
+     */
     @SerializedName(value = "offHandOpacity")
     public @NonNull OffHandOpacity offHandOpacity;
+
+    /**
+     * A list of exclusion items that should be ignored by Armor Hider.<br/>
+     * See {@link ExclusionItemConfiguration},
+     *
+     * @since AH 0.10.0-pre.5, schema 1
+     */
+    @SerializedName(value = "exclusionItems")
+    public @NonNull ExclusionItemConfiguration exclusionItems;
+
+    /**
+     * @since AH 0.10.4-pre.1, schema 2
+     */
+    @SerializedName(value = "showSettingsInSkinCustomization")
+    public @NonNull ShowSettingsInSkinCustomization showSettingsInSkinCustomization;
+
+    /**
+     * Gets the configuration item {@link InCombatUseDefaultArmorSkin} that determines whether the player should use the default armor skin in combat instead of one provided by resource packs.
+     *
+     * @since AH 0.10.18-pre.1 schema 4
+     */
+    @SerializedName(value = "inCombatUseDefaultModel")
+    public @NonNull InCombatUseDefaultArmorSkin inCombatUseDefaultModel;
+
+    /**
+     * Whether the shield should be drawn at full opacity when the player is blocking, defined via the {@link ShowShieldWhenBlocking} configuration item.<br/><br/>
+     *
+     * This was initially released in AH v0.11.4-pre.1 on 6th Feb 2026.
+     *
+     * @since AH 0.11.4-pre.1, schema 1
+     */
     @SerializedName(value = "showShieldWhenBlocking")
     public @NonNull ShowShieldWhenBlocking showShieldWhenBlocking;
+
+
+    /**
+     * Whether armor hider's functionality gets disabled when the player is invisible (via the invisibility effect).
+     * This can prevent players getting fully invisible via Armor Hider while still wearing armor, which can be used as a competitive advantage.
+     *
+     * @since AH 0.12.0-pre.5, schema 5
+     */
     @SerializedName(value = "disableArmorHiderOnInvisibility")
     public @NonNull DisableArmorHiderOnInvisibility disableArmorHiderOnInvisibility;
+
+    /**
+     * Represents the per-player configuration mappings associated with individual servers.
+     * This field is used to store and manage user-specific configurations for multiple players
+     * across different servers. It allows for customization of player configurations on a
+     * per-server basis, ensuring that specific overrides or settings can be applied independently for
+     * each player-server pair.<br/><br/>
+     *
+     * Individual configurations stored within this field are excluded when preparing the
+     * {@link PlayerConfig} for network transmission. These configurations are intended for
+     * client-side use and are not transmitted to the server or other players.<br/><br/>
+     *
+     * The field leverages {@link ServerMappedIndividualConfigurations}, which provides utilities
+     * for adding, removing, and retrieving overrides for specific players on specific servers.
+     *
+     * @since AH 0.12.0-pre.10, schema 6
+     */
+    @SerializedName(value = "individualConfigurations")
+    public @NonNull ServerMappedIndividualConfigurations individualConfigurations;
+
+    /** Whether the server-independent global override (below) is applied to EVERY other player (Row C).
+     *
+     * @since AH 0.12.0-pre.10, schema 7
+     * */
+    @SerializedName(value = "useGlobalOverrideForAllPlayers")
+    public @NonNull UseGlobalOverrideForAllPlayers useGlobalOverrideForAllPlayers;
+
+    /**
+     * The client-side, server-independent global override configuration applied to unknown players when
+     * {@link #useGlobalOverrideForAllPlayers} is on. Lazily created (left {@code null} until the user enables it) so
+     * the no-arg constructor doesn't recurse — a {@code PlayerConfig} field that always built another
+     * {@code PlayerConfig} would never terminate. Nested overrides never populate their own, so
+     * serialization terminates too.
+     *
+     * @since AH 0.12.0-pre.10, schema 8
+     */
+    @SerializedName(value = "globalPlayerOverride")
+    public @org.jetbrains.annotations.Nullable PlayerConfig globalPlayerOverride;
 
     public @NonNull PlayerUuid playerId;
 
     public @NonNull PlayerName playerName;
 
-    @SerializedName(value = "exclusionItems")
-    public @NonNull ExclusionItemConfiguration exclusionItems;
-
     private transient boolean hasChangedFromSerializedContent;
-    
+
     public PlayerConfig(UUID uuid, String name) {
         this();
         this.playerId = new PlayerUuid(uuid);
@@ -144,6 +331,9 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         legsGlint = new EnableGlint();
         bootsGlint = new EnableGlint();
         disableArmorHiderOnInvisibility = new DisableArmorHiderOnInvisibility();
+        individualConfigurations = new ServerMappedIndividualConfigurations();
+        useGlobalOverrideForAllPlayers = new UseGlobalOverrideForAllPlayers();
+        // globalPlayerOverride is intentionally left null here (lazy) to avoid infinite ctor recursion.
         exclusionItems = ExclusionItemConfiguration.defaults();
     }
 
@@ -200,6 +390,14 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         fresh.showShieldWhenBlocking.setValue(old.showShieldWhenBlocking.getValue());
         fresh.disableArmorHiderOnInvisibility.setValue(old.disableArmorHiderOnInvisibility.getValue());
         fresh.exclusionItems = old.exclusionItems.deepCopy();
+        if (old.individualConfigurations != null) {
+            fresh.individualConfigurations = old.individualConfigurations.deepCopy();
+        }
+        fresh.useGlobalOverrideForAllPlayers.setValue(old.useGlobalOverrideForAllPlayers.getValue());
+        if (old.globalPlayerOverride != null) {
+            fresh.globalPlayerOverride = old.globalPlayerOverride.deepCopy(
+                    old.globalPlayerOverride.playerName.getValue(), old.globalPlayerOverride.playerId.getValue());
+        }
 
         fresh.setHasChangedFromSerializedContent();
         return fresh;
@@ -214,9 +412,35 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
     public void setHasChangedFromSerializedContent() {
         hasChangedFromSerializedContent = true;
     }
-    
+
+    @Override
+    public int getSchemaVersion() {
+        return configVersion;
+    }
+
+    @Override
+    public int getCurrentSchemaVersion() {
+        return CURRENT_CONFIG_VERSION;
+    }
+
+    @Override
+    public PlayerConfig migrateFrom(PlayerConfig old) {
+        return PlayerConfig.migrate(old);
+    }
+
     public String toJson() {
-        return ArmorHider.GSON.toJson(this);   
+        return ArmorHider.GSON.toJson(this);
+    }
+
+    /**
+     * Returns a copy of this config suitable for transmission to the server. It carries every
+     * render-relevant setting but deliberately omits all of the viewer's client-only "how I view others"
+     * state: {@link #individualConfigurations}, the {@link #useGlobalOverrideForAllPlayers} flag and the
+     * {@link #globalPlayerOverride}. Those are a purely client-side concern and must never be broadcast to
+     * the server or other players. ({@link #deepCopy} copies none of them, so this delegates straight to it.)
+     */
+    public PlayerConfig forNetwork() {
+        return deepCopy(playerName.getValue(), playerId.getValue());
     }
 
     public PlayerConfig deepCopy(String playerName, UUID playerId) {

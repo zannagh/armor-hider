@@ -22,6 +22,8 @@ import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.EquipmentSlot;
 import org.jspecify.annotations.NonNull;
+import org.jetbrains.annotations.Nullable;
+import de.zannagh.armorhider.net.packets.PlayerConfig;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 import java.util.ArrayList;
@@ -36,32 +38,63 @@ public class ArmorHiderOptionsPanelWidget extends AbstractWidget {
     private final PresetManager presetManager;
     public final WidgetList widgetList;
 
+    /**
+     * When non-null the panel edits this specific config (a per-player override) instead of the local
+     * player's own config.
+     */
+    private @Nullable PlayerConfig targetConfig;
+
+    /** Whether to show the global presets + the "advanced" navigation button (only for the local config). */
+    private final boolean showPresets;
+
     public ArmorHiderOptionsPanelWidget(int x, int y, int width, int height, Screen hostScreen, Options gameOptions, Runnable onDirty, PresetManager presetManager) {
+        this(x, y, width, height, hostScreen, gameOptions, onDirty, presetManager, null, true);
+    }
+
+    public ArmorHiderOptionsPanelWidget(int x, int y, int width, int height, Screen hostScreen, Options gameOptions, Runnable onDirty, PresetManager presetManager, @Nullable PlayerConfig targetConfig, boolean showPresets) {
         super(x, y, width, height, Component.translatable("armorhider.options.mod_title"));
         this.hostScreen = hostScreen;
         this.gameOptions = gameOptions;
         this.onDirty = onDirty;
         this.presetManager = presetManager;
+        this.targetConfig = targetConfig;
+        this.showPresets = showPresets;
         this.widgetList = new WidgetList(Minecraft.getInstance(), width, height, y, ITEM_HEIGHT);
 
         populateOptions();
         updateLayout();
     }
 
+    /** Returns the config this panel edits: an explicit per-player target, or the local player's own config. */
+    private PlayerConfig configSource() {
+        return targetConfig != null ? targetConfig : ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig();
+    }
+
+    /** Rebinds the panel to a different config (used when the selected player changes) and rebuilds it. */
+    public void bindConfig(@Nullable PlayerConfig config) {
+        this.targetConfig = config;
+        rebuildOptions();
+    }
+
     private void populateOptions() {
         var factory = new OptionElementFactory(widgetList::addWidget, gameOptions, widgetList.getRowWidth());
-        var config = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue();
+        var config = configSource();
 
         ArrayList<Pair<Boolean, Consumer<Boolean>>> configs = new ArrayList<>();
         configs.add(new Pair<>(config.enableCombatDetection.getValue(), val -> setSetting(val, config.enableCombatDetection::setValue)));
         configs.add(new Pair<>(config.inCombatUseDefaultModel.getValue(), val -> setSetting(val, config.inCombatUseDefaultModel::setValue)));
         configs.add(new Pair<>(config.disableArmorHiderOnInvisibility.getValue(), val -> setSetting(val, config.disableArmorHiderOnInvisibility::setValue)));
 
-        var generalSettingsButtons = factory.createCompoundButtonWidget(
-                configs, presetManager, presetManager.getActiveIndex(), this::onPresetActivated
-        );
-        factory.addElementAsWidget(generalSettingsButtons);
-        
+        if (showPresets) {
+            // Local config: general behaviour toggles + presets + the "individual settings" entry, one row.
+            factory.addElementAsWidget(factory.createCompoundButtonWidget(
+                    configs, presetManager, presetManager.getActiveIndex(), this::onPresetActivated
+            ));
+        } else {
+            // Per-player override: behaviour toggles only (presets/individual-settings don't apply here).
+            factory.addElementAsWidget(factory.createGeneralTogglesRow(configs));
+        }
+
         var helmetOption = factory.buildDoubleOption(
                 "armorhider.helmet.transparency",
                 Component.translatable("armorhider.options.helmet.tooltip"),
@@ -162,10 +195,12 @@ public class ArmorHiderOptionsPanelWidget extends AbstractWidget {
                 shieldButton
         );
 
-        factory.addElementAsWidget(Button.builder(
-                Component.translatable("armorhider.options.regular.title"),
-                btn -> Minecraft.getInstance().setScreenAndShow(new AdvancedArmorHiderSettingsScreen(this.hostScreen, this.gameOptions, this.hostScreen.getTitle()))
-        ).tooltip(Tooltip.create(Component.translatable("armorhider.options.regular.title"))).build());
+        if (showPresets) {
+            factory.addElementAsWidget(Button.builder(
+                    Component.translatable("armorhider.options.regular.title"),
+                    btn -> Minecraft.getInstance().setScreenAndShow(new AdvancedArmorHiderSettingsScreen(this.hostScreen, this.gameOptions, this.hostScreen.getTitle()))
+            ).tooltip(Tooltip.create(Component.translatable("armorhider.options.regular.title"))).build());
+        }
     }
 
     public int getContentHeight() {
@@ -173,7 +208,7 @@ public class ArmorHiderOptionsPanelWidget extends AbstractWidget {
     }
 
     private void onPresetActivated(int presetIndex) {
-        var config = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue();
+        var config = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig();
         if (presetManager.isActive(presetIndex)) {
             presetManager.deactivate();
             rebuildOptions();
@@ -199,7 +234,10 @@ public class ArmorHiderOptionsPanelWidget extends AbstractWidget {
 
     private <T> void setSetting(T value, Consumer<T> setter) {
         setter.accept(value);
-        presetManager.updateActivePreset(ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue());
+        // Per-player overrides are independent of the user's own presets; only sync presets for the local config.
+        if (targetConfig == null) {
+            presetManager.updateActivePreset(ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig());
+        }
         onDirty.run();
     }
 

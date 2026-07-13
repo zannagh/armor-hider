@@ -18,7 +18,7 @@ public class InvisibilitySuppressor implements ConditionalSuppressor {
             return true;
         }
 
-        var config = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getConfigForPlayer(carrier.armorHider$playerName());
+        var config = ArmorHiderClient.CLIENT_CONFIG_MANAGER.resolveConfig(carrier.armorHider$playerName());
         return config.disableArmorHiderOnInvisibility.getValue();
     }
 

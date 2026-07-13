@@ -213,7 +213,7 @@ public final class AhRenderStateImpl {
     }
 
     public static boolean shouldEnforceVanillaRendering() {
-        if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.isArmorHiderDisabled()) {
+        if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.isArmorHiderGloballyDisabled()) {
             return false;
         }
         String playerName = currentlyHandledPlayerName();
@@ -221,9 +221,9 @@ public final class AhRenderStateImpl {
             return false;
         }
 
-        var config = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getConfigForPlayer(playerName);
+        var config = ArmorHiderClient.CLIENT_CONFIG_MANAGER.resolveConfig(playerName);
 
-        if (!ArmorHiderClient.CLIENT_CONFIG_MANAGER.shouldApplyCombatDetection(config)) {
+        if (!ArmorHiderClient.CLIENT_CONFIG_MANAGER.shouldApplyCombatDetectionTo(config)) {
             return false;
         }
         if (!ArmorHiderApi.getInstance().getCombatManagement().isInCombat(playerName)) {

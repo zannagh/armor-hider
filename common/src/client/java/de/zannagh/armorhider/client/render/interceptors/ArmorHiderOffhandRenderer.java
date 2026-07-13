@@ -44,7 +44,7 @@ public class ArmorHiderOffhandRenderer extends AbstractArmorHiderRenderer {
         }
 
         if (carrier.isPlayerBlocking()
-          && ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().showShieldWhenBlocking.getValue()) {
+          && ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig().showShieldWhenBlocking.getValue()) {
             return RenderInterceptionResult.ignore();
         }
 

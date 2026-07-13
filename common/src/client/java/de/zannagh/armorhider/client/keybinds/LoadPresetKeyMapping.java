@@ -57,7 +57,7 @@ public class LoadPresetKeyMapping extends CustomKeyMapping {
         if (preset == null) {
             return;
         }
-        var config = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue();
+        var config = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig();
         presetManager.setActiveIndex(presetIndex);
         preset.applyTo(config);
         ArmorHiderClient.CLIENT_CONFIG_MANAGER.saveCurrent();

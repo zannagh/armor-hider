@@ -62,12 +62,12 @@ public final class ClientCommunicationManager {
                 //? if < 1.21.9
                 //playerName = client.player.getGameProfile().getName();
             }
-            ArmorHiderClient.CLIENT_CONFIG_MANAGER.updateName(playerName);
+            ArmorHiderClient.CLIENT_CONFIG_MANAGER.updateLocalPlayerName(playerName, java.util.Optional.of(true));
             //? if >= 1.21.9
-            ArmorHiderClient.CLIENT_CONFIG_MANAGER.updateId(handler.getLocalGameProfile().id());
+            ArmorHiderClient.CLIENT_CONFIG_MANAGER.updateLocalPlayerUuid(handler.getLocalGameProfile().id(), java.util.Optional.of(true));
             //? if < 1.21.9
-            //ArmorHiderClient.CLIENT_CONFIG_MANAGER.updateId(handler.getLocalGameProfile().getId());
-            var currentConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue();
+            //ArmorHiderClient.CLIENT_CONFIG_MANAGER.updateLocalPlayerUuid(handler.getLocalGameProfile().getId(), java.util.Optional.of(true));
+            var currentConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig();
 
             ServerData serverData = client.getCurrentServer();
             if (serverData != null) {
@@ -88,7 +88,7 @@ public final class ClientCommunicationManager {
                 ArmorHiderClient.permissionLevel = 4; // local -> admin
             }
 
-            ClientPacketSender.sendToServer(currentConfig);
+            ClientPacketSender.sendToServer(currentConfig.forNetwork());
         });
         ArmorHider.LOGGER.info("Registered client-side packet handlers.");
 
@@ -115,7 +115,7 @@ public final class ClientCommunicationManager {
         boolean serverForces = serverConfig != null
                 && serverConfig.serverWideSettings.enableCombatDetection.getValue();
         if (!serverForces) {
-            var config = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getConfigForPlayer(ctx.playerName);
+            var config = ArmorHiderClient.CLIENT_CONFIG_MANAGER.resolveConfig(ctx.playerName);
             if (!config.enableCombatDetection.getValue()) {
                 return;
             }

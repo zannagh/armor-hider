@@ -15,8 +15,8 @@ public class ToggleOffKeyMapping extends CustomKeyMapping {
     
     @Override
     public void onKeyDown() {
-        boolean currentDisable = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableArmorHider.getValue();
-        ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().disableArmorHider.setValue(!currentDisable);
+        boolean currentDisable = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig().disableArmorHider.getValue();
+        ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig().disableArmorHider.setValue(!currentDisable);
         ArmorHiderClient.CLIENT_CONFIG_MANAGER.saveCurrent();
     }
 

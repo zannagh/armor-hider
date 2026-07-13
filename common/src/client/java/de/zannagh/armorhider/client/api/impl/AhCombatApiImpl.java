@@ -43,16 +43,16 @@ public final class AhCombatApiImpl {
         }
 
         var playerName = PlayerNameUtil.getPlayerName(player);
-        var config = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getConfigForPlayer(playerName);
+        var config = ArmorHiderClient.CLIENT_CONFIG_MANAGER.resolveConfig(playerName);
         return config.enableCombatDetection.getValue();
     }
 
     public static boolean shouldApplyCombatDetectionFor(String playerName) {
-        if (playerName == null || ArmorHiderClient.CLIENT_CONFIG_MANAGER.isArmorHiderDisabled()) {
+        if (playerName == null || ArmorHiderClient.CLIENT_CONFIG_MANAGER.isArmorHiderGloballyDisabled()) {
             return false;
         }
 
-        PlayerConfig config = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getConfigForPlayer(playerName);
+        PlayerConfig config = ArmorHiderClient.CLIENT_CONFIG_MANAGER.resolveConfig(playerName);
 
         if (config.enableCombatDetection.getValue()) {
             return true;

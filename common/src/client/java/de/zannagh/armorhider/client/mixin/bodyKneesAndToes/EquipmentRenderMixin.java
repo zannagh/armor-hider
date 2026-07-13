@@ -347,10 +347,10 @@ public class EquipmentRenderMixin {
     *///?}
     @Unique
     private static boolean armorHider$shouldForceVanillaCombatModel(String playerName) {
-        if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.isArmorHiderDisabled()) {
+        if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.isArmorHiderGloballyDisabled()) {
             return false;
         }
-        PlayerConfig config = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getConfigForPlayer(playerName);
+        PlayerConfig config = ArmorHiderClient.CLIENT_CONFIG_MANAGER.resolveConfig(playerName);
         if (!config.enableCombatDetection.getValue()) {
             var serverConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getServerConfig();
             if (serverConfig == null || !serverConfig.serverWideSettings.enableCombatDetection.getValue()) {

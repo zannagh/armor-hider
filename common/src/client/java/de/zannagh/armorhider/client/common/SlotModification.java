@@ -36,8 +36,11 @@ public record SlotModification(
     public EquipmentSlot slot() { return slot; }
 
     public static boolean shouldUseVanilla(PlayerConfig config){
-        // Server-wide force-off overrides everything for every player, including the local one.
-        var serverConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getServerConfig();
+        var manager = ArmorHiderClient.CLIENT_CONFIG_MANAGER;
+
+        // Server-wide force-off is the final guard — it overrides everything for every player, including the
+        // local one (the server always has the last say).
+        var serverConfig = manager.getServerConfig();
         if (serverConfig != null && serverConfig.serverWideSettings.forceArmorHiderOff.getValue()) {
             return true;
         }
@@ -46,11 +49,11 @@ public record SlotModification(
             return true;
         }
 
-        // "Disable on other players" is a viewer-local preference, so it must be read from the
-        // local config rather than the rendered player's config (which may be defaults or the
-        // other player's own settings).
+        // "Disable Armor Hider on Others" renders every other player vanilla, but only where client-side
+        // other-player configuration is permitted (no mod server, or a mod server that allows it). It is a
+        // viewer-local preference, so it is read from the local config rather than the rendered player's.
         boolean isOtherPlayer = !config.playerName.getValue().equals(ArmorHiderClient.getCurrentPlayerName());
-        if (isOtherPlayer && ArmorHiderClient.CLIENT_CONFIG_MANAGER.local().disableArmorHiderForOthers.getValue()) {
+        if (isOtherPlayer && manager.areOtherPlayerConfigsAllowed() && manager.isArmorHiderDisableForOthers()) {
             return true;
         }
 
@@ -78,7 +81,7 @@ public record SlotModification(
     }
 
     public static SlotModification of(String playerName, EquipmentSlot slot, ItemStack itemStack) {
-        var config = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getConfigForPlayer(playerName);
+        var config = ArmorHiderClient.CLIENT_CONFIG_MANAGER.resolveConfig(playerName);
         return of(config, slot).addItemInformation(new ItemInfo(itemStack));
     }
 

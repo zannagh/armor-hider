@@ -2,10 +2,14 @@ package de.zannagh.armorhider.configuration.items;
 
 import de.zannagh.armorhider.configuration.abstractions.DoubleConfigurationItem;
 
-public class OffHandOpacity extends DoubleConfigurationItem {
-    public static final double TRANSPARENCY_STEP = 0.05;
+import static de.zannagh.armorhider.configuration.items.ArmorOpacity.DEFAULT_OPACITY;
 
-    public static final double DEFAULT_OPACITY = 1;
+/**
+ * A client-side {@link DoubleConfigurationItem} that allows the client to set the opacity of the off-hand armor.
+ *
+ * @since 0.7.8-pre.1
+ */
+public class OffHandOpacity extends DoubleConfigurationItem {
 
     public OffHandOpacity() {
         super();

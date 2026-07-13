@@ -48,7 +48,7 @@ public class ServerConfigurationDeserializer implements TypeAdapterFactory {
                 // Handle v3 format migration: enableCombatDetection was a top-level Boolean field
                 if (obj.has("enableCombatDetection") && !obj.has("serverWideSettings")) {
                     Boolean legacyCombatDetection = obj.get("enableCombatDetection").getAsBoolean();
-                    config.serverWideSettings = new ServerWideSettings(legacyCombatDetection, false, false);
+                    config.serverWideSettings = new ServerWideSettings(legacyCombatDetection, false, false, true);
                     ArmorHider.LOGGER.info("Migrated server config from v3 to v4 format via network (enableCombatDetection -> serverWideSettings).");
                     config.setHasChangedFromSerializedContent();
                 } else if (config.serverWideSettings == null) {
@@ -57,11 +57,10 @@ public class ServerConfigurationDeserializer implements TypeAdapterFactory {
                     ArmorHider.LOGGER.warn("ServerWideSettings was null after network deserialization, initialized with defaults.");
                 }
 
-                // Migrate serverWideSettings schema if it was loaded at an older version
-                if (config.serverWideSettings.configVersion < ServerWideSettings.CURRENT_CONFIG_VERSION) {
-                    config.serverWideSettings = ServerWideSettings.migrate(config.serverWideSettings);
-                    config.setHasChangedFromSerializedContent();
-                }
+                // Route linear schema migration of every embedded item (server-wide settings + per-player
+                // configs) through the shared container mechanism, rebuilding the by-name index if anything
+                // was migrated.
+                config = config.ensureSchemaFrom(config);
 
                 @SuppressWarnings("unchecked")
                 T result = (T) config;

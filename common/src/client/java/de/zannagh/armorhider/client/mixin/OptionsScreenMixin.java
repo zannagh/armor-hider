@@ -36,7 +36,7 @@ public abstract class OptionsScreenMixin extends Screen {
             )
     )
     private <T extends LayoutElement> T interceptSpacer(GridLayout.RowHelper instance, T layoutElement, int i, Operation<T> original){
-        if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().showSettingsInSkinCustomization.getValue()) {
+        if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig().showSettingsInSkinCustomization.getValue()) {
             return original.call(instance, layoutElement, i);
         }
         if (layoutElement instanceof SpacerElement) {
@@ -52,7 +52,7 @@ public abstract class OptionsScreenMixin extends Screen {
             )
     )
     private GridLayout.RowHelper interceptSpacer(GridLayout instance, int i, Operation<GridLayout.RowHelper> original) {
-        if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.getValue().showSettingsInSkinCustomization.getValue()) {
+        if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig().showSettingsInSkinCustomization.getValue()) {
             return original.call(instance, i);
         }
         var returnValue = original.call(instance, i);

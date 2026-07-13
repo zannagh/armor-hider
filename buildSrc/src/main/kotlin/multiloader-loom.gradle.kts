@@ -176,6 +176,13 @@ if (branch == "fabric") {
                 val delayMs = project.findProperty("smoke.delay.ms")?.toString() ?: "15000"
                 vmArg("-Darmorhider.smoke.delay.ms=${delayMs}")
             }
+            // Dev/UI testing: seed N fake players into the head bar of the per-player screen so the
+            // horizontal scroll can be exercised without spawning real clients. Read by
+            // IndividualPlayerConfigurationsScreen via Integer.getInteger("armorhider.demo.players").
+            // Enable with e.g. -Pdemo.players=30 on any runClient invocation.
+            if (project.hasProperty("demo.players")) {
+                vmArg("-Darmorhider.demo.players=${project.findProperty("demo.players")}")
+            }
             if (devProfile != null) {
                 programArg("--username")
                 programArg(devProfile.username)
@@ -229,7 +236,7 @@ if (branch == "fabric") {
     // that pin `fabricapi.semver` (currently fabric-26.2). Other variants emit "[]" so the
     // JSON stays valid and fabric-loader simply ignores it.
     val fcgtEntries = if (hasProperty("fabricapi.semver"))
-        "[\"de.zannagh.armorhider.smoke.EntityRenderSmokeTest\"]"
+        "[\"de.zannagh.armorhider.smoke.EntityRenderSmokeTest\", \"de.zannagh.armorhider.smoke.IndividualConfigSmokeTest\"]"
     else
         "[]"
 
