@@ -115,7 +115,11 @@ public class AhPlayerConfigApiImpl implements ArmorHiderPlayerConfigApi, Configu
 
     @Override
     public void saveLocalPlayerConfig(PlayerConfig config) {
-        save(config);
+        // Adopt the given config as CURRENT before persisting, so getLocalPlayerConfig()/resolveConfig()
+        // don't keep returning a stale instance when a caller passes a freshly-built config rather than the
+        // mutated-in-place CURRENT. For the in-place callers this is a harmless self-assignment.
+        CURRENT = config;
+        save(CURRENT);
     }
 
     @Override
