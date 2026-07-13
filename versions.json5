@@ -5,6 +5,8 @@
     "common": [
       "fabric-1.20.1:1.20.1",
       "fabric-1.21.1:1.21.1",
+      "fabric-1.21.2:1.21.2",
+      "fabric-1.21.3:1.21.3",
       "fabric-1.21.4:1.21.4",
       "fabric-1.21.8:1.21.8",
       "fabric-1.21.10:1.21.10",
@@ -20,6 +22,8 @@
       "fabric-26.3-snapshot-2:26.3-0.snapshot.2:build.deobfuscated.gradle.kts",
       "fabric-26.3-snapshot-3:26.3-0.snapshot.3:build.deobfuscated.gradle.kts",
       "neoforge-1.21.1:1.21.1",
+      "neoforge-1.21.2:1.21.2",
+      "neoforge-1.21.3:1.21.3",
       "neoforge-1.21.4:1.21.4",
       "neoforge-1.21.8:1.21.8",
       "neoforge-1.21.10:1.21.10",
@@ -30,6 +34,8 @@
     "fabric": [
       "fabric-1.20.1:1.20.1",
       "fabric-1.21.1:1.21.1",
+      "fabric-1.21.2:1.21.2",
+      "fabric-1.21.3:1.21.3",
       "fabric-1.21.4:1.21.4",
       "fabric-1.21.8:1.21.8",
       "fabric-1.21.10:1.21.10",
@@ -47,6 +53,8 @@
     ],
     "neoforge": [
       "neoforge-1.21.1:1.21.1",
+      "neoforge-1.21.2:1.21.2",
+      "neoforge-1.21.3:1.21.3",
       "neoforge-1.21.4:1.21.4",
       "neoforge-1.21.8:1.21.8",
       "neoforge-1.21.10:1.21.10",

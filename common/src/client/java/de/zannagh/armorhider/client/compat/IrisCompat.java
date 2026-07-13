@@ -10,7 +10,7 @@ public final class IrisCompat {
 
     public static void registerPipelines() {
         //? if >= 1.21.5 {
-        var api = IrisApi.getInstance();
+        /*var api = IrisApi.getInstance();
         if (api.getMinorApiRevision() < 3) {
             ArmorHider.LOGGER.warn("Iris API revision {} does not support pipeline registration, skipping",
                     api.getMinorApiRevision());
@@ -25,8 +25,8 @@ public final class IrisCompat {
         }
         ArmorHider.LOGGER.debug("Registered custom pipelines with Iris");
         //?} else {
-        /*ArmorHider.LOGGER.debug("Iris pipeline registration skipped: pinned Iris predates the 26.3 renderpearl API");
+        /^ArmorHider.LOGGER.debug("Iris pipeline registration skipped: pinned Iris predates the 26.3 renderpearl API");
+        ^///?}
         *///?}
-        //?}
     }
 }

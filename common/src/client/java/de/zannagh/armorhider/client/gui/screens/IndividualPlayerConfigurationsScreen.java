@@ -16,7 +16,7 @@ import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import org.jetbrains.annotations.Nullable;
 
@@ -103,13 +103,13 @@ public class IndividualPlayerConfigurationsScreen extends ArmorHiderConfiguratio
         List<PlayerHeadBarWidget.Entry> players = new ArrayList<>();
         for (PlayerInfo info : connection.getListedOnlinePlayers()) {
             //? if >= 1.21.9 {
-            String name = info.getProfile().name();
+            /*String name = info.getProfile().name();
             UUID id = info.getProfile().id();
-            //?}
-            //? if < 1.21.9 {
-            /*String name = info.getProfile().getName();
-            UUID id = info.getProfile().getId();
             *///?}
+            //? if < 1.21.9 {
+            String name = info.getProfile().getName();
+            UUID id = info.getProfile().getId();
+            //?}
             if (name == null || name.equals(localName)) {
                 continue;
             }
@@ -360,7 +360,7 @@ public class IndividualPlayerConfigurationsScreen extends ArmorHiderConfiguratio
     }
 
     /** Face texture for seeded demo entries: the local player's skin when available, else the global icon. */
-    private Identifier demoFaceTexture() {
+    private ResourceLocation demoFaceTexture() {
         Minecraft mc = Minecraft.getInstance();
         var connection = mc.getConnection();
         if (mc.player != null && connection != null) {
@@ -372,12 +372,12 @@ public class IndividualPlayerConfigurationsScreen extends ArmorHiderConfiguratio
         return globalIconTexture();
     }
 
-    private static Identifier globalIconTexture() {
+    private static ResourceLocation globalIconTexture() {
         //? if >= 1.21 {
-        return Identifier.fromNamespaceAndPath("armor-hider", "textures/gui/sprites/global_settings_override.png");
+        return ResourceLocation.fromNamespaceAndPath("armor-hider", "textures/gui/sprites/global_settings_override.png");
         //?}
         //? if < 1.21 {
-        /*return new Identifier("armor-hider", "textures/gui/sprites/global_settings_override.png");
+        /*return new ResourceLocation("armor-hider", "textures/gui/sprites/global_settings_override.png");
         *///?}
     }
 

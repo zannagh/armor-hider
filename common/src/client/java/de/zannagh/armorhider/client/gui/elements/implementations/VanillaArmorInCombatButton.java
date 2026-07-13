@@ -3,7 +3,7 @@ package de.zannagh.armorhider.client.gui.elements.implementations;
 import de.zannagh.armorhider.client.gui.UiConstants;
 import de.zannagh.armorhider.client.gui.elements.LayeredImageButton;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 
 public class VanillaArmorInCombatButton extends LayeredImageButton {
@@ -15,12 +15,12 @@ public class VanillaArmorInCombatButton extends LayeredImageButton {
 
 
     @Override
-    protected @Nullable Identifier spriteForeground(boolean enabled) {
+    protected @Nullable ResourceLocation spriteForeground(boolean enabled) {
         return enabled ? modSprite("in_combat_vanilla_icon_enabled") : modSprite("in_combat_vanilla_icon_disabled");
     }
 
     @Override
-    protected @Nullable Identifier midLayerSprite(boolean enabled) {
+    protected @Nullable ResourceLocation midLayerSprite(boolean enabled) {
         return enabled ? modSprite("accept_highlighted") : null;
     }
 

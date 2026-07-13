@@ -33,7 +33,7 @@ public class ArmorHiderClient {
     public static PresetManager PRESET_MANAGER = new PresetManager();
 
     public static final boolean FA_LOADED = CompatFlags.FA_LOADED || classExists("net.kenddie.fantasyarmor.FantasyArmor");
-    public static final boolean GECKOLIB_LOADED = CompatFlags.GECKOLIB_LOADED || classExists("com.geckolib.renderer.GeoArmorRenderer");
+    public static final boolean GECKOLIB_LOADED = CompatFlags.GECKOLIB_LOADED || classExists("software.bernie.geckolib.renderer.GeoArmorRenderer");
     public static final boolean ET_LOADED = CompatFlags.ET_LOADED || classExists("dev.kikugie.elytratrims.ep.ETClientEntrypoint");
     public static final boolean EMF_LOADED = CompatFlags.EMF_LOADED || classExists("traben.entity_model_features.EMFManager");
     public static final boolean IRIS_LOADED = classExists("net.irisshaders.iris.api.v0.IrisApi");
@@ -92,9 +92,9 @@ public class ArmorHiderClient {
             return new Pair<>(false, null);
         }
         //? if >= 1.21.9
-        PlayerInfo entry = networkHandler.getPlayerInfoIgnoreCase(playerName);
+        //PlayerInfo entry = networkHandler.getPlayerInfoIgnoreCase(playerName);
         //? if < 1.21.9
-        //PlayerInfo entry = networkHandler.getPlayerInfo(playerName);
+        PlayerInfo entry = networkHandler.getPlayerInfo(playerName);
         if (entry == null) {
             return new Pair<>(false, null);
         }
@@ -103,13 +103,13 @@ public class ArmorHiderClient {
             return new Pair<>(false, null);
         }
         //? if >= 1.21.9 {
-        boolean isLocal = entry.getProfile().id().equals(localPlayer.getUUID())
+        /*boolean isLocal = entry.getProfile().id().equals(localPlayer.getUUID())
                 || playerName.equals(entry.getProfile().name());
-        //?}
-        //? if < 1.21.9 {
-        /*boolean isLocal = entry.getProfile().getId().equals(localPlayer.getUUID())
-                || playerName.equals(entry.getProfile().getName());
         *///?}
+        //? if < 1.21.9 {
+        boolean isLocal = entry.getProfile().getId().equals(localPlayer.getUUID())
+                || playerName.equals(entry.getProfile().getName());
+        //?}
         return new Pair<>(!isLocal, entry);
     }
 

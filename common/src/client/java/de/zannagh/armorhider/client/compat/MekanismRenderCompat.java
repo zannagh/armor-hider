@@ -7,10 +7,10 @@ import de.zannagh.armorhider.client.compat.FiguraCompat;
 import mekanism.client.render.MekanismRenderType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
-import net.minecraft.client.model.player.PlayerModel;
+import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlas;
@@ -32,7 +32,7 @@ public final class MekanismRenderCompat {
         MEKASUIT_ORIGINAL = MekanismRenderType.MEKASUIT;
     }
 
-    @SuppressWarnings("deprecation") // TextureAtlas.LOCATION_BLOCKS: no non-deprecated Identifier alternative; Mojang's own Sheets uses it internally.
+    @SuppressWarnings("deprecation") // TextureAtlas.LOCATION_BLOCKS: no non-deprecated ResourceLocation alternative; Mojang's own Sheets uses it internally.
     public static MultiBufferSource wrapForTransparency(MultiBufferSource original) {
         init();
         if (MEKASUIT_ORIGINAL == null) {

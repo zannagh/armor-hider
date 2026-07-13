@@ -1,5 +1,5 @@
 //? if >= 1.21.9 {
-package de.zannagh.armorhider.client.mixin.hand;
+/*package de.zannagh.armorhider.client.mixin.hand;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -7,19 +7,19 @@ import de.zannagh.armorhider.client.api.AhRenderManagementApi;
 import de.zannagh.armorhider.client.common.RenderScope;
 import net.minecraft.client.renderer.SubmitNodeCollection;
 //? if < 26.2-1.pre
-//import net.minecraft.client.renderer.SubmitNodeStorage;
+import net.minecraft.client.renderer.SubmitNodeStorage;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
 //? if <= 26.1.2 {
-/*import net.minecraft.client.renderer.feature.ModelPartFeatureRenderer;
-*///?}
+import net.minecraft.client.renderer.feature.ModelPartFeatureRenderer;
+//?}
 import org.jspecify.annotations.NonNull;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.RenderType;
 
 //? if >= 26.2-1.pre {
-import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+/^import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import net.minecraft.client.renderer.feature.phase.FeatureRenderPhase;
 import net.minecraft.client.renderer.feature.phase.SimpleFeatureRenderPhase;
 import net.minecraft.client.renderer.feature.phase.TranslucentFeatureRenderPhase;
@@ -27,7 +27,7 @@ import net.minecraft.client.renderer.feature.submit.SubmitNode;
 import net.minecraft.client.renderer.feature.submit.TranslucentSubmit;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Shadow;
-//?}
+^///?}
 
 //? if >= 26.3-0.snapshot.2
 //import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -37,11 +37,11 @@ import org.spongepowered.asm.mixin.Shadow;
 public class SubmitNodeCollectorMixin {
 
     //? if <= 26.1.2 {
-    /*@WrapOperation(
+    @WrapOperation(
             method = "submitModelPart",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/client/renderer/feature/ModelPartFeatureRenderer$Storage;add(Lnet/minecraft/client/renderer/rendertype/RenderType;Lnet/minecraft/client/renderer/SubmitNodeStorage$ModelPartSubmit;)V"
+                    target = "Lnet/minecraft/client/renderer/feature/ModelPartFeatureRenderer$Storage;add(Lnet/minecraft/client/renderer/RenderType;Lnet/minecraft/client/renderer/SubmitNodeStorage$ModelPartSubmit;)V"
             )
     )
     private void wrapModelPartAdd(ModelPartFeatureRenderer.Storage storage, RenderType renderType, SubmitNodeStorage.ModelPartSubmit submit, Operation<Void> original) {
@@ -78,14 +78,14 @@ public class SubmitNodeCollectorMixin {
                 submit.crumblingOverlay(), submit.outlineColor()
         );
     }
-    *///?}
+    //?}
 
     //? if < 26.2-1.pre {
-    /*@WrapOperation(
+    @WrapOperation(
             method = "submitModel",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/client/renderer/feature/ModelFeatureRenderer$Storage;add(Lnet/minecraft/client/renderer/rendertype/RenderType;Lnet/minecraft/client/renderer/SubmitNodeStorage$ModelSubmit;)V"
+                    target = "Lnet/minecraft/client/renderer/feature/ModelFeatureRenderer$Storage;add(Lnet/minecraft/client/renderer/RenderType;Lnet/minecraft/client/renderer/SubmitNodeStorage$ModelSubmit;)V"
             )
     )
 
@@ -116,10 +116,10 @@ public class SubmitNodeCollectorMixin {
 
         original.call(storage, translucentType, modified);
     }
-    *///?}
+    //?}
 
     //? if >= 26.2-1.pre {
-    // Shields/skulls submit with an opaque cutout RenderType. submitModel routes via
+    /^// Shields/skulls submit with an opaque cutout RenderType. submitModel routes via
     // RenderType.hasBlending() — opaque → solid phase (unwrapped); translucent → translucentModels
     // phase (wrapped below). When our OFFHAND/HEAD scope is active, force hasBlending=true so the
     // submit is routed through the translucent phase and wrapModelSubmit can rebuild it with a
@@ -128,7 +128,7 @@ public class SubmitNodeCollectorMixin {
             method = "submitModel",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/client/renderer/rendertype/RenderType;hasBlending()Z"
+                    target = "Lnet/minecraft/client/renderer/RenderType;hasBlending()Z"
             )
     )
     private boolean forceTranslucentRoute(boolean original) {
@@ -157,7 +157,7 @@ public class SubmitNodeCollectorMixin {
     // PreparedRenderType.drawFromBufferOit with no OIT pipelines and hard-crashes. Target the
     // interface invoke instead so the swap runs on 26.3.
     //? if >= 26.3-0.snapshot.2 {
-    /*@WrapOperation(
+    /^¹@WrapOperation(
             method = "submitModel",
             at = @At(
                     value = "INVOKE",
@@ -194,7 +194,7 @@ public class SubmitNodeCollectorMixin {
 
         original.call(phase, (SubmitNode) modified);
     }
-    *///?} else {
+    ¹^///?} else {
     @WrapOperation(
             method = "submitModel",
             at = @At(
@@ -239,6 +239,6 @@ public class SubmitNodeCollectorMixin {
     private static boolean armorHider$isFading(double transparency) {
         return transparency > 0.0 && transparency < 1.0;
     }
-    //?}
+    ^///?}
 }
-//? }
+*///? }

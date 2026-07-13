@@ -41,14 +41,14 @@ public abstract class TitleScreenSmokeMixin {
         Minecraft mc = Minecraft.getInstance();
         mc.execute(() -> {
             ArmorHider.LOGGER.info("[smoke] opening ArmorHider options screen");
-            mc.setScreenAndShow(new ArmorHiderOptionsScreen(null, mc.options));
+            mc.setScreen(new ArmorHiderOptionsScreen(null, mc.options));
             mc.execute(() -> {
                 ArmorHider.LOGGER.info("[smoke] opening ArmorHider individual/global screen");
-                mc.setScreenAndShow(new IndividualPlayerConfigurationsScreen(
+                mc.setScreen(new IndividualPlayerConfigurationsScreen(
                         null, mc.options, Component.translatable("armorhider.individual.title")));
                 mc.execute(() -> {
                     ArmorHider.LOGGER.info("[smoke] opening ArmorHider advanced screen");
-                    mc.setScreenAndShow(new AdvancedArmorHiderSettingsScreen(
+                    mc.setScreen(new AdvancedArmorHiderSettingsScreen(
                             null, mc.options, Component.translatable("armorhider.options.mod_title")));
                     ArmorHider.LOGGER.info("[smoke] ArmorHider screens opened without crashing");
                 });

@@ -1,16 +1,16 @@
 package de.zannagh.armorhider.client.gui.elements;
 
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import org.jetbrains.annotations.Nullable;
 
 //? if >= 1.21.6
-import net.minecraft.client.renderer.RenderPipelines;
+//import net.minecraft.client.renderer.RenderPipelines;
 
 public abstract class LayeredImageButton extends LayeredButton {
 
-    protected abstract @Nullable Identifier spriteForeground(boolean enabled);
+    protected abstract @Nullable ResourceLocation spriteForeground(boolean enabled);
 
     @Nullable protected final EquipmentSlot slot;
 
@@ -20,26 +20,26 @@ public abstract class LayeredImageButton extends LayeredButton {
     }
 
     @Override
-    protected void renderForeground(net.minecraft.client.gui.GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float a) {
+    protected void renderForeground(net.minecraft.client.gui.GuiGraphics guiGraphics, int mouseX, int mouseY, float a) {
         //? if >= 1.21.6 {
-        if (spriteForeground(isEnabled) instanceof Identifier identifier && !identifier.getPath().isEmpty()) {
+        /*if (spriteForeground(isEnabled) instanceof ResourceLocation identifier && !identifier.getPath().isEmpty()) {
             guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, identifier, this.getX() + (this.width - 15) / 2, this.getY() + (this.height - 15) / 2, 15, 15);
         }
-        //?}
-        //? if <= 1.21.5 && >= 1.21.4 {
-        /*if (spriteForeground(isEnabled) instanceof Identifier identifier && !identifier.getPath().isEmpty()) {
-            guiGraphics.blitSprite((t) -> net.minecraft.client.renderer.rendertype.RenderType.guiTextured(t), identifier, this.getX() + (this.width - 15) / 2, this.getY() + (this.height - 15) / 2, 15, 15);
-        }
         *///?}
-        //? if < 1.21.4 && >= 1.21 {
-        /*if (spriteForeground(isEnabled) instanceof Identifier identifier && !identifier.getPath().isEmpty()) {
+        //? if <= 1.21.5 && >= 1.21.2 {
+        if (spriteForeground(isEnabled) instanceof ResourceLocation identifier && !identifier.getPath().isEmpty()) {
+            guiGraphics.blitSprite((t) -> net.minecraft.client.renderer.RenderType.guiTextured(t), identifier, this.getX() + (this.width - 15) / 2, this.getY() + (this.height - 15) / 2, 15, 15);
+        }
+        //?}
+        //? if < 1.21.2 && >= 1.21 {
+        /*if (spriteForeground(isEnabled) instanceof ResourceLocation identifier && !identifier.getPath().isEmpty()) {
             guiGraphics.blitSprite(identifier, this.getX() + (this.width - 15) / 2, this.getY() + (this.height - 15) / 2, 15, 15);
         }
         *///?}
         //? if < 1.21 {
         /*var fg = spriteForeground(isEnabled);
         if (fg != null) {
-            var texture = new Identifier(fg.getNamespace(), "textures/gui/sprites/" + fg.getPath() + ".png");
+            var texture = new ResourceLocation(fg.getNamespace(), "textures/gui/sprites/" + fg.getPath() + ".png");
             guiGraphics.blit(texture, this.getX() + (this.width - 15) / 2, this.getY() + (this.height - 15) / 2, 15, 15, 0, 0, 16, 16, 16, 16);
         }
         *///?}

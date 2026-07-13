@@ -19,11 +19,11 @@ import java.io.Reader;
 import java.util.UUID;
 
 //? if >= 1.21.11 {
-import net.minecraft.resources.Identifier;
- //?}
+/*import net.minecraft.resources.ResourceLocation;
+ *///?}
 //? if >= 1.20.5 && < 1.21.11 {
-/*import net.minecraft.resources.Identifier;
-*///?}
+import net.minecraft.resources.ResourceLocation;
+//?}
 
 /**
  * Represents the configuration settings for a player with various customizable options.
@@ -43,12 +43,12 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
     public static final int CURRENT_CONFIG_VERSION = 8;
 
     //? if >= 1.21.11 {
-    public static final Identifier PACKET_IDENTIFIER = Identifier.fromNamespaceAndPath("de.zannagh.armorhider", "settings_c2s_packet");
-    //?}
+    /*public static final ResourceLocation PACKET_IDENTIFIER = ResourceLocation.fromNamespaceAndPath("de.zannagh.armorhider", "settings_c2s_packet");
+    *///?}
 
     //? if >= 1.20.5 && < 1.21.11 {
-    /*public static final Identifier PACKET_IDENTIFIER = Identifier.fromNamespaceAndPath("armorhider", "settings_c2s_packet");
-    *///?}
+    public static final ResourceLocation PACKET_IDENTIFIER = ResourceLocation.fromNamespaceAndPath("armorhider", "settings_c2s_packet");
+    //?}
 
     //? if >= 1.20.5 {
     public static final StreamCodec<ByteBuf, PlayerConfig> STREAM_CODEC = CompressedJsonCodec.create(PlayerConfig.class);

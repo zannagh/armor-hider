@@ -1,7 +1,7 @@
 package de.zannagh.armorhider.client.api;
 
-import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.resources.Identifier;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.resources.ResourceLocation;
 
 /**
  * Resolves the {@link RenderType}s Armor Hider uses to render hidden / translucent armor, items
@@ -23,13 +23,13 @@ public interface AhRenderTypeFactory {
      * @param texture armor layer texture, already resolved (with any per-player vanilla-fallback applied).
      * @return the {@link RenderType} used to draw a translucent armor layer.
      */
-    RenderType getTranslucentArmorRenderType(Identifier texture);
+    RenderType getTranslucentArmorRenderType(ResourceLocation texture);
 
     /**
      * @param texture entity texture (skull, item-entity, etc.).
      * @return the {@link RenderType} used to draw a translucent entity texture.
      */
-    RenderType getTranslucentEntityRenderType(Identifier texture);
+    RenderType getTranslucentEntityRenderType(ResourceLocation texture);
 
     /**
      * @return the {@link RenderType} used to draw a translucent armor trim. Trims share a single sheet,

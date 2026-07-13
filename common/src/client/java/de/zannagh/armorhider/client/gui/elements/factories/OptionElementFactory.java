@@ -93,13 +93,13 @@ public class OptionElementFactory {
                 onPress -> {
                     var mc = Minecraft.getInstance();
                     //? if <= 26.1.2
-                    //var currentScreen = mc.screen;
+                    var currentScreen = mc.screen;
                     //? if > 26.1.2
-                    var currentScreen = mc.gui.screen();
+                    //var currentScreen = mc.gui.screen();
                     if (currentScreen == null) {
                         return;
                     }
-                    mc.setScreenAndShow(new de.zannagh.armorhider.client.gui.screens.IndividualPlayerConfigurationsScreen(
+                    mc.setScreen(new de.zannagh.armorhider.client.gui.screens.IndividualPlayerConfigurationsScreen(
                             currentScreen, gameOptions, Component.translatable("armorhider.individual.title")));
                 }
         );
@@ -247,13 +247,13 @@ public class OptionElementFactory {
                 var mc = Minecraft.getInstance();
 
                 //? if <= 26.1.2
-                //var currentScreen = mc.screen;
+                var currentScreen = mc.screen;
                 //? if > 26.1.2
-                var currentScreen = mc.gui.screen();
+                //var currentScreen = mc.gui.screen();
                 if (currentScreen == null) {
                     return;
                 }
-                mc.setScreenAndShow(new ItemExclusionScreen(currentScreen, options, slot));
+                mc.setScreen(new ItemExclusionScreen(currentScreen, options, slot));
             });
 
         GlintSlotOnOffButton toggleGlintButton = null;
@@ -305,17 +305,17 @@ public class OptionElementFactory {
                 new NarratedTooltipFactory<>(tooltip, narration),
                 (text, value) -> sliderTextProvider.apply(value),
                 //? if >= 1.21.11
-                new OptionInstance.IntRange(0, 20).xmap(v -> v / 20.0, v -> (int) Math.round(v * 20), true)
+                //new OptionInstance.IntRange(0, 20).xmap(v -> v / 20.0, v -> (int) Math.round(v * 20), true)
                 //? if >= 1.20.5 && < 1.21.11
-                //new OptionInstance.IntRange(0, 20).xmap(v -> v / 20.0, v -> (int) Math.round(v * 20))
+                new OptionInstance.IntRange(0, 20).xmap(v -> v / 20.0, v -> (int) Math.round(v * 20))
                 //? if < 1.20.5
                 //OptionInstance.UnitDouble.INSTANCE
                 ,
                 defaultValue,
                 //? if > 26.1.2
-                setter::accept
+                //setter::accept
                 //? if <= 26.1.2
-                //setter
+                setter
         );
     }
 
@@ -336,9 +336,9 @@ public class OptionElementFactory {
                 (text, value) -> value ? Component.translatable("armorhider.options.toggle.on") : Component.translatable("armorhider.options.toggle.off"),
                 defaultValue,
                 //? if > 26.1.2
-                setter::accept
+                //setter::accept
                 //? if <= 26.1.2
-                //setter
+                setter
         );
     }
 }

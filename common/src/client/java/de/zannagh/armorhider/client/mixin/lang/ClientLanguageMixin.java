@@ -8,7 +8,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import de.zannagh.armorhider.ArmorHider;
 import net.minecraft.client.resources.language.ClientLanguage;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -132,9 +132,9 @@ public class ClientLanguageMixin {
     @Unique
     private static void armorHider$loadFromResourceManager(ResourceManager resourceManager, String langCode, Map<String, String> map) {
         //? if >= 1.20.5 {
-        var location = Identifier.parse("armor-hider:lang/" + langCode + ".json");
+        var location = ResourceLocation.parse("armor-hider:lang/" + langCode + ".json");
         //?} else {
-        /*var location = new Identifier("armor-hider", "lang/" + langCode + ".json");
+        /*var location = new ResourceLocation("armor-hider", "lang/" + langCode + ".json");
         *///?}
         resourceManager.getResource(location).ifPresent(resource -> {
             try (InputStream stream = resource.open()) {

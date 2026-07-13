@@ -16,7 +16,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.NonNull;
 
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 
 /**
@@ -62,11 +62,11 @@ public class ServerWideSettings implements ConfigurationSource<ServerWideSetting
     }
 
     //? if >= 1.21.11 {
-    public static final Identifier PACKET_IDENTIFIER = Identifier.fromNamespaceAndPath("de.zannagh.armorhider", "server_wide_settings");
-     //?}
+    /*public static final ResourceLocation PACKET_IDENTIFIER = ResourceLocation.fromNamespaceAndPath("de.zannagh.armorhider", "server_wide_settings");
+     *///?}
     //? if >= 1.20.5 && < 1.21.11 {
-    /*public static final Identifier PACKET_IDENTIFIER = Identifier.fromNamespaceAndPath("armorhider", "server_wide_settings");
-    *///?}
+    public static final ResourceLocation PACKET_IDENTIFIER = ResourceLocation.fromNamespaceAndPath("armorhider", "server_wide_settings");
+    //?}
 
     //? if >= 1.20.5 {
     public static final Type<ServerWideSettings> TYPE = new Type<>(PACKET_IDENTIFIER);

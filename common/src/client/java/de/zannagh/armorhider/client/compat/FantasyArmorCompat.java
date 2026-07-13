@@ -4,7 +4,7 @@ import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.common.IdentityCarrier;
 import de.zannagh.armorhider.client.common.SlotModification;
 import net.minecraft.client.model.HumanoidModel;
-import net.minecraft.client.model.player.PlayerModel;
+import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.world.entity.EquipmentSlot;
 
@@ -28,12 +28,12 @@ public final class FantasyArmorCompat {
         }
 
         if (SlotModification.isSlotModified(name, EquipmentSlot.CHEST, carrier.armorHider$getItemBySlot(EquipmentSlot.CHEST))) {
-            //? if >= 1.21.4
+            //? if >= 1.21.2
             var model = ((LivingEntityRenderer<?, ?, ?>) (Object) playerModel).getModel();
-            //? if < 1.21.4
+            //? if < 1.21.2
             //var model = ((LivingEntityRenderer<?, ?>) (Object) playerModel).getModel();
 
-            //? if >= 1.21.4 {
+            //? if >= 1.21.2 {
             if (model instanceof PlayerModel humanoid) {
                 humanoid.leftArm.visible = true;
                 humanoid.leftSleeve.visible = true;

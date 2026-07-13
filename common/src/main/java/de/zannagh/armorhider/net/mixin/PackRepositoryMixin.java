@@ -1,5 +1,5 @@
 //? if fabric && >= 26.1-0.snapshot.11 {
-package de.zannagh.armorhider.net.mixin;
+/*package de.zannagh.armorhider.net.mixin;
 
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.network.chat.Component;
@@ -71,4 +71,4 @@ public class PackRepositoryMixin {
         this.sources = newSources;
     }
 }
-//?}
+*///?}

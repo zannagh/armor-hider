@@ -9,16 +9,16 @@ import de.zannagh.armorhider.log.DebugLogger;
 import de.zannagh.armorhider.net.packets.PlayerConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import org.jetbrains.annotations.Nullable;
 
 //? if >= 1.21.4 {
-import net.minecraft.client.resources.model.EquipmentClientInfo;
+/*import net.minecraft.client.resources.model.EquipmentClientInfo;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.equipment.EquipmentAsset;
-//?}
+*///?}
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,16 +27,16 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public final class VanillaArmorTextureManager {
 
-    private static final ConcurrentHashMap<Identifier, Identifier> fallbackCache = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<ResourceLocation, ResourceLocation> fallbackCache = new ConcurrentHashMap<>();
     private static final Object ABSENT = new Object();
-    private static final ConcurrentHashMap<Identifier, Object> negativeLookupCache = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<ResourceLocation, Object> negativeLookupCache = new ConcurrentHashMap<>();
     private static ResourceManager lastResourceManager;
 
     private static int logCounter = 0;
 
     private VanillaArmorTextureManager() {}
 
-    public static Identifier resolveArmorTexture(SlotModification mod, Identifier texture) {
+    public static ResourceLocation resolveArmorTexture(SlotModification mod, ResourceLocation texture) {
         if (mod.isEmpty() || mod.playerName().isBlank()) {
             return texture;
         }
@@ -44,7 +44,7 @@ public final class VanillaArmorTextureManager {
             return texture;
         }
 
-        Identifier fallback = getVanillaFallback(texture);
+        ResourceLocation fallback = getVanillaFallback(texture);
 
         if (DebugLogger.isEnabled() && logCounter++ % 60 == 0) {
             DebugLogger.log("[VanillaTexture] player={} | texture={} | fallback={} | hasMod={}",
@@ -54,10 +54,10 @@ public final class VanillaArmorTextureManager {
         return fallback != null ? fallback : texture;
     }
 
-    private static @Nullable Identifier getVanillaFallback(Identifier original) {
+    private static @Nullable ResourceLocation getVanillaFallback(ResourceLocation original) {
         invalidateCacheIfNeeded();
 
-        Identifier cached = fallbackCache.get(original);
+        ResourceLocation cached = fallbackCache.get(original);
         if (cached != null) {
             return cached;
         }
@@ -68,8 +68,8 @@ public final class VanillaArmorTextureManager {
         return loadVanillaFallback(original);
     }
 
-    private static synchronized @Nullable Identifier loadVanillaFallback(Identifier original) {
-        Identifier cached = fallbackCache.get(original);
+    private static synchronized @Nullable ResourceLocation loadVanillaFallback(ResourceLocation original) {
+        ResourceLocation cached = fallbackCache.get(original);
         if (cached != null) {
             return cached;
         }
@@ -97,20 +97,20 @@ public final class VanillaArmorTextureManager {
         Resource vanillaResource = stack.get(0);
 
         //? if >= 1.21 {
-        Identifier fallbackId = Identifier.fromNamespaceAndPath("armor_hider",
+        ResourceLocation fallbackId = ResourceLocation.fromNamespaceAndPath("armor_hider",
                 "vanilla_fallback/" + original.getNamespace() + "/" + original.getPath());
         //?} else {
-        /*Identifier fallbackId = new Identifier("armor_hider",
+        /*ResourceLocation fallbackId = new ResourceLocation("armor_hider",
                 "vanilla_fallback/" + original.getNamespace() + "/" + original.getPath());
         *///?}
 
         try (InputStream in = vanillaResource.open()) {
             NativeImage image = NativeImage.read(in);
             //? if >= 1.21.8 {
-            DynamicTexture dynamicTexture = new DynamicTexture(() -> "armor_hider_vanilla_" + original.getPath(), image);
-            //?} else {
-            /*DynamicTexture dynamicTexture = new DynamicTexture(image);
-            *///?}
+            /*DynamicTexture dynamicTexture = new DynamicTexture(() -> "armor_hider_vanilla_" + original.getPath(), image);
+            *///?} else {
+            DynamicTexture dynamicTexture = new DynamicTexture(image);
+            //?}
             Minecraft.getInstance().getTextureManager().register(fallbackId, dynamicTexture);
             fallbackCache.put(original, fallbackId);
             ArmorHider.LOGGER.debug("Loaded vanilla fallback texture for {} (overridden by {} packs)", original, stack.size() - 1);
@@ -134,7 +134,7 @@ public final class VanillaArmorTextureManager {
         if (current != lastResourceManager) {
             if (lastResourceManager != null) {
                 var textureManager = Minecraft.getInstance().getTextureManager();
-                for (Identifier fallbackId : fallbackCache.values()) {
+                for (ResourceLocation fallbackId : fallbackCache.values()) {
                     textureManager.release(fallbackId);
                 }
                 if (DebugLogger.isEnabled()) {
@@ -149,30 +149,30 @@ public final class VanillaArmorTextureManager {
     }
 
     //? if >= 1.21.4 {
-    public static @Nullable Identifier resolveVanillaEquipmentTexture(
+    /*public static @Nullable ResourceLocation resolveVanillaEquipmentTexture(
             ResourceKey<EquipmentAsset> assetKey,
             EquipmentClientInfo.LayerType layerType
     ) {
         invalidateCacheIfNeeded();
 
         //? if >= 1.21.11 {
-        Identifier assetLocation = assetKey.identifier();
-        //?} else {
-        /*Identifier assetLocation = assetKey.location();
-        *///?}
+        /^ResourceLocation assetLocation = assetKey.identifier();
+        ^///?} else {
+        ResourceLocation assetLocation = assetKey.location();
+        //?}
         //? if >= 1.21 {
-        Identifier vanillaTexturePath = Identifier.fromNamespaceAndPath(
+        ResourceLocation vanillaTexturePath = ResourceLocation.fromNamespaceAndPath(
                 assetLocation.getNamespace(),
                 "textures/entity/equipment/" + layerType.getSerializedName() + "/" + assetLocation.getPath() + ".png"
         );
         //?} else {
-        /*Identifier vanillaTexturePath = new Identifier(
+        /^ResourceLocation vanillaTexturePath = new ResourceLocation(
                 assetLocation.getNamespace(),
                 "textures/entity/equipment/" + layerType.getSerializedName() + "/" + assetLocation.getPath() + ".png"
         );
-        *///?}
+        ^///?}
 
-        Identifier cached = fallbackCache.get(vanillaTexturePath);
+        ResourceLocation cached = fallbackCache.get(vanillaTexturePath);
         if (cached != null) return cached;
 
         if (negativeLookupCache.containsKey(vanillaTexturePath)) return vanillaTexturePath;
@@ -180,8 +180,8 @@ public final class VanillaArmorTextureManager {
         return loadVanillaEquipmentTexture(vanillaTexturePath);
     }
 
-    private static synchronized @Nullable Identifier loadVanillaEquipmentTexture(Identifier vanillaTexturePath) {
-        Identifier cached = fallbackCache.get(vanillaTexturePath);
+    private static synchronized @Nullable ResourceLocation loadVanillaEquipmentTexture(ResourceLocation vanillaTexturePath) {
+        ResourceLocation cached = fallbackCache.get(vanillaTexturePath);
         if (cached != null) return cached;
         if (negativeLookupCache.containsKey(vanillaTexturePath)) return vanillaTexturePath;
 
@@ -210,20 +210,20 @@ public final class VanillaArmorTextureManager {
         Resource vanillaResource = stack.get(0);
 
         //? if >= 1.21 {
-        Identifier fallbackId = Identifier.fromNamespaceAndPath("armor_hider",
+        ResourceLocation fallbackId = ResourceLocation.fromNamespaceAndPath("armor_hider",
                 "vanilla_fallback/" + vanillaTexturePath.getNamespace() + "/" + vanillaTexturePath.getPath());
         //?} else {
-        /*Identifier fallbackId = new Identifier("armor_hider",
+        /^ResourceLocation fallbackId = new ResourceLocation("armor_hider",
                 "vanilla_fallback/" + vanillaTexturePath.getNamespace() + "/" + vanillaTexturePath.getPath());
-        *///?}
+        ^///?}
 
         try (InputStream in = vanillaResource.open()) {
             NativeImage image = NativeImage.read(in);
             //? if >= 1.21.8 {
-            DynamicTexture dynamicTexture = new DynamicTexture(() -> "armor_hider_vanilla_" + vanillaTexturePath.getPath(), image);
-            //?} else {
-            /*DynamicTexture dynamicTexture = new DynamicTexture(image);
-            *///?}
+            /^DynamicTexture dynamicTexture = new DynamicTexture(() -> "armor_hider_vanilla_" + vanillaTexturePath.getPath(), image);
+            ^///?} else {
+            DynamicTexture dynamicTexture = new DynamicTexture(image);
+            //?}
             Minecraft.getInstance().getTextureManager().register(fallbackId, dynamicTexture);
             fallbackCache.put(vanillaTexturePath, fallbackId);
             if (DebugLogger.isEnabled()) {
@@ -237,7 +237,7 @@ public final class VanillaArmorTextureManager {
             return null;
         }
     }
-    //?}
+    *///?}
 
     private static boolean shouldUseCombatVanillaTexture(String playerName) {
         if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.isArmorHiderGloballyDisabled()) {

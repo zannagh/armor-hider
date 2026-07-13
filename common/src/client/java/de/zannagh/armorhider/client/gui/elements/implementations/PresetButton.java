@@ -2,7 +2,7 @@ package de.zannagh.armorhider.client.gui.elements.implementations;
 
 import de.zannagh.armorhider.client.gui.elements.SquareLayeredTextButton;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 
 public class PresetButton extends SquareLayeredTextButton {
@@ -41,7 +41,7 @@ public class PresetButton extends SquareLayeredTextButton {
     }
 
     @Override
-    protected @Nullable Identifier midLayerSprite(boolean enabled) {
+    protected @Nullable ResourceLocation midLayerSprite(boolean enabled) {
         return presetActive ? modSprite("accept_highlighted") : null;
     }
 

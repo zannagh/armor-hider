@@ -53,11 +53,11 @@ public class ItemExclusionScreen extends ArmorHiderConfigurationScreen {
             boolean initialValue = !info.shouldIgnore;
 
             //? if >= 1.21.9 {
-            var onText = Component.translatable("armorhider.options.item_exclusion.handled");
+            /*var onText = Component.translatable("armorhider.options.item_exclusion.handled");
             var offText = Component.translatable("armorhider.options.item_exclusion.ignored");
 
             //? if >= 1.21.11
-            var cycleBuilder = net.minecraft.client.gui.components.CycleButton.booleanBuilder(onText, offText, initialValue);
+            //var cycleBuilder = net.minecraft.client.gui.components.CycleButton.booleanBuilder(onText, offText, initialValue);
             //? if >= 1.21.9 && < 1.21.11
             //var cycleBuilder = net.minecraft.client.gui.components.CycleButton.booleanBuilder(onText, offText).withInitialValue(initialValue);
 
@@ -72,17 +72,17 @@ public class ItemExclusionScreen extends ArmorHiderConfigurationScreen {
                     (widget, newValue) -> setSetting(newValue, val -> info.shouldIgnore = !val)
             );
             widgetList.addWidget(cycleWidget);
-            //?}
+            *///?}
 
             //? if < 1.21.9 {
-            /*var option = net.minecraft.client.OptionInstance.createBoolean(
+            var option = net.minecraft.client.OptionInstance.createBoolean(
                     displayName,
                     net.minecraft.client.OptionInstance.noTooltip(),
                     initialValue,
                     newValue -> setSetting(newValue, val -> info.shouldIgnore = !val)
             );
             widgetList.addWidget(option.createButton(net.minecraft.client.Minecraft.getInstance().options, 0, 0, rowWidth));
-            *///?}
+            //?}
         }
     }
 
@@ -106,14 +106,14 @@ public class ItemExclusionScreen extends ArmorHiderConfigurationScreen {
     }
 
     //? if < 1.21.4 {
-    /*@Override
-    public void render(net.minecraft.client.gui.GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
+    @Override
+    public void render(net.minecraft.client.gui.GuiGraphics context, int mouseX, int mouseY, float delta) {
         //? if >= 1.21
         this.renderBackground(context, mouseX, mouseY, delta);
         //? if < 1.21 {
-        /^this.renderBackground(context);
-        ^///?}
+        /*this.renderBackground(context);
+        *///?}
         super.render(context, mouseX, mouseY, delta);
     }
-    *///?}
+    //?}
 }

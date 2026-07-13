@@ -14,13 +14,13 @@ public abstract class SquareLayeredTextButton extends LayeredButton {
     }
 
     @Override
-    protected void renderForeground(net.minecraft.client.gui.GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float a) {
+    protected void renderForeground(net.minecraft.client.gui.GuiGraphics guiGraphics, int mouseX, int mouseY, float a) {
         var font = Minecraft.getInstance().font;
         int textX = this.getX() + this.width / 2;
         int textY = this.getY() + (this.height - font.lineHeight) / 2 + 1;
         //? if >= 26.1-1.pre.1
-        guiGraphics.centeredText(font, label, textX, textY, 0xFFFFFFFF);
+        //guiGraphics.centeredText(font, label, textX, textY, 0xFFFFFFFF);
         //? if < 26.1-1.pre.1
-        //guiGraphics.drawCenteredString(font, label, textX, textY, 0xFFFFFFFF);
+        guiGraphics.drawCenteredString(font, label, textX, textY, 0xFFFFFFFF);
     }
 }

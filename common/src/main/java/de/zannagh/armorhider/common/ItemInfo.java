@@ -8,9 +8,9 @@ import net.minecraft.world.level.block.SkullBlock;
 import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
 
-//? if >= 1.21.4
+//? if >= 1.21.2
 import net.minecraft.core.component.DataComponents;
-//? if < 1.21.4
+//? if < 1.21.2
 //import net.minecraft.world.item.Equipable;
 
 import java.util.Arrays;
@@ -67,7 +67,7 @@ public class ItemInfo {
 
     @Nullable
     public EquipmentSlot getEquippableSlot(){
-        //? if >= 1.21.4 {
+        //? if >= 1.21.2 {
         var equippable = itemStack.get(DataComponents.EQUIPPABLE);
         if (equippable == null) {
             return null;

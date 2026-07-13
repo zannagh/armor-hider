@@ -17,48 +17,48 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 //? if >= 1.21.9
-import net.minecraft.client.renderer.SubmitNodeCollector;
+//import net.minecraft.client.renderer.SubmitNodeCollector;
 
 //? if >= 1.21.4 {
-import net.minecraft.client.renderer.entity.state.AvatarRenderState;
-//?}
+/*import net.minecraft.client.renderer.entity.state.PlayerRenderState;
+*///?}
 
 //? if < 1.21.9
-//import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.MultiBufferSource;
 
 //? if < 1.21.4 {
-/*import net.minecraft.client.player.AbstractClientPlayer;
-*///?}
+import net.minecraft.client.player.AbstractClientPlayer;
+//?}
 
 @Pseudo
 @Mixin(value = CustomCapeRenderLayer.class, remap = false)
 public class WaveyCapesMixin {
     @Unique
     //? if >= 1.21.9 {
-    private static final String CAPE_METHOD = "submit*";
-    //? } else
-    //private static final String CAPE_METHOD = "render";
+    /*private static final String CAPE_METHOD = "submit*";
+    *///? } else
+    private static final String CAPE_METHOD = "render";
 
     @Inject(method = CAPE_METHOD, at = @At("HEAD"), cancellable = true, remap = false)
     private void setupCapeContext(PoseStack poseStack,
                                   //? if >= 1.21.9 {
-                                  SubmitNodeCollector submitNodeCollector,
-                                  //? } else
-                                  //MultiBufferSource multiBufferSource,
+                                  /*SubmitNodeCollector submitNodeCollector,
+                                  *///? } else
+                                  MultiBufferSource multiBufferSource,
                                   int light,
                                   //? if >= 1.21.4 {
-                                  AvatarRenderState avatarRenderState,
-                                  //? } else
-                                  //AbstractClientPlayer avatarRenderState,
+                                  /*PlayerRenderState avatarRenderState,
+                                  *///? } else
+                                  AbstractClientPlayer avatarRenderState,
                                   float limbSwing, float limbSwingAmount,
                                   //? if < 1.21.4 {
-                                  //float partialTick, float ageInTicks, float netHeadYaw, float headPitch,
+                                  float partialTick, float ageInTicks, float netHeadYaw, float headPitch,
                                   //? }
                                   CallbackInfo ci) {
         //? if >= 1.21.4 {
-        var chestEquipment = avatarRenderState.chestEquipment;
-        //? } else
-        // var chestEquipment = avatarRenderState.getItemBySlot(EquipmentSlot.CHEST);
+        /*var chestEquipment = avatarRenderState.chestEquipment;
+        *///? } else
+         var chestEquipment = avatarRenderState.getItemBySlot(EquipmentSlot.CHEST);
 
         var result = AhRenderInterceptionRegistryApi.getRenderer(RenderScope.CAPE).intercept(avatarRenderState, EquipmentSlot.CHEST, chestEquipment, ci);
         if (!result.shouldIntercept() || result.shouldCancel()) {
@@ -88,17 +88,17 @@ public class WaveyCapesMixin {
     @Inject(method = CAPE_METHOD, at = @At("RETURN"), remap = false)
     private void releaseCapeContext(PoseStack poseStack,
                                     //? if >= 1.21.9 {
-                                    SubmitNodeCollector submitNodeCollector,
-                                    //? } else
-                                    //MultiBufferSource multiBufferSource,
+                                    /*SubmitNodeCollector submitNodeCollector,
+                                    *///? } else
+                                    MultiBufferSource multiBufferSource,
                                     int light,
                                     //? if >= 1.21.4 {
-                                    AvatarRenderState renderState,
-                                    //? } else
-                                    //AbstractClientPlayer player,
+                                    /*PlayerRenderState renderState,
+                                    *///? } else
+                                    AbstractClientPlayer player,
                                     float limbSwing, float limbSwingAmount,
                                     //? if < 1.21.4 {
-                                    //float partialTick, float ageInTicks, float netHeadYaw, float headPitch,
+                                    float partialTick, float ageInTicks, float netHeadYaw, float headPitch,
                                     //? }
                                     CallbackInfo ci) {
         AhRenderManagementApi.exitScope(RenderScope.CAPE);

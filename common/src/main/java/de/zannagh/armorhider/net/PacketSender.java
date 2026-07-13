@@ -12,7 +12,7 @@ import de.zannagh.armorhider.server.ServerConfiguration;
 import io.netty.buffer.Unpooled;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.game.ClientboundCustomPayloadPacket;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 *///?}
 import net.minecraft.server.level.ServerPlayer;
 
@@ -32,21 +32,21 @@ public final class PacketSender {
 
     //? if < 1.20.5 {
     /*public static void sendToPlayer(ServerPlayer player, ServerConfiguration config) {
-        Identifier channel = LegacyPacketHandler.getServerConfigChannel();
+        ResourceLocation channel = LegacyPacketHandler.getServerConfigChannel();
         FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
         CompressedJsonCodec.encodeLegacy(config, buf);
         player.connection.send(new ClientboundCustomPayloadPacket(channel, buf));
     }
 
     public static void sendToPlayer(ServerPlayer player, PermissionPacket permissions) {
-        Identifier channel = LegacyPacketHandler.getPermissionChannel();
+        ResourceLocation channel = LegacyPacketHandler.getPermissionChannel();
         FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
         CompressedJsonCodec.encodeLegacy(permissions, buf);
         player.connection.send(new ClientboundCustomPayloadPacket(channel, buf));
     }
     
     public static void sendToPlayer(ServerPlayer player, CombatLogNotificationPacket combatLogNotification) {
-        Identifier channel = LegacyPacketHandler.getCombatLogNotificationChannel();
+        ResourceLocation channel = LegacyPacketHandler.getCombatLogNotificationChannel();
         FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
         CompressedJsonCodec.encodeLegacy(combatLogNotification, buf);
         player.connection.send(new ClientboundCustomPayloadPacket(channel, buf));

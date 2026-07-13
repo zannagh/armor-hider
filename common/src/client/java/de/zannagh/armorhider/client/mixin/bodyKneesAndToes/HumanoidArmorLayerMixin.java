@@ -15,17 +15,17 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 //? if >= 1.21.9
-import net.minecraft.client.renderer.SubmitNodeCollector;
+//import net.minecraft.client.renderer.SubmitNodeCollector;
 
-//? if >= 1.21.4
+//? if >= 1.21.2
 import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 
-//? if >= 1.21.4 && < 1.21.9 {
-/*import net.minecraft.client.model.HumanoidModel;
+//? if >= 1.21.2 && < 1.21.9 {
+import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.MultiBufferSource;
-*///?}
+//?}
 
-//? if < 1.21.4 {
+//? if < 1.21.2 {
 /*import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -34,14 +34,14 @@ import de.zannagh.armorhider.client.render.VanillaArmorTextureManager;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.Sheets;
-import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.resources.Identifier;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 *///?}
 
 @Mixin(HumanoidArmorLayer.class)
 public class HumanoidArmorLayerMixin
-//? if < 1.21.4
+//? if < 1.21.2
 //<T extends LivingEntity, M extends HumanoidModel<T>, A extends HumanoidModel<T>>
 {
 
@@ -49,8 +49,8 @@ public class HumanoidArmorLayerMixin
     // In this range renderArmorPiece receives the armor model instead of the render state,
     // so the identity-carrying state is stashed from the outer render call.
 
-    //? if >= 1.21.4 && < 1.21.9 {
-    /*@Unique
+    //? if >= 1.21.2 && < 1.21.9 {
+    @Unique
     private static final ThreadLocal<Object> armorHider$renderState = new ThreadLocal<>();
 
     @Inject(method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/renderer/entity/state/HumanoidRenderState;FF)V", at = @At("HEAD"))
@@ -62,28 +62,28 @@ public class HumanoidArmorLayerMixin
     private void releaseRenderState(CallbackInfo ci) {
         armorHider$renderState.remove();
     }
-    *///?}
+    //?}
 
     // ===== Per-piece scope setup (renderArmorPiece HEAD) =====
 
     @Inject(method = "renderArmorPiece", at = @At("HEAD"), cancellable = true)
     //? if >= 1.21.9
-    private <S extends HumanoidRenderState> void captureContext(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, ItemStack itemStack, EquipmentSlot slot, int i, S humanoidRenderState, CallbackInfo ci) {
-    //? if >= 1.21.4 && < 1.21.9
-    //private void captureContext(PoseStack poseStack, MultiBufferSource multiBufferSource, ItemStack itemStack, EquipmentSlot slot, int i, HumanoidModel<?> armorModel, CallbackInfo ci) {
-    //? if < 1.21.4
+    //private <S extends HumanoidRenderState> void captureContext(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, ItemStack itemStack, EquipmentSlot slot, int i, S humanoidRenderState, CallbackInfo ci) {
+    //? if >= 1.21.2 && < 1.21.9
+    private void captureContext(PoseStack poseStack, MultiBufferSource multiBufferSource, ItemStack itemStack, EquipmentSlot slot, int i, HumanoidModel<?> armorModel, CallbackInfo ci) {
+    //? if < 1.21.2
     //private void onRenderArmorPiece(PoseStack poseStack, MultiBufferSource bufferSource, T humanoidRenderState, EquipmentSlot slot, int packedLight, A itemStack, CallbackInfo ci) {
 
-        //? if >= 1.21.9 || < 1.21.4
-        IdentityCarrier carrier = humanoidRenderState instanceof IdentityCarrier ic ? ic : null;
-        //? if >= 1.21.4 && < 1.21.9
-        //IdentityCarrier carrier = armorHider$renderState.get() instanceof IdentityCarrier ic ? ic : null;
+        //? if >= 1.21.9 || < 1.21.2
+        //IdentityCarrier carrier = humanoidRenderState instanceof IdentityCarrier ic ? ic : null;
+        //? if >= 1.21.2 && < 1.21.9
+        IdentityCarrier carrier = armorHider$renderState.get() instanceof IdentityCarrier ic ? ic : null;
         if (carrier == null) return;
 
         
-        //? if >= 1.21.4
+        //? if >= 1.21.2
         var result = AhRenderInterceptionRegistryApi.getRenderer(RenderScope.ARMOR_PIECE).intercept(carrier, slot, itemStack, ci);
-        //? if < 1.21.4
+        //? if < 1.21.2
         //var result = AhRenderInterceptionRegistryApi.getRenderer(RenderScope.ARMOR_PIECE).intercept(carrier, slot, null, ci);
         if (result.shouldCancel() || !result.shouldIntercept()) return;
         AhRenderManagementApi.enterScope(result);
@@ -98,7 +98,7 @@ public class HumanoidArmorLayerMixin
 
     // === Render changes where MC does handle it within HumanoidArmorLayer ===
 
-    //? if < 1.21.4 {
+    //? if < 1.21.2 {
     /*@ModifyExpressionValue(
             method = "renderArmorPiece",
             at = @At(
@@ -115,13 +115,13 @@ public class HumanoidArmorLayerMixin
             method = "renderModel",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/client/renderer/rendertype/RenderType;armorCutoutNoCull(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/rendertype/RenderType;"
+                    target = "Lnet/minecraft/client/renderer/RenderType;armorCutoutNoCull(Lnet/minecraft/resources/ResourceLocation;)Lnet/minecraft/client/renderer/RenderType;"
             )
     )
-    private RenderType modifyArmorRenderLayer(Identifier texture, Operation<RenderType> original) {
+    private RenderType modifyArmorRenderLayer(ResourceLocation texture, Operation<RenderType> original) {
         var ctx = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE);
         if (ctx.isEmpty()) return original.call(texture);
-        Identifier resolved = VanillaArmorTextureManager.resolveArmorTexture(ctx.modification(), texture);
+        ResourceLocation resolved = VanillaArmorTextureManager.resolveArmorTexture(ctx.modification(), texture);
         var originalType = original.call(resolved);
         if (ctx.renderModificationApi().getTranslucentArmorRenderType(resolved, originalType) instanceof RenderType rt) {
             return rt;
@@ -130,7 +130,7 @@ public class HumanoidArmorLayerMixin
     }
     *///?}
 
-    //? if >= 1.21 && < 1.21.4 {
+    //? if >= 1.21 && < 1.21.2 {
     /*@WrapOperation(
             method = "renderModel",
             at = @At(
@@ -149,7 +149,7 @@ public class HumanoidArmorLayerMixin
             method = "renderTrim",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/client/renderer/Sheets;armorTrimsSheet(Z)Lnet/minecraft/client/renderer/rendertype/RenderType;"
+                    target = "Lnet/minecraft/client/renderer/Sheets;armorTrimsSheet(Z)Lnet/minecraft/client/renderer/RenderType;"
             )
     )
     private RenderType modifyTrimRenderLayer(boolean decal, Operation<RenderType> original) {

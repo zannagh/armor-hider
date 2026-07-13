@@ -58,24 +58,24 @@ public final class ClientCommunicationManager {
             var playerName = PlayerNameUtil.getPlayerName(client.player);
             if (playerName == null || playerName.isBlank()) {
                 //? if >= 1.21.9
-                playerName = client.player.getGameProfile().name();
+                //playerName = client.player.getGameProfile().name();
                 //? if < 1.21.9
-                //playerName = client.player.getGameProfile().getName();
+                playerName = client.player.getGameProfile().getName();
             }
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.updateLocalPlayerName(playerName, java.util.Optional.of(true));
             //? if >= 1.21.9
-            ArmorHiderClient.CLIENT_CONFIG_MANAGER.updateLocalPlayerUuid(handler.getLocalGameProfile().id(), java.util.Optional.of(true));
+            //ArmorHiderClient.CLIENT_CONFIG_MANAGER.updateLocalPlayerUuid(handler.getLocalGameProfile().id(), java.util.Optional.of(true));
             //? if < 1.21.9
-            //ArmorHiderClient.CLIENT_CONFIG_MANAGER.updateLocalPlayerUuid(handler.getLocalGameProfile().getId(), java.util.Optional.of(true));
+            ArmorHiderClient.CLIENT_CONFIG_MANAGER.updateLocalPlayerUuid(handler.getLocalGameProfile().getId(), java.util.Optional.of(true));
             var currentConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig();
 
             ServerData serverData = client.getCurrentServer();
             if (serverData != null) {
                 try {
                     //? if >= 26.2-1.pre
-                    boolean isSinglePlayer = client.hasSingleplayerServer();
+                    //boolean isSinglePlayer = client.hasSingleplayerServer();
                     //? if < 26.2-1.pre
-                    //boolean isSinglePlayer = client.isSingleplayer();
+                    boolean isSinglePlayer = client.isSingleplayer();
                     if (isSinglePlayer) {
                         ArmorHiderClient.permissionLevel = 4;
                     } 

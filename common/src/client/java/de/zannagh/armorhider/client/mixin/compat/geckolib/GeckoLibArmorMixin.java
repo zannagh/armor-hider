@@ -1,14 +1,14 @@
 package de.zannagh.armorhider.client.mixin.compat.geckolib;
 
-import com.geckolib.renderer.GeoArmorRenderer;
+import software.bernie.geckolib.renderer.GeoArmorRenderer;
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.common.IdentityCarrier;
 import de.zannagh.armorhider.client.api.AhRenderInterceptionRegistryApi;
 import de.zannagh.armorhider.client.api.AhRenderManagementApi;
 import de.zannagh.armorhider.client.common.RenderScope;
 import de.zannagh.armorhider.client.render.interceptors.AhGeckoLibRenderer;
-import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.resources.Identifier;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
@@ -19,24 +19,24 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 //? if >= 1.21.9 {
-import net.minecraft.client.renderer.SubmitNodeCollector;
+/*import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
-//? } else {
-/*
+*///? } else {
+
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.minecraft.world.entity.Entity;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
-*///? }
+//? }
 
 @Pseudo
 @Mixin(value = GeoArmorRenderer.class, remap = false)
 public class GeckoLibArmorMixin {
 
     //? if >= 1.21.9 {
-    @Inject(method = "tryRenderGeoArmorPiece", at = @At("HEAD"), cancellable = true)
+    /*@Inject(method = "tryRenderGeoArmorPiece", at = @At("HEAD"), cancellable = true)
     private static void interceptGeckoLibArmor(
             @Coerce Object modelFunction,
             PoseStack poseStack,
@@ -74,8 +74,8 @@ public class GeckoLibArmorMixin {
         }
         geckoLibRenderer.popAndApplyColor(renderState, slot);
     }
-    //? } elif < 1.21.5 {
-    /*
+    *///? } elif < 1.21.5 {
+    
     // GeckoLib's field-based API (currentSlot / currentStack / currentEntity) exists only
     // on GeckoLib jars pinned for MC <= 1.21.4. On 1.21.5–1.21.8 GeckoLib still uses the
     // pre-1.21.9 MC render flow but has moved its state into per-render parameters; on
@@ -84,7 +84,7 @@ public class GeckoLibArmorMixin {
     @Shadow protected EquipmentSlot currentSlot;
     @Shadow protected ItemStack currentStack;
     @Shadow protected Entity currentEntity;
-    *///? }
+    //? }
 
     // ========================
     // Render type transparency
@@ -96,14 +96,14 @@ public class GeckoLibArmorMixin {
     @Inject(method = "getRenderType*", at = @At("HEAD"), cancellable = true, require = 0)
     private void modifyRenderType(
             @Coerce Object renderState,
-            Identifier texture,
+            ResourceLocation texture,
             //? if >= 1.21 && < 1.21.9 {
-            /*@Coerce Object bufferSource,
+            @Coerce Object bufferSource,
             float partialTick,
-             *///? }
+             //? }
             CallbackInfoReturnable<RenderType> cir) {
         //? if < 1.21.5 {
-        /*
+        
         // Field-based armor-piece scope entry — only valid where GeckoLib still exposes
         // currentEntity / currentSlot / currentStack as shadowable fields. On 1.21.5-1.21.8
         // GeckoLib dropped those, so we rely on the HumanoidArmorLayer mixin (which fires
@@ -111,7 +111,7 @@ public class GeckoLibArmorMixin {
         if (currentEntity instanceof IdentityCarrier carrier && currentSlot != null) {
             AhRenderManagementApi.enterScope(RenderScope.ARMOR_PIECE, carrier, currentSlot, currentStack);
         }
-         *///? }
+         //? }
         var armorCtx = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE);
         if (armorCtx.isEmpty()) {
             return;
@@ -127,7 +127,7 @@ public class GeckoLibArmorMixin {
     // ========================
 
     //? if >= 1.21 && < 1.21.9 {
-    /*
+    
     @ModifyVariable(
         method = "actuallyRender",
         at = @At("HEAD"),
@@ -139,7 +139,7 @@ public class GeckoLibArmorMixin {
     private int modifyRenderColor(int renderColor) {
         return AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE).renderModificationApi().applyArmorTransparency(renderColor);
     }
-    *///? }
+    //? }
 
     //? if < 1.21 {
     /*

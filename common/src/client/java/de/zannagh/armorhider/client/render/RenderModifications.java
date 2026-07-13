@@ -11,8 +11,8 @@ import de.zannagh.armorhider.common.ItemInfo;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.Sheets;
 
-import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.resources.Identifier;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.resources.ResourceLocation;
 
 /**
  * Applies visual modifications (transparency, render type swaps, color changes)
@@ -44,14 +44,14 @@ public class RenderModifications implements AhRenderModificationApi {
 
     // --- Render type modifications ---
 
-    public RenderType getSkullRenderLayer(Identifier texture, RenderType originalLayer) {
+    public RenderType getSkullRenderLayer(ResourceLocation texture, RenderType originalLayer) {
         if (slotModification.isEmpty() || !slotModification.needsModification()) {
             return originalLayer;
         }
         return getTranslucentEntityRenderType(texture);
     }
 
-    public RenderType getTranslucentArmorRenderType(Identifier texture, RenderType originalLayer) {
+    public RenderType getTranslucentArmorRenderType(ResourceLocation texture, RenderType originalLayer) {
         if (slotModification.isEmpty() || !slotModification.needsModification()) {
             return originalLayer;
         }
@@ -70,9 +70,9 @@ public class RenderModifications implements AhRenderModificationApi {
             return originalLayer;
         }
         //? if <= 26.1.2
-        //if (originalLayer == Sheets.cutoutBlockSheet()) {
+        if (originalLayer == Sheets.cutoutBlockSheet()) {
         //? if > 26.1.2
-        if (originalLayer == Sheets.cutoutBlockItemSheet()) {
+        //if (originalLayer == Sheets.cutoutBlockItemSheet()) {
             return getTranslucentItemSheetRenderType();
         }
         return originalLayer;
@@ -116,8 +116,8 @@ public class RenderModifications implements AhRenderModificationApi {
     // --- API bridge methods (Object-typed for version independence) ---
 
     @Override
-    public Object getTranslucentArmorRenderType(Object textureIdentifier, Object originalRenderType) {
-        if (textureIdentifier instanceof Identifier texture && originalRenderType instanceof RenderType original) {
+    public Object getTranslucentArmorRenderType(Object textureResourceLocation, Object originalRenderType) {
+        if (textureResourceLocation instanceof ResourceLocation texture && originalRenderType instanceof RenderType original) {
             return getTranslucentArmorRenderType(texture, original);
         }
         return originalRenderType;
@@ -140,8 +140,8 @@ public class RenderModifications implements AhRenderModificationApi {
     }
 
     @Override
-    public Object getSkullRenderLayer(Object textureIdentifier, Object originalRenderType) {
-        if (textureIdentifier instanceof Identifier texture && originalRenderType instanceof RenderType original) {
+    public Object getSkullRenderLayer(Object textureResourceLocation, Object originalRenderType) {
+        if (textureResourceLocation instanceof ResourceLocation texture && originalRenderType instanceof RenderType original) {
             return getSkullRenderLayer(texture, original);
         }
         return originalRenderType;
@@ -179,14 +179,14 @@ public class RenderModifications implements AhRenderModificationApi {
         return customColorTransformer == null ? DefaultColorTransformer.getInstance() : customColorTransformer;
     }
 
-    public RenderType getTranslucentArmorRenderType(Identifier texture) {
+    public RenderType getTranslucentArmorRenderType(ResourceLocation texture) {
         if (customRenderTypeFactory != null){
             return customRenderTypeFactory.getTranslucentArmorRenderType(texture);
         }
         return ArmorHiderRenderTypes.translucentArmor(texture);
     }
 
-    public RenderType getTranslucentEntityRenderType(Identifier texture){
+    public RenderType getTranslucentEntityRenderType(ResourceLocation texture){
         if (customRenderTypeFactory != null){
             return customRenderTypeFactory.getTranslucentEntityRenderType(texture);
         }
@@ -211,40 +211,40 @@ public class RenderModifications implements AhRenderModificationApi {
 
     //? if < 1.21.9 {
 
-    /*// Cache: maps entitySolid/entityCutout Identifiers to entityTranslucent equivalents.
-    private static final java.util.Map<net.minecraft.client.renderer.rendertype.RenderType, net.minecraft.client.renderer.rendertype.RenderType> solidToTranslucent
+    // Cache: maps entitySolid/entityCutout ResourceLocations to entityTranslucent equivalents.
+    private static final java.util.Map<net.minecraft.client.renderer.RenderType, net.minecraft.client.renderer.RenderType> solidToTranslucent
             = new java.util.concurrent.ConcurrentHashMap<>();
 
     static {
         //? if >= 1.21 {
         solidToTranslucent.put(
-                net.minecraft.client.renderer.rendertype.RenderType.entitySolid(Sheets.SHIELD_SHEET),
+                net.minecraft.client.renderer.RenderType.entitySolid(Sheets.SHIELD_SHEET),
                 ArmorHiderRenderTypes.translucentEntity(Sheets.SHIELD_SHEET));
         solidToTranslucent.put(
-                net.minecraft.client.renderer.rendertype.RenderType.entitySolid(Sheets.BANNER_SHEET),
+                net.minecraft.client.renderer.RenderType.entitySolid(Sheets.BANNER_SHEET),
                 ArmorHiderRenderTypes.translucentEntity(Sheets.BANNER_SHEET));
         //? } else {
-        /^solidToTranslucent.put(
-                net.minecraft.client.renderer.rendertype.RenderType.entitySolid(Sheets.SHIELD_SHEET),
-                net.minecraft.client.renderer.rendertype.RenderType.entityTranslucent(Sheets.SHIELD_SHEET));
+        /*solidToTranslucent.put(
+                net.minecraft.client.renderer.RenderType.entitySolid(Sheets.SHIELD_SHEET),
+                net.minecraft.client.renderer.RenderType.entityTranslucent(Sheets.SHIELD_SHEET));
         solidToTranslucent.put(
-                net.minecraft.client.renderer.rendertype.RenderType.entitySolid(Sheets.BANNER_SHEET),
-                net.minecraft.client.renderer.rendertype.RenderType.entityTranslucent(Sheets.BANNER_SHEET));
-        ^///?}
+                net.minecraft.client.renderer.RenderType.entitySolid(Sheets.BANNER_SHEET),
+                net.minecraft.client.renderer.RenderType.entityTranslucent(Sheets.BANNER_SHEET));
+        *///?}
         //? if < 1.21 {
-        /^solidToTranslucent.put(
-                net.minecraft.client.renderer.rendertype.RenderType.entitySolid(net.minecraft.world.inventory.InventoryMenu.BLOCK_ATLAS),
-                net.minecraft.client.renderer.rendertype.RenderType.entityTranslucent(net.minecraft.world.inventory.InventoryMenu.BLOCK_ATLAS));
-        ^///?} elif < 1.21.4 {
-        /^solidToTranslucent.put(
-                net.minecraft.client.renderer.rendertype.RenderType.entitySolid(net.minecraft.world.inventory.InventoryMenu.BLOCK_ATLAS),
+        /*solidToTranslucent.put(
+                net.minecraft.client.renderer.RenderType.entitySolid(net.minecraft.world.inventory.InventoryMenu.BLOCK_ATLAS),
+                net.minecraft.client.renderer.RenderType.entityTranslucent(net.minecraft.world.inventory.InventoryMenu.BLOCK_ATLAS));
+        *///?} elif < 1.21.4 {
+        solidToTranslucent.put(
+                net.minecraft.client.renderer.RenderType.entitySolid(net.minecraft.world.inventory.InventoryMenu.BLOCK_ATLAS),
                 ArmorHiderRenderTypes.translucentEntity(net.minecraft.world.inventory.InventoryMenu.BLOCK_ATLAS));
-        ^///?}
+        //?}
     }
 
     public static net.minecraft.client.renderer.MultiBufferSource wrapTranslucentBufferSource(
             net.minecraft.client.renderer.MultiBufferSource original, float alpha) {
-        return (net.minecraft.client.renderer.rendertype.RenderType renderType) -> {
+        return (net.minecraft.client.renderer.RenderType renderType) -> {
             var translucent = solidToTranslucent.get(renderType);
             if (translucent != null) {
                 return original.getBuffer(translucent);
@@ -256,10 +256,10 @@ public class RenderModifications implements AhRenderModificationApi {
         };
     }
 
-    public static void registerSolidToTranslucent(net.minecraft.client.renderer.rendertype.RenderType solid, net.minecraft.client.renderer.rendertype.RenderType translucent) {
+    public static void registerSolidToTranslucent(net.minecraft.client.renderer.RenderType solid, net.minecraft.client.renderer.RenderType translucent) {
         solidToTranslucent.putIfAbsent(solid, translucent);
     }
-    *///? }
+    //? }
 
     private static final String[] humanoidModelPartNames = {
             "head", "hat", "body", "right_arm", "left_arm", "right_leg", "left_leg"

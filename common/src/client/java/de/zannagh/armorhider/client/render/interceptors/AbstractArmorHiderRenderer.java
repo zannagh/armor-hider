@@ -7,8 +7,8 @@ import de.zannagh.armorhider.client.common.*;
 import de.zannagh.armorhider.client.render.RenderModifications;
 import de.zannagh.armorhider.client.render.rendertype.ArmorHiderRenderTypes;
 import de.zannagh.armorhider.client.suppressions.ConditionalSuppressor;
-import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.resources.Identifier;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import org.jspecify.annotations.NonNull;
@@ -57,14 +57,14 @@ public abstract class AbstractArmorHiderRenderer implements AhRenderer {
     }
 
     @Override
-    public RenderType getTranslucentArmorRenderType(Identifier texture) {
+    public RenderType getTranslucentArmorRenderType(ResourceLocation texture) {
         return customRenderTypeFactory != null
                 ? customRenderTypeFactory.getTranslucentArmorRenderType(texture)
                 : ArmorHiderRenderTypes.translucentArmor(texture);
     }
 
     @Override
-    public RenderType getTranslucentEntityRenderType(Identifier texture) {
+    public RenderType getTranslucentEntityRenderType(ResourceLocation texture) {
         return customRenderTypeFactory != null
                 ? customRenderTypeFactory.getTranslucentEntityRenderType(texture)
                 : ArmorHiderRenderTypes.translucentEntity(texture);

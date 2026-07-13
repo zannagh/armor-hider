@@ -1,11 +1,11 @@
 //? if >= 1.21.4 {
-package de.zannagh.armorhider.client.mixin;
+/*package de.zannagh.armorhider.client.mixin;
 
 import de.zannagh.armorhider.client.common.PlayerModificationInfo;
 import de.zannagh.armorhider.client.common.IdentityCarrier;
 import de.zannagh.armorhider.client.common.IdentityStateCarrier;
 import de.zannagh.armorhider.util.ItemsUtil;
-import net.minecraft.client.renderer.entity.state.AvatarRenderState;
+import net.minecraft.client.renderer.entity.state.PlayerRenderState;
 import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
@@ -15,16 +15,16 @@ import org.jspecify.annotations.NonNull;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
-/**
+/^*
  * Injects identity carrier delegation onto player render states so that the identity
  * captured during {@code extractRenderState} travels with the render state object to the
  * submission phase — no global ThreadLocal needed.
  * <p>
- * Targets {@code AvatarRenderState} in 1.21.4–1.21.8
+ * Targets {@code PlayerRenderState} in 1.21.4–1.21.8
  * by Stonecutter) so that only player render states carry identity — non-player entities
  * are filtered via {@code instanceof IdentityCarrier} in the rendering mixins.
- */
-@Mixin(AvatarRenderState.class)
+ ^/
+@Mixin(PlayerRenderState.class)
 public class LivingEntityRenderStateMixin implements IdentityStateCarrier {
 
     @Unique
@@ -83,4 +83,4 @@ public class LivingEntityRenderStateMixin implements IdentityStateCarrier {
     }
 
 }
-//?}
+*///?}

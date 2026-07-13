@@ -17,16 +17,16 @@ public final class McClientUtils {
 
     public static Screen getPreferredSettingsScreen(Screen parent, Options options) {
         //? if >= 1.21.9 {
-        return ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig().showSettingsInSkinCustomization.getValue()
+        /*return ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig().showSettingsInSkinCustomization.getValue()
                 ? new SkinCustomizationScreen(parent, options)
                 : new ArmorHiderOptionsScreen(parent, options);
-        //?}
+        *///?}
         //? if < 1.21.9
-        //return new ArmorHiderOptionsScreen(parent, options);
+        return new ArmorHiderOptionsScreen(parent, options);
     }
 
     public static void openPreferredSettingsScreen(Screen parent, Options options) {
         var minecraft = Minecraft.getInstance();
-        minecraft.setScreenAndShow(getPreferredSettingsScreen(parent, options));
+        minecraft.setScreen(getPreferredSettingsScreen(parent, options));
     }
 }
