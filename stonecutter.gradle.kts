@@ -19,6 +19,14 @@ stonecutter parameters {
     replacements.string(current.parsed <= "1.21.1") { replace("WingsLayer", "ElytraLayer") }
     replacements.string(current.parsed < "1.21") { replace("net.minecraft.client.gui.screens.options.SkinCustomizationScreen", "net.minecraft.client.gui.screens.SkinCustomizationScreen")}
     replacements.string(current.parsed < "1.21") { replace("net.minecraft.client.gui.screens.options.OptionsScreen", "net.minecraft.client.gui.screens.OptionsScreen")}
+    // 26.3-snapshot-3 extracted the render pipeline API out of blaze3d into the new
+    // com.mojang.renderpearl module (same types/methods, new package) and changed
+    // BakedQuad.MaterialInfo's boolean shade() accessor to Direction shadeDirectionOverride()
+    // (same constructor slot, value passed straight through).
+    replacements.string(current.parsed >= "26.3-0.snapshot.3") { replace("com.mojang.blaze3d.pipeline.RenderPipeline", "com.mojang.renderpearl.api.pipeline.RenderPipeline") }
+    replacements.string(current.parsed >= "26.3-0.snapshot.3") { replace("com.mojang.blaze3d.pipeline.DepthStencilState", "com.mojang.renderpearl.api.pipeline.DepthStencilState") }
+    replacements.string(current.parsed >= "26.3-0.snapshot.3") { replace("com.mojang.blaze3d.pipeline.ColorTargetState", "com.mojang.renderpearl.api.pipeline.ColorTargetState") }
+    replacements.string(current.parsed >= "26.3-0.snapshot.3") { replace("info.shade()", "info.shadeDirectionOverride()") }
 
 }
 
