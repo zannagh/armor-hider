@@ -6,6 +6,7 @@ import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.net.ClientPacketSender;
 import de.zannagh.armorhider.client.utils.McClientUtils;
 import de.zannagh.armorhider.configuration.ConfigurationProvider;
+import de.zannagh.armorhider.log.DebugLogger;
 import de.zannagh.armorhider.net.packets.PlayerConfig;
 import de.zannagh.armorhider.net.packets.ServerWideSettings;
 import de.zannagh.armorhider.server.ServerConfiguration;
@@ -69,6 +70,29 @@ public class AhPlayerConfigApiImpl implements ArmorHiderPlayerConfigApi, Configu
 
     public void save(PlayerConfig config) {
         playerConfigProvider.save(config);
+        // Record the exact "how I view others" toggle state AND the viewer's own opacity sliders on every
+        // persist, together with the config instance's identity, so a user's debug log pins down what actually
+        // reached disk (see issue: unknown players / "own settings don't stick"). Comparing the identity and
+        // opacity here against the resolveConfig(self=...) line below tells us whether the value a user set in
+        // the panel is the value that gets persisted and rendered, or whether an instance got swapped in between.
+        if (DebugLogger.isEnabled()) {
+            DebugLogger.log(
+                    "Persisted local config for {} #{} | H={} C={} L={} B={} O={} | usePlayerSettingsForUnknown={} useGlobalOverrideForAll={} disableForOthers={} disableGlobally={} globalOverrideSet={} serverConfigPresent={}",
+                    config.playerName.getValue(),
+                    System.identityHashCode(config),
+                    config.helmetOpacity.getValue(),
+                    config.chestOpacity.getValue(),
+                    config.legsOpacity.getValue(),
+                    config.bootsOpacity.getValue(),
+                    config.offHandOpacity.getValue(),
+                    config.usePlayerSettingsWhenUndeterminable.getValue(),
+                    config.useGlobalOverrideForAllPlayers.getValue(),
+                    config.disableArmorHiderForOthers.getValue(),
+                    config.disableArmorHider.getValue(),
+                    config.globalPlayerOverride != null,
+                    serverConfiguration != null);
+        }
+
         ClientPacketListener clientNetwork = Minecraft.getInstance().getConnection();
         if (serverConfiguration != null && McClientUtils.isClientConnectedToServer() && clientNetwork != null) {
             ArmorHider.LOGGER.info("Sending to server...");
@@ -193,9 +217,49 @@ public class AhPlayerConfigApiImpl implements ArmorHiderPlayerConfigApi, Configu
         return server.name != null ? server.name : "unknown";
     }
 
+    // Diagnostic-only: the last (identity + opacity) signature emitted by logOwnResolveForDiagnostics, so the
+    // render-hot resolveConfig path emits a self-resolution line only when it actually changes.
+    private static String lastOwnResolveSignature;
+
+    /**
+     * Records, for a user's debug log, the opacity the render pipeline resolves for the <b>local</b> player and
+     * the identity of the config instance it read them from. resolveConfig runs every frame for every player,
+     * so this is change-gated: it only emits when the signature differs from the previous emission, keeping it
+     * to a handful of lines. Pair it with the {@code Persisted local config ... #<id>} line from {@link #save}
+     * to confirm whether a user's own persisted opacity actually reaches rendering, and from the same instance.
+     */
+    private void logOwnResolveForDiagnostics(String playerName) {
+        if (!DebugLogger.isEnabled()) {
+            // Clear the de-dupe signature while logging is off, so re-enabling a debug log always emits a fresh
+            // self-resolution line even if the opacities haven't changed since the previous debug session.
+            lastOwnResolveSignature = null;
+            return;
+        }
+        String signature = System.identityHashCode(CURRENT)
+                + ":" + CURRENT.helmetOpacity.getValue()
+                + ":" + CURRENT.chestOpacity.getValue()
+                + ":" + CURRENT.legsOpacity.getValue()
+                + ":" + CURRENT.bootsOpacity.getValue()
+                + ":" + CURRENT.offHandOpacity.getValue();
+        if (signature.equals(lastOwnResolveSignature)) {
+            return;
+        }
+        lastOwnResolveSignature = signature;
+        DebugLogger.log(
+                "resolveConfig(self='{}') -> local #{} | H={} C={} L={} B={} O={}",
+                playerName,
+                System.identityHashCode(CURRENT),
+                CURRENT.helmetOpacity.getValue(),
+                CURRENT.chestOpacity.getValue(),
+                CURRENT.legsOpacity.getValue(),
+                CURRENT.bootsOpacity.getValue(),
+                CURRENT.offHandOpacity.getValue());
+    }
+
     @Override
     public PlayerConfig resolveConfig(@Nullable String playerName) {
         if (playerName != null && playerName.equals(ArmorHiderClient.getCurrentPlayerName())) {
+            logOwnResolveForDiagnostics(playerName);
             return CURRENT;
         }
 

@@ -26,17 +26,33 @@ public final class ItemsUtil {
                     Items.CREEPER_HEAD,
                     Items.PIGLIN_HEAD));
 
-    // Lazily created so this class can be loaded before item registries / data components are
-    // bound. Some UI / picture-in-picture mods force early class loading, and eagerly building an
-    // ItemStack at <clinit> then crashes with "Components not bound yet" (issue #260). The holder
-    // defers construction to first use (render time, registries ready) and is thread-safe via the
-    // JVM class-init lock.
-    private static final class ElytraStackHolder {
-        private static final ItemStack STACK = new ItemStack(Items.ELYTRA);
-    }
+    // Placeholder elytra stack, built lazily and cached only on first *successful* construction.
+    // This class can be loaded — and elytraItemStack() called — before item registries / data
+    // components are bound: some UI / picture-in-picture mods drive an early render on the render
+    // thread while ELYTRA's Holder is still unbound, and building the stack then throws
+    // "Components not bound yet" (issue #260). A static-holder <clinit> would cache that failure
+    // permanently (ExceptionInInitializerError, then NoClassDefFoundError for the rest of the
+    // session — breaking all elytra handling and crashing the render), so we build on demand,
+    // cache the result once it succeeds, and fall back to an empty stack until the registry is
+    // ready, retrying on the next call. Benign double-build race only; ItemStack was already shared.
+    private static volatile ItemStack elytraStack;
 
     public static ItemStack elytraItemStack() {
-        return ElytraStackHolder.STACK;
+        ItemStack cached = elytraStack;
+        if (cached != null) {
+            return cached;
+        }
+        try {
+            ItemStack built = new ItemStack(Items.ELYTRA);
+            elytraStack = built;
+            return built;
+        } catch (NullPointerException registryNotBoundYet) {
+            // The known early-render failure: ItemStack's constructor hits Holder.Reference.components() ->
+            // Objects.requireNonNull("Components not bound yet") while the registry is still binding (very early
+            // PiP/GUI render). Suppress only this narrow NPE — don't cache the failure, return a harmless empty
+            // stack and retry next call. Any other exception is a real bug and is allowed to propagate.
+            return ItemStack.EMPTY;
+        }
     }
 
     public static ItemStack getItemStackFromSkullBlockType(@Nullable SkullBlock.Type type) {

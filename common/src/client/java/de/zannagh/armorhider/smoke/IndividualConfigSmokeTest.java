@@ -60,6 +60,7 @@ public final class IndividualConfigSmokeTest implements FabricClientGameTest {
 
             context.runOnClient(IndividualConfigSmokeTest::assertResolverAppliesOverrides);
             context.runOnClient(IndividualConfigSmokeTest::assertGlobalOverrideResolution);
+            context.runOnClient(IndividualConfigSmokeTest::assertResolutionWithoutServer);
 
             // Main options screen: builds the compound button row (combat/vanilla/invisibility + the
             // individual-settings entry + presets). Opening it exercises createCompoundButtonWidget, which
@@ -250,6 +251,93 @@ public final class IndividualConfigSmokeTest implements FabricClientGameTest {
             manager.setUseOwnSettingsForUnknowns(priorUseOwn, Optional.of(true));
             manager.setUseGlobalOverrideForAllPlayersTo(priorUseGlobalAll, Optional.of(true));
             manager.clearServerConfig();
+        }
+    }
+
+    /**
+     * The reported-bug scenario: connected to a server that does NOT run Armor Hider (no server config at
+     * all — e.g. Hypixel). {@link #assertGlobalOverrideResolution} always installs a server config, so this
+     * covers the otherwise-untested {@code serverConfig == null} guards, and asserts that switching unknown
+     * players to "global" materialises a concrete (default-seeded) override instead of resolving to throwaway
+     * vanilla defaults that make the mod appear inert.
+     */
+    private static void assertResolutionWithoutServer(Minecraft client) {
+        var manager = ArmorHiderClient.CLIENT_CONFIG_MANAGER;
+        PlayerConfig localConfig = manager.getLocalPlayerConfig();
+
+        // No Armor-Hider server: exactly the situation the resolver's null-server branches guard.
+        manager.clearServerConfig();
+
+        boolean priorUseGlobalAll = manager.shouldUseGlobalOverrideForAllPlayers();
+        boolean priorUseOwn = manager.shouldUseLocalSettingsForUnknowns();
+        boolean priorDisableOthers = manager.isArmorHiderDisableForOthers();
+        PlayerConfig priorGlobalOverride = localConfig.globalPlayerOverride;
+        double priorLocalHelmet = localConfig.helmetOpacity.getValue();
+        try {
+            // Switching unknowns → global with no prior override must materialise one now, so the switch is
+            // not a silent no-op and resolveConfig()/the settings panel share one persisted instance. The
+            // override is an independent "how I see strangers" config seeded from defaults — NOT a copy of the
+            // viewer's own render settings (here: a distinctive 0.25 helmet opacity that must NOT leak in).
+            localConfig.globalPlayerOverride = null;
+            localConfig.helmetOpacity.setValue(0.25);
+            manager.setUseOwnSettingsForUnknowns(false, Optional.of(true));
+            if (localConfig.globalPlayerOverride == null) {
+                throw new IllegalStateException(
+                        "[smoke/fcgt] switching unknowns→global must materialise a global override (vanilla server)");
+            }
+            if (localConfig.globalPlayerOverride.helmetOpacity.getValue() == 0.25) {
+                throw new IllegalStateException(
+                        "[smoke/fcgt] the seeded global override must be a default, not a copy of the viewer's own settings");
+            }
+
+            PlayerConfig globalOverride = manager.ensureGlobalOverride();
+
+            // Row B = global: an unknown (non-mod) player on a vanilla server resolves to the global override.
+            manager.setUseGlobalOverrideForAllPlayersTo(false, Optional.of(true));
+            manager.setArmorHiderDisabledForOthersTo(false, Optional.of(true));
+            if (manager.resolveConfig("AhUnknownPlayer") != globalOverride) {
+                throw new IllegalStateException(
+                        "[smoke/fcgt] global config not applied to an unknown player when the server is vanilla (Row B)");
+            }
+
+            // Row B = own: unknown player resolves to the viewer's own config, not the global one.
+            manager.setUseOwnSettingsForUnknowns(true, Optional.of(true));
+            if (manager.resolveConfig("AhUnknownPlayer") == globalOverride) {
+                throw new IllegalStateException(
+                        "[smoke/fcgt] 'use my settings for unknown' must not use the global config (vanilla server)");
+            }
+
+            // Row C = global-for-all: applies to every other player even with no server present.
+            manager.setUseGlobalOverrideForAllPlayersTo(true, Optional.of(true));
+            if (manager.resolveConfig("AhOtherPlayer") != globalOverride) {
+                throw new IllegalStateException(
+                        "[smoke/fcgt] Row C must apply the global config to all other players (vanilla server)");
+            }
+
+            // Individual overrides are allowed without a server and still win over Row C.
+            String serverKey = manager.getServerKey();
+            PlayerConfig individual = PlayerConfig.defaults(UUID.randomUUID(), "AhOtherPlayer");
+            localConfig.individualConfigurations.putOverride(serverKey, "AhOtherPlayer", individual);
+            if (manager.resolveConfig("AhOtherPlayer") != individual) {
+                throw new IllegalStateException(
+                        "[smoke/fcgt] individual override must win over the global override (vanilla server)");
+            }
+            localConfig.individualConfigurations.removeOverride(serverKey, "AhOtherPlayer");
+
+            // Row A "Others: Vanilla" renders other players vanilla with no server present.
+            manager.setArmorHiderDisabledForOthersTo(true, Optional.of(true));
+            if (!SlotModification.shouldUseVanilla(globalOverride)) {
+                throw new IllegalStateException(
+                        "[smoke/fcgt] 'disable armor hider on others' must render others vanilla on a vanilla server");
+            }
+
+            ArmorHider.LOGGER.info("[smoke/fcgt] vanilla-server (no server config) resolution verified");
+        } finally {
+            localConfig.helmetOpacity.setValue(priorLocalHelmet);
+            localConfig.globalPlayerOverride = priorGlobalOverride;
+            manager.setArmorHiderDisabledForOthersTo(priorDisableOthers, Optional.of(true));
+            manager.setUseOwnSettingsForUnknowns(priorUseOwn, Optional.of(true));
+            manager.setUseGlobalOverrideForAllPlayersTo(priorUseGlobalAll, Optional.of(true));
         }
     }
 

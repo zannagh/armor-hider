@@ -52,8 +52,16 @@ public record SlotModification(
         // "Disable Armor Hider on Others" renders every other player vanilla, but only where client-side
         // other-player configuration is permitted (no mod server, or a mod server that allows it). It is a
         // viewer-local preference, so it is read from the local config rather than the rendered player's.
-        boolean isOtherPlayer = !config.playerName.getValue().equals(ArmorHiderClient.getCurrentPlayerName());
-        if (isOtherPlayer && manager.areOtherPlayerConfigsAllowed() && manager.isArmorHiderDisableForOthers()) {
+        //
+        // Identify the local player by INSTANCE identity, not by name: resolveConfig() returns the exact
+        // local config instance for the viewer and a distinct copy/override for everyone else, so identity is
+        // drift-proof. A name-only check compares the local config's name (snapshotted at join) against the
+        // live display name (getCurrentPlayerName()), which can diverge on servers that rewrite the display
+        // name after join (rank prefixes, nicks — e.g. Hypixel) and would then vanilla-out the viewer's OWN
+        // armor. The name check is kept as an OR so this can only ever exempt the local player, never add one.
+        boolean isLocalPlayer = config == manager.getLocalPlayerConfig()
+                || config.playerName.getValue().equals(ArmorHiderClient.getCurrentPlayerName());
+        if (!isLocalPlayer && manager.areOtherPlayerConfigsAllowed() && manager.isArmorHiderDisableForOthers()) {
             return true;
         }
 
