@@ -157,14 +157,21 @@ public interface ArmorHiderPlayerConfigApi {
     default void setUseGlobalOverrideForAllPlayersTo(boolean value, Optional<Boolean> withSave) {
         var local = getLocalPlayerConfig();
         local.useGlobalOverrideForAllPlayers.setValue(value);
-        // Turning the global override on materialises (and seeds) it now, so the switch has an immediate,
-        // visible effect instead of resolving to throwaway vanilla defaults until the panel is opened.
-        if (value) {
-            ensureGlobalOverride();
+        // Turning the global override on materialises it now so the switch has an immediate effect instead of
+        // resolving to throwaway vanilla defaults until the panel is opened. Seed it in-memory (not via
+        // ensureGlobalOverride, which persists unconditionally and would bypass withSave / double-save);
+        // persistence stays gated by withSave below.
+        if (value && local.globalPlayerOverride == null) {
+            local.globalPlayerOverride = freshGlobalOverride();
         }
         if (withSave.orElse(true)) {
             saveLocalPlayerConfig(local);
         }
+    }
+
+    /** A fresh, default-seeded global override config (the sentinel-named "how I see strangers" blank canvas). */
+    private PlayerConfig freshGlobalOverride() {
+        return PlayerConfig.defaults(DEFAULT_PLAYER_ID, DEFAULT_PLAYER_NAME);
     }
 
     /**
@@ -181,7 +188,7 @@ public interface ArmorHiderPlayerConfigApi {
         var local = getLocalPlayerConfig();
         return local.globalPlayerOverride != null
                 ? local.globalPlayerOverride
-                : PlayerConfig.defaults(DEFAULT_PLAYER_ID, DEFAULT_PLAYER_NAME);
+                : freshGlobalOverride();
     }
 
     /** @return the global override configuration, creating and persisting a default one on first use. */
@@ -192,7 +199,7 @@ public interface ArmorHiderPlayerConfigApi {
             // screen and resolveConfig() operate on the same persisted instance. It is deliberately seeded from
             // defaults (a blank canvas the viewer then tunes in the global panel), not from the viewer's own
             // settings — "how I see strangers" is an independent config, not a copy of my own look.
-            local.globalPlayerOverride = PlayerConfig.defaults(DEFAULT_PLAYER_ID, DEFAULT_PLAYER_NAME);
+            local.globalPlayerOverride = freshGlobalOverride();
             saveLocalPlayerConfig(local);
         }
         return local.globalPlayerOverride;
@@ -280,10 +287,12 @@ public interface ArmorHiderPlayerConfigApi {
     default void setUseOwnSettingsForUnknowns(boolean value, Optional<Boolean> withSave) {
         var local = getLocalPlayerConfig();
         local.usePlayerSettingsWhenUndeterminable.setValue(value);
-        // Switching unknown players to "global" (value == false) materialises (and seeds) the global override
-        // now, so the switch is visible immediately instead of resolving to throwaway vanilla defaults.
-        if (!value) {
-            ensureGlobalOverride();
+        // Switching unknown players to "global" (value == false) materialises the global override now so the
+        // switch is visible immediately instead of resolving to throwaway vanilla defaults. Seed it in-memory
+        // (not via ensureGlobalOverride, which persists unconditionally and would write to disk even when
+        // withSave is absent/false); persistence stays gated by withSave below.
+        if (!value && local.globalPlayerOverride == null) {
+            local.globalPlayerOverride = freshGlobalOverride();
         }
         if (withSave.isPresent() && withSave.get()) {
             saveLocalPlayerConfig(local);

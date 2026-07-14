@@ -46,9 +46,11 @@ public final class ItemsUtil {
             ItemStack built = new ItemStack(Items.ELYTRA);
             elytraStack = built;
             return built;
-        } catch (RuntimeException registryNotBoundYet) {
-            // Item components aren't bound yet (very early PiP/GUI render). Don't cache the failure;
-            // return a harmless empty stack for now and try again on the next call.
+        } catch (NullPointerException registryNotBoundYet) {
+            // The known early-render failure: ItemStack's constructor hits Holder.Reference.components() ->
+            // Objects.requireNonNull("Components not bound yet") while the registry is still binding (very early
+            // PiP/GUI render). Suppress only this narrow NPE — don't cache the failure, return a harmless empty
+            // stack and retry next call. Any other exception is a real bug and is allowed to propagate.
             return ItemStack.EMPTY;
         }
     }

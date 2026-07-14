@@ -369,6 +369,23 @@ class PlayerConfigurationTests {
     }
 
     @Test
+    @DisplayName("Migration leaves the global override lazily null when no global mode is enabled")
+    void migrationLeavesGlobalOverrideNullWhenNoGlobalModeEnabled() {
+        // Default flags: unknowns use own settings, global-for-all off. A null override is never read in this
+        // state, so migration must NOT write a default override into every config (keeps the lazy invariant).
+        var legacy = PlayerConfig.defaults(UUID.randomUUID(), "Player446");
+        legacy.configVersion = 8;
+        legacy.helmetOpacity.setValue(0.35);
+        legacy.globalPlayerOverride = null;
+
+        var migrated = legacy.ensureSchemaFrom(legacy);
+
+        assertEquals(PlayerConfig.CURRENT_CONFIG_VERSION, migrated.configVersion, "migration must bump the schema version");
+        assertNull(migrated.globalPlayerOverride,
+                "migration must not seed an override for configs that never enabled a global mode");
+    }
+
+    @Test
     @DisplayName("Migration preserves an existing global override rather than reseeding it")
     void migrationPreservesExistingGlobalOverride() {
         var legacy = PlayerConfig.defaults(UUID.randomUUID(), "Player446");

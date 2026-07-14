@@ -227,6 +227,9 @@ public class AhPlayerConfigApiImpl implements ArmorHiderPlayerConfigApi, Configu
      */
     private void logOwnResolveForDiagnostics(String playerName) {
         if (!DebugLogger.isEnabled()) {
+            // Clear the de-dupe signature while logging is off, so re-enabling a debug log always emits a fresh
+            // self-resolution line even if the opacities haven't changed since the previous debug session.
+            lastOwnResolveSignature = null;
             return;
         }
         String signature = System.identityHashCode(CURRENT)

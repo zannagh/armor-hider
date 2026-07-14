@@ -398,13 +398,15 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         if (old.globalPlayerOverride != null) {
             fresh.globalPlayerOverride = old.globalPlayerOverride.deepCopy(
                     old.globalPlayerOverride.playerName.getValue(), old.globalPlayerOverride.playerId.getValue());
-        } else {
-            // Heal legacy configs (v8 and earlier): the global override was created lazily, so a user who
-            // enabled "unknown players → global" or "global for all players" before it was materialised ended
-            // up with the flag set but a null override. That resolved to throwaway vanilla defaults and made
-            // the mod appear inert until the config file was deleted. Seed a concrete default override here so
-            // resolution is stable and the settings screen edits a persisted instance. Same shape as
-            // ArmorHiderPlayerConfigApi#ensureGlobalOverride.
+        } else if (fresh.useGlobalOverrideForAllPlayers.getValue()
+                || !fresh.usePlayerSettingsWhenUndeterminable.getValue()) {
+            // Heal legacy configs (v8 and earlier) that are actually in the inert state: a user who enabled
+            // "global for all players" or "unknown players → global" before the override was materialised
+            // ended up with the flag set but a null override, which resolved to throwaway vanilla defaults and
+            // made the mod appear inert until the config file was deleted. Seed a concrete default override so
+            // resolution is stable and the settings screen edits a persisted instance (same shape as
+            // ArmorHiderPlayerConfigApi#ensureGlobalOverride). Configs that never enabled a global mode keep
+            // the lazy null override — nothing reads it, so there's no reason to write one.
             fresh.globalPlayerOverride = PlayerConfig.defaults(
                     ArmorHiderPlayerConfigApi.DEFAULT_PLAYER_ID, ArmorHiderPlayerConfigApi.DEFAULT_PLAYER_NAME);
         }
