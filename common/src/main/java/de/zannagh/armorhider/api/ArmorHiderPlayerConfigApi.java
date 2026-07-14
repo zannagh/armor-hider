@@ -157,6 +157,11 @@ public interface ArmorHiderPlayerConfigApi {
     default void setUseGlobalOverrideForAllPlayersTo(boolean value, Optional<Boolean> withSave) {
         var local = getLocalPlayerConfig();
         local.useGlobalOverrideForAllPlayers.setValue(value);
+        // Turning the global override on materialises (and seeds) it now, so the switch has an immediate,
+        // visible effect instead of resolving to throwaway vanilla defaults until the panel is opened.
+        if (value) {
+            ensureGlobalOverride();
+        }
         if (withSave.orElse(true)) {
             saveLocalPlayerConfig(local);
         }
@@ -183,6 +188,10 @@ public interface ArmorHiderPlayerConfigApi {
     default PlayerConfig ensureGlobalOverride() {
         var local = getLocalPlayerConfig();
         if (local.globalPlayerOverride == null) {
+            // Materialise a concrete default override so the flag ⇒ override invariant holds and the settings
+            // screen and resolveConfig() operate on the same persisted instance. It is deliberately seeded from
+            // defaults (a blank canvas the viewer then tunes in the global panel), not from the viewer's own
+            // settings — "how I see strangers" is an independent config, not a copy of my own look.
             local.globalPlayerOverride = PlayerConfig.defaults(DEFAULT_PLAYER_ID, DEFAULT_PLAYER_NAME);
             saveLocalPlayerConfig(local);
         }
@@ -271,6 +280,11 @@ public interface ArmorHiderPlayerConfigApi {
     default void setUseOwnSettingsForUnknowns(boolean value, Optional<Boolean> withSave) {
         var local = getLocalPlayerConfig();
         local.usePlayerSettingsWhenUndeterminable.setValue(value);
+        // Switching unknown players to "global" (value == false) materialises (and seeds) the global override
+        // now, so the switch is visible immediately instead of resolving to throwaway vanilla defaults.
+        if (!value) {
+            ensureGlobalOverride();
+        }
         if (withSave.isPresent() && withSave.get()) {
             saveLocalPlayerConfig(local);
         }

@@ -345,6 +345,46 @@ class PlayerConfigurationTests {
     }
 
     @Test
+    @DisplayName("Migration heals a legacy config that has the global flags set but a null override")
+    void migrationSeedsMissingGlobalOverride() {
+        // Reproduce the inert legacy state: an older build created the override lazily, so a user who switched
+        // "unknown players → global" (usePlayerSettingsWhenUndeterminable = false) or "global for all players"
+        // ended up with the flag persisted but globalPlayerOverride == null — which resolved to throwaway
+        // vanilla defaults and made the mod appear to do nothing until the config file was deleted.
+        var legacy = PlayerConfig.defaults(UUID.randomUUID(), "Player446");
+        legacy.configVersion = 8;
+        legacy.usePlayerSettingsWhenUndeterminable.setValue(false);
+        legacy.helmetOpacity.setValue(0.35);
+        legacy.globalPlayerOverride = null;
+
+        var migrated = legacy.ensureSchemaFrom(legacy);
+
+        assertEquals(PlayerConfig.CURRENT_CONFIG_VERSION, migrated.configVersion, "migration must bump the schema version");
+        assertNotNull(migrated.globalPlayerOverride,
+                "migration must materialise the global override so the flags don't resolve to throwaway defaults");
+        assertEquals(ArmorOpacity.DEFAULT_OPACITY, migrated.globalPlayerOverride.helmetOpacity.getValue(),
+                "the seeded override must be a default, not a copy of the viewer's own (0.35) settings");
+        assertNull(migrated.globalPlayerOverride.globalPlayerOverride,
+                "the seeded override must not itself carry a nested global override");
+    }
+
+    @Test
+    @DisplayName("Migration preserves an existing global override rather than reseeding it")
+    void migrationPreservesExistingGlobalOverride() {
+        var legacy = PlayerConfig.defaults(UUID.randomUUID(), "Player446");
+        legacy.configVersion = 8;
+        var override = PlayerConfig.defaults(UUID.randomUUID(), "GlobalOverride");
+        override.helmetOpacity.setValue(0.12);
+        legacy.globalPlayerOverride = override;
+
+        var migrated = legacy.ensureSchemaFrom(legacy);
+
+        assertNotNull(migrated.globalPlayerOverride);
+        assertEquals(0.12, migrated.globalPlayerOverride.helmetOpacity.getValue(),
+                "an existing override's values must survive migration, not be reseeded to defaults");
+    }
+
+    @Test
     @DisplayName("ensureSchemaFrom migrates an outdated PlayerConfig and is a no-op for a current one")
     void ensureSchemaFromMigratesPlayerConfig() {
         // Up-to-date -> no migration, the same instance is returned.

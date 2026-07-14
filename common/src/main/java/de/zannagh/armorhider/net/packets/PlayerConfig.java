@@ -2,6 +2,7 @@ package de.zannagh.armorhider.net.packets;
 
 import com.google.gson.annotations.SerializedName;
 import de.zannagh.armorhider.ArmorHider;
+import de.zannagh.armorhider.api.ArmorHiderPlayerConfigApi;
 import de.zannagh.armorhider.configuration.*;
 import de.zannagh.armorhider.configuration.items.*;
 import de.zannagh.armorhider.configuration.items.InCombatUseDefaultArmorSkin;
@@ -40,7 +41,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
     public int configVersion;
 
     /** The current config schema version. */
-    public static final int CURRENT_CONFIG_VERSION = 8;
+    public static final int CURRENT_CONFIG_VERSION = 9;
 
     //? if >= 1.21.11 {
     public static final Identifier PACKET_IDENTIFIER = Identifier.fromNamespaceAndPath("de.zannagh.armorhider", "settings_c2s_packet");
@@ -397,6 +398,15 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         if (old.globalPlayerOverride != null) {
             fresh.globalPlayerOverride = old.globalPlayerOverride.deepCopy(
                     old.globalPlayerOverride.playerName.getValue(), old.globalPlayerOverride.playerId.getValue());
+        } else {
+            // Heal legacy configs (v8 and earlier): the global override was created lazily, so a user who
+            // enabled "unknown players → global" or "global for all players" before it was materialised ended
+            // up with the flag set but a null override. That resolved to throwaway vanilla defaults and made
+            // the mod appear inert until the config file was deleted. Seed a concrete default override here so
+            // resolution is stable and the settings screen edits a persisted instance. Same shape as
+            // ArmorHiderPlayerConfigApi#ensureGlobalOverride.
+            fresh.globalPlayerOverride = PlayerConfig.defaults(
+                    ArmorHiderPlayerConfigApi.DEFAULT_PLAYER_ID, ArmorHiderPlayerConfigApi.DEFAULT_PLAYER_NAME);
         }
 
         fresh.setHasChangedFromSerializedContent();
