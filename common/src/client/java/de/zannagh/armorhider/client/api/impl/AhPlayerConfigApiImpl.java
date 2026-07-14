@@ -75,21 +75,24 @@ public class AhPlayerConfigApiImpl implements ArmorHiderPlayerConfigApi, Configu
         // reached disk (see issue: unknown players / "own settings don't stick"). Comparing the identity and
         // opacity here against the resolveConfig(self=...) line below tells us whether the value a user set in
         // the panel is the value that gets persisted and rendered, or whether an instance got swapped in between.
-        DebugLogger.log(
-                "Persisted local config for {} #{} | H={} C={} L={} B={} O={} | usePlayerSettingsForUnknown={} useGlobalOverrideForAll={} disableForOthers={} disableGlobally={} globalOverrideSet={} serverConfigPresent={}",
-                config.playerName.getValue(),
-                System.identityHashCode(config),
-                config.helmetOpacity.getValue(),
-                config.chestOpacity.getValue(),
-                config.legsOpacity.getValue(),
-                config.bootsOpacity.getValue(),
-                config.offHandOpacity.getValue(),
-                config.usePlayerSettingsWhenUndeterminable.getValue(),
-                config.useGlobalOverrideForAllPlayers.getValue(),
-                config.disableArmorHiderForOthers.getValue(),
-                config.disableArmorHider.getValue(),
-                config.globalPlayerOverride != null,
-                serverConfiguration != null);
+        if (DebugLogger.isEnabled()) {
+            DebugLogger.log(
+                    "Persisted local config for {} #{} | H={} C={} L={} B={} O={} | usePlayerSettingsForUnknown={} useGlobalOverrideForAll={} disableForOthers={} disableGlobally={} globalOverrideSet={} serverConfigPresent={}",
+                    config.playerName.getValue(),
+                    System.identityHashCode(config),
+                    config.helmetOpacity.getValue(),
+                    config.chestOpacity.getValue(),
+                    config.legsOpacity.getValue(),
+                    config.bootsOpacity.getValue(),
+                    config.offHandOpacity.getValue(),
+                    config.usePlayerSettingsWhenUndeterminable.getValue(),
+                    config.useGlobalOverrideForAllPlayers.getValue(),
+                    config.disableArmorHiderForOthers.getValue(),
+                    config.disableArmorHider.getValue(),
+                    config.globalPlayerOverride != null,
+                    serverConfiguration != null);
+        }
+
         ClientPacketListener clientNetwork = Minecraft.getInstance().getConnection();
         if (serverConfiguration != null && McClientUtils.isClientConnectedToServer() && clientNetwork != null) {
             ArmorHider.LOGGER.info("Sending to server...");
