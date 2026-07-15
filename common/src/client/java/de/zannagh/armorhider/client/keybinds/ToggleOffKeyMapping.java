@@ -1,6 +1,8 @@
 package de.zannagh.armorhider.client.keybinds;
 
 import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.client.utils.McClientUtils;
+import net.minecraft.network.chat.Component;
 
 import java.awt.event.KeyEvent;
 
@@ -15,9 +17,14 @@ public class ToggleOffKeyMapping extends CustomKeyMapping {
     
     @Override
     public void onKeyDown() {
-        boolean currentDisable = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig().disableArmorHider.getValue();
-        ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig().disableArmorHider.setValue(!currentDisable);
-        ArmorHiderClient.CLIENT_CONFIG_MANAGER.saveCurrent();
+        // Flip the transient session override only — never persisted, cleared on disconnect/restart. The old
+        // behaviour wrote to disk and survived restarts and config migrations, so an accidental press could
+        // silently disable the mod "forever" until the config file was deleted. Feedback on the action bar
+        // makes the toggle visible so it can never look like the mod broke.
+        boolean nowDisabled = ArmorHiderClient.CLIENT_CONFIG_MANAGER.toggleSessionDisableOverride();
+        McClientUtils.showActionBar(Component.translatable(nowDisabled
+                ? "armorhider.toggle.disabled"
+                : "armorhider.toggle.enabled"));
     }
 
     @Override

@@ -118,9 +118,11 @@ fun Project.loadDevProfile(): DevProfile? {
         return null
     }
 
-    val username = props.getProperty("username")
-    if (username == null) {
-        logger.warn("[ArmorHider] ${file.path} exists but is missing required property 'username'; dev profile will be ignored.")
+    // Treat a blank username the same as absent: an empty `username=` (e.g. left over from the template)
+    // would otherwise be passed to UUID resolution as "", which fails and silently ignores the profile.
+    val username = props.getProperty("username")?.trim()
+    if (username.isNullOrEmpty()) {
+        logger.warn("[ArmorHider] ${file.path} exists but has no non-blank 'username'; dev profile will be ignored.")
         return null
     }
 
