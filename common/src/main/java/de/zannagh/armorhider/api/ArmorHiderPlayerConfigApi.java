@@ -226,6 +226,52 @@ public interface ArmorHiderPlayerConfigApi {
     }
 
     /**
+     * Transient, per-session state for the "Disable Armor Hider" master toggle bound to the toggle keybind.
+     *
+     * <p>The persisted {@code disableArmorHider} setting is the baseline the viewer configures in the settings
+     * screen. The keybind flips a <b>temporary</b> override that lives only in memory: it is discarded on
+     * disconnect and on game restart, so every fresh connection starts from the persisted baseline again (which
+     * for most users is "off"). This is what keeps an accidental key press from silently disabling the mod
+     * forever — the state that used to be written to disk (and survive restarts and config migrations) is now
+     * ephemeral.
+     */
+    final class SessionState {
+        private SessionState() {}
+        /** {@code null} ⇒ no active override, fall back to the persisted setting; otherwise the forced value. */
+        private static @Nullable Boolean disableOverride = null;
+    }
+
+    /**
+     * @return the effective "Disable Armor Hider" state for the local player: the transient keybind override if
+     *         one is active, otherwise the persisted {@code disableArmorHider} setting.
+     */
+    default boolean isLocalArmorHiderDisabledEffective() {
+        Boolean override = SessionState.disableOverride;
+        return override != null ? override : getLocalPlayerConfig().disableArmorHider.getValue();
+    }
+
+    /** @return whether a transient keybind override is currently masking the persisted setting. */
+    default boolean hasSessionDisableOverride() {
+        return SessionState.disableOverride != null;
+    }
+
+    /**
+     * Flips the transient "Disable Armor Hider" override relative to its current effective value, without
+     * persisting anything. Cleared on disconnect/restart.
+     * @return the new effective disabled state after toggling.
+     */
+    default boolean toggleSessionDisableOverride() {
+        boolean next = !isLocalArmorHiderDisabledEffective();
+        SessionState.disableOverride = next;
+        return next;
+    }
+
+    /** Drops any transient override so the persisted setting applies again (called on disconnect). */
+    default void clearSessionDisableOverride() {
+        SessionState.disableOverride = null;
+    }
+
+    /**
      * Stores a per-player override for the named player on the current server and optionally persists it.
      *
      * @param playerName the target player's name.
@@ -314,8 +360,9 @@ public interface ArmorHiderPlayerConfigApi {
         if (server != null && server.serverWideSettings.forceArmorHiderOff.getValue()) {
             return true;
         }
-        var local = getLocalPlayerConfig();
-        return local.disableArmorHider.getValue();
+        // Honour the transient keybind override on top of the persisted setting, so the toggle key turns the
+        // whole mod off/on for the session across every render short-circuit that consults this method.
+        return isLocalArmorHiderDisabledEffective();
     }
 
     /**

@@ -4,6 +4,7 @@ import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.api.ArmorHiderApi;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.utils.McClientUtils;
+import net.minecraft.network.chat.Component;
 import de.zannagh.armorhider.combat.DefaultCombatEvent;
 import de.zannagh.armorhider.log.DebugLogger;
 import de.zannagh.armorhider.net.packets.CombatLogNotificationPacket;
@@ -89,11 +90,20 @@ public final class ClientCommunicationManager {
             }
 
             ClientPacketSender.sendToServer(currentConfig.forNetwork());
+
+            // Remind the viewer if Armor Hider is disabled by their saved setting, so a persisted "off" never
+            // looks like the mod silently broke. Reads the persisted flag directly (the transient keybind
+            // override is cleared on disconnect, so on a fresh join the effective state equals the saved one).
+            if (currentConfig.disableArmorHider.getValue()) {
+                McClientUtils.showChatMessage(Component.translatable("armorhider.notice.disabled_on_join"));
+            }
         });
         ArmorHider.LOGGER.info("Registered client-side packet handlers.");
 
         ClientConnectionEvents.registerDisconnect(client -> {
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.clearServerConfig();
+            // Drop the transient keybind override so the next connection starts from the persisted baseline.
+            ArmorHiderClient.CLIENT_CONFIG_MANAGER.clearSessionDisableOverride();
             ArmorHiderClient.permissionLevel = 0;
         });
     }
