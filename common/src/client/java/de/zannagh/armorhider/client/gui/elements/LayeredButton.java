@@ -88,7 +88,7 @@ public abstract class LayeredButton extends Button {
     }
     *///?}
 
-    //? if <= 1.21.5 && >= 1.21.4 {
+    //? if <= 1.21.5 && >= 1.21.2 {
     /*@Override
     protected void renderWidget(net.minecraft.client.gui.GuiGraphicsExtractor guiGraphics, int i, int j, float f) {
         guiGraphics.blitSprite((t) -> net.minecraft.client.renderer.rendertype.RenderType.guiTextured(t), spriteBg(), this.getX(), this.getY(), this.width, this.height);
@@ -99,7 +99,7 @@ public abstract class LayeredButton extends Button {
     }
     *///?}
 
-    //? if < 1.21.4 && >= 1.21 {
+    //? if < 1.21.2 && >= 1.21 {
     /*@Override
     protected void renderWidget(net.minecraft.client.gui.GuiGraphicsExtractor guiGraphics, int i, int j, float f) {
         guiGraphics.blitSprite(spriteBg(), this.getX(), this.getY(), this.width, this.height);

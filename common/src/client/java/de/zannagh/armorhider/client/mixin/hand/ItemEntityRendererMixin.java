@@ -12,10 +12,10 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-//? if >= 1.21.4
+//? if >= 1.21.2
 import net.minecraft.client.renderer.entity.state.ItemEntityRenderState;
 
-//? if < 1.21.4 {
+//? if < 1.21.2 {
 /*import net.minecraft.client.renderer.MultiBufferSource;
 import com.mojang.blaze3d.vertex.PoseStack;
 *///?}
@@ -23,11 +23,11 @@ import com.mojang.blaze3d.vertex.PoseStack;
 @SuppressWarnings({"unused", "UnusedMixin"})
 @Mixin(ItemEntityRenderer.class)
 public class ItemEntityRendererMixin {
-    //? if >= 1.21.4 {
+    //? if >= 1.21.2 {
     @Inject(method = "extractRenderState(Lnet/minecraft/world/entity/item/ItemEntity;Lnet/minecraft/client/renderer/entity/state/ItemEntityRenderState;F)V", at = @At("HEAD"))
     private static void triggerRender(ItemEntity itemEntity, ItemEntityRenderState itemEntityRenderState, float f, CallbackInfo ci) {
     //? }
-    //? if < 1.21.4 {
+    //? if < 1.21.2 {
     /*@Inject(method = "render(Lnet/minecraft/world/entity/item/ItemEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V", at = @At("HEAD"))
     private void triggerRender(ItemEntity itemEntity, float f, float g, PoseStack poseStack, MultiBufferSource multiBufferSource, int i, CallbackInfo ci) {
     *///?}
@@ -42,12 +42,12 @@ public class ItemEntityRendererMixin {
         AhRenderManagementApi.enterScope(RenderScope.OFFHAND, carrier, slot, itemEntity.getItem());
     }
 
-    // For < 1.21.4, exit the item scope at render() RETURN (same method as entry).
-    // For >= 1.21.4, no explicit exit needed here: extractRenderState() runs inside
+    // For < 1.21.2, exit the item scope at render() RETURN (same method as entry).
+    // For >= 1.21.2, no explicit exit needed here: extractRenderState() runs inside
     // EntityRenderDispatcher.submit()/render(), and exitEntityRender() already clears
     // the item scope. Exiting at extractRenderState RETURN would kill the scope before
     // the actual render/submit phase, leaving downstream mixins with no active scope.
-    //? if < 1.21.4 {
+    //? if < 1.21.2 {
     /*@Inject(method = "render(Lnet/minecraft/world/entity/item/ItemEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V", at = @At("RETURN"))
     private void releaseContext(ItemEntity itemEntity, float f, float g, PoseStack poseStack, MultiBufferSource multiBufferSource, int i, CallbackInfo ci) {
         AhRenderManagementApi.exitScope(RenderScope.OFFHAND);

@@ -22,8 +22,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 //? } else {
-/*
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+
+/*import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.minecraft.world.entity.Entity;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
@@ -75,8 +75,8 @@ public class GeckoLibArmorMixin {
         geckoLibRenderer.popAndApplyColor(renderState, slot);
     }
     //? } elif < 1.21.5 {
-    /*
-    // GeckoLib's field-based API (currentSlot / currentStack / currentEntity) exists only
+    
+    /*// GeckoLib's field-based API (currentSlot / currentStack / currentEntity) exists only
     // on GeckoLib jars pinned for MC <= 1.21.4. On 1.21.5–1.21.8 GeckoLib still uses the
     // pre-1.21.9 MC render flow but has moved its state into per-render parameters; on
     // 1.21.9+ the whole flow changes to tryRenderGeoArmorPiece. We only @Shadow the fields
@@ -103,8 +103,8 @@ public class GeckoLibArmorMixin {
              *///? }
             CallbackInfoReturnable<RenderType> cir) {
         //? if < 1.21.5 {
-        /*
-        // Field-based armor-piece scope entry — only valid where GeckoLib still exposes
+        
+        /*// Field-based armor-piece scope entry — only valid where GeckoLib still exposes
         // currentEntity / currentSlot / currentStack as shadowable fields. On 1.21.5-1.21.8
         // GeckoLib dropped those, so we rely on the HumanoidArmorLayer mixin (which fires
         // first in the layer chain) to have already entered ARMOR_PIECE scope.
@@ -127,8 +127,8 @@ public class GeckoLibArmorMixin {
     // ========================
 
     //? if >= 1.21 && < 1.21.9 {
-    /*
-    @ModifyVariable(
+    
+    /*@ModifyVariable(
         method = "actuallyRender",
         at = @At("HEAD"),
         //? if >= 1.21

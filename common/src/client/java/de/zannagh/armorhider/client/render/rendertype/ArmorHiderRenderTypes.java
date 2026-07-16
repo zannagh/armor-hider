@@ -16,7 +16,7 @@ import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.resources.Identifier;
-*///?} elif >= 1.21.4 {
+*///?} elif >= 1.21.2 {
 /*import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.client.renderer.RenderStateShard;
@@ -239,7 +239,7 @@ public final class ArmorHiderRenderTypes {
                             .setOverlayState(OVERLAY)
                             .createCompositeState(true))
     );
-    *///?} elif >= 1.21.4 {
+    *///?} elif >= 1.21.2 {
     /*private static final Function<Identifier, RenderType> TRANSLUCENT_ARMOR = memoize(
             texture -> RenderType.create("armor_hider_armor_translucent_no_depth",
                     DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, 1536, true, true,
@@ -318,7 +318,7 @@ public final class ArmorHiderRenderTypes {
                     .setOverlayState(OVERLAY)
                     .createCompositeState(true)
     );
-    *///?} elif >= 1.21.4 {
+    *///?} elif >= 1.21.2 {
     /*private static final RenderType TRANSLUCENT_ITEM_SHEET = RenderType.create(
             "armor_hider_item_translucent_cull_no_depth",
             DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, 1536, true, true,

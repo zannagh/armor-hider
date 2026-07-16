@@ -251,10 +251,10 @@ public class PlayerHeadBarWidget extends AbstractWidget {
         //? if >= 1.21.6 {
         context.blit(RenderPipelines.GUI_TEXTURED, texture, x, y, u, v, drawW, drawH, regionW, regionH, texW, texH);
         //?}
-        //? if >= 1.21.4 && < 1.21.6 {
+        //? if >= 1.21.2 && < 1.21.6 {
         /*context.blit((t) -> net.minecraft.client.renderer.rendertype.RenderType.guiTextured(t), texture, x, y, u, v, drawW, drawH, regionW, regionH, texW, texH);
         *///?}
-        //? if < 1.21.4 {
+        //? if < 1.21.2 {
         /*context.blit(texture, x, y, drawW, drawH, u, v, regionW, regionH, texW, texH);
         *///?}
     }

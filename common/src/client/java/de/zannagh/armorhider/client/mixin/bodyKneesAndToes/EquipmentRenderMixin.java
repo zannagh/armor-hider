@@ -210,8 +210,8 @@ public class EquipmentRenderMixin {
                     *///? } elif >= 1.21.11 {
                     target = "Lnet/minecraft/client/renderer/Sheets;armorTrimsSheet(Z)Lnet/minecraft/client/renderer/rendertype/RenderType;"
                     //? } else {
-                    /*target = "Lnet/minecraft/client/renderer/Sheets;armorTrimsSheet(Z)Lnet/minecraft/client/renderer/rendertype/RenderType;"*/
-                    //? }
+                    /*target = "Lnet/minecraft/client/renderer/Sheets;armorTrimsSheet(Z)Lnet/minecraft/client/renderer/rendertype/RenderType;"
+                    *///? }
             )
     )
     // 26.3 renders trims via RenderTypes.armorTrim(texture, decal) using a per-material paletted

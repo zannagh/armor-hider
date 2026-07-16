@@ -38,9 +38,9 @@ public class EntityRenderDispatcherMixin {
     @Unique
     //? if >= 1.21.9
     private static final String RENDER_METHOD = "submit";
-    //? if >= 1.21.4 && < 1.21.9
+    //? if >= 1.21.2 && < 1.21.9
     //private static final String RENDER_METHOD = "render(Lnet/minecraft/world/entity/Entity;DDDFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V";
-    //? if < 1.21.4
+    //? if < 1.21.2
     //private static final String RENDER_METHOD = "render(Lnet/minecraft/world/entity/Entity;DDDFFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V";
 
     @Unique
@@ -52,9 +52,9 @@ public class EntityRenderDispatcherMixin {
     @Inject(method = RENDER_METHOD, at = @At("HEAD"))
     //? if >= 1.21.9
     private <S extends EntityRenderState> void enterEntityRendering(S entity, CameraRenderState cameraRenderState, double d, double e, double f, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, CallbackInfo ci) {
-    //? if < 1.21.9 && >= 1.21.4
+    //? if < 1.21.9 && >= 1.21.2
     //private <E extends Entity> void enterEntityRendering(E entity, double x, double y, double z, float yRot, PoseStack poseStack, MultiBufferSource bufferSource, int light, CallbackInfo ci) {
-    //? if < 1.21.4
+    //? if < 1.21.2
     //private <E extends Entity> void enterEntityRendering(E entity, double x, double y, double z, float yRot, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int light, CallbackInfo ci) {
         if (isPlayerEntity(entity)) {
             AhRenderManagementApi.setInEntityRender();

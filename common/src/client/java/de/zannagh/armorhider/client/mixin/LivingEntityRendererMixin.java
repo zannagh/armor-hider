@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-//? if >= 1.21.4 {
+//? if >= 1.21.2 {
 import net.minecraft.client.renderer.entity.state.AvatarRenderState;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 //?}
@@ -29,13 +29,13 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.world.entity.EquipmentSlot;
 *///?}
 
-//? if >= 1.21.4 && < 1.21.9 {
+//? if >= 1.21.2 && < 1.21.9 {
 /*import net.minecraft.client.model.player.PlayerModel;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 *///?}
 
-//? if < 1.21.4 {
+//? if < 1.21.2 {
 /*import net.minecraft.client.model.HumanoidModel;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.common.SlotModification;
@@ -52,10 +52,10 @@ import net.minecraft.world.entity.EquipmentSlot;
  */
 @Mixin(LivingEntityRenderer.class)
 public abstract class LivingEntityRendererMixin
-    //? if >= 1.21.4 {
+    //? if >= 1.21.2 {
         <T extends LivingEntity, S extends LivingEntityRenderState, M extends EntityModel<? super S>> extends EntityRenderer<T, S> implements RenderLayerParent<S, M>
     //?}
-    //? if < 1.21.4 {
+    //? if < 1.21.2 {
     /*<T extends LivingEntity, M extends EntityModel<T>> extends EntityRenderer<T> implements RenderLayerParent<T, M>
     *///?}
     {
@@ -67,7 +67,7 @@ public abstract class LivingEntityRendererMixin
         super(context);
     }
 
-    //? if >= 1.21.4 {
+    //? if >= 1.21.2 {
     /**
      * Enters the entity render scope during {@code extractRenderState} so that
      * {@code PlayerMixin}'s slot hiding does not
@@ -111,12 +111,12 @@ public abstract class LivingEntityRendererMixin
     //?}
 
     //? if < 1.21.9 {
-    /*
-    //? if >= 1.21.4 {
-    /^@Inject(method = "render", at = @At("HEAD"))
+    
+    /*//? if >= 1.21.2 {
+    @Inject(method = "render", at = @At("HEAD"))
     private void forceArmVisibility(LivingEntityRenderState entity, PoseStack poseStack,
             MultiBufferSource bufferSource, int light, CallbackInfo ci) {
-    ^///? } elif < 1.21.4 {
+    //? } elif < 1.21.2 {
     /^@Inject(
             method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
             at = @At("HEAD")

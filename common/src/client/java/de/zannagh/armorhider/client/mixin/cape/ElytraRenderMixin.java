@@ -18,7 +18,7 @@ import net.minecraft.client.renderer.SubmitNodeCollector;
 //? if < 1.21.9
 //import net.minecraft.client.renderer.MultiBufferSource;
 
-//? if < 1.21.4 {
+//? if < 1.21.2 {
 /*import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -31,23 +31,23 @@ import net.minecraft.world.entity.LivingEntity;
 
 @Mixin(WingsLayer.class)
 public class ElytraRenderMixin
-    //? if >= 1.21.4
+    //? if >= 1.21.2
         <S extends net.minecraft.client.renderer.entity.state.HumanoidRenderState, M extends net.minecraft.client.model.EntityModel<S>>
-    //? if < 1.21.4
+    //? if < 1.21.2
         //<S extends LivingEntity, M extends EntityModel<S>>
     {
 
     //? if >= 1.21.9
     @Unique private static final String ENTRY_METHOD = "submit(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/client/renderer/entity/state/HumanoidRenderState;FF)V";
 
-    //? if < 1.21.9 && >= 1.21.4
+    //? if < 1.21.9 && >= 1.21.2
     //@Unique private static final String ENTRY_METHOD = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/renderer/entity/state/HumanoidRenderState;FF)V";
 
-    //? if < 1.21.4
+    //? if < 1.21.2
     //@Unique private static final String ENTRY_METHOD = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/world/entity/LivingEntity;FFFFFF)V";
 
     @Inject(method = ENTRY_METHOD, at = @At(value = "HEAD"), cancellable = true)
-    //? if >= 1.21.4 {
+    //? if >= 1.21.2 {
     private void interceptElytraRender(PoseStack poseStack,
                                        //? if >= 1.21.9
                                        SubmitNodeCollector submitNodeCollector,
@@ -55,7 +55,7 @@ public class ElytraRenderMixin
                                        //MultiBufferSource multiBufferSource,
                                        int i, S humanoidRenderState, float f, float g, CallbackInfo ci) {
     //? }
-    //? if < 1.21.4 {
+    //? if < 1.21.2 {
     /*private void interceptElytraRender(PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, S humanoidRenderState, float limbSwing, float limbSwingAmount, float partialTick, float ageInTicks, float netHeadYaw, float headPitch, CallbackInfo ci) {
     *///?}
         AhRenderInterceptionRegistryApi.getRenderer(RenderScope.ELYTRA).interceptFrom(humanoidRenderState, ci);
@@ -66,7 +66,7 @@ public class ElytraRenderMixin
         AhRenderManagementApi.exitScope(RenderScope.ELYTRA);
     }
 
-    //? if < 1.21.4 {
+    //? if < 1.21.2 {
     /*@WrapOperation(
             method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/world/entity/LivingEntity;FFFFFF)V",
             at = @At(

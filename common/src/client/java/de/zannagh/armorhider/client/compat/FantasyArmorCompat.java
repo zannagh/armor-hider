@@ -28,12 +28,12 @@ public final class FantasyArmorCompat {
         }
 
         if (SlotModification.isSlotModified(name, EquipmentSlot.CHEST, carrier.armorHider$getItemBySlot(EquipmentSlot.CHEST))) {
-            //? if >= 1.21.4
+            //? if >= 1.21.2
             var model = ((LivingEntityRenderer<?, ?, ?>) (Object) playerModel).getModel();
-            //? if < 1.21.4
+            //? if < 1.21.2
             //var model = ((LivingEntityRenderer<?, ?>) (Object) playerModel).getModel();
 
-            //? if >= 1.21.4 {
+            //? if >= 1.21.2 {
             if (model instanceof PlayerModel humanoid) {
                 humanoid.leftArm.visible = true;
                 humanoid.leftSleeve.visible = true;

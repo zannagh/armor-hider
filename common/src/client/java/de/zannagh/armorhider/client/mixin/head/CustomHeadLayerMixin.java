@@ -21,7 +21,7 @@ import net.minecraft.client.renderer.SubmitNodeCollector;
 //? } else {
 /*import net.minecraft.client.renderer.MultiBufferSource;
 *///? }
-//? if >= 1.21.4 {
+//? if >= 1.21.2 {
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 //? } else {
 /*import net.minecraft.world.entity.LivingEntity;
@@ -34,11 +34,11 @@ public abstract class CustomHeadLayerMixin {
     private static final String ENTRY_METHOD =
             //? if >= 1.21.9 {
             "submit(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;FF)V";
-            //? } else if >= 1.21.4 {
-            /*"render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;FF)V";*/
-            //? } else {
-            /*"render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/world/entity/LivingEntity;FFFFFF)V";*/
-            //? }
+            //? } else if >= 1.21.2 {
+            /*"render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;FF)V";
+            *///? } else {
+            /*"render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/world/entity/LivingEntity;FFFFFF)V";
+            *///? }
 
 
     @Inject(
@@ -48,18 +48,18 @@ public abstract class CustomHeadLayerMixin {
             order = MixinConstants.HIGH_PRIO,
             cancellable = true
     )
-    //? if >= 1.21.4
+    //? if >= 1.21.2
     private <S extends LivingEntityRenderState>
-    //? if < 1.21.4
+    //? if < 1.21.2
     //private <S extends LivingEntity>
     void interceptHeadLayerRender
             //? if >= 1.21.9 {
             (PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int i, S entity, float f, float g, CallbackInfo ci) {
-            //? } else if >= 1.21.4 {
-            /*(PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, S entity, float f, float g, CallbackInfo ci) {*/
-            //? } else {
-            /*(PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, S entity, float limbSwing, float limbSwingAmount, float partialTick, float ageInTicks, float netHeadYaw, float headPitch, CallbackInfo ci) {*/
-            //? }
+            //? } else if >= 1.21.2 {
+            /*(PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, S entity, float f, float g, CallbackInfo ci) {
+            *///? } else {
+            /*(PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, S entity, float limbSwing, float limbSwingAmount, float partialTick, float ageInTicks, float netHeadYaw, float headPitch, CallbackInfo ci) {
+            *///? }
         enterHeadScope(entity, ci);
     }
 

@@ -52,13 +52,13 @@ public class WaveyCapesMixin {
                                   //AbstractClientPlayer avatarRenderState,
                                   float limbSwing, float limbSwingAmount,
                                   //? if < 1.21.4 {
-                                  //float partialTick, float ageInTicks, float netHeadYaw, float headPitch,
-                                  //? }
+                                  /*float partialTick, float ageInTicks, float netHeadYaw, float headPitch,
+                                  *///? }
                                   CallbackInfo ci) {
         //? if >= 1.21.4 {
         var chestEquipment = avatarRenderState.chestEquipment;
         //? } else
-        // var chestEquipment = avatarRenderState.getItemBySlot(EquipmentSlot.CHEST);
+         //var chestEquipment = avatarRenderState.getItemBySlot(EquipmentSlot.CHEST);
 
         var result = AhRenderInterceptionRegistryApi.getRenderer(RenderScope.CAPE).intercept(avatarRenderState, EquipmentSlot.CHEST, chestEquipment, ci);
         if (!result.shouldIntercept() || result.shouldCancel()) {
@@ -98,8 +98,8 @@ public class WaveyCapesMixin {
                                     //AbstractClientPlayer player,
                                     float limbSwing, float limbSwingAmount,
                                     //? if < 1.21.4 {
-                                    //float partialTick, float ageInTicks, float netHeadYaw, float headPitch,
-                                    //? }
+                                    /*float partialTick, float ageInTicks, float netHeadYaw, float headPitch,
+                                    *///? }
                                     CallbackInfo ci) {
         AhRenderManagementApi.exitScope(RenderScope.CAPE);
     }

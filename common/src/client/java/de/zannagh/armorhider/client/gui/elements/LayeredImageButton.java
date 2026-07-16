@@ -26,12 +26,12 @@ public abstract class LayeredImageButton extends LayeredButton {
             guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, identifier, this.getX() + (this.width - 15) / 2, this.getY() + (this.height - 15) / 2, 15, 15);
         }
         //?}
-        //? if <= 1.21.5 && >= 1.21.4 {
+        //? if <= 1.21.5 && >= 1.21.2 {
         /*if (spriteForeground(isEnabled) instanceof Identifier identifier && !identifier.getPath().isEmpty()) {
             guiGraphics.blitSprite((t) -> net.minecraft.client.renderer.rendertype.RenderType.guiTextured(t), identifier, this.getX() + (this.width - 15) / 2, this.getY() + (this.height - 15) / 2, 15, 15);
         }
         *///?}
-        //? if < 1.21.4 && >= 1.21 {
+        //? if < 1.21.2 && >= 1.21 {
         /*if (spriteForeground(isEnabled) instanceof Identifier identifier && !identifier.getPath().isEmpty()) {
             guiGraphics.blitSprite(identifier, this.getX() + (this.width - 15) / 2, this.getY() + (this.height - 15) / 2, 15, 15);
         }

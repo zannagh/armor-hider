@@ -20,6 +20,18 @@ display_version = "mc-1.21.0-1"
 accesswidener.version = "legacy"
 game_versions = "1.21,1.21.1"
 
+["1.21.2"]
+java.version = "21"
+display_version = "mc-1.21.2"
+accesswidener.version = "legacy"
+game_versions = "1.21.2"
+
+["1.21.3"]
+java.version = "21"
+display_version = "mc-1.21.3"
+accesswidener.version = "legacy"
+game_versions = "1.21.3"
+
 ["1.21.4"]
 java.version = "21"
 display_version = "mc-1.21.4"
@@ -98,6 +110,12 @@ display_version = "26.3-snap.2"
 accesswidener.version = "current"
 game_versions = "26.3-snapshot-2"
 
+["26.3-snapshot-3"]
+java.version = "25"
+display_version = "26.3-snap.3"
+accesswidener.version = "current"
+game_versions = "26.3-snapshot-3"
+
 # ──────────────────────────────────────────────────────────────────────────────
 # Per project — loader-specific properties.
 # Matched via the default project tag (e.g. "fabric-1.20.1").
@@ -133,6 +151,38 @@ modmenu.version = "v6Xx3fbU"
 waveycapes.version = "EcKyPvJR"
 gender.version = "kJmjQvAS"
 fabricapi.version = "Lwt6YYHL"
+# fabric-api 0.116.x for 1.21.1 predates fabric-client-gametest-api-v1 — Phase 2 entity
+# render smoke can't be wired here. fabricapi.semver intentionally omitted; the variant
+# stays on Phase 1 boot smoke only.
+
+["fabric-1.21.2"]
+"fabric.minecraft_version" = "1.21.2"
+"fabric.minecraft_version_range" = ">=1.21.2 <=1.21.2"
+elytratrims.version = "KOEvdSw7"
+geckolib.version = "11VBhLU2"
+iris.version = "zsoi0dso"
+emf.version = "NLDNY8vg"
+etf.version = "udcdeUXw"
+modmenu.version = "v6Xx3fbU"
+waveycapes.version = "EcKyPvJR"
+gender.version = "kJmjQvAS"
+fabricapi.version = "UEjZZNue"
+# fabric-api 0.116.x for 1.21.1 predates fabric-client-gametest-api-v1 — Phase 2 entity
+# render smoke can't be wired here. fabricapi.semver intentionally omitted; the variant
+# stays on Phase 1 boot smoke only.
+
+["fabric-1.21.3"]
+"fabric.minecraft_version" = "1.21.3"
+"fabric.minecraft_version_range" = ">=1.21.3 <=1.21.3"
+elytratrims.version = "KOEvdSw7"
+geckolib.version = "11VBhLU2"
+iris.version = "zsoi0dso"
+emf.version = "NLDNY8vg"
+etf.version = "udcdeUXw"
+modmenu.version = "v6Xx3fbU"
+waveycapes.version = "EcKyPvJR"
+gender.version = "kJmjQvAS"
+fabricapi.version = "wLq4rGsB"
 # fabric-api 0.116.x for 1.21.1 predates fabric-client-gametest-api-v1 — Phase 2 entity
 # render smoke can't be wired here. fabricapi.semver intentionally omitted; the variant
 # stays on Phase 1 boot smoke only.
@@ -322,6 +372,24 @@ fabricapi.version = "SjRlJFmW"
 # Phase 2 entity-render smoke test). Mirrors `fabricapi.version`'s Modrinth hash.
 fabricapi.semver = "0.154.0+26.3"
 
+["fabric-26.3-snapshot-3"]
+"fabric.minecraft_version" = "26.3-alpha.3"
+"fabric.minecraft_version_range" = ">=26.3-alpha.3 <=26.3-alpha.3"
+elytratrims.version = "tKGLQKLD"
+geckolib.version = "GdrAq4td"
+iris.version = "3uIIps8q"
+emf.version = "xQeW3qQB"
+etf.version = "HLCBKYFD"
+gender.version = "BGSsrIlj"
+loader_version = "0.19.3"
+waveycapes.version = "cp2elfPy"
+modmenu.version = "dTGuPZ91"
+fabricapi.version = "SjRlJFmW"
+# Upstream fabric-api version_number — needed for loom's `fabricApi.module(...)` resolution
+# of individual API modules off fabric maven (e.g. fabric-client-gametest-api-v1 for the
+# Phase 2 entity-render smoke test). Mirrors `fabricapi.version`'s Modrinth hash.
+fabricapi.semver = "0.154.3+26.3"
+
 # ── NeoForge ──────────────────────────────────────────────────────────────────
 
 ["neoforge-1.21.1"]
@@ -333,6 +401,40 @@ iris.version = "t3ruzodq"
 emf.version = "PAYgk63v"
 etf.version = "YEMROAHv"
 mekanism.version = "5KzzycBT"
+waveycapes.version = "uuX7ce0R"
+figura.version = "yXFi1fed"
+gender.version = "kKffHCGl"
+# kKffHCGl ships only the legacy GenderLayer API (no GenderArmorLayer / BreastSide).
+# Routes the gender compat through GenderLegacyLayerMixin (coarse hide-cancel only;
+# no transparency or trim recolor on this combo).
+gender_legacy_api = "true"
+
+["neoforge-1.21.2"]
+"neoforge.version" = "21.2.1-beta"
+"neoforge.minecraft_version_range" = "[1.21.2]"
+geckolib.version = "UvKZBX05"
+elytratrims.version = "7mqA6CJO"
+iris.version = "t3ruzodq"
+emf.version = "PAYgk63v"
+etf.version = "YEMROAHv"
+# mekanism compat is pre-render-state only (dropped at 1.21.4); not available on 1.21.2/1.21.3.
+waveycapes.version = "uuX7ce0R"
+figura.version = "yXFi1fed"
+gender.version = "kKffHCGl"
+# kKffHCGl ships only the legacy GenderLayer API (no GenderArmorLayer / BreastSide).
+# Routes the gender compat through GenderLegacyLayerMixin (coarse hide-cancel only;
+# no transparency or trim recolor on this combo).
+gender_legacy_api = "true"
+
+["neoforge-1.21.3"]
+"neoforge.version" = "21.3.96"
+"neoforge.minecraft_version_range" = "[1.21.3]"
+geckolib.version = "UvKZBX05"
+elytratrims.version = "7mqA6CJO"
+iris.version = "t3ruzodq"
+emf.version = "PAYgk63v"
+etf.version = "YEMROAHv"
+# mekanism compat is pre-render-state only (dropped at 1.21.4); not available on 1.21.2/1.21.3.
 waveycapes.version = "uuX7ce0R"
 figura.version = "yXFi1fed"
 gender.version = "kKffHCGl"

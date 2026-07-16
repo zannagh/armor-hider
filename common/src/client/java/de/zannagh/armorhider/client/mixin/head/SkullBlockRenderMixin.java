@@ -31,7 +31,7 @@ public abstract class SkullBlockRenderMixin {
             //? if >= 1.21.9 {
             "submitSkull";
             //? } else
-            /*"renderSkull";*/
+            //"renderSkull";
 
     @Unique
     private static final String RENDER_TARGET =
@@ -40,8 +40,8 @@ public abstract class SkullBlockRenderMixin {
             *///? } elif >= 1.21.9 {
             "Lnet/minecraft/client/renderer/SubmitNodeCollector;submitModel(Lnet/minecraft/client/model/Model;Ljava/lang/Object;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/rendertype/RenderType;IIILnet/minecraft/client/renderer/feature/ModelFeatureRenderer$CrumblingOverlay;)V";
             //? } elif >= 1.21 {
-            /*"Lnet/minecraft/client/model/SkullModelBase;renderToBuffer(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;II)V";*/
-            //? } else {
+            /*"Lnet/minecraft/client/model/SkullModelBase;renderToBuffer(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;II)V";
+            *///? } else {
             /*"Lnet/minecraft/client/model/SkullModelBase;renderToBuffer(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;IIFFFF)V";*/
             //? }
 
@@ -54,8 +54,8 @@ public abstract class SkullBlockRenderMixin {
     *///? } elif >= 1.21.9 {
     private static <S> void modifyTransparency(SubmitNodeCollector instance, Model<? super S> model, S o, PoseStack poseStack, RenderType renderType, int i, int j, int k, ModelFeatureRenderer.CrumblingOverlay crumblingOverlay, Operation<Void> original) {
     //? } elif >= 1.21 {
-    /*private static void modifyTransparency(SkullModelBase instance, PoseStack poseStack, VertexConsumer vertexConsumer, int light, int overlay, Operation<Void> original) {*/
-    //? } else {
+    /*private static void modifyTransparency(SkullModelBase instance, PoseStack poseStack, VertexConsumer vertexConsumer, int light, int overlay, Operation<Void> original) {
+    *///? } else {
     /*private static void modifyTransparency(SkullModelBase instance, PoseStack poseStack, VertexConsumer vertexConsumer, int light, int overlay, float red, float green, float blue, float alpha, Operation<Void> original) {*/
     //? }
         var headCtx = AhRenderManagementApi.getActiveScope(RenderScope.HEAD);
@@ -72,8 +72,8 @@ public abstract class SkullBlockRenderMixin {
             *///? } elif >= 1.21.9 {
             original.call(instance, model, o, poseStack, renderType, i, j, k, crumblingOverlay);
             //? } elif >= 1.21 {
-            /*original.call(instance, poseStack, vertexConsumer, light, overlay);*/
-            //? } else {
+            /*original.call(instance, poseStack, vertexConsumer, light, overlay);
+            *///? } else {
             /*original.call(instance, poseStack, vertexConsumer, light, overlay, red, green, blue, alpha);*/
             //? }
             return;
@@ -91,8 +91,8 @@ public abstract class SkullBlockRenderMixin {
         instance.order(RenderModifications.SKULL_RENDER_PRIORITY).submitModel(model, o, poseStack, renderType, i, j, modifiedColor, null, k, crumblingOverlay);
         //? } elif >= 1.21 {
         /*int modifiedColor = headCtx.renderModificationApi().applyTransparencyFromWhite();
-        instance.renderToBuffer(poseStack, vertexConsumer, light, overlay, modifiedColor);*/
-        //? } else {
+        instance.renderToBuffer(poseStack, vertexConsumer, light, overlay, modifiedColor);
+        *///? } else {
         /*float newAlpha = headCtx.renderModificationApi().getTransparencyAlpha();
         instance.renderToBuffer(poseStack, vertexConsumer, light, overlay, red, green, blue, newAlpha);*/
         //? }
@@ -130,7 +130,7 @@ public abstract class SkullBlockRenderMixin {
     //? if (>= 1.21.4 && < 1.21.9) || < 1.21 {
     /*@WrapOperation(
             //? if >= 1.21.6 && < 1.21.9
-            method = "getPlayerSkinRenderType",
+            //method = "getPlayerSkinRenderType",
             //? if >= 1.21.4 && < 1.21.6
             //method = "getRenderType(Lnet/minecraft/world/level/block/SkullBlock$Type;Lnet/minecraft/world/item/component/ResolvableProfile;Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/rendertype/RenderType;",
             //? if < 1.21
@@ -149,10 +149,10 @@ public abstract class SkullBlockRenderMixin {
             //? if >= 1.21.6 {
             method = "getSkullRenderType",
             //? } elif >= 1.21.4 {
-            /*method = "getRenderType(Lnet/minecraft/world/level/block/SkullBlock$Type;Lnet/minecraft/world/item/component/ResolvableProfile;Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/rendertype/RenderType;",*/
-            //? } else {
-            /*method = "getRenderType",*/
-            //? }
+            /*method = "getRenderType(Lnet/minecraft/world/level/block/SkullBlock$Type;Lnet/minecraft/world/item/component/ResolvableProfile;Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/rendertype/RenderType;",
+            *///? } else {
+            /*method = "getRenderType",
+            *///? }
             at = @At(
                     value = "INVOKE",
                     //? if >= 26.1-0.snapshot.6 {
@@ -160,8 +160,8 @@ public abstract class SkullBlockRenderMixin {
                     //? } elif >= 1.21.11 {
                     /*target = "Lnet/minecraft/client/renderer/rendertype/RenderTypes;entityCutoutNoCullZOffset(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/rendertype/RenderType;"*/
                     //? } else {
-                    /*target = "Lnet/minecraft/client/renderer/rendertype/RenderType;entityCutoutNoCullZOffset(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/rendertype/RenderType;"*/
-                    //? }
+                    /*target = "Lnet/minecraft/client/renderer/rendertype/RenderType;entityCutoutNoCullZOffset(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/rendertype/RenderType;"
+                    *///? }
             )
     )
     private static RenderType getCutoutRenderLayer(Identifier texture, Operation<RenderType> original) {

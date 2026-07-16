@@ -18,11 +18,15 @@ import net.minecraft.client.renderer.SubmitNodeCollector;
 //? } else
 //import net.minecraft.client.renderer.MultiBufferSource;
 
-//? if >= 1.21.4 {
+//? if >= 1.21.2 {
 import net.minecraft.client.renderer.entity.state.AvatarRenderState;
-import net.minecraft.client.resources.model.EquipmentClientInfo;
 //?} else
 //import net.minecraft.client.player.AbstractClientPlayer;
+
+// EquipmentClientInfo is the 1.21.4 equipment-model rework; absent on 1.21.2/1.21.3.
+//? if >= 1.21.4 {
+import net.minecraft.client.resources.model.EquipmentClientInfo;
+//?}
 
 @Mixin(CapeLayer.class)
 public class CapeRenderMixin {
@@ -30,9 +34,9 @@ public class CapeRenderMixin {
     @Unique
     //? if >= 1.21.9
     private static final String CAPE_CONTEXT_METHOD = "submit(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/client/renderer/entity/state/AvatarRenderState;FF)V";
-    //? if >= 1.21.4 && < 1.21.9
+    //? if >= 1.21.2 && < 1.21.9
     //private static final String CAPE_CONTEXT_METHOD = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/renderer/entity/state/AvatarRenderState;FF)V";
-    //? if < 1.21.4
+    //? if < 1.21.2
     //private static final String CAPE_CONTEXT_METHOD = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/player/AbstractClientPlayer;FFFFFF)V";
 
     @Inject(method = CAPE_CONTEXT_METHOD, at = @At("HEAD"), cancellable = true)
@@ -42,14 +46,14 @@ public class CapeRenderMixin {
                                   //? } else
                                   //MultiBufferSource multiBufferSource,
                                   int light,
-                                  //? if >= 1.21.4 {
+                                  //? if >= 1.21.2 {
                                   AvatarRenderState avatarRenderState,
                                   //? } else
                                   //AbstractClientPlayer avatarRenderState,
                                   float limbSwing, float limbSwingAmount,
-                                  //? if < 1.21.4 {
-                                  //float partialTick, float ageInTicks, float netHeadYaw, float headPitch,
-                                  //? }
+                                  //? if < 1.21.2 {
+                                  /*float partialTick, float ageInTicks, float netHeadYaw, float headPitch,
+                                  *///? }
                                   CallbackInfo ci) {
         var result = AhRenderInterceptionRegistryApi.getRenderer(RenderScope.CAPE).interceptFrom(avatarRenderState, ci);
         if (!result.shouldIntercept()) {
@@ -85,10 +89,16 @@ public class CapeRenderMixin {
             method = CAPE_CONTEXT_METHOD,
             at = @At(
                     value = "INVOKE",
+                    // 1.21.1: ItemStack.is(Item)  ·  1.21.2/1.21.3: CapeLayer.hasLayer(…EquipmentModel$LayerType)
+                    // ·  1.21.4+: CapeLayer.hasLayer(…EquipmentClientInfo$LayerType). The equipment model API
+                    // was staged: EquipmentModel (1.21.2) → EquipmentClientInfo (1.21.4).
                     //? if >= 1.21.4 {
                     target = "Lnet/minecraft/client/renderer/entity/layers/CapeLayer;hasLayer(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/client/resources/model/EquipmentClientInfo$LayerType;)Z",
-                    //? } else
-                    //target = "Lnet/minecraft/world/item/ItemStack;is(Lnet/minecraft/world/item/Item;)Z",
+                    //?} elif >= 1.21.2 {
+                    /*target = "Lnet/minecraft/client/renderer/entity/layers/CapeLayer;hasLayer(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/equipment/EquipmentModel$LayerType;)Z",
+                    *///?} else {
+                    /*target = "Lnet/minecraft/world/item/ItemStack;is(Lnet/minecraft/world/item/Item;)Z",
+                    *///?}
                     ordinal = 0
             )
     )
@@ -99,13 +109,18 @@ public class CapeRenderMixin {
             EquipmentClientInfo.LayerType layerType,
             Operation<Boolean> original) {
         boolean result = original.call(instance, itemStack, layerType);
-            //? } else {
-            /*
+            //?} elif >= 1.21.2 {
+            /*CapeLayer instance,
             net.minecraft.world.item.ItemStack itemStack,
+            net.minecraft.world.item.equipment.EquipmentModel.LayerType layerType,
+            Operation<Boolean> original) {
+        boolean result = original.call(instance, itemStack, layerType);
+            *///?} else {
+            /*net.minecraft.world.item.ItemStack itemStack,
             net.minecraft.world.item.Item item,
             Operation<Boolean> original) {
         boolean result = original.call(itemStack, item);
-            *///? }
+            *///?}
 
         if (!result) {
             return false;

@@ -1,4 +1,4 @@
-//? if >= 1.21.4 {
+//? if >= 1.21.2 {
 package de.zannagh.armorhider.client.gui.elements;
 
 import net.minecraft.client.Minecraft;
@@ -82,7 +82,7 @@ public class PlayerPreviewWidget extends AbstractWidget {
 }
 //?}
 
-//? if < 1.21.4 {
+//? if < 1.21.2 {
 /*package de.zannagh.armorhider.client.gui.elements;
 
 import com.mojang.blaze3d.platform.Lighting;

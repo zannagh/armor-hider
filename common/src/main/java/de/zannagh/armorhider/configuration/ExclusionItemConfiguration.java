@@ -165,7 +165,7 @@ public class ExclusionItemConfiguration {
      */
     public static Item getItemFromId(String itemId) {
         try {
-            //? if >= 1.21.4 {
+            //? if >= 1.21.2 {
             return BuiltInRegistries.ITEM.getValue(net.minecraft.resources.Identifier.parse(itemId));
             //?} else if >= 1.20.5 {
             /*return BuiltInRegistries.ITEM.get(net.minecraft.resources.Identifier.parse(itemId));
