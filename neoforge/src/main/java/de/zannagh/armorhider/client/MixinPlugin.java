@@ -37,6 +37,9 @@ public class MixinPlugin implements IMixinConfigPlugin {
             "SkinCustomizationScreenMixin",
             "SkinCustomizationScreenLegacyMixin",
             "bodyKneesAndToes.EquipmentRenderMixin",
+            // Transitional armor/elytra transparency for the 1.21.2/1.21.3 render-state era
+            // (EquipmentRenderMixin is >= 1.21.4). Stonecutter-gated; dropped where absent.
+            "bodyKneesAndToes.EquipmentLayerRendererLegacyMixin",
             "hand.ItemRenderStateMixin",
             "hand.SubmitNodeCollectorMixin",
             "cape.ElytraRenderMixin",
