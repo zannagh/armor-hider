@@ -1,5 +1,5 @@
 //? if fcgt {
-/*package de.zannagh.armorhider.smoke;
+package de.zannagh.armorhider.smoke;
 
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.client.ArmorHiderClient;
@@ -14,7 +14,7 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
-/^*
+/**
  * Phase 2 boot+render smoke (fabric-client-gametest-api-v1).
  * <p>
  * Drives the client past the title screen into a fresh singleplayer world, equips the player
@@ -35,7 +35,7 @@ import net.minecraft.world.item.Items;
  * {@code fabricapi.semver} pinned). Currently only fabric-26.2; replicate to other Fabric
  * 1.21+ variants by pinning {@code fabricapi.semver} in their stonecutter block and
  * verifying the FCGT API surface compiles against that fabric-api version.
- ^/
+ */
 public final class EntityRenderSmokeTest implements FabricClientGameTest {
 
     @Override
@@ -122,4 +122,4 @@ public final class EntityRenderSmokeTest implements FabricClientGameTest {
         }
     }
 }
-*///?}
+//?}

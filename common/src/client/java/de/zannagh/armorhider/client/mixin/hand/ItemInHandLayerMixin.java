@@ -13,12 +13,12 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 //? if < 1.21.4 {
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+/*import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import de.zannagh.armorhider.client.render.RenderModifications;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.client.renderer.MultiBufferSource;
-//? }
+*///? }
 
 //? if < 1.21.2 {
 /*import net.minecraft.client.renderer.ItemInHandRenderer;
@@ -30,11 +30,11 @@ import net.minecraft.world.entity.player.Player;
 // ItemStack + BakedModel rather than the ItemStackRenderState introduced in 1.21.4, so the layer method
 // carries a transitional signature that matches neither the pre-1.21.2 nor the >=1.21.4 branch.
 //? if >= 1.21.2 && < 1.21.4 {
-import net.minecraft.client.renderer.entity.ItemRenderer;
+/*import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 import net.minecraft.client.resources.model.BakedModel;
-//? }
+*///? }
 
 //? if >= 1.21.4 && < 1.21.9 {
 /*import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
@@ -43,12 +43,12 @@ import de.zannagh.armorhider.client.render.RenderModifications;
 *///? }
 
 //? if >= 1.21.4 {
-/*import net.minecraft.client.renderer.entity.state.ArmedEntityRenderState;
+import net.minecraft.client.renderer.entity.state.ArmedEntityRenderState;
 import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
-*///? }
+//? }
 //? if >= 1.21.9
-//import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 //? if >= 1.21.4 && < 1.21.9
 //import net.minecraft.client.renderer.MultiBufferSource;
 
@@ -60,17 +60,17 @@ import net.minecraft.client.renderer.item.ItemStackRenderState;
 public class ItemInHandLayerMixin {
 
     //? if >= 1.21.9
-    //@Inject(method = "submitArmWithItem", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "submitArmWithItem", at = @At("HEAD"), cancellable = true)
     //? if < 1.21.9
-    @Inject(method = "renderArmWithItem", at = @At("HEAD"), cancellable = true)
+    //@Inject(method = "renderArmWithItem", at = @At("HEAD"), cancellable = true)
     //? if >= 1.21.11
-    //private void setupOffhandContext(ArmedEntityRenderState renderState, ItemStackRenderState itemState, ItemStack itemStack, HumanoidArm arm, PoseStack poseStack, SubmitNodeCollector collector, int light, CallbackInfo ci) {
+    private void setupOffhandContext(ArmedEntityRenderState renderState, ItemStackRenderState itemState, ItemStack itemStack, HumanoidArm arm, PoseStack poseStack, SubmitNodeCollector collector, int light, CallbackInfo ci) {
     //? if 1.21.9 || 1.21.10
     //private void setupOffhandContext(ArmedEntityRenderState renderState, ItemStackRenderState itemState, HumanoidArm arm, PoseStack poseStack, SubmitNodeCollector collector, int light, CallbackInfo ci) {
     //? if >= 1.21.4 && < 1.21.9
     //private void setupOffhandContext(ArmedEntityRenderState renderState, ItemStackRenderState itemState, HumanoidArm arm, PoseStack poseStack, MultiBufferSource multiBufferSource, int light, CallbackInfo ci) {
     //? if >= 1.21.2 && < 1.21.4
-    private void setupOffhandContext(LivingEntityRenderState renderState, BakedModel bakedModel, ItemStack itemState, ItemDisplayContext itemDisplayContext, HumanoidArm arm, PoseStack poseStack, MultiBufferSource multiBufferSource, int i, CallbackInfo ci) {
+    //private void setupOffhandContext(LivingEntityRenderState renderState, BakedModel bakedModel, ItemStack itemState, ItemDisplayContext itemDisplayContext, HumanoidArm arm, PoseStack poseStack, MultiBufferSource multiBufferSource, int i, CallbackInfo ci) {
     //? if < 1.21.2
     /*private void setupOffhandContext(LivingEntity renderState, ItemStack itemState, ItemDisplayContext itemDisplayContext, HumanoidArm arm, PoseStack poseStack, MultiBufferSource multiBufferSource, int i, CallbackInfo ci) {*/
         //? if >= 1.21.2
@@ -86,11 +86,11 @@ public class ItemInHandLayerMixin {
 
 
         //? if >= 1.21.11
-        //var result = AhRenderInterceptionRegistryApi.getRenderer(RenderScope.OFFHAND).intercept(carrier, null, itemStack, ci);
+        var result = AhRenderInterceptionRegistryApi.getRenderer(RenderScope.OFFHAND).intercept(carrier, null, itemStack, ci);
         //? if >= 1.21.4 && < 1.21.11
         //var result = AhRenderInterceptionRegistryApi.getRenderer(RenderScope.OFFHAND).interceptFrom(carrier, ci);
         //? if < 1.21.4
-        var result = AhRenderInterceptionRegistryApi.getRenderer(RenderScope.OFFHAND).intercept(carrier, null, itemState, ci);
+        //var result = AhRenderInterceptionRegistryApi.getRenderer(RenderScope.OFFHAND).intercept(carrier, null, itemState, ci);
 
         if (result.shouldCancel() || !result.shouldIntercept()) return;
         AhRenderManagementApi.enterScope(result);
@@ -122,7 +122,7 @@ public class ItemInHandLayerMixin {
     // than ItemInHandRenderer.renderItem (pre-1.21.2) or ItemStackRenderState.render (>=1.21.4), so wrap that
     // call to swap in a translucent buffer source while the OFFHAND scope is active.
     //? if >= 1.21.2 && < 1.21.4 {
-    @WrapOperation(
+    /*@WrapOperation(
             method = "renderArmWithItem",
             at = @At(
                     value = "INVOKE",
@@ -141,7 +141,7 @@ public class ItemInHandLayerMixin {
             original.call(renderer, itemStack, displayContext, isLeftHand, poseStack, bufferSource, light, overlay, bakedModel);
         }
     }
-    //? }
+    *///? }
 
     // Third-person offhand: swap the buffer source to translucent equivalents while the OFFHAND
     // scope is active. Without this the item keeps its opaque render type, so the vertex-alpha
@@ -170,17 +170,17 @@ public class ItemInHandLayerMixin {
     *///? }
 
     //? if >= 1.21.9
-    //@Inject(method = "submitArmWithItem", at = @At("TAIL"))
+    @Inject(method = "submitArmWithItem", at = @At("TAIL"))
     //? if < 1.21.9
-    @Inject(method = "renderArmWithItem", at = @At("TAIL"))
+    //@Inject(method = "renderArmWithItem", at = @At("TAIL"))
     //? if >= 1.21.11
-    //private void clearOffhandContext(ArmedEntityRenderState renderState, ItemStackRenderState itemState, ItemStack itemStack, HumanoidArm arm, PoseStack poseStack, SubmitNodeCollector collector, int light, CallbackInfo ci) {
+    private void clearOffhandContext(ArmedEntityRenderState renderState, ItemStackRenderState itemState, ItemStack itemStack, HumanoidArm arm, PoseStack poseStack, SubmitNodeCollector collector, int light, CallbackInfo ci) {
     //? if 1.21.9 || 1.21.10
     //private void clearOffhandContext(ArmedEntityRenderState renderState, ItemStackRenderState itemState, HumanoidArm arm, PoseStack poseStack, SubmitNodeCollector collector, int light, CallbackInfo ci) {
     //? if >= 1.21.4 && < 1.21.9
     //private void clearOffhandContext(ArmedEntityRenderState renderState, ItemStackRenderState itemState, HumanoidArm arm, PoseStack poseStack, MultiBufferSource multiBufferSource, int light, CallbackInfo ci) {
     //? if >= 1.21.2 && < 1.21.4
-    private void clearOffhandContext(LivingEntityRenderState renderState, BakedModel bakedModel, ItemStack itemStack, ItemDisplayContext itemDisplayContext, HumanoidArm arm, PoseStack poseStack, MultiBufferSource multiBufferSource, int i, CallbackInfo ci) {
+    //private void clearOffhandContext(LivingEntityRenderState renderState, BakedModel bakedModel, ItemStack itemStack, ItemDisplayContext itemDisplayContext, HumanoidArm arm, PoseStack poseStack, MultiBufferSource multiBufferSource, int i, CallbackInfo ci) {
     //? if < 1.21.2
     /*private void clearOffhandContext(LivingEntity livingEntity, ItemStack itemStack, ItemDisplayContext itemDisplayContext, HumanoidArm arm, PoseStack poseStack, MultiBufferSource multiBufferSource, int i, CallbackInfo ci) {*/
         //? if >= 1.21.2

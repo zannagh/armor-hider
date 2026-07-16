@@ -29,14 +29,14 @@ public final class MixinUtil {
      * Sets compat flags by probing for mod presence via resource checks (never {@code Class.forName}).
      * Each probe first checks the exact class, then falls back to checking whether the mod's
      * package directory exists (2nd and 3rd dot-separated segments, e.g. {@code geckolib/renderer}
-     * from {@code software.bernie.geckolib.renderer.GeoArmorRenderer}).
+     * from {@code com.geckolib.renderer.GeoArmorRenderer}).
      *
      * @param cl the classloader to probe (usually the MixinPlugin's own classloader)
      */
     public static void setCompatFlags(ClassLoader cl) {
         CompatFlags.ET_LOADED = isModPresent(cl, "dev.kikugie.elytratrims.ep.ETClientEntrypoint");
         CompatFlags.EMF_LOADED = isModPresent(cl, "traben.entity_model_features.EMFManager");
-        CompatFlags.GECKOLIB_LOADED = isModPresent(cl, "software.bernie.geckolib.renderer.GeoArmorRenderer");
+        CompatFlags.GECKOLIB_LOADED = isModPresent(cl, "com.geckolib.renderer.GeoArmorRenderer");
         CompatFlags.FA_LOADED = isModPresent(cl, "net.kenddie.fantasyarmor.FantasyArmor");
         CompatFlags.WFGM_LOADED = isModPresent(cl, "com.wildfire.render.GenderArmorLayer");
         CompatFlags.FIGURA_LOADED = isModPresent(cl, "org.figuramc.figura.FiguraMod");

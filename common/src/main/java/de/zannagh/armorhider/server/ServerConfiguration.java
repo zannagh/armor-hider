@@ -30,20 +30,20 @@ import java.util.*;
 import java.util.function.Consumer;
 
 //? if >= 1.21.11 {
-/*import net.minecraft.resources.ResourceLocation;
-*///?}
-//? if >= 1.20.5 && < 1.21.11 {
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 //?}
+//? if >= 1.20.5 && < 1.21.11 {
+/*import net.minecraft.resources.Identifier;
+*///?}
 
 public class ServerConfiguration implements ConfigurationSource<ServerConfiguration> {
 
     //? if >= 1.21.11 {
-    /*public static final ResourceLocation PACKET_IDENTIFIER = ResourceLocation.fromNamespaceAndPath("de.zannagh.armorhider", "settings_s2c_packet");
-    *///?}
-    //? if >= 1.20.5 && < 1.21.11 {
-    public static final ResourceLocation PACKET_IDENTIFIER = ResourceLocation.fromNamespaceAndPath("armorhider", "settings_s2c_packet");
+    public static final Identifier PACKET_IDENTIFIER = Identifier.fromNamespaceAndPath("de.zannagh.armorhider", "settings_s2c_packet");
     //?}
+    //? if >= 1.20.5 && < 1.21.11 {
+    /*public static final Identifier PACKET_IDENTIFIER = Identifier.fromNamespaceAndPath("armorhider", "settings_s2c_packet");
+    *///?}
 
     //? if >= 1.20.5 {
     public static final Type<ServerConfiguration> TYPE = new Type<>(PACKET_IDENTIFIER);

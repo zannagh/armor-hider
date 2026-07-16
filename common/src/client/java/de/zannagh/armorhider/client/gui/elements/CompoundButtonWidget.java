@@ -7,9 +7,9 @@ import net.minecraft.network.chat.Component;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 //? if > 1.21.8
-//import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 
 /**
  * A compound widget that evenly spaces up to 8 square buttons within the available row width.
@@ -45,21 +45,21 @@ public class CompoundButtonWidget extends AbstractWidget {
 
     @Override
     //? if >= 26.1-1.pre.1 {
-    /*protected void extractWidgetRenderState(@NonNull GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
+    protected void extractWidgetRenderState(@NonNull GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
         updateLayout();
         for (AbstractWidget button : buttons) {
             button.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
         }
     }
-    *///?}
+    //?}
     //? if > 1.20.1 && < 26.1-1.pre.1 {
-    protected void renderWidget(@NonNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+    /*protected void renderWidget(@NonNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         updateLayout();
         for (AbstractWidget button : buttons) {
             button.render(guiGraphics, mouseX, mouseY, partialTick);
         }
     }
-    //?}
+    *///?}
     //? if <= 1.20.1 {
     /*public void renderWidget(@NonNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         updateLayout();
@@ -71,37 +71,37 @@ public class CompoundButtonWidget extends AbstractWidget {
 
     @Override
     //? if > 1.21.8
-    //public boolean mouseClicked(final @NonNull MouseButtonEvent event, final boolean doubleClick) {
+    public boolean mouseClicked(final @NonNull MouseButtonEvent event, final boolean doubleClick) {
     //? if <= 1.21.8
-    public boolean mouseClicked(double d, double e, int i) {
+    //public boolean mouseClicked(double d, double e, int i) {
         //? if > 1.21.8 {
-        /*for (AbstractWidget button : buttons) {
+        for (AbstractWidget button : buttons) {
             if (button.mouseClicked(event, doubleClick)) {
                 activeChild = button;
                 return true;
             }
         }
         return false;
-        *///? }
+        //? }
         //? if <= 1.21.8 {
 
-        for (AbstractWidget button : buttons) {
+        /*for (AbstractWidget button : buttons) {
             if (button.mouseClicked(d, e, i)) {
                 activeChild = button;
                 return true;
             }
         }
         return false;
-        //?}
+        *///?}
     }
 
     @Override
     //? if > 1.21.8
-    //public boolean mouseReleased(final @NonNull MouseButtonEvent event) {
+    public boolean mouseReleased(final @NonNull MouseButtonEvent event) {
     //? if <= 1.21.8
-    public boolean mouseReleased(double d, double e, int i) {
+    //public boolean mouseReleased(double d, double e, int i) {
         //? if > 1.21.8 {
-        /*try {
+        try {
             if (activeChild != null) {
                 return activeChild.mouseReleased(event);
             }
@@ -109,10 +109,10 @@ public class CompoundButtonWidget extends AbstractWidget {
         } finally {
             activeChild = null;
         }
-        *///?}
+        //?}
         //? if <= 1.21.8 {
 
-        try {
+        /*try {
             if (activeChild != null) {
                 return activeChild.mouseReleased(d, e, i);
             }
@@ -120,27 +120,27 @@ public class CompoundButtonWidget extends AbstractWidget {
         } finally {
             activeChild = null;
         }
-        //?}
+        *///?}
     }
 
     @Override
     //? if > 1.21.8
-    //public boolean mouseDragged(final @NonNull MouseButtonEvent event, final double dx, final double dy) {
+    public boolean mouseDragged(final @NonNull MouseButtonEvent event, final double dx, final double dy) {
     //? if <= 1.21.8
-    public boolean mouseDragged(double d, double e, int i, double f, double g) {
+    //public boolean mouseDragged(double d, double e, int i, double f, double g) {
         //? if > 1.21.8 {
-        /*if (activeChild != null) {
+        if (activeChild != null) {
             return activeChild.mouseDragged(event, dx, dy);
         }
         return false;
-        *///? }
+        //? }
         //? if <= 1.21.8 {
 
-        if (activeChild != null) {
+        /*if (activeChild != null) {
             return activeChild.mouseDragged(d, e, i, f, g);
         }
         return false;
-        //?}
+        *///?}
     }
 
     @Override

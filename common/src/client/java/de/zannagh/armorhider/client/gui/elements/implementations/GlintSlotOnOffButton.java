@@ -2,20 +2,20 @@ package de.zannagh.armorhider.client.gui.elements.implementations;
 
 import de.zannagh.armorhider.client.gui.elements.LayeredImageButton;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
 import org.jetbrains.annotations.Nullable;
 
 public class GlintSlotOnOffButton extends LayeredImageButton {
-    @Nullable private final ResourceLocation slotSprite;
+    @Nullable private final Identifier slotSprite;
 
     @Override
-    protected @Nullable ResourceLocation spriteForeground(boolean enabled) {
+    protected @Nullable Identifier spriteForeground(boolean enabled) {
         return slotSprite;
     }
 
     @Override
-    protected @Nullable ResourceLocation midLayerSprite(boolean enabled) {
+    protected @Nullable Identifier midLayerSprite(boolean enabled) {
         return enabled ? modSprite("glint_button_icon") : null;
     }
 

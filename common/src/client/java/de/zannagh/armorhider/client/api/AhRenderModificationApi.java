@@ -140,12 +140,12 @@ public interface AhRenderModificationApi {
     /**
      * Swap an armor-cutout render type for a translucent one when a modification is active.
      *
-     * @param textureResourceLocation the resolved armor texture ({@code ResourceLocation}).
+     * @param textureIdentifier the resolved armor texture ({@code Identifier}).
      * @param originalRenderType the upstream {@code RenderType}.
      * @return a translucent {@code RenderType} (cast via {@code instanceof}), or the original when
      * no modification is active.
      */
-    Object getTranslucentArmorRenderType(Object textureResourceLocation, Object originalRenderType);
+    Object getTranslucentArmorRenderType(Object textureIdentifier, Object originalRenderType);
 
     /**
      * Swap the armor-trim render type for a translucent equivalent.
@@ -163,7 +163,7 @@ public interface AhRenderModificationApi {
     /**
      * Swap the skull (player-head / mob-head) render type for a translucent one.
      */
-    Object getSkullRenderLayer(Object textureResourceLocation, Object originalRenderType);
+    Object getSkullRenderLayer(Object textureIdentifier, Object originalRenderType);
 
     /**
      * Convenience helper: whether the given (player, slot, item) triple resolves to a slot the

@@ -3,7 +3,7 @@ plugins {
     id("net.neoforged.moddev") version "2.0.140" apply false
 }
 
-stonecutter active "fabric-1.21.2" /* [SC] DO NOT EDIT */
+stonecutter active "fabric-26.2" /* [SC] DO NOT EDIT */
 
 stonecutter parameters {
     replacements.string(current.parsed >= "1.21.11") { replace("ResourceLocation", "Identifier") }

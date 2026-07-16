@@ -3,38 +3,38 @@ import net.minecraft.client.renderer.Sheets;
 import java.util.concurrent.ConcurrentHashMap;
 
 //?if >= 1.21.11 {
-/*import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.blaze3d.pipeline.RenderPipeline;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.rendertype.OutputTarget;
 import net.minecraft.client.renderer.rendertype.RenderSetup;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.LayeringTransform;
-import net.minecraft.resources.ResourceLocation;
-*///? } elif >= 1.21.5 {
+import net.minecraft.resources.Identifier;
+//? } elif >= 1.21.5 {
 /*import com.mojang.blaze3d.pipeline.RenderPipeline;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.RenderStateShard;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.resources.Identifier;
 *///?} elif >= 1.21.2 {
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.VertexFormat;
-import net.minecraft.client.renderer.RenderStateShard;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.TriState;
-//?} else {
 /*import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.client.renderer.RenderStateShard;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.TriState;
+*///?} else {
+/*import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.VertexFormat;
+import net.minecraft.client.renderer.RenderStateShard;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.resources.Identifier;
 *///?}
 
 //? if >= 26.1-0.snapshot.10 {
-/*import com.mojang.blaze3d.pipeline.DepthStencilState;
+import com.mojang.blaze3d.pipeline.DepthStencilState;
 import com.mojang.blaze3d.pipeline.ColorTargetState;
-*///?}
+//?}
 
 import java.util.Optional;
 import java.util.function.Function;
@@ -44,12 +44,12 @@ import java.util.function.Function;
  * Prevents semi-transparent armor/items from occluding translucent terrain (water, ice) behind them.
  */
 //? if < 1.21.11 {
-public final class ArmorHiderRenderTypes extends RenderStateShard {
+/*public final class ArmorHiderRenderTypes extends RenderStateShard {
     private ArmorHiderRenderTypes() { super("armor_hider_dummy", () -> {}, () -> {}); }
-//?} else {
-/*public final class ArmorHiderRenderTypes {
+*///?} else {
+public final class ArmorHiderRenderTypes {
     private ArmorHiderRenderTypes() {}
-*///?}
+//?}
 
     private static <T, R> Function<T, R> memoize(Function<T, R> fn) {
         var cache = new ConcurrentHashMap<T, R>();
@@ -59,7 +59,7 @@ public final class ArmorHiderRenderTypes extends RenderStateShard {
     // --- Pipelines (>= 1.21.5) ---
 
     //? if >= 26.2-1.pre {
-    /*private static RenderPipeline clonePipelineNoDepthWrite(RenderPipeline src, ResourceLocation location) {
+    private static RenderPipeline clonePipelineNoDepthWrite(RenderPipeline src, Identifier location) {
         var srcDss = src.getDepthStencilState();
         var noDss = new DepthStencilState(srcDss.depthTest(), false, srcDss.depthBiasScaleFactor(), srcDss.depthBiasConstant());
         var snippet = new RenderPipeline.Snippet(
@@ -76,21 +76,21 @@ public final class ArmorHiderRenderTypes extends RenderStateShard {
             // 26.3 removed RenderPipelines.ARMOR_TRANSLUCENT; armor now renders through the
             // entity translucent pipeline, so we clone that as the depth-disabled armor base.
             //? if >= 26.3-0.snapshot.2 {
-            /^RenderPipelines.ENTITY_TRANSLUCENT,
-            ^///?} else {
+            /*RenderPipelines.ENTITY_TRANSLUCENT,
+            *///?} else {
             RenderPipelines.ARMOR_TRANSLUCENT,
             //?}
-            ResourceLocation.fromNamespaceAndPath("armor_hider", "pipeline/armor_translucent_no_depth"));
+            Identifier.fromNamespaceAndPath("armor_hider", "pipeline/armor_translucent_no_depth"));
 
     private static final RenderPipeline ENTITY_TRANSLUCENT_NO_DEPTH = clonePipelineNoDepthWrite(
             RenderPipelines.ENTITY_TRANSLUCENT,
-            ResourceLocation.fromNamespaceAndPath("armor_hider", "pipeline/entity_translucent_no_depth"));
+            Identifier.fromNamespaceAndPath("armor_hider", "pipeline/entity_translucent_no_depth"));
 
     private static final RenderPipeline ITEM_ENTITY_TRANSLUCENT_CULL_NO_DEPTH = clonePipelineNoDepthWrite(
             RenderPipelines.ITEM_TRANSLUCENT,
-            ResourceLocation.fromNamespaceAndPath("armor_hider", "pipeline/item_translucent_no_depth"));
-    *///?} elif >= 26.2-0.snapshot {
-    /*private static RenderPipeline clonePipelineNoDepthWrite(RenderPipeline src, ResourceLocation location) {
+            Identifier.fromNamespaceAndPath("armor_hider", "pipeline/item_translucent_no_depth"));
+    //?} elif >= 26.2-0.snapshot {
+    /*private static RenderPipeline clonePipelineNoDepthWrite(RenderPipeline src, Identifier location) {
         var srcDss = src.getDepthStencilState();
         var noDss = new DepthStencilState(srcDss.depthTest(), false, srcDss.depthBiasScaleFactor(), srcDss.depthBiasConstant());
         var snippet = new RenderPipeline.Snippet(
@@ -105,17 +105,17 @@ public final class ArmorHiderRenderTypes extends RenderStateShard {
 
     private static final RenderPipeline ARMOR_TRANSLUCENT_NO_DEPTH = clonePipelineNoDepthWrite(
             RenderPipelines.ARMOR_TRANSLUCENT,
-            ResourceLocation.fromNamespaceAndPath("armor_hider", "pipeline/armor_translucent_no_depth"));
+            Identifier.fromNamespaceAndPath("armor_hider", "pipeline/armor_translucent_no_depth"));
 
     private static final RenderPipeline ENTITY_TRANSLUCENT_NO_DEPTH = clonePipelineNoDepthWrite(
             RenderPipelines.ENTITY_TRANSLUCENT,
-            ResourceLocation.fromNamespaceAndPath("armor_hider", "pipeline/entity_translucent_no_depth"));
+            Identifier.fromNamespaceAndPath("armor_hider", "pipeline/entity_translucent_no_depth"));
 
     private static final RenderPipeline ITEM_ENTITY_TRANSLUCENT_CULL_NO_DEPTH = clonePipelineNoDepthWrite(
             RenderPipelines.ITEM_TRANSLUCENT,
-            ResourceLocation.fromNamespaceAndPath("armor_hider", "pipeline/item_translucent_no_depth"));
+            Identifier.fromNamespaceAndPath("armor_hider", "pipeline/item_translucent_no_depth"));
     *///?} elif >= 26.1-0.snapshot.10 {
-    /*private static RenderPipeline clonePipelineNoDepthWrite(RenderPipeline src, ResourceLocation location) {
+    /*private static RenderPipeline clonePipelineNoDepthWrite(RenderPipeline src, Identifier location) {
         var srcDss = src.getDepthStencilState();
         var noDss = new DepthStencilState(srcDss.depthTest(), false, srcDss.depthBiasScaleFactor(), srcDss.depthBiasConstant());
         var snippet = new RenderPipeline.Snippet(
@@ -130,17 +130,17 @@ public final class ArmorHiderRenderTypes extends RenderStateShard {
 
     private static final RenderPipeline ARMOR_TRANSLUCENT_NO_DEPTH = clonePipelineNoDepthWrite(
             RenderPipelines.ARMOR_TRANSLUCENT,
-            ResourceLocation.fromNamespaceAndPath("armor_hider", "pipeline/armor_translucent_no_depth"));
+            Identifier.fromNamespaceAndPath("armor_hider", "pipeline/armor_translucent_no_depth"));
 
     private static final RenderPipeline ENTITY_TRANSLUCENT_NO_DEPTH = clonePipelineNoDepthWrite(
             RenderPipelines.ENTITY_TRANSLUCENT,
-            ResourceLocation.fromNamespaceAndPath("armor_hider", "pipeline/entity_translucent_no_depth"));
+            Identifier.fromNamespaceAndPath("armor_hider", "pipeline/entity_translucent_no_depth"));
 
     private static final RenderPipeline ITEM_ENTITY_TRANSLUCENT_CULL_NO_DEPTH = clonePipelineNoDepthWrite(
             RenderPipelines.ITEM_TRANSLUCENT,
-            ResourceLocation.fromNamespaceAndPath("armor_hider", "pipeline/item_translucent_no_depth"));
+            Identifier.fromNamespaceAndPath("armor_hider", "pipeline/item_translucent_no_depth"));
     *///? } elif >= 1.21.5 {
-    /*private static RenderPipeline clonePipelineNoDepthWrite(RenderPipeline src, ResourceLocation location) {
+    /*private static RenderPipeline clonePipelineNoDepthWrite(RenderPipeline src, Identifier location) {
         var snippet = new RenderPipeline.Snippet(
                 Optional.of(src.getVertexShader()), Optional.of(src.getFragmentShader()),
                 Optional.of(src.getShaderDefines()), Optional.of(src.getSamplers()),
@@ -158,31 +158,31 @@ public final class ArmorHiderRenderTypes extends RenderStateShard {
 
     private static final RenderPipeline ARMOR_TRANSLUCENT_NO_DEPTH = clonePipelineNoDepthWrite(
             RenderPipelines.ARMOR_TRANSLUCENT,
-            ResourceLocation.fromNamespaceAndPath("armor_hider", "pipeline/armor_translucent_no_depth"));
+            Identifier.fromNamespaceAndPath("armor_hider", "pipeline/armor_translucent_no_depth"));
 
     private static final RenderPipeline ENTITY_TRANSLUCENT_NO_DEPTH = clonePipelineNoDepthWrite(
             RenderPipelines.ENTITY_TRANSLUCENT,
-            ResourceLocation.fromNamespaceAndPath("armor_hider", "pipeline/entity_translucent_no_depth"));
+            Identifier.fromNamespaceAndPath("armor_hider", "pipeline/entity_translucent_no_depth"));
 
     private static final RenderPipeline ITEM_ENTITY_TRANSLUCENT_CULL_NO_DEPTH = clonePipelineNoDepthWrite(
             RenderPipelines.ITEM_ENTITY_TRANSLUCENT_CULL,
-            ResourceLocation.fromNamespaceAndPath("armor_hider", "pipeline/item_entity_translucent_cull_no_depth"));
+            Identifier.fromNamespaceAndPath("armor_hider", "pipeline/item_entity_translucent_cull_no_depth"));
     *///?}
 
     //? if >= 1.21.5 {
-    /*public static RenderPipeline[] pipelines() {
+    public static RenderPipeline[] pipelines() {
         return new RenderPipeline[] {
                 ARMOR_TRANSLUCENT_NO_DEPTH,
                 ENTITY_TRANSLUCENT_NO_DEPTH,
                 ITEM_ENTITY_TRANSLUCENT_CULL_NO_DEPTH
         };
     }
-    *///?}
+    //?}
 
     // --- Render types ---
 
     //? if >= 1.21.11 {
-    /*private static final Function<ResourceLocation, RenderType> TRANSLUCENT_ARMOR = memoize(
+    private static final Function<Identifier, RenderType> TRANSLUCENT_ARMOR = memoize(
             texture -> RenderType.create("armor_hider_armor_translucent_no_depth",
                     RenderSetup.builder(ARMOR_TRANSLUCENT_NO_DEPTH)
                             // 26.3 OIT: a translucent type must carry an OIT set to fade under the
@@ -192,8 +192,8 @@ public final class ArmorHiderRenderTypes extends RenderStateShard {
                             // the whole model's alpha uniformly, that opaque copy just renders it fully
                             // opaque. OIT-only (no opaque parts) fades the entire piece.
                             //? if >= 26.3-0.snapshot.2 {
-                            /^.setOitPipelines(RenderPipelines.OIT_ENTITY)
-                            ^///?}
+                            /*.setOitPipelines(RenderPipelines.OIT_ENTITY)
+                            *///?}
                             .withTexture("Sampler0", texture)
                             .useLightmap()
                             .useOverlay()
@@ -204,12 +204,12 @@ public final class ArmorHiderRenderTypes extends RenderStateShard {
                             .createRenderSetup())
     );
 
-    private static final Function<ResourceLocation, RenderType> TRANSLUCENT_ENTITY = memoize(
+    private static final Function<Identifier, RenderType> TRANSLUCENT_ENTITY = memoize(
             texture -> RenderType.create("armor_hider_entity_translucent_no_depth",
                     RenderSetup.builder(ENTITY_TRANSLUCENT_NO_DEPTH)
                             //? if >= 26.3-0.snapshot.2 {
-                            /^.setOitPipelines(RenderPipelines.OIT_ENTITY)
-                            ^///?}
+                            /*.setOitPipelines(RenderPipelines.OIT_ENTITY)
+                            *///?}
                             .withTexture("Sampler0", texture)
                             .useLightmap()
                             .useOverlay()
@@ -218,8 +218,8 @@ public final class ArmorHiderRenderTypes extends RenderStateShard {
                             .setOutline(RenderSetup.OutlineProperty.AFFECTS_OUTLINE)
                             .createRenderSetup())
     );
-    *///? } elif >= 1.21.5 {
-    /*private static final Function<ResourceLocation, RenderType> TRANSLUCENT_ARMOR = memoize(
+    //? } elif >= 1.21.5 {
+    /*private static final Function<Identifier, RenderType> TRANSLUCENT_ARMOR = memoize(
             texture -> RenderType.create("armor_hider_armor_translucent_no_depth", 1536, true, true,
                     ARMOR_TRANSLUCENT_NO_DEPTH,
                     RenderType.CompositeState.builder()
@@ -230,7 +230,7 @@ public final class ArmorHiderRenderTypes extends RenderStateShard {
                             .createCompositeState(true))
     );
 
-    private static final Function<ResourceLocation, RenderType> TRANSLUCENT_ENTITY = memoize(
+    private static final Function<Identifier, RenderType> TRANSLUCENT_ENTITY = memoize(
             texture -> RenderType.create("armor_hider_entity_translucent_no_depth", 1536, true, true,
                     ENTITY_TRANSLUCENT_NO_DEPTH,
                     RenderType.CompositeState.builder()
@@ -240,7 +240,7 @@ public final class ArmorHiderRenderTypes extends RenderStateShard {
                             .createCompositeState(true))
     );
     *///?} elif >= 1.21.2 {
-    private static final Function<ResourceLocation, RenderType> TRANSLUCENT_ARMOR = memoize(
+    /*private static final Function<Identifier, RenderType> TRANSLUCENT_ARMOR = memoize(
             texture -> RenderType.create("armor_hider_armor_translucent_no_depth",
                     DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, 1536, true, true,
                     RenderType.CompositeState.builder()
@@ -255,7 +255,7 @@ public final class ArmorHiderRenderTypes extends RenderStateShard {
                             .createCompositeState(true))
     );
 
-    private static final Function<ResourceLocation, RenderType> TRANSLUCENT_ENTITY = memoize(
+    private static final Function<Identifier, RenderType> TRANSLUCENT_ENTITY = memoize(
             texture -> RenderType.create("armor_hider_entity_translucent_no_depth",
                     DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, 1536, true, true,
                     RenderType.CompositeState.builder()
@@ -268,8 +268,8 @@ public final class ArmorHiderRenderTypes extends RenderStateShard {
                             .setWriteMaskState(COLOR_WRITE)
                             .createCompositeState(true))
     );
-    //?} else {
-    /*private static final Function<ResourceLocation, RenderType> TRANSLUCENT_ARMOR = memoize(
+    *///?} else {
+    /*private static final Function<Identifier, RenderType> TRANSLUCENT_ARMOR = memoize(
             texture -> RenderType.create("armor_hider_armor_translucent_no_depth",
                     DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, 1536, true, true,
                     RenderType.CompositeState.builder()
@@ -283,18 +283,18 @@ public final class ArmorHiderRenderTypes extends RenderStateShard {
                             .createCompositeState(true))
     );
 
-    private static final Function<ResourceLocation, RenderType> TRANSLUCENT_ENTITY = TRANSLUCENT_ARMOR;
+    private static final Function<Identifier, RenderType> TRANSLUCENT_ENTITY = TRANSLUCENT_ARMOR;
     *///?}
 
     // --- Item sheet types ---
 
     //? if >= 1.21.11 {
-    /*private static final RenderType TRANSLUCENT_ITEM_SHEET = RenderType.create(
+    private static final RenderType TRANSLUCENT_ITEM_SHEET = RenderType.create(
             "armor_hider_item_translucent_cull_no_depth",
             RenderSetup.builder(ITEM_ENTITY_TRANSLUCENT_CULL_NO_DEPTH)
                     //? if >= 26.3-0.snapshot.2 {
-                    /^.setOitPipelines(RenderPipelines.OIT_ITEM)
-                    ^///?}
+                    /*.setOitPipelines(RenderPipelines.OIT_ITEM)
+                    *///?}
                     .withTexture("Sampler0", net.minecraft.client.renderer.texture.TextureAtlas.LOCATION_BLOCKS)
                     // 26.3 removed RenderSetupBuilder.setOutputTarget (and OutputTarget.ITEM_ENTITY_TARGET);
                     // item entities now draw to the default target, so the call is simply dropped.
@@ -307,7 +307,7 @@ public final class ArmorHiderRenderTypes extends RenderStateShard {
                     .setOutline(RenderSetup.OutlineProperty.AFFECTS_OUTLINE)
                     .createRenderSetup()
     );
-    *///? } elif >= 1.21.5 {
+    //? } elif >= 1.21.5 {
     /*private static final RenderType TRANSLUCENT_ITEM_SHEET = RenderType.create(
             "armor_hider_item_translucent_cull_no_depth", 1536, true, true,
             ITEM_ENTITY_TRANSLUCENT_CULL_NO_DEPTH,
@@ -319,7 +319,7 @@ public final class ArmorHiderRenderTypes extends RenderStateShard {
                     .createCompositeState(true)
     );
     *///?} elif >= 1.21.2 {
-    private static final RenderType TRANSLUCENT_ITEM_SHEET = RenderType.create(
+    /*private static final RenderType TRANSLUCENT_ITEM_SHEET = RenderType.create(
             "armor_hider_item_translucent_cull_no_depth",
             DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, 1536, true, true,
             RenderType.CompositeState.builder()
@@ -332,7 +332,7 @@ public final class ArmorHiderRenderTypes extends RenderStateShard {
                     .setWriteMaskState(COLOR_WRITE)
                     .createCompositeState(true)
     );
-    //?} else {
+    *///?} else {
     /*private static final RenderType TRANSLUCENT_ITEM_SHEET = RenderType.create(
             "armor_hider_item_translucent_cull_no_depth",
             DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, 1536, true, true,
@@ -349,11 +349,11 @@ public final class ArmorHiderRenderTypes extends RenderStateShard {
 
     // --- Public API ---
 
-    public static RenderType translucentArmor(ResourceLocation texture) {
+    public static RenderType translucentArmor(Identifier texture) {
         return TRANSLUCENT_ARMOR.apply(texture);
     }
 
-    public static RenderType translucentEntity(ResourceLocation texture) {
+    public static RenderType translucentEntity(Identifier texture) {
         return TRANSLUCENT_ENTITY.apply(texture);
     }
 

@@ -37,9 +37,9 @@ import java.util.function.Consumer;
 @Mixin(Player.class)
 public abstract class PlayerMixin
     //? if >= 1.21.11
-    //extends Avatar implements ContainerUser, IdentityCarrier {
+    extends Avatar implements ContainerUser, IdentityCarrier {
     //? if < 1.21.11
-    extends LivingEntity implements IdentityCarrier {
+    //extends LivingEntity implements IdentityCarrier {
 
     @Unique
     private boolean armorHider$modsDirty = true;

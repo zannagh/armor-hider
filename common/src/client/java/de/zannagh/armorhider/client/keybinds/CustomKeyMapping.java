@@ -6,9 +6,9 @@ public abstract class CustomKeyMapping extends KeyMapping {
     
     public CustomKeyMapping(String name, int preferredKey) {
         //? if > 1.21.8
-        //super(name, preferredKey, Category.MISC);
+        super(name, preferredKey, Category.MISC);
         //? if <= 1.21.8
-         super(name, preferredKey, "key.categories.misc");
+         //super(name, preferredKey, "key.categories.misc");
     }
     
     

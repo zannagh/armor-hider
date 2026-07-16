@@ -7,7 +7,7 @@ import de.zannagh.armorhider.server.ServerConfiguration;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -17,11 +17,11 @@ import java.util.function.Consumer;
 
 public final class PayloadRegistry {
 
-    private static final Map<ResourceLocation, PayloadEntry<?>> C2S_PAYLOADS = new HashMap<>();
-    private static final Map<ResourceLocation, PayloadEntry<?>> S2C_PAYLOADS = new HashMap<>();
+    private static final Map<Identifier, PayloadEntry<?>> C2S_PAYLOADS = new HashMap<>();
+    private static final Map<Identifier, PayloadEntry<?>> S2C_PAYLOADS = new HashMap<>();
 
-    private static final Map<ResourceLocation, Consumer<PayloadHandlerContext<?>>> C2S_HANDLERS = new HashMap<>();
-    private static final Map<ResourceLocation, Consumer<PayloadHandlerContext<?>>> S2C_HANDLERS = new HashMap<>();
+    private static final Map<Identifier, Consumer<PayloadHandlerContext<?>>> C2S_HANDLERS = new HashMap<>();
+    private static final Map<Identifier, Consumer<PayloadHandlerContext<?>>> S2C_HANDLERS = new HashMap<>();
 
     
     static {
@@ -71,19 +71,19 @@ public final class PayloadRegistry {
         S2C_HANDLERS.put(type.id(), (Consumer<PayloadHandlerContext<?>>) (Consumer<?>) handler);
     }
 
-    public static Consumer<PayloadHandlerContext<?>> getC2SHandler(ResourceLocation id) {
+    public static Consumer<PayloadHandlerContext<?>> getC2SHandler(Identifier id) {
         return C2S_HANDLERS.get(id);
     }
 
-    public static Consumer<PayloadHandlerContext<?>> getS2CHandler(ResourceLocation id) {
+    public static Consumer<PayloadHandlerContext<?>> getS2CHandler(Identifier id) {
         return S2C_HANDLERS.get(id);
     }
 
-    public static Map<ResourceLocation, PayloadEntry<?>> getAllC2S() {
+    public static Map<Identifier, PayloadEntry<?>> getAllC2S() {
         return C2S_PAYLOADS;
     }
 
-    public static Map<ResourceLocation, PayloadEntry<?>> getAllS2C() {
+    public static Map<Identifier, PayloadEntry<?>> getAllS2C() {
         return S2C_PAYLOADS;
     }
 

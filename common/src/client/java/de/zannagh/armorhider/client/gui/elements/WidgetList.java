@@ -3,7 +3,7 @@ package de.zannagh.armorhider.client.gui.elements;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.ContainerObjectSelectionList;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
 
@@ -49,7 +49,7 @@ public class WidgetList extends ContainerObjectSelectionList<WidgetList.WidgetEn
     }
 
     //? if >= 1.21 && <= 1.21.8 {
-    private int customX = -1;
+    /*private int customX = -1;
 
     public void updateSizeAndPosition(int width, int height, int x, int y) {
         this.customX = x;
@@ -66,18 +66,18 @@ public class WidgetList extends ContainerObjectSelectionList<WidgetList.WidgetEn
 
     @Override
     //? if >= 1.21.4
-    //protected int scrollBarX() {
+    protected int scrollBarX() {
     //? if < 1.21.4
-    protected int getScrollbarPosition() {
+    //protected int getScrollbarPosition() {
         if (customX >= 0) {
             return customX + this.width - 6;
         }
         //? if >= 1.21.4
-        //return super.scrollBarX();
+        return super.scrollBarX();
         //? if < 1.21.4
-        return super.getScrollbarPosition();
+        //return super.getScrollbarPosition();
     }
-    //?}
+    *///?}
 
     //? if < 1.21 {
     /*public void updateSizeAndPosition(int width, int height, int x, int y) {
@@ -93,18 +93,18 @@ public class WidgetList extends ContainerObjectSelectionList<WidgetList.WidgetEn
     *///?}
 
     //? if >= 26.1-1.pre.1 {
-    /*@Override
+    @Override
     protected void extractListBackground(GuiGraphicsExtractor context) {
     }
-    *///?}
-    //? if >= 1.21 && < 26.1-1.pre.1 {
-    @Override
-    protected void renderListBackground(net.minecraft.client.gui.GuiGraphics context) {
-    }
     //?}
+    //? if >= 1.21 && < 26.1-1.pre.1 {
+    /*@Override
+    protected void renderListBackground(net.minecraft.client.gui.GuiGraphicsExtractor context) {
+    }
+    *///?}
     //? if < 1.21 {
     /*@Override
-    protected void renderBackground(net.minecraft.client.gui.GuiGraphics context) {
+    protected void renderBackground(net.minecraft.client.gui.GuiGraphicsExtractor context) {
     }
     *///?}
 
@@ -116,14 +116,14 @@ public class WidgetList extends ContainerObjectSelectionList<WidgetList.WidgetEn
         }
 
         //? if >= 26.1-1.pre.1 {
-        /*@Override
+        @Override
         public void extractContent(GuiGraphicsExtractor context, int mouseX, int mouseY, boolean hovered, float delta) {
             widget.setX(this.getContentX());
             widget.setY(this.getContentY());
             widget.setWidth(this.getContentWidth());
             widget.extractRenderState(context, mouseX, mouseY, delta);
         }
-        *///?} else if >= 1.21.9 {
+        //?} else if >= 1.21.9 {
         /*@Override
         public void renderContent(GuiGraphics context, int mouseX, int mouseY, boolean hovered, float delta) {
             widget.setX(this.getContentX());
@@ -132,14 +132,14 @@ public class WidgetList extends ContainerObjectSelectionList<WidgetList.WidgetEn
             widget.render(context, mouseX, mouseY, delta);
         }
         *///?} else {
-        @Override
+        /*@Override
         public void render(GuiGraphics context, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float delta) {
             widget.setX(x);
             widget.setY(y);
             widget.setWidth(entryWidth);
             widget.render(context, mouseX, mouseY, delta);
         }
-        //?}
+        *///?}
 
         @Override
         public List<? extends GuiEventListener> children() {
@@ -152,10 +152,10 @@ public class WidgetList extends ContainerObjectSelectionList<WidgetList.WidgetEn
         }
 
         //? if >= 1.21.9 {
-        /*@Override
+        @Override
         public void visitWidgets(Consumer<AbstractWidget> consumer) {
             consumer.accept(widget);
         }
-        *///?}
+        //?}
     }
 }

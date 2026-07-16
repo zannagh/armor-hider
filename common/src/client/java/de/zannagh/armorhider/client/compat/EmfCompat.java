@@ -11,7 +11,7 @@ import de.zannagh.armorhider.util.PlayerNameUtil;
 import traben.entity_model_features.EMFAnimationApi;
 
 //? if >= 1.21.4
-//import net.minecraft.client.renderer.entity.state.PlayerRenderState;
+import net.minecraft.client.renderer.entity.state.AvatarRenderState;
 
 public final class EmfCompat {
 
@@ -52,7 +52,7 @@ public final class EmfCompat {
      * clearing it causes arms to separate from the torso (#217).
      * Armor rendering is already prevented at the layer level by other mixins.
      * @param identityCarrier The identity carrier that is internally checked to be a {@link IdentityCarrier}
-     * @param renderState The renderState that is internally checked to be a {@link PlayerRenderState}
+     * @param renderState The renderState that is internally checked to be a {@link AvatarRenderState}
      */
     public static void clearEquipment(Object identityCarrier, Object renderState) {
         if (!ArmorHiderClient.EMF_LOADED) {
@@ -62,7 +62,7 @@ public final class EmfCompat {
             return;
         }
         //? if >= 1.21.4 {
-        /*if (!(renderState instanceof PlayerRenderState avRenderState)) {
+        if (!(renderState instanceof AvatarRenderState avRenderState)) {
             return;
         }
         if (carrier.armorHider$getPlayerModifications().head().shouldHide()) {
@@ -77,6 +77,6 @@ public final class EmfCompat {
         if (carrier.armorHider$getPlayerModifications().feet().shouldHide()) {
             avRenderState.feetEquipment.copyAndClear();
         }
-        *///? }
+        //? }
     }
 }

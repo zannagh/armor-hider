@@ -2,11 +2,11 @@ package de.zannagh.armorhider.client.render.rendertype;
 
 import de.zannagh.armorhider.client.api.AhRenderTypeFactory;
 import net.minecraft.client.renderer.Sheets;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.resources.Identifier;
 
 //? if > 1.21.10
-//import net.minecraft.client.renderer.RenderTypes;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 
 /**
  * Resolves version-specific translucent render types with depth writing disabled.
@@ -33,26 +33,26 @@ public class RenderTypeFactory implements AhRenderTypeFactory {
         return instance;
     }
 
-    public RenderType getTranslucentArmorRenderType(ResourceLocation texture) {
+    public RenderType getTranslucentArmorRenderType(Identifier texture) {
         if (isEmpty) {
             //? if >= 26.3-0.snapshot.2
             //return RenderTypes.entityTranslucent(texture);
             //? if > 1.21.10 && < 26.3-0.snapshot.2
-            //return RenderTypes.armorTranslucent(texture);
+            return RenderTypes.armorTranslucent(texture);
             //? if <= 1.21.10 && > 1.21.1
-            return RenderType.armorTranslucent(texture);
+            //return RenderType.armorTranslucent(texture);
             //? if <= 1.21.1
             //return RenderType.armorCutoutNoCull(texture);
         }
         return ArmorHiderRenderTypes.translucentArmor(texture);
     }
 
-    public RenderType getTranslucentEntityRenderType(ResourceLocation texture) {
+    public RenderType getTranslucentEntityRenderType(Identifier texture) {
         if (isEmpty) {
             //? if > 1.21.10
-            //return RenderTypes.entityTranslucent(texture);
+            return RenderTypes.entityTranslucent(texture);
             //? if <= 1.21.10
-            return RenderType.entityTranslucent(texture);
+            //return RenderType.entityTranslucent(texture);
         }
         return ArmorHiderRenderTypes.translucentEntity(texture);
     }

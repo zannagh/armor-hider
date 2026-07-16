@@ -239,13 +239,13 @@ public class AhPlayerConfigApiImpl implements ArmorHiderPlayerConfigApi, Configu
             var isRemotePlayer = ArmorHiderClient.isPlayerRemotePlayer(playerName);
             if (isRemotePlayer.getA()) {
                 //? if >= 1.21.9 {
-                /*playerId = isRemotePlayer.getB().getProfile().id();
+                playerId = isRemotePlayer.getB().getProfile().id();
                 config = serverConfiguration.getPlayerConfigOrDefault(isRemotePlayer.getB().getProfile().id());
-                *///?}
-                //? if < 1.21.9 {
-                playerId = isRemotePlayer.getB().getProfile().getId();
-                config = serverConfiguration.getPlayerConfigOrDefault(isRemotePlayer.getB().getProfile().getId());
                 //?}
+                //? if < 1.21.9 {
+                /*playerId = isRemotePlayer.getB().getProfile().getId();
+                config = serverConfiguration.getPlayerConfigOrDefault(isRemotePlayer.getB().getProfile().getId());
+                *///?}
                 if (config != null) {
                     return config;
                 }

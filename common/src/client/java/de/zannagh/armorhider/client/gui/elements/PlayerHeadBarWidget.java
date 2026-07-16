@@ -4,7 +4,7 @@ import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.List;
 import java.util.UUID;
@@ -12,9 +12,9 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 //? if >= 1.21.6
-//import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.renderer.RenderPipelines;
 //? if > 1.21.8
-//import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 
 /**
  * A horizontally scrollable bar of player head icons. Each cell renders a player's face (with the hat
@@ -32,13 +32,13 @@ public class PlayerHeadBarWidget extends AbstractWidget {
         public final String name;
         public final boolean global;
         private final boolean fullIcon;
-        private final Supplier<ResourceLocation> texture;
+        private final Supplier<Identifier> texture;
 
-        public Entry(UUID id, String name, Supplier<ResourceLocation> faceTexture) {
+        public Entry(UUID id, String name, Supplier<Identifier> faceTexture) {
             this(id, name, faceTexture, false, false);
         }
 
-        private Entry(UUID id, String name, Supplier<ResourceLocation> texture, boolean fullIcon, boolean global) {
+        private Entry(UUID id, String name, Supplier<Identifier> texture, boolean fullIcon, boolean global) {
             this.id = id;
             this.name = name;
             this.texture = texture;
@@ -47,11 +47,11 @@ public class PlayerHeadBarWidget extends AbstractWidget {
         }
 
         /** Creates the special "global configuration" entry, rendered as a full icon rather than a face. */
-        public static Entry global(UUID sentinelId, String name, Supplier<ResourceLocation> icon) {
+        public static Entry global(UUID sentinelId, String name, Supplier<Identifier> icon) {
             return new Entry(sentinelId, name, icon, true, true);
         }
 
-        ResourceLocation texture() {
+        Identifier texture() {
             return texture.get();
         }
 
@@ -68,15 +68,15 @@ public class PlayerHeadBarWidget extends AbstractWidget {
     private static final int ARROW_W = 23;
     private static final int ARROW_H = 13;
     private static final int ARROW_EDGE_PAD = 2;
-    private static final ResourceLocation ARROW_BACK = sprite("textures/gui/sprites/arrow_back.png");
-    private static final ResourceLocation ARROW_FORWARD = sprite("textures/gui/sprites/arrow_forward.png");
+    private static final Identifier ARROW_BACK = sprite("textures/gui/sprites/arrow_back.png");
+    private static final Identifier ARROW_FORWARD = sprite("textures/gui/sprites/arrow_forward.png");
 
-    private static ResourceLocation sprite(String path) {
+    private static Identifier sprite(String path) {
         //? if >= 1.21 {
-        return ResourceLocation.fromNamespaceAndPath("armor-hider", path);
+        return Identifier.fromNamespaceAndPath("armor-hider", path);
         //?}
         //? if < 1.21 {
-        /*return new ResourceLocation("armor-hider", path);
+        /*return new Identifier("armor-hider", path);
         *///?}
     }
 
@@ -184,7 +184,7 @@ public class PlayerHeadBarWidget extends AbstractWidget {
         return true;
     }
 
-    private void renderBar(net.minecraft.client.gui.GuiGraphics context, int mouseX, int mouseY) {
+    private void renderBar(net.minecraft.client.gui.GuiGraphicsExtractor context, int mouseX, int mouseY) {
         clampScroll();
         int hovered = cellAt(mouseX, mouseY);
 
@@ -221,20 +221,20 @@ public class PlayerHeadBarWidget extends AbstractWidget {
         setTooltip(hovered >= 0 ? Tooltip.create(Component.literal(entries.get(hovered).name)) : null);
     }
 
-    private void drawArrow(net.minecraft.client.gui.GuiGraphics context, ResourceLocation arrow, int x, int y) {
+    private void drawArrow(net.minecraft.client.gui.GuiGraphicsExtractor context, Identifier arrow, int x, int y) {
         // Subtle dark backdrop so the arrow stays legible over face icons behind it.
         context.fill(x - 1, y - 1, x + ARROW_W + 1, y + ARROW_H + 1, 0x99000000);
         drawTextureRegion(context, arrow, x, y, ARROW_W, ARROW_H, 0.0F, 0.0F, ARROW_W, ARROW_H, ARROW_W, ARROW_H);
     }
 
-    private void drawBorder(net.minecraft.client.gui.GuiGraphics context, int x, int y, int w, int h, int color) {
+    private void drawBorder(net.minecraft.client.gui.GuiGraphicsExtractor context, int x, int y, int w, int h, int color) {
         context.fill(x, y, x + w, y + 1, color);
         context.fill(x, y + h - 1, x + w, y + h, color);
         context.fill(x, y, x + 1, y + h, color);
         context.fill(x + w - 1, y, x + w, y + h, color);
     }
 
-    private void drawCell(net.minecraft.client.gui.GuiGraphics context, Entry entry, int x, int y, int size) {
+    private void drawCell(net.minecraft.client.gui.GuiGraphicsExtractor context, Entry entry, int x, int y, int size) {
         if (entry.fullIcon()) {
             // Full 16x16 icon (e.g. the global-configuration icon), scaled into the cell.
             drawTextureRegion(context, entry.texture(), x, y, size, size, 0.0F, 0.0F, 16, 16, 16, 16);
@@ -246,50 +246,50 @@ public class PlayerHeadBarWidget extends AbstractWidget {
     }
 
     /** Blits a texture region scaled into a drawW x drawH rect. The blit overload differs per rendering epoch. */
-    private void drawTextureRegion(net.minecraft.client.gui.GuiGraphics context, ResourceLocation texture,
+    private void drawTextureRegion(net.minecraft.client.gui.GuiGraphicsExtractor context, Identifier texture,
                                    int x, int y, int drawW, int drawH, float u, float v, int regionW, int regionH, int texW, int texH) {
         //? if >= 1.21.6 {
-        /*context.blit(RenderPipelines.GUI_TEXTURED, texture, x, y, u, v, drawW, drawH, regionW, regionH, texW, texH);
-        *///?}
-        //? if >= 1.21.2 && < 1.21.6 {
-        context.blit((t) -> net.minecraft.client.renderer.RenderType.guiTextured(t), texture, x, y, u, v, drawW, drawH, regionW, regionH, texW, texH);
+        context.blit(RenderPipelines.GUI_TEXTURED, texture, x, y, u, v, drawW, drawH, regionW, regionH, texW, texH);
         //?}
+        //? if >= 1.21.2 && < 1.21.6 {
+        /*context.blit((t) -> net.minecraft.client.renderer.rendertype.RenderType.guiTextured(t), texture, x, y, u, v, drawW, drawH, regionW, regionH, texW, texH);
+        *///?}
         //? if < 1.21.2 {
         /*context.blit(texture, x, y, drawW, drawH, u, v, regionW, regionH, texW, texH);
         *///?}
     }
 
     //? if >= 26.1-1.pre.1 {
-    /*@Override
-    protected void extractWidgetRenderState(net.minecraft.client.gui.GuiGraphics context, int mouseX, int mouseY, float partialTick) {
-        renderBar(context, mouseX, mouseY);
-    }
-    *///?}
-    //? if < 26.1-1.pre.1 {
     @Override
-    protected void renderWidget(net.minecraft.client.gui.GuiGraphics context, int mouseX, int mouseY, float partialTick) {
+    protected void extractWidgetRenderState(net.minecraft.client.gui.GuiGraphicsExtractor context, int mouseX, int mouseY, float partialTick) {
         renderBar(context, mouseX, mouseY);
     }
     //?}
+    //? if < 26.1-1.pre.1 {
+    /*@Override
+    protected void renderWidget(net.minecraft.client.gui.GuiGraphicsExtractor context, int mouseX, int mouseY, float partialTick) {
+        renderBar(context, mouseX, mouseY);
+    }
+    *///?}
 
     //? if > 1.21.8 {
-    /*@Override
+    @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
         if (!this.active || !this.visible || event.button() != 0) {
             return false;
         }
         return selectAt(event.x(), event.y());
     }
-    *///?}
+    //?}
     //? if <= 1.21.8 {
-    @Override
+    /*@Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (!this.active || !this.visible || button != 0) {
             return false;
         }
         return selectAt(mouseX, mouseY);
     }
-    //?}
+    *///?}
 
     //? if >= 1.21 {
     @Override

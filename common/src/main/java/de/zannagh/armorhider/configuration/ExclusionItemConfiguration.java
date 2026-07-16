@@ -166,11 +166,11 @@ public class ExclusionItemConfiguration {
     public static Item getItemFromId(String itemId) {
         try {
             //? if >= 1.21.2 {
-            return BuiltInRegistries.ITEM.getValue(net.minecraft.resources.ResourceLocation.parse(itemId));
+            return BuiltInRegistries.ITEM.getValue(net.minecraft.resources.Identifier.parse(itemId));
             //?} else if >= 1.20.5 {
-            /*return BuiltInRegistries.ITEM.get(net.minecraft.resources.ResourceLocation.parse(itemId));
+            /*return BuiltInRegistries.ITEM.get(net.minecraft.resources.Identifier.parse(itemId));
             *///?} else {
-            /*return BuiltInRegistries.ITEM.get(new net.minecraft.resources.ResourceLocation(itemId));
+            /*return BuiltInRegistries.ITEM.get(new net.minecraft.resources.Identifier(itemId));
             *///?}
         } catch (Exception e) {
             ArmorHider.LOGGER.warn("Failed to resolve item from ID '{}': {}", itemId, e.getMessage());

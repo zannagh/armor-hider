@@ -1,5 +1,5 @@
 //? if < 1.21.9 {
-package de.zannagh.armorhider.client.mixin.hand;
+/*package de.zannagh.armorhider.client.mixin.hand;
 
 import de.zannagh.armorhider.client.api.AhRenderManagementApi;
 import de.zannagh.armorhider.client.common.RenderScope;
@@ -32,7 +32,7 @@ public class ModelPartMixin {
     //? }
 
     //? if < 1.21 {
-    /*@ModifyVariable(
+    /^@ModifyVariable(
             method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;IIFFFF)V",
             at = @At("HEAD"),
             ordinal = 3,
@@ -48,6 +48,6 @@ public class ModelPartMixin {
         }
         return alpha;
     }
-    *///? }
+    ^///? }
 }
-//? }
+*///? }

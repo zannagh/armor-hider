@@ -12,7 +12,7 @@ import java.util.Set;
 
 //region ConditionalImports
 //? if >= 1.21.9
-//import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.component.DataComponents;
 //endregion
 
 public final class ItemsUtil {
@@ -72,8 +72,8 @@ public final class ItemsUtil {
             return false;
         }
         //? if < 1.21.9 {
-        return itemStack.is(Items.ELYTRA) || itemStack.getItem().toString().toLowerCase().contains("elytra");
-        //?} else
-        //return itemStack.getComponents().has(DataComponents.GLIDER) || itemStack.is(Items.ELYTRA) || itemStack.getItem().toString().toLowerCase().contains("elytra");
+        /*return itemStack.is(Items.ELYTRA) || itemStack.getItem().toString().toLowerCase().contains("elytra");
+        *///?} else
+        return itemStack.getComponents().has(DataComponents.GLIDER) || itemStack.is(Items.ELYTRA) || itemStack.getItem().toString().toLowerCase().contains("elytra");
     }
 }

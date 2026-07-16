@@ -3,13 +3,13 @@ package de.zannagh.armorhider.client.gui.elements.implementations;
 import de.zannagh.armorhider.client.gui.UiConstants;
 import de.zannagh.armorhider.client.gui.elements.LayeredImageButton;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.Nullable;
 
 public class CombatDetectionButton extends LayeredImageButton {
 
-    private final ResourceLocation slotSprite = modSprite("in_combat_button_icon_enabled");
-    private final ResourceLocation disabledSlotSprite = modSprite("in_combat_button_icon_disabled");
+    private final Identifier slotSprite = modSprite("in_combat_button_icon_enabled");
+    private final Identifier disabledSlotSprite = modSprite("in_combat_button_icon_disabled");
 
     public CombatDetectionButton(boolean initial, OnPress onPress) {
         super(null, initial, UiConstants.SQUARE_BUTTON_WIDTH, UiConstants.DEFAULT_BUTTON_HEIGHT,
@@ -17,12 +17,12 @@ public class CombatDetectionButton extends LayeredImageButton {
     }
 
     @Override
-    protected @Nullable ResourceLocation spriteForeground(boolean enabled) {
+    protected @Nullable Identifier spriteForeground(boolean enabled) {
         return enabled ? slotSprite : disabledSlotSprite;
     }
     
     @Override
-    protected @Nullable ResourceLocation midLayerSprite(boolean enabled) {
+    protected @Nullable Identifier midLayerSprite(boolean enabled) {
         return enabled ? modSprite("accept_highlighted") : null;
     }
 

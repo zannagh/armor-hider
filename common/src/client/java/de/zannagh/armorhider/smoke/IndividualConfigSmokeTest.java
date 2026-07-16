@@ -1,5 +1,5 @@
 //? if fcgt {
-/*package de.zannagh.armorhider.smoke;
+package de.zannagh.armorhider.smoke;
 
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.client.ArmorHiderClient;
@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.Optional;
 
-/^*
+/**
  * Phase 2 smoke for the client-side per-player configuration feature (issue #259).
  * <p>
  * Boots into a singleplayer world, then runs three checks entirely on the client thread:
@@ -41,7 +41,7 @@ import java.util.Optional;
  * </ol>
  * Runtime rendering can't be validated for correctness (no screenshot baselines — see scripts/README.md);
  * this catches init/layout crashes and dead render paths that compilation can't.
- ^/
+ */
 public final class IndividualConfigSmokeTest implements FabricClientGameTest {
 
     @Override
@@ -67,7 +67,7 @@ public final class IndividualConfigSmokeTest implements FabricClientGameTest {
             context.runOnClient(client -> {
                 var optionsScreen = new de.zannagh.armorhider.client.gui.screens.ArmorHiderOptionsScreen(
                         null, client.options);
-                Minecraft.getInstance().setScreen(optionsScreen);
+                Minecraft.getInstance().setScreenAndShow(optionsScreen);
                 assertScreenHasDoneButton(optionsScreen);
             });
             context.waitTicks(5);
@@ -78,7 +78,7 @@ public final class IndividualConfigSmokeTest implements FabricClientGameTest {
             context.runOnClient(client -> {
                 var screen = new IndividualPlayerConfigurationsScreen(
                         null, client.options, Component.translatable("armorhider.individual.title"));
-                Minecraft.getInstance().setScreen(screen);
+                Minecraft.getInstance().setScreenAndShow(screen);
                 assertScreenHasDoneButton(screen);
             });
             context.waitTicks(10);
@@ -92,7 +92,7 @@ public final class IndividualConfigSmokeTest implements FabricClientGameTest {
                 manager.setArmorHiderDisabledForOthersTo(true, Optional.of(true));
                 var screen = new IndividualPlayerConfigurationsScreen(
                         null, client.options, Component.translatable("armorhider.individual.title"));
-                Minecraft.getInstance().setScreen(screen);
+                Minecraft.getInstance().setScreenAndShow(screen);
                 assertScreenHasDoneButton(screen);
                 manager.setArmorHiderDisabledForOthersTo(prior, Optional.of(true));
             });
@@ -105,7 +105,7 @@ public final class IndividualConfigSmokeTest implements FabricClientGameTest {
                 manager.setServerConfig(serverConfig);
                 var screen = new IndividualPlayerConfigurationsScreen(
                         null, client.options, Component.translatable("armorhider.individual.title"));
-                Minecraft.getInstance().setScreen(screen);
+                Minecraft.getInstance().setScreenAndShow(screen);
                 assertScreenHasDoneButton(screen);
                 manager.clearServerConfig();
             });
@@ -121,7 +121,7 @@ public final class IndividualConfigSmokeTest implements FabricClientGameTest {
                 if (localInfo == null) {
                     throw new IllegalStateException("[smoke/fcgt] Local PlayerInfo unavailable for face render probe");
                 }
-                Minecraft.getInstance().setScreen(new WidgetProbeScreen(localInfo, player.getUUID()));
+                Minecraft.getInstance().setScreenAndShow(new WidgetProbeScreen(localInfo, player.getUUID()));
             });
             context.waitTicks(10);
 
@@ -271,7 +271,7 @@ public final class IndividualConfigSmokeTest implements FabricClientGameTest {
         ArmorHider.LOGGER.info("[smoke/fcgt] per-player screen layout ok ({} widgets)", widgetCount);
     }
 
-    /^* Minimal screen that lays out the new version-gated widgets so a render pass exercises their code. ^/
+    /** Minimal screen that lays out the new version-gated widgets so a render pass exercises their code. */
     private static final class WidgetProbeScreen extends Screen {
         private final PlayerInfo info;
         private final UUID id;
@@ -300,4 +300,4 @@ public final class IndividualConfigSmokeTest implements FabricClientGameTest {
         }
     }
 }
-*///?}
+//?}

@@ -9,7 +9,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.game.ClientboundCustomPayloadPacket;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -27,7 +27,7 @@ public abstract class ClientPlayNetworkHandlerMixin {
 
     @Inject(method = "handleCustomPayload", at = @At("HEAD"), cancellable = true)
     private void onHandleCustomPayload(ClientboundCustomPayloadPacket packet, CallbackInfo ci) {
-        ResourceLocation channel = packet.getIdentifier();
+        Identifier channel = packet.getIdentifier();
         FriendlyByteBuf data = packet.getData();
 
         // Try to get the decoder for this channel

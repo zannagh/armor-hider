@@ -17,23 +17,23 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 //? if >= 1.21.2 {
-import net.minecraft.client.renderer.entity.state.PlayerRenderState;
+import net.minecraft.client.renderer.entity.state.AvatarRenderState;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 //?}
 
 //? if < 1.21.9 {
-import com.mojang.blaze3d.vertex.PoseStack;
+/*import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.common.SlotModification;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.world.entity.EquipmentSlot;
-//?}
+*///?}
 
 //? if >= 1.21.2 && < 1.21.9 {
-import net.minecraft.client.model.PlayerModel;
+/*import net.minecraft.client.model.player.PlayerModel;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
-//?}
+*///?}
 
 //? if < 1.21.2 {
 /*import net.minecraft.client.model.HumanoidModel;
@@ -83,7 +83,7 @@ public abstract class LivingEntityRendererMixin
             at = @At("HEAD")
     )
     private void enterEntityRenderDuringExtraction(LivingEntity entity, LivingEntityRenderState state, float partialTick, CallbackInfo ci) {
-        if (!(state instanceof PlayerRenderState)) {
+        if (!(state instanceof AvatarRenderState)) {
             return;
         }
         AhRenderManagementApi.setInEntityRender();
@@ -112,20 +112,20 @@ public abstract class LivingEntityRendererMixin
 
     //? if < 1.21.9 {
     
-    //? if >= 1.21.2 {
+    /*//? if >= 1.21.2 {
     @Inject(method = "render", at = @At("HEAD"))
     private void forceArmVisibility(LivingEntityRenderState entity, PoseStack poseStack,
             MultiBufferSource bufferSource, int light, CallbackInfo ci) {
     //? } elif < 1.21.2 {
-    /*@Inject(
+    /^@Inject(
             method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
             at = @At("HEAD")
     )
     private void forceArmVisibility(LivingEntity entity, float yBodyRot, float partialTick,
             PoseStack poseStack, MultiBufferSource bufferSource, int light, CallbackInfo ci) {
 
-    *///? }
+    ^///? }
         FantasyArmorCompat.forceArmVisibility(entity, (Object) this);
     }
-    //? }
+    *///? }
 }

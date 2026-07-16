@@ -1,6 +1,6 @@
 package de.zannagh.armorhider.client.render.interceptors;
 
-import software.bernie.geckolib.constant.DataTickets;
+import com.geckolib.constant.DataTickets;
 
 import de.zannagh.armorhider.client.api.AhRenderManagementApi;
 import de.zannagh.armorhider.client.common.*;
@@ -13,7 +13,7 @@ import java.util.EnumMap;
 import java.util.HashMap;
 
 //? if >= 1.21.9
-//import software.bernie.geckolib.renderer.base.GeoRenderState;
+import com.geckolib.renderer.base.GeoRenderState;
 
 public class AhGeckoLibRenderer extends AbstractArmorHiderRenderer {
 
@@ -37,7 +37,7 @@ public class AhGeckoLibRenderer extends AbstractArmorHiderRenderer {
         var ctx = AhRenderManagementApi.enterScope(result);
 
         //? if >= 1.21.9 {
-        /*if (identityCarrier instanceof GeoRenderState geoState) {
+        if (identityCarrier instanceof GeoRenderState geoState) {
             GeoRenderState perSlotState = getPerSlotState(geoState, slot);
             if (perSlotState == null) {
                 return result;
@@ -50,7 +50,7 @@ public class AhGeckoLibRenderer extends AbstractArmorHiderRenderer {
             int modifiedColor = ctx.renderModificationApi().applyArmorTransparency(originalColor);
             setRenderColor(perSlotState, modifiedColor);
         }
-        *///? }
+        //? }
         return result;
     }
 
@@ -59,7 +59,7 @@ public class AhGeckoLibRenderer extends AbstractArmorHiderRenderer {
             return;
         }
         //? if >= 1.21.9 {
-        /*var savedColor = geckoLibColorStack.remove(carrier.armorHider$playerName());
+        var savedColor = geckoLibColorStack.remove(carrier.armorHider$playerName());
 
         if (savedColor != null && renderState instanceof GeoRenderState geoState) {
             GeoRenderState perSlotState = getPerSlotState(geoState, slot);
@@ -67,7 +67,7 @@ public class AhGeckoLibRenderer extends AbstractArmorHiderRenderer {
                 setRenderColor(perSlotState, savedColor);
             }
         }
-        *///? }
+        //? }
         AhRenderManagementApi.exitScope(RenderScope.ARMOR_PIECE);
     }
 
@@ -77,7 +77,7 @@ public class AhGeckoLibRenderer extends AbstractArmorHiderRenderer {
     }
 
     //? if >= 1.21.9 {
-    /*public static @Nullable GeoRenderState getPerSlotState(GeoRenderState topLevelState, EquipmentSlot slot) {
+    public static @Nullable GeoRenderState getPerSlotState(GeoRenderState topLevelState, EquipmentSlot slot) {
         if (!topLevelState.hasGeckolibData(DataTickets.PER_SLOT_RENDER_DATA)) {
             return null;
         }
@@ -98,7 +98,7 @@ public class AhGeckoLibRenderer extends AbstractArmorHiderRenderer {
     public static void setRenderColor(GeoRenderState renderState, int color) {
         renderState.addGeckolibData(DataTickets.RENDER_COLOR, color);
     }
-    *///? }
+    //? }
 
     private final HashMap<String, Integer> geckoLibColorStack = new HashMap<>();
 

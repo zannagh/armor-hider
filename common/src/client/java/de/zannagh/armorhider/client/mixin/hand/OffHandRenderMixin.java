@@ -20,18 +20,18 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 //? if >= 1.21.9 {
 
-/*import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
- *///? }
+ //? }
 //? if < 1.21.9 {
-import net.minecraft.client.renderer.MultiBufferSource;
+/*import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import de.zannagh.armorhider.client.render.RenderModifications;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.level.Level;
-//? }
+*///? }
 
 
 @SuppressWarnings({"unused", "UnusedMixin"})
@@ -40,16 +40,16 @@ public class OffHandRenderMixin {
 
     @Inject(
             //? if < 26.2
-            method = "renderArmWithItem",
+            //method = "renderArmWithItem",
             //? if >= 26.2
-            //method = "submitArmWithItem",
+            method = "submitArmWithItem",
             at = @At("HEAD"),
             cancellable = true
     )
     //? if >= 1.21.9
-    //private void onRenderItem(AbstractClientPlayer abstractClientPlayer, float f, float g, InteractionHand interactionHand, float h, ItemStack itemStack, float i, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int j, CallbackInfo ci){
+    private void onRenderItem(AbstractClientPlayer abstractClientPlayer, float f, float g, InteractionHand interactionHand, float h, ItemStack itemStack, float i, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int j, CallbackInfo ci){
     //? if < 1.21.9
-    private void onRenderItem(AbstractClientPlayer abstractClientPlayer, float f, float g, InteractionHand interactionHand, float h, ItemStack itemStack, float i, PoseStack poseStack, MultiBufferSource multiBufferSource, int j, CallbackInfo ci){
+    //private void onRenderItem(AbstractClientPlayer abstractClientPlayer, float f, float g, InteractionHand interactionHand, float h, ItemStack itemStack, float i, PoseStack poseStack, MultiBufferSource multiBufferSource, int j, CallbackInfo ci){
 
         if (interactionHand == InteractionHand.MAIN_HAND) {
             return;
@@ -67,21 +67,21 @@ public class OffHandRenderMixin {
             at = @At(
                     value = "INVOKE",
                     //? if >= 1.21.9
-                    //target = "Lnet/minecraft/client/renderer/item/ItemStackRenderState;submit(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;III)V"
+                    target = "Lnet/minecraft/client/renderer/item/ItemStackRenderState;submit(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;III)V"
                     //? if >= 1.21.6 && < 1.21.9
                     //target = "Lnet/minecraft/client/renderer/entity/ItemRenderer;renderStatic(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemDisplayContext;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/world/level/Level;III)V"
                     //? if < 1.21.6 && != 1.21.5
-                    target = "Lnet/minecraft/client/renderer/entity/ItemRenderer;renderStatic(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemDisplayContext;ZLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/world/level/Level;III)V"
+                    //target = "Lnet/minecraft/client/renderer/entity/ItemRenderer;renderStatic(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemDisplayContext;ZLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/world/level/Level;III)V"
                     //? if 1.21.5
                     //target = "Lnet/minecraft/client/renderer/entity/ItemRenderer;renderStatic(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemDisplayContext;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/world/level/Level;III)V"
             )
     )
     //? if >= 1.21.9
-    //private void modifyItemSubmit(ItemStackRenderState instance, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int light, int overlay, int color, Operation<Void> original) {
+    private void modifyItemSubmit(ItemStackRenderState instance, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int light, int overlay, int color, Operation<Void> original) {
     //? if >= 1.21.6 && < 1.21.9
     //private void modifyItemSubmit(ItemRenderer instance, LivingEntity livingEntity, ItemStack itemStack, ItemDisplayContext itemDisplayContext, PoseStack poseStack, MultiBufferSource multiBufferSource, Level level, int i, int j, int k, Operation<Void> original) {
     //? if < 1.21.6 && != 1.21.5
-    private void modifyItemSubmit(ItemRenderer instance, LivingEntity livingEntity, ItemStack itemStack, ItemDisplayContext itemDisplayContext, boolean b, PoseStack poseStack, MultiBufferSource multiBufferSource, Level level, int i, int j, int k, Operation<Void> original) {
+    //private void modifyItemSubmit(ItemRenderer instance, LivingEntity livingEntity, ItemStack itemStack, ItemDisplayContext itemDisplayContext, boolean b, PoseStack poseStack, MultiBufferSource multiBufferSource, Level level, int i, int j, int k, Operation<Void> original) {
     //? if 1.21.5
     //private void modifyItemSubmit(ItemRenderer instance, LivingEntity livingEntity, ItemStack itemStack, ItemDisplayContext itemDisplayContext, PoseStack poseStack, MultiBufferSource multiBufferSource, Level level, int i, int j, int k, Operation<Void> original) {
 
@@ -90,9 +90,9 @@ public class OffHandRenderMixin {
             return;
         }
         //? if >= 1.21.9
-        //original.call(instance, poseStack, submitNodeCollector, light, overlay, color);
+        original.call(instance, poseStack, submitNodeCollector, light, overlay, color);
         //? if < 1.21.9 {
-        // Wrap buffer source for transparency: swap opaque render types to translucent
+        /*// Wrap buffer source for transparency: swap opaque render types to translucent
         MultiBufferSource source = multiBufferSource;
         if (!offhandCtx.isEmpty()
                 && offhandCtx.modification().transparency() < 1.0
@@ -100,20 +100,20 @@ public class OffHandRenderMixin {
             source = RenderModifications.wrapTranslucentBufferSource(multiBufferSource,
                     offhandCtx.renderModificationApi().getTransparencyAlpha());
         }
-        //? }
+        *///? }
         //? if >= 1.21.6 && < 1.21.9
         //original.call(instance, livingEntity, itemStack, itemDisplayContext, poseStack, source, level, i, j, k);
         //? if < 1.21.6 && != 1.21.5
-        original.call(instance, livingEntity, itemStack, itemDisplayContext, b, poseStack, source, level, i, j, k);
+        //original.call(instance, livingEntity, itemStack, itemDisplayContext, b, poseStack, source, level, i, j, k);
         //? if 1.21.5
         //original.call(instance, livingEntity, itemStack, itemDisplayContext, poseStack, source, level, i, j, k);
     }
 
     @Inject(
             //? if < 26.2
-            method = "renderArmWithItem",
+            //method = "renderArmWithItem",
             //? if >= 26.2
-            //method = "submitArmWithItem",
+            method = "submitArmWithItem",
             at = @At("TAIL")
     )
     private void releaseContext(CallbackInfo ci) {

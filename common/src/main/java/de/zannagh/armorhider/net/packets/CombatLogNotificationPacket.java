@@ -6,7 +6,7 @@ import de.zannagh.armorhider.util.PlayerNameUtil;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import org.jspecify.annotations.NonNull;
 
@@ -14,7 +14,7 @@ import java.util.UUID;
 
 public class CombatLogNotificationPacket implements CustomPacketPayload {
 
-    public static final ResourceLocation PACKET_IDENTIFIER = ResourceLocation.fromNamespaceAndPath("de.zannagh.armorhider", "combatlog_s2c_packet");
+    public static final Identifier PACKET_IDENTIFIER = Identifier.fromNamespaceAndPath("de.zannagh.armorhider", "combatlog_s2c_packet");
     public static final StreamCodec<ByteBuf, CombatLogNotificationPacket> STREAM_CODEC = CompressedJsonCodec.create(CombatLogNotificationPacket.class);
 
     public static final Type<CombatLogNotificationPacket> TYPE = new Type<>(PACKET_IDENTIFIER);

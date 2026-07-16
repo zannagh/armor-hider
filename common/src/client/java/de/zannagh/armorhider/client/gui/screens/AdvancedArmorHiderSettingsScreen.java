@@ -71,20 +71,20 @@ public class AdvancedArmorHiderSettingsScreen extends ArmorHiderConfigurationScr
         var allowIndividualConfigsText = Component.translatable("armorhider.options.other_player_server.title");
 
         //? if >= 1.21.9 {
-        /*//? if >= 1.21.11
-        //var cyclingWidgetBuilder = CycleButton.booleanBuilder(onText, offText, combatDetectionDefaultSetting);
+        //? if >= 1.21.11
+        var cyclingWidgetBuilder = CycleButton.booleanBuilder(onText, offText, combatDetectionDefaultSetting);
         //? if >= 1.21.9 && < 1.21.11
         //var cyclingWidgetBuilder = CycleButton.booleanBuilder(onText, offText).withInitialValue(combatDetectionDefaultSetting);
         //? if >= 1.21.11
-        //var forceOnOffBuilder = CycleButton.booleanBuilder(onText, offText, forceServerOffDefaultSetting);
+        var forceOnOffBuilder = CycleButton.booleanBuilder(onText, offText, forceServerOffDefaultSetting);
         //? if >= 1.21.9 && < 1.21.11
         //var forceOnOffBuilder = CycleButton.booleanBuilder(onText, offText).withInitialValue(forceServerOffDefaultSetting);
         //? if >= 1.21.11
-        //var visibilityRespectBuilder = CycleButton.booleanBuilder(onText, offText, visibilityRespectDefaultSetting);
+        var visibilityRespectBuilder = CycleButton.booleanBuilder(onText, offText, visibilityRespectDefaultSetting);
         //? if >= 1.21.9 && < 1.21.11
         //var visibilityRespectBuilder = CycleButton.booleanBuilder(onText, offText).withInitialValue(visibilityRespectDefaultSetting);
         //? if >= 1.21.11
-        //var allowIndividualConfigsBuilder = CycleButton.booleanBuilder(onText, offText, allowIndividualConfigsDefaultSetting);
+        var allowIndividualConfigsBuilder = CycleButton.booleanBuilder(onText, offText, allowIndividualConfigsDefaultSetting);
         //? if >= 1.21.9 && < 1.21.11
         //var allowIndividualConfigsBuilder = CycleButton.booleanBuilder(onText, offText).withInitialValue(allowIndividualConfigsDefaultSetting);
 
@@ -163,11 +163,11 @@ public class AdvancedArmorHiderSettingsScreen extends ArmorHiderConfigurationScr
                     });
                 }
         );
-        *///?}
+        //?}
 
         //? if < 1.21.9 {
         
-        OptionInstance<Boolean> combatDetectionServerOption = factory.buildBooleanOption(
+        /*OptionInstance<Boolean> combatDetectionServerOption = factory.buildBooleanOption(
                 combatDetectionServerText,
                 ArmorHiderClient.permissionLevel >= 3
                         ? Component.translatable("armorhider.options.combat_detection_server.tooltip")
@@ -243,7 +243,7 @@ public class AdvancedArmorHiderSettingsScreen extends ArmorHiderConfigurationScr
         var armorHiderOffButton = forceOffOption.createButton(gameOptions, 0, 0, rowWidth);
         var visibilityButton = visibilityRespectOption.createButton(gameOptions, 0, 0, rowWidth);
         var allowIndividualConfigsButton = allowIndividualConfigsOption.createButton(gameOptions, 0, 0, rowWidth);
-        //?}
+        *///?}
 
         combatButton.active = ArmorHiderClient.permissionLevel >= 3;
         armorHiderOffButton.active = ArmorHiderClient.permissionLevel >= 3;

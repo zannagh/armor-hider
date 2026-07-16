@@ -15,16 +15,16 @@ import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
 //? if > 1.21.8 {
-/*import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
-*///?}
+//?}
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.EquipmentSlot;
 import org.jspecify.annotations.NonNull;
 import org.jetbrains.annotations.Nullable;
 import de.zannagh.armorhider.net.packets.PlayerConfig;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 import java.util.ArrayList;
 import java.util.function.Consumer;
@@ -198,7 +198,7 @@ public class ArmorHiderOptionsPanelWidget extends AbstractWidget {
         if (showPresets) {
             factory.addElementAsWidget(Button.builder(
                     Component.translatable("armorhider.options.regular.title"),
-                    btn -> Minecraft.getInstance().setScreen(new AdvancedArmorHiderSettingsScreen(this.hostScreen, this.gameOptions, this.hostScreen.getTitle()))
+                    btn -> Minecraft.getInstance().setScreenAndShow(new AdvancedArmorHiderSettingsScreen(this.hostScreen, this.gameOptions, this.hostScreen.getTitle()))
             ).tooltip(Tooltip.create(Component.translatable("armorhider.options.regular.title"))).build());
         }
     }
@@ -243,9 +243,9 @@ public class ArmorHiderOptionsPanelWidget extends AbstractWidget {
 
     private void updateLayout() {
         //? if > 1.21.8
-        //widgetList.updateSizeAndPosition(this.width, this.height, this.getX(), this.getY());
+        widgetList.updateSizeAndPosition(this.width, this.height, this.getX(), this.getY());
         //? if >= 1.21 && <= 1.21.8
-        widgetList.updateSizeAndPosition(this.width, this.height, this.getY());
+        //widgetList.updateSizeAndPosition(this.width, this.height, this.getY());
         //? if < 1.21
         //widgetList.updateSizeAndPosition(this.width, this.height, this.getX(), this.getY());
     }
@@ -284,15 +284,15 @@ public class ArmorHiderOptionsPanelWidget extends AbstractWidget {
 
     @Override
     //? if >= 26.1-1.pre.1 {
-    /*protected void extractWidgetRenderState(@NonNull GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
+    protected void extractWidgetRenderState(@NonNull GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
         widgetList.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
     }
-    *///?}
+    //?}
     //? if >= 1.21 && < 26.1-1.pre.1 {
-    protected void renderWidget(@NonNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+    /*protected void renderWidget(@NonNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         widgetList.render(guiGraphics, mouseX, mouseY, partialTick);
     }
-    //?}
+    *///?}
     //? if < 1.21 {
     /*public void renderWidget(@NonNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         widgetList.render(guiGraphics, mouseX, mouseY, partialTick);
@@ -301,38 +301,38 @@ public class ArmorHiderOptionsPanelWidget extends AbstractWidget {
 
     @Override
     //? if > 1.21.8
-    //public boolean mouseClicked(@NonNull MouseButtonEvent event, boolean doubleClick) {
+    public boolean mouseClicked(@NonNull MouseButtonEvent event, boolean doubleClick) {
     //? if <= 1.21.8
-    public boolean mouseClicked(double d, double e, int i) {
+    //public boolean mouseClicked(double d, double e, int i) {
         if (!this.active || !this.visible) {
             return false;
         }
         //? if > 1.21.8
-        //return widgetList.mouseClicked(event, doubleClick);
+        return widgetList.mouseClicked(event, doubleClick);
         //? if <= 1.21.8
-        return widgetList.mouseClicked(d, e, i);
+        //return widgetList.mouseClicked(d, e, i);
     }
 
     @Override
     //? if > 1.21.8
-    //public boolean mouseReleased(@NonNull MouseButtonEvent event) {
+    public boolean mouseReleased(@NonNull MouseButtonEvent event) {
     //? if <= 1.21.8
-    public boolean mouseReleased(double d, double e, int i) {
+    //public boolean mouseReleased(double d, double e, int i) {
         //? if > 1.21.8
-        //return widgetList.mouseReleased(event);
+        return widgetList.mouseReleased(event);
         //? if <= 1.21.8
-        return widgetList.mouseReleased(d, e, i);
+        //return widgetList.mouseReleased(d, e, i);
     }
 
     @Override
     //? if > 1.21.8
-    //public boolean mouseDragged(@NonNull MouseButtonEvent event, double dx, double dy) {
+    public boolean mouseDragged(@NonNull MouseButtonEvent event, double dx, double dy) {
     //? if <= 1.21.8
-    public boolean mouseDragged(double d, double e, int i, double f, double g) {
+    //public boolean mouseDragged(double d, double e, int i, double f, double g) {
         //? if > 1.21.8
-        //return widgetList.mouseDragged(event, dx, dy);
+        return widgetList.mouseDragged(event, dx, dy);
         //? if <= 1.21.8
-        return widgetList.mouseDragged(d, e, i, f, g);
+        //return widgetList.mouseDragged(d, e, i, f, g);
     }
 
     @Override
@@ -348,7 +348,7 @@ public class ArmorHiderOptionsPanelWidget extends AbstractWidget {
     *///?}
 
     //? if > 1.21.8 {
-    /*@Override
+    @Override
     public boolean keyPressed(KeyEvent event) {
         return widgetList.keyPressed(event);
     }
@@ -362,9 +362,9 @@ public class ArmorHiderOptionsPanelWidget extends AbstractWidget {
     public boolean charTyped(CharacterEvent event) {
         return widgetList.charTyped(event);
     }
-    *///?}
+    //?}
     //? if <= 1.21.8 {
-    @Override
+    /*@Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         return widgetList.keyPressed(keyCode, scanCode, modifiers);
     }
@@ -378,14 +378,14 @@ public class ArmorHiderOptionsPanelWidget extends AbstractWidget {
     public boolean charTyped(char chr, int modifiers) {
         return widgetList.charTyped(chr, modifiers);
     }
-    //?}
+    *///?}
 
     //? if >= 1.21.9 {
-    /*@Override
+    @Override
     public void visitWidgets(Consumer<AbstractWidget> consumer) {
         consumer.accept(widgetList);
     }
-    *///?}
+    //?}
 
     @Override
     protected void updateWidgetNarration(@NonNull NarrationElementOutput output) {

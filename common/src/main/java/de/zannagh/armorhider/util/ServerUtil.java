@@ -27,19 +27,19 @@ public final class ServerUtil {
 
     private static int getVanillaPermissionLevel(Player player, MinecraftServer server) {
         //? if >= 1.21.9 {
-        /*if (server.isSingleplayerOwner(player.nameAndId())) {
+        if (server.isSingleplayerOwner(player.nameAndId())) {
             return 4;
         }
-        *///?} else {
-        if (server.isSingleplayerOwner(player.getGameProfile())) {
+        //?} else {
+        /*if (server.isSingleplayerOwner(player.getGameProfile())) {
             return 4;
         }
-        //?}
+        *///?}
         //? if >= 1.21.11
-        //return server.getProfilePermissions(player.nameAndId()).level().id();
+        return server.getProfilePermissions(player.nameAndId()).level().id();
         //? if >= 1.21.9 && < 1.21.11
         //return server.getProfilePermissions(player.nameAndId());
         //? if < 1.21.9
-        return server.getProfilePermissions(player.getGameProfile());
+        //return server.getProfilePermissions(player.getGameProfile());
     }
 }

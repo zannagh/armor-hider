@@ -8,9 +8,9 @@ public class ToggleOffKeyMapping extends CustomKeyMapping {
     
     public ToggleOffKeyMapping() {
         //? if > 1.21.8
-        //super("key.armorhider.toggle_keybind", KeyEvent.VK_K);
+        super("key.armorhider.toggle_keybind", KeyEvent.VK_K);
         //? if <= 1.21.8
-         super("key.armorhider.toggle_keybind", KeyEvent.VK_K);
+         //super("key.armorhider.toggle_keybind", KeyEvent.VK_K);
     }
     
     @Override

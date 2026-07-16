@@ -27,13 +27,13 @@ public final class ServerConnectionEvents {
 
     public static void onPlayerJoin(GameProfile profile, MinecraftServer server) {
         //? if >= 1.21.9 {
-        /*UUID playerId = profile.id();
+        UUID playerId = profile.id();
         String playerName = profile.name();
-        *///?}
-        //? if < 1.21.9 {
-        UUID playerId = profile.getId();
-        String playerName = profile.getName();
         //?}
+        //? if < 1.21.9 {
+        /*UUID playerId = profile.getId();
+        String playerName = profile.getName();
+        *///?}
 
         long now = System.currentTimeMillis();
         Long lastJoin = RECENT_JOINS.get(playerId);
