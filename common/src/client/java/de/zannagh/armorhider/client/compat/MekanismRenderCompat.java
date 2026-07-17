@@ -124,7 +124,7 @@ public final class MekanismRenderCompat {
                 // The MekaSuit helmet mesh is smaller than the vanilla head, so a full-size
                 // fill-in head pokes/flickers through it while the helmet is partially drawn.
                 // The head part pivots at the model origin, so this scales it cleanly in place.
-                poseStack.scale(0.6f, 0.6f, 0.6ff);
+                poseStack.scale(0.6f, 0.6f, 0.6f);
             }
             model.renderToBuffer(poseStack, vc, light, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
             poseStack.popPose();
