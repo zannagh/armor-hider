@@ -240,7 +240,7 @@ jobs:
 
       - name: Publish to Modrinth
         if: ${{ steps.modrinth.outputs.found == 'true' && !inputs.dry_run }}
-        uses: zannagh/mc-publish@v3.3.1
+        uses: Kira-NT/mc-publish@52307b03863581dec6b652b83e597aec02ebb075 # v3.3
         with:
           modrinth-id: ${{ env.MODRINTH_PROJECT_ID }}
           modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
@@ -327,7 +327,7 @@ jobs:
 
       - name: Publish to CurseForge
         if: ${{ steps.curseforge.outputs.found == 'true' && !inputs.dry_run }}
-        uses: zannagh/mc-publish@v3.3.1
+        uses: Kira-NT/mc-publish@52307b03863581dec6b652b83e597aec02ebb075 # v3.3
         with:
           curseforge-id: ${{ env.CURSEFORGE_PROJECT_ID }}
           curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
