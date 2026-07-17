@@ -86,41 +86,49 @@ public final class MekanismRenderCompat {
 
         model.setAllVisible(false);
 
-        boolean changeVisibility = true;
+        // This is a fill-in pass: only re-draw body parts that were HIDDEN before this
+        // armor pass ran. A part that is still visible was already drawn by the base
+        // player model this frame (armor layers render after the body), so re-rendering
+        // it here would stack a second, semi-transparent copy of the body on top of the
+        // original — doubled skin layers and offset arms once an animation mod poses the
+        // base pass differently. See issue #280.
+        boolean anyHiddenPart = false;
         switch (slot) {
             case HEAD -> {
-                model.head.visible = true;
-                model.hat.visible = true;
+                if (!headVis) { model.head.visible = true; anyHiddenPart = true; }
+                if (!hatVis) { model.hat.visible = true; anyHiddenPart = true; }
             }
             case CHEST -> {
-                model.body.visible = true;
-                model.leftArm.visible = true;
-                model.rightArm.visible = true;
-                model.jacket.visible = true;
-                model.leftSleeve.visible = true;
-                model.rightSleeve.visible = true;
+                if (!bodyVis) { model.body.visible = true; anyHiddenPart = true; }
+                if (!leftArmVis) { model.leftArm.visible = true; anyHiddenPart = true; }
+                if (!rightArmVis) { model.rightArm.visible = true; anyHiddenPart = true; }
+                if (!jacketVis) { model.jacket.visible = true; anyHiddenPart = true; }
+                if (!leftSleeveVis) { model.leftSleeve.visible = true; anyHiddenPart = true; }
+                if (!rightSleeveVis) { model.rightSleeve.visible = true; anyHiddenPart = true; }
             }
             case LEGS, FEET -> {
-                model.leftLeg.visible = true;
-                model.rightLeg.visible = true;
-                model.leftPants.visible = true;
-                model.rightPants.visible = true;
+                if (!leftLegVis) { model.leftLeg.visible = true; anyHiddenPart = true; }
+                if (!rightLegVis) { model.rightLeg.visible = true; anyHiddenPart = true; }
+                if (!leftPantsVis) { model.leftPants.visible = true; anyHiddenPart = true; }
+                if (!rightPantsVis) { model.rightPants.visible = true; anyHiddenPart = true; }
             }
             default -> {
-                changeVisibility = false;
             }
         }
-        
-        if (!changeVisibility) {
-            return;
-        }
 
-        poseStack.pushPose();
-        if (slot == EquipmentSlot.CHEST) {
-            poseStack.scale(0.99f, 0.99f, 0.99f); // Slightly shrink chest to prevent overlap-flickers.
+        if (anyHiddenPart) {
+            poseStack.pushPose();
+            if (slot == EquipmentSlot.CHEST) {
+                poseStack.scale(0.99f, 0.99f, 0.99f); // Slightly shrink chest to prevent overlap-flickers.
+            } else if (slot == EquipmentSlot.HEAD) {
+                // The MekaSuit helmet mesh is smaller than the vanilla head, so a full-size
+                // fill-in head pokes/flickers through it while the helmet is partially drawn.
+                // The head part pivots at the model origin, so this scales it cleanly in place.
+                poseStack.scale(0.6f, 0.6f, 0.6ff);
+            }
+            model.renderToBuffer(poseStack, vc, light, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
+            poseStack.popPose();
         }
-        model.renderToBuffer(poseStack, vc, light, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
-        poseStack.popPose();
 
         model.head.visible = headVis;
         model.hat.visible = hatVis;
