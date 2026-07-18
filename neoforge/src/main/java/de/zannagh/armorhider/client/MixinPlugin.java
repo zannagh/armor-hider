@@ -65,7 +65,8 @@ public class MixinPlugin implements IMixinConfigPlugin {
             "compat.mekanism.MekanismArmorMixin",
             "compat.mekanism.MekaSuitArmorMixin",
             "compat.emf.EmfModelPartMixin",
-            "compat.emf.EmfModelPartRootMixin"
+            "compat.emf.EmfModelPartRootMixin",
+            "compat.artifacts.ArtifactRendererMixin"
     };
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {

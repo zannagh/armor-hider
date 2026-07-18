@@ -344,6 +344,9 @@ jobs:
           changelog: ${{ needs.prepare.outputs.changelog }}
           retry-attempts: 2
           retry-delay: 10000
+          # Warn (don't fail) when CurseForge lacks a game version, e.g. brand-new
+          # snapshots CF hasn't added yet. Re-publish once CF catches up.
+          curseforge-fail-mode: warn
 
   # ============================================================================
   # ANNOUNCE: link the release to an Announcements discussion (notifies Discord)

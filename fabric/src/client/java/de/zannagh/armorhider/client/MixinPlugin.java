@@ -62,7 +62,8 @@ public class MixinPlugin implements IMixinConfigPlugin {
             "compat.geckolib.GeckoLibArmorMixin",
             "compat.waveycapes.WaveyCapesMixin",
             "compat.emf.EmfModelPartMixin",
-            "compat.emf.EmfModelPartRootMixin"
+            "compat.emf.EmfModelPartRootMixin",
+            "compat.artifacts.ArtifactRendererMixin"
     };
 
     @Override

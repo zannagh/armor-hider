@@ -31,6 +31,7 @@ public class ConfigurationItemFactoryRegistry {
         registerFactoriesForClass(ForceArmorHiderOffOnPlayers.class);
         registerFactoriesForClass(OpacityAffectingElytraItem.class);
         registerFactoriesForClass(OpacityAffectingHatOrSkullItem.class);
+        registerFactoriesForClass(HideAccessories.class);
         registerFactoriesForClass(PlayerName.class);
         registerFactoriesForClass(PlayerUuid.class);
         registerFactoriesForClass(UsePlayerSettingsWhenUndeterminable.class);

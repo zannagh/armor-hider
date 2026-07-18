@@ -41,7 +41,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
     public int configVersion;
 
     /** The current config schema version. */
-    public static final int CURRENT_CONFIG_VERSION = 9;
+    public static final int CURRENT_CONFIG_VERSION = 10;
 
     //? if >= 1.21.11 {
     public static final Identifier PACKET_IDENTIFIER = Identifier.fromNamespaceAndPath("de.zannagh.armorhider", "settings_c2s_packet");
@@ -178,6 +178,17 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
      */
     @SerializedName(value = "opacityAffectingHatOrSkull")
     public @NonNull OpacityAffectingHatOrSkullItem opacityAffectingHatOrSkull;
+
+    /**
+     * Whether accessory items rendered on the body by accessory mods (Artifacts via Curios / Trinkets /
+     * Accessories) should be hidden. A plain visibility toggle — accessories have no armor slot and thus
+     * no opacity slider. Elytra-like accessories are excluded and follow the chest slider together with
+     * {@link #opacityAffectingElytra} instead.
+     *
+     * @since AH 0.12.x, schema 10
+     */
+    @SerializedName(value = "hideAccessories")
+    public @NonNull HideAccessories hideAccessories;
 
     /**
      * Whether Armor Hider should be disabled globally for the user themselves and for the other players drawn via the {@link DisableArmorHiderGlobally} configuration item.<br/>
@@ -321,6 +332,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         playerName = new PlayerName();
         opacityAffectingHatOrSkull = new OpacityAffectingHatOrSkullItem();
         opacityAffectingElytra = new OpacityAffectingElytraItem();
+        hideAccessories = new HideAccessories();
         disableArmorHider = new DisableArmorHiderGlobally();
         disableArmorHiderForOthers = new DisableArmorHiderForOthers();
         usePlayerSettingsWhenUndeterminable = new UsePlayerSettingsWhenUndeterminable();
@@ -383,6 +395,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         fresh.inCombatUseDefaultModel.setValue(old.inCombatUseDefaultModel.getValue());
         fresh.opacityAffectingElytra.setValue(old.opacityAffectingElytra.getValue());
         fresh.opacityAffectingHatOrSkull.setValue(old.opacityAffectingHatOrSkull.getValue());
+        fresh.hideAccessories.setValue(old.hideAccessories.getValue());
         fresh.disableArmorHider.setValue(old.disableArmorHider.getValue());
         fresh.disableArmorHiderForOthers.setValue(old.disableArmorHiderForOthers.getValue());
         fresh.usePlayerSettingsWhenUndeterminable.setValue(old.usePlayerSettingsWhenUndeterminable.getValue());
@@ -467,6 +480,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         newConfig.inCombatUseDefaultModel.setValue(this.inCombatUseDefaultModel.getValue());
         newConfig.opacityAffectingHatOrSkull.setValue(this.opacityAffectingHatOrSkull.getValue());
         newConfig.opacityAffectingElytra.setValue(this.opacityAffectingElytra.getValue());
+        newConfig.hideAccessories.setValue(this.hideAccessories.getValue());
         newConfig.usePlayerSettingsWhenUndeterminable.setValue(this.usePlayerSettingsWhenUndeterminable.getValue());
         newConfig.showSettingsInSkinCustomization.setValue(this.showSettingsInSkinCustomization.getValue());
         newConfig.offHandOpacity.setValue(this.offHandOpacity.getValue());

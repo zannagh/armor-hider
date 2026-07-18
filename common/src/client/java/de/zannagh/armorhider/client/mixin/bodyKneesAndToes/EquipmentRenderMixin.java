@@ -115,6 +115,46 @@ public class EquipmentRenderMixin {
         armorHider$combatAssetKey.remove();
         armorHider$combatLayerType.remove();
     }
+
+    // Slot-adding mods (Elytra Slot, …) render a custom-slot elytra by calling the vanilla detail
+    // renderLayers(WINGS, …) directly — bypassing the entry overload above and the outer
+    // WingsLayer.submit scope entry (whose synthetic-stack decision keys off the empty chest slot).
+    // The detail wraps below (render type / colour / trim) only apply transparency when an ELYTRA
+    // scope is active, so those draws stayed fully opaque. Enter the ELYTRA scope here — from the
+    // real render-state carrier and the real elytra stack — so hide/opacity apply deterministically,
+    // regardless of injector ordering. This is a general fix: any mod drawing a slotted elytra
+    // through vanilla renderLayers(WINGS, …) is covered.
+    @Unique
+    private static final ThreadLocal<Boolean> armorHider$enteredForeignElytraScope = new ThreadLocal<>();
+
+    @Inject(method = RENDER_LAYERS_DETAIL, at = @At("HEAD"), cancellable = true)
+    private <S> void armorHider$interceptForeignElytra(EquipmentClientInfo.LayerType layerType, ResourceKey<EquipmentAsset> resourceKey, Model<? super S> model, S object, ItemStack itemStack, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int i, Identifier identifier, int j, int k, CallbackInfo ci) {
+        // Vanilla chest elytra already has the ELYTRA scope active from the outer WingsLayer.submit
+        // HEAD, and armor pieces run under an ARMOR_PIECE scope — leave both untouched so this only
+        // ever covers an otherwise-unscoped foreign elytra draw.
+        if (AhRenderManagementApi.hasScopeModification(RenderScope.ELYTRA)
+                || AhRenderManagementApi.hasScopeModification(RenderScope.ARMOR_PIECE)) {
+            return;
+        }
+        if (RenderScope.of(null, itemStack) != RenderScope.ELYTRA) {
+            return;
+        }
+        // ArmorHiderElytraRenderer handles the flying/ElytraTrims short-circuits, cancels ci on hide,
+        // and enters the ELYTRA scope itself on the opacity path.
+        var result = AhRenderInterceptionRegistryApi.getRenderer(RenderScope.ELYTRA)
+                .intercept(object, EquipmentSlot.CHEST, itemStack, ci);
+        if (result.shouldIntercept() && !result.shouldCancel()) {
+            armorHider$enteredForeignElytraScope.set(Boolean.TRUE);
+        }
+    }
+
+    @Inject(method = RENDER_LAYERS_DETAIL, at = @At("RETURN"))
+    private void armorHider$exitForeignElytra(CallbackInfo ci) {
+        if (armorHider$enteredForeignElytraScope.get() != null) {
+            armorHider$enteredForeignElytraScope.remove();
+            AhRenderManagementApi.exitScope(RenderScope.ELYTRA);
+        }
+    }
     //?}
 
     // Scope entry happens per-piece in HumanoidArmorLayerMixin (renderLayers has no entity

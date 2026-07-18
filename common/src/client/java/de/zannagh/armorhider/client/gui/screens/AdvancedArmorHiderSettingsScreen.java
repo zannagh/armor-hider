@@ -17,6 +17,7 @@ public class AdvancedArmorHiderSettingsScreen extends ArmorHiderConfigurationScr
     private boolean localSettingsChanged;
     private boolean setShowSettingsInSkinCustomization = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig().showSettingsInSkinCustomization.getValue();
     private boolean setDisableLocal = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig().disableArmorHider.getValue();
+    private boolean setHideAccessories = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig().hideAccessories.getValue();
     private boolean forceServerOffDefaultSetting;
     private boolean combatDetectionDefaultSetting;
 
@@ -282,6 +283,22 @@ public class AdvancedArmorHiderSettingsScreen extends ArmorHiderConfigurationScr
         );
         factory.addSimpleOptionAsWidget(globalToggle);
         factory.addSimpleOptionAsWidget(settingsLocationToggle);
+        // The accessory-hide hook (Artifacts compat) only exists on the SubmitNodeCollector render
+        // path (>= 1.21.9); older Artifacts builds use a different renderer that isn't wired yet, so
+        // only surface the toggle where it actually does something.
+        //? if >= 1.21.9 {
+        var hideAccessoriesToggle = factory.buildBooleanOption(
+                Component.translatable("armorhider.options.hide_accessories.title"),
+                Component.translatable("armorhider.options.hide_accessories.tooltip"),
+                Component.translatable("armorhider.options.hide_accessories.tooltip_narration"),
+                ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig().hideAccessories.getValue(),
+                val -> setSetting(val, v -> {
+                    setHideAccessories = v;
+                    localSettingsChanged = true;
+                })
+        );
+        factory.addSimpleOptionAsWidget(hideAccessoriesToggle);
+        //?}
 
         factory.addTextWidget(Component.translatable("armorhider.options.debug.title"));
 
@@ -305,6 +322,7 @@ public class AdvancedArmorHiderSettingsScreen extends ArmorHiderConfigurationScr
         if (localSettingsChanged) {
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig().disableArmorHider.setValue(setDisableLocal);
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig().showSettingsInSkinCustomization.setValue(setShowSettingsInSkinCustomization);
+            ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig().hideAccessories.setValue(setHideAccessories);
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.saveCurrent();
         }
     }
