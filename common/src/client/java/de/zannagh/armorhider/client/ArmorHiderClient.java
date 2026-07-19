@@ -39,6 +39,16 @@ public class ArmorHiderClient {
     public static final boolean IRIS_LOADED = classExists("net.irisshaders.iris.api.v0.IrisApi");
     public static final boolean FIGURA_LOADED = CompatFlags.FIGURA_LOADED || classExists("org.figuramc.figura.FiguraMod");
 
+    // Accessory providers (issue #246). Any of these means the accessory slot settings are relevant.
+    public static final boolean CURIOS_LOADED = classExists("top.theillusivec4.curios.api.CuriosApi");
+    public static final boolean TRINKETS_LOADED = classExists("dev.emi.trinkets.api.TrinketsApi");
+    public static final boolean ARTIFACTS_LOADED = classExists("artifacts.client.item.renderer.ArtifactRenderer");
+
+    /** True when any accessory provider is present — gates the accessory-related config UI. */
+    public static boolean anyAccessoryProviderLoaded() {
+        return CURIOS_LOADED || TRINKETS_LOADED || ARTIFACTS_LOADED;
+    }
+
     private static boolean classExists(String name) {
         try {
             Class.forName(name, false, ArmorHiderClient.class.getClassLoader());

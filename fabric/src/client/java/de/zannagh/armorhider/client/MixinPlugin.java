@@ -63,7 +63,8 @@ public class MixinPlugin implements IMixinConfigPlugin {
             "compat.waveycapes.WaveyCapesMixin",
             "compat.emf.EmfModelPartMixin",
             "compat.emf.EmfModelPartRootMixin",
-            "compat.artifacts.ArtifactRendererMixin"
+            "compat.curios.CuriosLayerMixin",
+            "compat.trinkets.TrinketRendererMixin"
     };
 
     @Override

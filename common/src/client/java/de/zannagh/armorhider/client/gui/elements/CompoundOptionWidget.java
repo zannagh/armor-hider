@@ -22,15 +22,21 @@ public class CompoundOptionWidget extends AbstractWidget {
     private final AbstractWidget secondary;
     @Nullable private final AbstractWidget tertiary;
     @Nullable private final AbstractWidget additional;
+    @Nullable private final AbstractWidget quaternary;
     @Nullable private AbstractWidget activeChild;
     private final ElementSpacingOptions spacing;
 
     public CompoundOptionWidget(AbstractWidget primary, AbstractWidget secondary, @Nullable AbstractWidget tertiary, @Nullable AbstractWidget additional, int width, int height) {
+        this(primary, secondary, tertiary, additional, null, width, height);
+    }
+
+    public CompoundOptionWidget(AbstractWidget primary, AbstractWidget secondary, @Nullable AbstractWidget tertiary, @Nullable AbstractWidget additional, @Nullable AbstractWidget quaternary, int width, int height) {
         super(0, 0, width, height, Component.empty());
         this.primary = primary;
         this.secondary = secondary;
         this.tertiary = tertiary;
         this.additional = additional;
+        this.quaternary = quaternary;
 
         int totalElements = 1 + smallElementCount();
         int sq = UiConstants.SQUARE_BUTTON_WIDTH;
@@ -54,6 +60,7 @@ public class CompoundOptionWidget extends AbstractWidget {
         int count = 1; // secondary is always present
         if (additional != null) count++;
         if (tertiary != null) count++;
+        if (quaternary != null) count++;
         return count;
     }
 
@@ -79,6 +86,13 @@ public class CompoundOptionWidget extends AbstractWidget {
             tertiary.setX(this.getX() + spacing.getX(idx));
             tertiary.setY(this.getY());
             tertiary.setWidth(spacing.getWidth(idx));
+            idx++;
+        }
+
+        if (quaternary != null) {
+            quaternary.setX(this.getX() + spacing.getX(idx));
+            quaternary.setY(this.getY());
+            quaternary.setWidth(spacing.getWidth(idx));
         }
     }
 
@@ -113,6 +127,9 @@ public class CompoundOptionWidget extends AbstractWidget {
         if (additional != null) {
             additional.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
         }
+        if (quaternary != null) {
+            quaternary.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
+        }
     }
     //?}
     //? if > 1.20.1 && < 26.1-1.pre.1 {
@@ -126,6 +143,9 @@ public class CompoundOptionWidget extends AbstractWidget {
         if (additional != null) {
             additional.render(guiGraphics, mouseX, mouseY, partialTick);
         }
+        if (quaternary != null) {
+            quaternary.render(guiGraphics, mouseX, mouseY, partialTick);
+        }
     }
     *///?}
     //? if <= 1.20.1 {
@@ -138,6 +158,9 @@ public class CompoundOptionWidget extends AbstractWidget {
         }
         if (additional != null) {
             additional.render(guiGraphics, mouseX, mouseY, partialTick);
+        }
+        if (quaternary != null) {
+            quaternary.render(guiGraphics, mouseX, mouseY, partialTick);
         }
     }
     *///?}
@@ -164,6 +187,10 @@ public class CompoundOptionWidget extends AbstractWidget {
             activeChild = tertiary;
             return true;
         }
+        if (quaternary != null && quaternary.mouseClicked(event, doubleClick)) {
+            activeChild = quaternary;
+            return true;
+        }
         return false;
         //? }
         //? if <= 1.21.8 {
@@ -182,6 +209,10 @@ public class CompoundOptionWidget extends AbstractWidget {
         }
         if (tertiary != null && tertiary.mouseClicked(d, e, i)) {
             activeChild = tertiary;
+            return true;
+        }
+        if (quaternary != null && quaternary.mouseClicked(d, e, i)) {
+            activeChild = quaternary;
             return true;
         }
         return false;
