@@ -55,7 +55,7 @@ public final class EmfCompat {
      * @param renderState The renderState that is internally checked to be a {@link AvatarRenderState}
      */
     public static void clearEquipment(Object identityCarrier, Object renderState) {
-        if (!ArmorHiderClient.EMF_LOADED) {
+        if (!de.zannagh.armorhider.CompatManager.requiresCompatTo(de.zannagh.armorhider.api.CompatFlags.ENTITY_MODEL_FEATURES)) {
             return;
         }
         if (!(identityCarrier instanceof IdentityCarrier carrier)) {

@@ -2,6 +2,8 @@
 /*package de.zannagh.armorhider.client.compat.mekanism;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import de.zannagh.armorhider.api.CompatFlags;
+import de.zannagh.armorhider.CompatManager;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.compat.FiguraCompat;
 import mekanism.client.render.MekanismRenderType;
@@ -62,7 +64,7 @@ public final class MekanismRenderCompat {
         // When Figura is loaded and the player has an Avatar, Figura draws its own
         // body model — suppress the vanilla under-armor body pass for ALL slots, and
         // only delegate the head draw to Figura when the slot actually warrants it.
-        if (ArmorHiderClient.FIGURA_LOADED && AvatarManager.getAvatar(player) instanceof Avatar avatar) {
+        if (CompatManager.requiresCompatTo(CompatFlags.FIGURA) && AvatarManager.getAvatar(player) instanceof Avatar avatar) {
             if (FiguraCompat.shouldEnforceHeadRendering(slot)) {
                 avatar.headRender(poseStack, bufferSource, light, true);
             }

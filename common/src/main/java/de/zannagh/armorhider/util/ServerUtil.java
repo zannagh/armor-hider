@@ -1,7 +1,8 @@
 package de.zannagh.armorhider.util;
 
 import de.zannagh.armorhider.ArmorHider;
-import de.zannagh.armorhider.CompatFlags;
+import de.zannagh.armorhider.CompatManager;
+import de.zannagh.armorhider.api.CompatFlags;
 import de.zannagh.armorhider.server.LuckPermsHook;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.player.Player;
@@ -11,7 +12,7 @@ public final class ServerUtil {
     private static boolean LUCKPERMS_LOGGED;
 
     public static int getPermissionLevelForPlayer(Player player, MinecraftServer server) {
-        if (CompatFlags.LUCKPERMS_LOADED) {
+        if (CompatManager.requiresCompatTo(CompatFlags.LUCK_PERMS)) {
             if (!LUCKPERMS_LOGGED) {
                 LUCKPERMS_LOGGED = true;
                 ArmorHider.LOGGER.info("LuckPerms detected — using it for permission checks instead of default permission handling.");

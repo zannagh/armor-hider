@@ -1,6 +1,7 @@
 package de.zannagh.armorhider.client.compat;
 
-import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.CompatManager;
+import de.zannagh.armorhider.api.CompatFlags;
 import de.zannagh.armorhider.client.common.IdentityCarrier;
 import de.zannagh.armorhider.client.common.SlotModification;
 import net.minecraft.client.model.HumanoidModel;
@@ -10,12 +11,8 @@ import net.minecraft.world.entity.EquipmentSlot;
 
 public final class FantasyArmorCompat {
 
-    public static boolean isFantasyArmorLoaded() {
-        return ArmorHiderClient.GECKOLIB_LOADED && ArmorHiderClient.FA_LOADED;
-    }
-
     public static void forceArmVisibility(Object entity, Object playerModel) {
-        if (!FantasyArmorCompat.isFantasyArmorLoaded()) {
+        if (!CompatManager.requiresCompatTo(CompatFlags.FANTASY_ARMOR)) {
             return;
         }
         if (!(entity instanceof IdentityCarrier carrier)) {
@@ -50,7 +47,7 @@ public final class FantasyArmorCompat {
     }
 
     public static void resetArmVisibility(PlayerModel model, Object state) {
-        if (!FantasyArmorCompat.isFantasyArmorLoaded()) {
+        if (!CompatManager.requiresCompatTo(CompatFlags.FANTASY_ARMOR)) {
             return;
         }
         if (!(state instanceof IdentityCarrier carrier)) {

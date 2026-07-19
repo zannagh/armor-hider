@@ -1,9 +1,6 @@
 package de.zannagh.armorhider.util;
 
 import de.zannagh.armorhider.ArmorHider;
-import de.zannagh.armorhider.CompatFlags;
-
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,64 +20,5 @@ public final class MixinUtil {
         }
 
         return list;
-    }
-
-    /**
-     * Sets compat flags by probing for mod presence via resource checks (never {@code Class.forName}).
-     * Each probe first checks the exact class, then falls back to checking whether the mod's
-     * package directory exists (2nd and 3rd dot-separated segments, e.g. {@code geckolib/renderer}
-     * from {@code com.geckolib.renderer.GeoArmorRenderer}).
-     *
-     * @param cl the classloader to probe (usually the MixinPlugin's own classloader)
-     */
-    public static void setCompatFlags(ClassLoader cl) {
-        CompatFlags.ET_LOADED = isModPresent(cl, "dev.kikugie.elytratrims.ep.ETClientEntrypoint");
-        CompatFlags.EMF_LOADED = isModPresent(cl, "traben.entity_model_features.EMFManager");
-        CompatFlags.GECKOLIB_LOADED = isModPresent(cl, "com.geckolib.renderer.GeoArmorRenderer");
-        CompatFlags.FA_LOADED = isModPresent(cl, "net.kenddie.fantasyarmor.FantasyArmor");
-        CompatFlags.WFGM_LOADED = isModPresent(cl, "com.wildfire.render.GenderArmorLayer");
-        CompatFlags.FIGURA_LOADED = isModPresent(cl, "org.figuramc.figura.FiguraMod");
-        CompatFlags.LUCKPERMS_LOADED = isModPresent(cl, "net.luckperms.api.LuckPermsProvider");
-        CompatFlags.FABRIC_API_RESOURCE_LOADER_LOADED = isModPresent(cl, "net.fabricmc.fabric.api.resource.ResourceManagerHelper");
-    }
-
-    /**
-     * Checks whether a class exists on the classpath without initializing it.
-     * Uses {@code Class.forName(name, false, cl)} — the class is resolved but
-     * no static initializers run and no side effects occur.
-     */
-    public static boolean isClassAvailableWithoutLoading(ClassLoader cl, String className) {
-        try {
-            Class.forName(className, false, cl);
-            return true;
-        } catch (ClassNotFoundException e) {
-            return false;
-        }
-    }
-
-    /**
-     * Checks whether a mod is present without loading any classes.
-     * <ol>
-     *   <li>Probes for the exact {@code .class} resource.</li>
-     *   <li>Falls back to checking the package directory formed by the 2nd and 3rd
-     *       dot-separated segments (the org/mod identifier that is unlikely to change
-     *       even when individual classes are renamed).</li>
-     * </ol>
-     */
-    public static boolean isModPresent(ClassLoader cl, String className) {
-        if (cl.getResource(className.replace('.', '/') + ".class") != null) {
-            return true;
-        }
-        String[] parts = className.split("\\.");
-        if (parts.length >= 3) {
-            String packageProbe = parts[1] + "/" + parts[2] + "/";
-            try {
-                return cl.getResources(packageProbe).hasMoreElements();
-            } catch (IOException e) {
-                ArmorHider.LOGGER.debug("Failed to probe package resource '{}'.", packageProbe, e);
-                return false;
-            }
-        }
-        return false;
     }
 }

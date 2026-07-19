@@ -42,7 +42,7 @@ public class MixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public void onLoad(String mixinPackage) {
-        MixinUtil.setCompatFlags(MixinPlugin.class.getClassLoader());
+        de.zannagh.armorhider.CompatManager.setCompatFlags(MixinPlugin.class.getClassLoader());
     }
 
     @Override

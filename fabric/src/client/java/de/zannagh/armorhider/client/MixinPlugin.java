@@ -64,7 +64,8 @@ public class MixinPlugin implements IMixinConfigPlugin {
             "compat.emf.EmfModelPartMixin",
             "compat.emf.EmfModelPartRootMixin",
             "compat.curios.CuriosLayerMixin",
-            "compat.trinkets.TrinketRendererMixin"
+            "compat.trinkets.TrinketRendererMixin",
+            "compat.accessories.AccessoriesRenderLayerMixin"
     };
 
     @Override
@@ -96,8 +97,8 @@ public class MixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public void onLoad(String mixinPackage) {
-        MixinUtil.setCompatFlags(MixinPlugin.class.getClassLoader());
-        if (MixinUtil.isClassAvailableWithoutLoading(MixinPlugin.class.getClassLoader(), "cpw.mods.modlauncher.Launcher")) {
+        de.zannagh.armorhider.CompatManager.setCompatFlagsByResourceProbing(MixinPlugin.class.getClassLoader());
+        if (de.zannagh.armorhider.CompatManager.isModPresent(MixinPlugin.class.getClassLoader(), "cpw.mods.modlauncher.Launcher")) {
             forgeEnvironment = true;
             ArmorHider.LOGGER.info("Detected Forge/Sinytra Connector environment.");
         }

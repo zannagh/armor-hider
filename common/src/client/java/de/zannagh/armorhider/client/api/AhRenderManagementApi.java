@@ -93,6 +93,36 @@ public interface AhRenderManagementApi {
         return AhRenderStateImpl.shouldEnforceVanillaRendering();
     }
 
+    /**
+     * Map an accessory slot-type key to the armor slot that governs it, or {@code null} when the type is
+     * not one of the four regions Armor Hider tracks (rings, gloves, capes, charms, back/glider slots —
+     * the last handled by the elytra system instead — are left alone). Any provider namespace prefix
+     * ({@code accessories:necklace}) is stripped before matching. Accepts the slot-type vocabularies of
+     * Curios, Trinkets and Accessories.
+     *
+     * @param typeKey the accessory provider's slot-type / group / slot-name string
+     * @return the governing {@link EquipmentSlot}, or {@code null} if the type maps to no tracked region
+     */
+    static @Nullable EquipmentSlot mapAccessoryTypeToSlot(@Nullable String typeKey) {
+        return AhRenderStateImpl.mapAccessoryTypeToSlot(typeKey);
+    }
+
+    /**
+     * Decide whether an accessory should be hidden for the player it is drawn on. Providers expose no
+     * per-render alpha, so accessories can only be hidden, not faded: the accessory is hidden when the
+     * armor slot its type maps to (see {@link #mapAccessoryTypeToSlot}) is fully hidden, gated by the
+     * player's master {@code affectAccessories} toggle and the matching per-region toggle. Provider-agnostic
+     * — the caller resolves the slot-type string from whichever accessory provider it hooks.
+     *
+     * @param typeKey the accessory provider's slot-type / group / slot-name string
+     * @param carrier the render-state (or entity) the accessory is drawn on; hidden only when it is an
+     *                {@link IdentityCarrier} that resolves to a known player
+     * @return {@code true} if this accessory render should be skipped (hidden)
+     */
+    static boolean shouldHideAccessory(@Nullable String typeKey, @Nullable Object carrier) {
+        return AhRenderStateImpl.shouldHideAccessory(typeKey, carrier);
+    }
+
     // endregion
 
     // region Internal mutators

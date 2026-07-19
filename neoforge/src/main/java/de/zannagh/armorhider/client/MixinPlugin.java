@@ -67,11 +67,12 @@ public class MixinPlugin implements IMixinConfigPlugin {
             "compat.emf.EmfModelPartMixin",
             "compat.emf.EmfModelPartRootMixin",
             "compat.curios.CuriosLayerMixin",
-            "compat.trinkets.TrinketRendererMixin"
+            "compat.trinkets.TrinketRendererMixin",
+            "compat.accessories.AccessoriesRenderLayerMixin"
     };
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
-        
+
         return true;
     }
 
@@ -86,8 +87,8 @@ public class MixinPlugin implements IMixinConfigPlugin {
             return List.of();
         }
         *///?} else {
-        
-        if (FMLEnvironment.dist == Dist.DEDICATED_SERVER) { 
+
+        if (FMLEnvironment.dist == Dist.DEDICATED_SERVER) {
             return List.of();
         }
         //?}
@@ -97,7 +98,7 @@ public class MixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public void preApply(String targetClassName, ClassNode targetClass, String mixinClassName, IMixinInfo mixinInfo) {
-        
+
     }
 
     @Override
@@ -106,7 +107,7 @@ public class MixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public void onLoad(String mixinPackage) {
-        MixinUtil.setCompatFlags(MixinPlugin.class.getClassLoader());
+        de.zannagh.armorhider.CompatManager.setCompatFlagsByResourceProbing(MixinPlugin.class.getClassLoader());
     }
 
     @Override

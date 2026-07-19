@@ -1,18 +1,15 @@
 package de.zannagh.armorhider.client;
 
 import de.zannagh.armorhider.ArmorHider;
-import de.zannagh.armorhider.CompatFlags;
 import de.zannagh.armorhider.api.ArmorHiderPlayerConfigApi;
 import de.zannagh.armorhider.client.api.AhRenderInterceptionRegistryApi;
 import de.zannagh.armorhider.client.api.AhRenderModificationApi;
 import de.zannagh.armorhider.client.api.AhRenderTypeFactory;
 import de.zannagh.armorhider.client.api.impl.AhPlayerConfigApiImpl;
 import de.zannagh.armorhider.client.api.impl.AhRendererRegistryImpl;
-import de.zannagh.armorhider.client.common.IdentityCarrier;
 import de.zannagh.armorhider.client.common.RenderScope;
-import de.zannagh.armorhider.client.compat.CompatManager;
+import de.zannagh.armorhider.client.api.AhClientCompatManager;
 import de.zannagh.armorhider.client.net.ClientCommunicationManager;
-import de.zannagh.armorhider.client.render.RenderModifications;
 import de.zannagh.armorhider.client.render.rendertype.RenderTypeFactory;
 import de.zannagh.armorhider.client.suppressions.InvisibilitySuppressor;
 import de.zannagh.armorhider.configuration.PresetManager;
@@ -31,32 +28,6 @@ public class ArmorHiderClient {
     public static int permissionLevel = 0; // Default to lowest.
     public static ArmorHiderPlayerConfigApi CLIENT_CONFIG_MANAGER = new AhPlayerConfigApiImpl();
     public static PresetManager PRESET_MANAGER = new PresetManager();
-
-    public static final boolean FA_LOADED = CompatFlags.FA_LOADED || classExists("net.kenddie.fantasyarmor.FantasyArmor");
-    public static final boolean GECKOLIB_LOADED = CompatFlags.GECKOLIB_LOADED || classExists("com.geckolib.renderer.GeoArmorRenderer");
-    public static final boolean ET_LOADED = CompatFlags.ET_LOADED || classExists("dev.kikugie.elytratrims.ep.ETClientEntrypoint");
-    public static final boolean EMF_LOADED = CompatFlags.EMF_LOADED || classExists("traben.entity_model_features.EMFManager");
-    public static final boolean IRIS_LOADED = classExists("net.irisshaders.iris.api.v0.IrisApi");
-    public static final boolean FIGURA_LOADED = CompatFlags.FIGURA_LOADED || classExists("org.figuramc.figura.FiguraMod");
-
-    // Accessory providers (issue #246). Any of these means the accessory slot settings are relevant.
-    public static final boolean CURIOS_LOADED = classExists("top.theillusivec4.curios.api.CuriosApi");
-    public static final boolean TRINKETS_LOADED = classExists("dev.emi.trinkets.api.TrinketsApi");
-    public static final boolean ARTIFACTS_LOADED = classExists("artifacts.client.item.renderer.ArtifactRenderer");
-
-    /** True when any accessory provider is present — gates the accessory-related config UI. */
-    public static boolean anyAccessoryProviderLoaded() {
-        return CURIOS_LOADED || TRINKETS_LOADED || ARTIFACTS_LOADED;
-    }
-
-    private static boolean classExists(String name) {
-        try {
-            Class.forName(name, false, ArmorHiderClient.class.getClassLoader());
-            return true;
-        } catch (ClassNotFoundException e) {
-            return false;
-        }
-    }
 
     /**
      * A static initializer for client-related methods (communication, payloads, etc.).
@@ -79,7 +50,7 @@ public class ArmorHiderClient {
         ArmorHider.LOGGER.info("Registered render interceptors.");
 
         ArmorHider.LOGGER.info("Setting up compatibilities...");
-        CompatManager.init();
+        AhClientCompatManager.init();
         ArmorHider.LOGGER.info("Compatibilities set up.");
     }
 

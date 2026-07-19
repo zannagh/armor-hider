@@ -8,8 +8,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Master toggle for the accessory-hiding feature (issue #246), shown in the general behaviour-toggle
- * row alongside Combat Detection etc. Placeholder foreground sprite ({@code other_items_icon}) — swap
- * for a dedicated accessory icon.
+ * row alongside Combat Detection etc.
  */
 public class AffectAccessoriesButton extends LayeredImageButton {
 
