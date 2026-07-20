@@ -2,8 +2,6 @@ package de.zannagh.armorhider.client.api;
 
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.api.compat.CompatManager;
-import de.zannagh.armorhider.api.compat.CompatFlags;
-import de.zannagh.armorhider.api.compat.CompatInitializationResult;
 import de.zannagh.armorhider.client.compat.EmfCompat;
 import de.zannagh.armorhider.client.compat.IrisCompat;
 
