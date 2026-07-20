@@ -11,9 +11,9 @@ import java.util.function.Supplier;
  * Lightweight compat flags set during mixin plugin load — before MC classes are available.
  * This class must NOT import any Minecraft classes to avoid early class loading.
  *
- * <p>Flags are set via {@link CompatManager#setCompatFlags()}
- * using class loading without initialization resource-based probing (never {@code Class.forName}) to avoid premature
- * class loading that breaks other mods' mixins.</p>
+ * <p>Flags are set via {@link CompatManager#setCompatFlagsByResourceProbing(ClassLoader)} during mixin-plugin load
+ * (resource-based probing only), and may be gap-filled later via {@link CompatManager#setCompatFlags(ClassLoader)}
+ * (which can use {@code Class.forName(..., false, ...)}).</p>
  *
  * <p>
  *     Remarks:
