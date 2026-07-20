@@ -1,7 +1,6 @@
 package de.zannagh.armorhider.api.compat;
 
 import de.zannagh.armorhider.log.EnrichedLogger;
-import it.unimi.dsi.fastutil.Hash;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
