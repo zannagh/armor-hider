@@ -74,7 +74,7 @@ public final class ReflectiveChain {
                 current = method.invoke(current);
             }
             return current instanceof String result ? result : null;
-        } catch (ReflectiveOperationException | RuntimeException e) {
+        } catch (ReflectiveOperationException | RuntimeException | LinkageError e) {
             return null;
         }
     }
