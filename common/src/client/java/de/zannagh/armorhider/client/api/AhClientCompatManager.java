@@ -11,11 +11,7 @@ public final class AhClientCompatManager {
 
     public static void init() {
         // Safe to load compats again with classloading here.
-        CompatManager.setCompatFlags();
-        CompatManager.addInitializer(new IrisCompat());
-        CompatManager.addInitializer(new EmfCompat());
-
-        var inits = CompatManager.initializeCompats();
+        var inits = CompatManager.runInitializationRoutine(new IrisCompat(), new EmfCompat());
         for (var init : inits.entrySet()) {
             var results = init.getValue();
             var failedResults = results.stream().filter(result -> !result.success()).toList();

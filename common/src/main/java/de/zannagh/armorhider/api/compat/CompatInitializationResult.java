@@ -21,6 +21,6 @@ public record CompatInitializationResult(boolean success, String message) {
     }
 
     public boolean isMissingInitializerResult() {
-        return message.equals(MISSING_MESSAGE);
+        return MISSING_MESSAGE.equals(message);
     }
 }

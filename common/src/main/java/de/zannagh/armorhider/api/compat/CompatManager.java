@@ -1,6 +1,7 @@
 package de.zannagh.armorhider.api.compat;
 
 import de.zannagh.armorhider.log.EnrichedLogger;
+import it.unimi.dsi.fastutil.Hash;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
@@ -37,6 +38,8 @@ public final class CompatManager {
     public static final EnumSet<CompatFlags> RESOURCE_PROBED_FLAGS = EnumSet.noneOf(CompatFlags.class);
 
     private static final HashMap<CompatFlags, HashSet<Supplier<CompatInitializationResult>>> INITIALIZATIONS = new HashMap<>();
+
+    private static boolean compatFlagsEnsured;
 
     private CompatManager() {}
 
@@ -124,6 +127,9 @@ public final class CompatManager {
      * @param cl the classloader to probe (usually the MixinPlugin's own classloader)
      */
     public static void setCompatFlags(ClassLoader cl) {
+        if (compatFlagsEnsured) {
+            return;
+        }
         for (var compat : CompatFlags.values()) {
             // Resource probing (setCompatFlagsByResourceProbing) runs first, at mixin-plugin load, and
             // already flagged everything it could see without loading a class. Skip those here so the
@@ -137,6 +143,7 @@ public final class CompatManager {
                 setCompatFlag(compat);
             }
         }
+        compatFlagsEnsured = true;
     }
 
     /**
@@ -201,7 +208,27 @@ public final class CompatManager {
     // region Deferred initialization
 
     /**
-     * Assigns an initializer.
+     * Runs the initialization routine for the given compat initializers.
+     * @param initializers The initializers for specific flag, {@link CompatInitializer}.
+     * @return The results of the initialization routine.
+     */
+    public static HashMap<CompatFlags, HashSet<CompatInitializationResult>> runInitializationRoutine(CompatInitializer... initializers) {
+        setCompatFlags();
+
+        for (CompatInitializer initializer : initializers) {
+            addInitializer(initializer);
+        }
+
+        return initializeCompats();
+    }
+
+    /**
+     * Assigns an initializer for a compat flag.
+     * It is safe to call this method even when the compat flag is not present. <br/>
+     * This method will internally call {@link #setCompatFlags()} if the compat flags have not been ensured yet,
+     * so it must be safe to classload at the point in time when initializers are added and this method is called.<br/><br/>
+     * It is safe to add an initializer to a mod flag that is not present at runtime. In this case, adding
+     * the initializer will be ignored.
      * @param initializer The initializer to assign
      */
     public static void addInitializer(CompatInitializer initializer) {
@@ -209,13 +236,27 @@ public final class CompatManager {
     }
 
     /**
-     * Assigns an initialization method
-     * @param flag The flag to assign an initialization method to
+     * Assigns an initialization method.<br/>
+     * <br/>
+     * This method will internally call {@link #setCompatFlags()} if the compat flags have not been ensured yet,
+     * so it must be safe to classload at the point in time when initializers are added and this method is called.<br/><br/>
+     * It is safe to add an initializer to a mod flag that is not present at runtime. In this case, adding
+     * the initializer will be ignored.
+     * @param flag The flag to assign an initialization method to.
      */
     public static void assignInitialization(CompatFlags flag, Supplier<CompatInitializationResult> initialization) {
+        if (!compatFlagsEnsured) {
+            setCompatFlags();
+        }
+
         if (!flag.needsInitialization()) {
             return;
         }
+
+        if (!isPresent(flag)) {
+            return;
+        }
+
         INITIALIZATIONS.computeIfAbsent(flag, key -> new HashSet<>()).add(initialization);
     }
 
