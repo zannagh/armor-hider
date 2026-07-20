@@ -28,6 +28,14 @@ public final class CompatManager {
 
     public static EnumSet<CompatFlags> COMPAT_FLAGS = EnumSet.noneOf(CompatFlags.class);
 
+    /**
+     * The subset of {@link #COMPAT_FLAGS} that was detected by the mixin-safe resource probe (never
+     * {@code Class.forName}). Kept separate from the {@link #setCompatFlags} class-load gap-fill so the
+     * smoke consistency check ({@link #resourceProbingGaps}) can verify the resource probe alone detected
+     * every mod that is actually present.
+     */
+    public static final EnumSet<CompatFlags> RESOURCE_PROBED_FLAGS = EnumSet.noneOf(CompatFlags.class);
+
     private CompatManager() {}
 
     /**
@@ -61,9 +69,37 @@ public final class CompatManager {
     public static void setCompatFlagsByResourceProbing(ClassLoader classLoader) {
         for (var flag : CompatFlags.values()) {
             if (flag.isAvailable(string -> isModPresent(classLoader, string))) {
+                RESOURCE_PROBED_FLAGS.add(flag);
                 setCompatFlag(flag);
             }
         }
+    }
+
+    /**
+     * Smoke/diagnostic consistency check: for every compat flag whose mod is <b>definitively</b> present
+     * (verified here by {@code Class.forName} — safe to do post-boot, unlike at mixin time), assert the
+     * mixin-safe resource probe ({@link #RESOURCE_PROBED_FLAGS}) also detected it. A mod that loads but
+     * was not resource-probed means the class-load-free probing path has a gap and compat gating would
+     * silently misfire in production. Returns the set of such gaps ({@code empty} = probing is sound).
+     *
+     * @param cl the classloader to verify against (the mod's own classloader)
+     */
+    public static EnumSet<CompatFlags> resourceProbingGaps(ClassLoader cl) {
+        EnumSet<CompatFlags> gaps = EnumSet.noneOf(CompatFlags.class);
+        for (var flag : CompatFlags.values()) {
+            boolean presentByClassLoad = flag.isAvailable(name -> {
+                try {
+                    Class.forName(name, false, cl);
+                    return true;
+                } catch (Throwable ignored) {
+                    return false;
+                }
+            });
+            if (presentByClassLoad && !RESOURCE_PROBED_FLAGS.contains(flag)) {
+                gaps.add(flag);
+            }
+        }
+        return gaps;
     }
 
     public static void setCompatFlagsByResourceProbing() {

@@ -42,7 +42,13 @@ public class MixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public void onLoad(String mixinPackage) {
-        de.zannagh.armorhider.CompatManager.setCompatFlags(MixinPlugin.class.getClassLoader());
+        // Resource-probe ONLY here — this runs at mixin-plugin load, before other mods' mixins apply.
+        // The Class.forName variant (setCompatFlags) would eagerly load compat mod classes (e.g.
+        // GeckoLib's GeoArmorRenderer, EMF model classes) whose type hierarchy references
+        // net.minecraft.client.model.Model, loading Model too early and breaking EMF's MixinModel with
+        // MixinTargetAlreadyLoadedException. The class-load probe runs later, safely, from
+        // AhClientCompatManager.init() at client init.
+        de.zannagh.armorhider.CompatManager.setCompatFlagsByResourceProbing(MixinPlugin.class.getClassLoader());
     }
 
     @Override

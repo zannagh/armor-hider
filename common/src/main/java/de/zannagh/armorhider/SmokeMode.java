@@ -37,6 +37,11 @@ public final class SmokeMode {
                 Thread.currentThread().interrupt();
                 return;
             }
+            if (!compatProbingConsistent()) {
+                Runtime.getRuntime().halt(3);
+                return;
+            }
+
             ArmorHider.LOGGER.info("[smoke] Boot smoke window of {}ms elapsed cleanly, exiting 0", delayMs);
 
             Thread haltFallback = new Thread(() -> {
@@ -58,5 +63,27 @@ public final class SmokeMode {
         timer.start();
 
         ArmorHider.LOGGER.info("[smoke] Armed: will exit JVM in {}ms unless a crash trips us first", delayMs);
+    }
+
+    /**
+     * When {@code armorhider.smoke.assertCompat=true} (set by the compat smoke runs), verify that the
+     * mixin-safe resource probe detected every compat mod that is actually present. Returns {@code false}
+     * (failing the smoke) if a present mod was missed — that would mean compat gating silently misfires.
+     * Always {@code true} when the assertion is off, so normal boot smoke is unaffected.
+     */
+    private static boolean compatProbingConsistent() {
+        if (!Boolean.getBoolean("armorhider.smoke.assertCompat")) {
+            return true;
+        }
+        var gaps = CompatManager.resourceProbingGaps(CompatManager.class.getClassLoader());
+        if (!gaps.isEmpty()) {
+            ArmorHider.LOGGER.error(
+                    "[smoke] Compat probing FAILED: mods present but missed by resource probing: {} (resource-probed={})",
+                    gaps, CompatManager.RESOURCE_PROBED_FLAGS);
+            return false;
+        }
+        ArmorHider.LOGGER.info("[smoke] Compat probing OK — resource-probed flags present: {}",
+                CompatManager.RESOURCE_PROBED_FLAGS);
+        return true;
     }
 }

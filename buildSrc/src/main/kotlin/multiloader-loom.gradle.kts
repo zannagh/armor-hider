@@ -175,6 +175,12 @@ if (branch == "fabric") {
                 vmArg("-Darmorhider.smoke.exit=true")
                 val delayMs = project.findProperty("smoke.delay.ms")?.toString() ?: "15000"
                 vmArg("-Darmorhider.smoke.delay.ms=${delayMs}")
+                // With compat mods fetched into run/mods, assert the mixin-safe resource probe actually
+                // detected every present mod (a present-but-unprobed mod = silent compat gating failure).
+                val compat = project.findProperty("compat")?.toString() ?: "none"
+                if (compat != "none") {
+                    vmArg("-Darmorhider.smoke.assertCompat=true")
+                }
             }
             // Dev/UI testing: seed N fake players into the head bar of the per-player screen so the
             // horizontal scroll can be exercised without spawning real clients. Read by
