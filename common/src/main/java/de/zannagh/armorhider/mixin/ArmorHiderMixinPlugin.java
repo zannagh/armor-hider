@@ -83,7 +83,7 @@ public abstract class ArmorHiderMixinPlugin implements IMixinConfigPlugin {
         }
         // Resource-probe only (no Class.forName) at mixin-plugin load.
         // This is safe to call multiple times.
-        CompatManager.setCompatFlagsByResourceProbing(NeoForgeMixinPlugin.class.getClassLoader());
+        CompatManager.setCompatFlagsByResourceProbing(getClass().getClassLoader());
         if (CompatManager.isPresent(CompatFlags.SYNTRA)) {
             syntraConnected = true;
             LOG.info("Detected Forge/Sinytra Connector environment.");
