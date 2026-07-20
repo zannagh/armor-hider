@@ -1,6 +1,7 @@
 package de.zannagh.armorhider.api.compat;
 
-import de.zannagh.armorhider.util.MixinUtil;
+import de.zannagh.armorhider.mixin.ArmorHiderMixinPlugin;
+
 import java.io.IOException;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -12,22 +13,16 @@ import java.util.function.Supplier;
  * Lightweight compat flags set during mixin plugin load — before MC classes are available.
  * This class must NOT import any Minecraft classes to avoid early class loading.
  *
- * <p>Flags are set via {@link CompatManager#setCompatFlagsByResourceProbing(ClassLoader)} during mixin-plugin load
- * (resource-based probing only), and may be gap-filled later via {@link CompatManager#setCompatFlags(ClassLoader)}
+ * <p>Flags are set via {@link #setCompatFlagsByResourceProbing(ClassLoader)} during mixin-plugin load
+ * (resource-based probing only), and may be gap-filled later via {@link #setCompatFlags(ClassLoader)}
  * (which can use {@code Class.forName(..., false, ...)}).</p>
  *
- * <p>
- *     Remarks:
- * </p>
- * <remarks>
- *     <ul>
- *         <li>Iris should not be loaded via this as it breaks game client startup on NeoForge</li>
- *     </ul>
- * </remarks>
+ * <p><b>Note:</b> Iris must not be reached through the {@code Class.forName} path at mixin time — loading
+ * it early breaks client startup on NeoForge. It is only resource-probed early and initialised later.</p>
  */
 public final class CompatManager {
 
-    public static EnumSet<CompatFlags> COMPAT_FLAGS = EnumSet.noneOf(CompatFlags.class);
+    private static final EnumSet<CompatFlags> COMPAT_FLAGS = EnumSet.noneOf(CompatFlags.class);
 
     /**
      * The subset of {@link #COMPAT_FLAGS} that was detected by the mixin-safe resource probe (never
@@ -40,6 +35,8 @@ public final class CompatManager {
     private static final HashMap<CompatFlags, HashSet<Supplier<CompatInitializationResult>>> INITIALIZATIONS = new HashMap<>();
 
     private CompatManager() {}
+
+    // region Low-level presence probing
 
     /**
      * Probes whether a class exists without instantiating it (and loading imports). <br/>
@@ -66,8 +63,39 @@ public final class CompatManager {
         }
     }
 
-    public static void setCompatFlags() {
-        setCompatFlags(CompatManager.class.getClassLoader());
+    /**
+     * Checks whether a mod is present without loading any classes.
+     * <ol>
+     *   <li>Probes for the exact {@code .class} resource.</li>
+     *   <li>Falls back to checking the class's own package directory (every segment before the
+     *       last), so a mod whose entrypoint class was renamed but still lives in the same package
+     *       is still detected. Best-effort: a jar without explicit directory entries won't expose the
+     *       package dir as a resource, so this can under-report; the primary probe covers the normal case.</li>
+     * </ol>
+     */
+    public static boolean isModPresent(ClassLoader cl, String className) {
+        if (cl.getResource(className.replace('.', '/') + ".class") != null) {
+            return true;
+        }
+        int lastDot = className.lastIndexOf('.');
+        if (lastDot > 0) {
+            String packageProbe = className.substring(0, lastDot).replace('.', '/') + "/";
+            try {
+                return cl.getResources(packageProbe).hasMoreElements();
+            } catch (IOException e) {
+                ArmorHiderMixinPlugin.LOG.debug("Failed to probe package resource '{}'.", packageProbe, e);
+                return false;
+            }
+        }
+        return false;
+    }
+
+    // endregion
+
+    // region Flag detection passes
+
+    public static void setCompatFlagsByResourceProbing() {
+        setCompatFlagsByResourceProbing(CompatManager.class.getClassLoader());
     }
 
     public static void setCompatFlagsByResourceProbing(ClassLoader classLoader) {
@@ -79,9 +107,37 @@ public final class CompatManager {
         }
     }
 
+    public static void setCompatFlags() {
+        setCompatFlags(CompatManager.class.getClassLoader());
+    }
+
     /**
-     * Smoke/diagnostic consistency check: for every compat flag whose mod is <b>definitively</b> present
-     * (verified here by {@code Class.forName} - safe to do post-boot, unlike at mixin time). Assert the
+     * Gap-fills compat flags with a {@code Class.forName} presence check (via {@link #classExists}), for
+     * mods the mixin-safe resource probe missed. Skips flags already set so it never re-loads an
+     * already-detected mod. Runs at client init, NOT at mixin time, so the class loads it triggers are
+     * safe (see {@link #setCompatFlagsByResourceProbing} for the mixin-time, class-load-free path).
+     *
+     * @param cl the classloader to probe (usually the MixinPlugin's own classloader)
+     */
+    public static void setCompatFlags(ClassLoader cl) {
+        for (var compat : CompatFlags.values()) {
+            // Resource probing (setCompatFlagsByResourceProbing) runs first, at mixin-plugin load, and
+            // already flagged everything it could see without loading a class. Skip those here so the
+            // Class.forName pass never re-loads an already-detected mod — this matters for Iris, whose
+            // early class load breaks client startup on NeoForge. Only gap-fill the mods resource
+            // probing missed.
+            if (COMPAT_FLAGS.contains(compat)) {
+                continue;
+            }
+            if (compat.isAvailable(name -> classExists(name, cl))) {
+                setCompatFlag(compat);
+            }
+        }
+    }
+
+    /**
+     * Smoke/diagnostic consistency check: for every compat flag whose mod is <b>definitively</b> present —
+     * verified here by {@code Class.forName}, safe to do post-boot unlike at mixin time — assert the
      * mixin-safe resource probe ({@link #RESOURCE_PROBED_FLAGS}) also detected it. A mod that loads but
      * was not resource-probed means the class-load-free probing path has a gap and compat gating would
      * silently misfire in production. Returns the set of such gaps ({@code empty} = probing is sound).
@@ -106,34 +162,9 @@ public final class CompatManager {
         return gaps;
     }
 
-    public static void setCompatFlagsByResourceProbing() {
-        setCompatFlagsByResourceProbing(CompatManager.class.getClassLoader());
-    }
+    // endregion
 
-    /**
-     * Gap-fills compat flags with a {@code Class.forName} presence check (via {@link #classExists}), for
-     * mods the mixin-safe resource probe missed. Skips flags already set so it never re-loads an
-     * already-detected mod. Runs at client init, NOT at mixin time, so the class loads it triggers are
-     * safe (see {@link #setCompatFlagsByResourceProbing} for the mixin-time, class-load-free path).
-     *
-     * @param cl the classloader to probe (usually the MixinPlugin's own classloader)
-     */
-    public static void setCompatFlags(ClassLoader cl) {
-        var allCompats = CompatFlags.values();
-        for (var compat : allCompats) {
-            // Resource probing (setCompatFlagsByResourceProbing) runs first, at mixin-plugin load, and
-            // already flagged everything it could see without loading a class. Skip those here so the
-            // Class.forName pass never re-loads an already-detected mod — this matters for Iris, whose
-            // early class load breaks client startup on NeoForge. Only gap-fill the mods resource
-            // probing missed.
-            if (COMPAT_FLAGS.contains(compat)) {
-                continue;
-            }
-            if (compat.isAvailable(name -> classExists(name, cl))) {
-                setCompatFlag(compat);
-            }
-        }
-    }
+    // region Flag queries
 
     public static boolean requiresCompatTo(CompatFlags flags) {
         if (flags == CompatFlags.FANTASY_ARMOR) {
@@ -151,36 +182,19 @@ public final class CompatManager {
         return false;
     }
 
-    public static boolean isModPresent(CompatFlags flag) {
+    /** Whether the given mod was detected as present (distinct from the low-level {@link #isModPresent(ClassLoader, String)} probe). */
+    public static boolean isPresent(CompatFlags flag) {
         return requiresCompatTo(flag);
     }
 
-    /**
-     * Checks whether a mod is present without loading any classes.
-     * <ol>
-     *   <li>Probes for the exact {@code .class} resource.</li>
-     *   <li>Falls back to checking the class's own package directory (every segment before the
-     *       last), so a mod whose entrypoint class was renamed but still lives in the same package
-     *       is still detected. Best-effort: a jar without explicit directory entries won't expose the
-     *       package dir as a resource, so this can under-report; the primary probe covers the normal case.</li>
-     * </ol>
-     */
-    public static boolean isModPresent(ClassLoader cl, String className) {
-        if (cl.getResource(className.replace('.', '/') + ".class") != null) {
-            return true;
-        }
-        int lastDot = className.lastIndexOf('.');
-        if (lastDot > 0) {
-            String packageProbe = className.substring(0, lastDot).replace('.', '/') + "/";
-            try {
-                return cl.getResources(packageProbe).hasMoreElements();
-            } catch (IOException e) {
-                MixinUtil.LOG.debug("Failed to probe package resource '{}'.", packageProbe, e);
-                return false;
-            }
-        }
-        return false;
+    /** True when any accessory provider is present — gates the accessory-related config UI. */
+    public static boolean anyAccessoryProviderLoaded() {
+        return requiresCompatToAnyOf(CompatFlags.CURIOS, CompatFlags.TRINKETS, CompatFlags.ACCESSORIES, CompatFlags.ARTIFACTS);
     }
+
+    // endregion
+
+    // region Deferred initialization
 
     /**
      * Assigns an initializer.
@@ -198,45 +212,34 @@ public final class CompatManager {
         if (!flag.needsInitialization()) {
             return;
         }
-
-        if (!INITIALIZATIONS.containsKey(flag)) {
-            var newInitialization = new HashSet<Supplier<CompatInitializationResult>>();
-            newInitialization.add(initialization);
-            INITIALIZATIONS.put(flag, newInitialization);
-        }
-        else {
-            INITIALIZATIONS.get(flag).add(initialization);
-        }
+        INITIALIZATIONS.computeIfAbsent(flag, key -> new HashSet<>()).add(initialization);
     }
 
     /**
      * Initializes compat flags that require initialization
-     * @return A hashmap of compat flags and their initialization result, each being true when successfully initialized, otherwise false.
+     * @return A map of each compat flag to the results of its initializers ({@link CompatInitializationResult#MISSING} when a flag needs initialization but none was registered).
      */
     public static HashMap<CompatFlags, HashSet<CompatInitializationResult>> initializeCompats() {
         HashMap<CompatFlags, HashSet<CompatInitializationResult>> compatInitializations = new HashMap<>();
         for (var presentCompat : COMPAT_FLAGS) {
-            if (presentCompat.needsInitialization()) {
-                if (INITIALIZATIONS.containsKey(presentCompat)) {
-                    var initializationResults = new HashSet<CompatInitializationResult>();
-                    for (var init : INITIALIZATIONS.get(presentCompat)) {
-                        var result = init.get();
-                        initializationResults.add(result);
-                    }
-                    compatInitializations.put(presentCompat, initializationResults);
-                }
-                else {
-                    compatInitializations.put(presentCompat, new HashSet<>(List.of(CompatInitializationResult.MISSING)));
-                }
+            if (!presentCompat.needsInitialization()) {
+                continue;
             }
+            var initializers = INITIALIZATIONS.get(presentCompat);
+            if (initializers == null) {
+                compatInitializations.put(presentCompat, new HashSet<>(List.of(CompatInitializationResult.MISSING)));
+                continue;
+            }
+            var results = new HashSet<CompatInitializationResult>();
+            for (var initializer : initializers) {
+                results.add(initializer.get());
+            }
+            compatInitializations.put(presentCompat, results);
         }
         return compatInitializations;
     }
 
-    /** True when any accessory provider is present — gates the accessory-related config UI. */
-    public static boolean anyAccessoryProviderLoaded() {
-        return requiresCompatToAnyOf(CompatFlags.CURIOS, CompatFlags.TRINKETS, CompatFlags.ACCESSORIES, CompatFlags.ARTIFACTS);
-    }
+    // endregion
 
     private static void setCompatFlag(CompatFlags flag) {
         if (!COMPAT_FLAGS.contains(flag)) {

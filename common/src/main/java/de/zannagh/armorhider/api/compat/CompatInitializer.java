@@ -12,11 +12,10 @@ public interface CompatInitializer {
     CompatFlags targetFlag();
 
     /**
-     * Initializes the compat.<br/>
-     * <remarks>
-     *     This method should not throw exceptions.
-     * </remarks>
+     * Initializes the compat.
+     *
      * @return The {@link CompatInitializationResult} of the initialization.
+     * @implSpec Implementations should not throw; return a failure result instead.
      */
     CompatInitializationResult init();
 }

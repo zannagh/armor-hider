@@ -27,7 +27,16 @@ public final class ReflectiveChain {
             try {
                 for (int i = 0; i < methodNames.length; i++) {
                     Method method = current.getMethod(methodNames[i]);
-                    method.setAccessible(true);
+                    // getMethod returns a public method, but its declaring class may be non-public
+                    // (e.g. a package-private record impl), which Method.invoke would otherwise reject.
+                    // Best-effort: on a strict/modular runtime setAccessible can throw
+                    // InaccessibleObjectException — don't let that abort the whole chain; invoke still
+                    // works when the declaring class is itself public.
+                    try {
+                        method.setAccessible(true);
+                    } catch (RuntimeException ignored) {
+                        // proceed without forced access
+                    }
                     chain[i] = method;
                     current = method.getReturnType();
                 }

@@ -103,9 +103,9 @@ public final class AccessoryHidingCompat {
             Class<?> stateClass = Class.forName(
                     "io.wispforest.accessories.api.client.AccessoryRenderState", false, classLoader);
             // Match by name + arity so we never need the (remapped) ContextKey parameter type.
+            // AccessoryRenderState is public, so no setAccessible is needed to invoke its methods.
             for (Method method : stateClass.getMethods()) {
                 if (method.getName().equals("getStateData") && method.getParameterCount() == 1) {
-                    method.setAccessible(true);
                     accessoriesGetStateData = method;
                     break;
                 }
