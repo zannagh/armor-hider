@@ -41,7 +41,7 @@ public final class ReflectiveChain {
                     current = method.getReturnType();
                 }
                 return chain;
-            } catch (ReflectiveOperationException | RuntimeException e) {
+            } catch (ReflectiveOperationException | RuntimeException | LinkageError e) {
                 return UNRESOLVED;
             }
         }
