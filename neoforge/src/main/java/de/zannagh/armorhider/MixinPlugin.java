@@ -1,5 +1,6 @@
 package de.zannagh.armorhider;
 
+import de.zannagh.armorhider.api.compat.CompatManager;
 import de.zannagh.armorhider.util.MixinUtil;
 import org.objectweb.asm.tree.ClassNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
@@ -48,7 +49,7 @@ public class MixinPlugin implements IMixinConfigPlugin {
         // net.minecraft.client.model.Model, loading Model too early and breaking EMF's MixinModel with
         // MixinTargetAlreadyLoadedException. The class-load probe runs later, safely, from
         // AhClientCompatManager.init() at client init.
-        de.zannagh.armorhider.CompatManager.setCompatFlagsByResourceProbing(MixinPlugin.class.getClassLoader());
+        CompatManager.setCompatFlagsByResourceProbing(MixinPlugin.class.getClassLoader());
     }
 
     @Override

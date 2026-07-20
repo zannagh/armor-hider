@@ -1,10 +1,11 @@
-package de.zannagh.armorhider;
+package de.zannagh.armorhider.api.compat;
 
-import de.zannagh.armorhider.api.CompatFlags;
-
+import de.zannagh.armorhider.util.MixinUtil;
 import java.io.IOException;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.function.Supplier;
 
 /**
@@ -36,8 +37,7 @@ public final class CompatManager {
      */
     public static final EnumSet<CompatFlags> RESOURCE_PROBED_FLAGS = EnumSet.noneOf(CompatFlags.class);
 
-    private static final HashMap<CompatFlags, Supplier<Boolean>> INITIALIZATIONS = new HashMap<>();
-
+    private static final HashMap<CompatFlags, HashSet<Supplier<CompatInitializationResult>>> INITIALIZATIONS = new HashMap<>();
 
     private CompatManager() {}
 
@@ -60,8 +60,7 @@ public final class CompatManager {
             // UnsupportedClassVersionError, VerifyError, …): class found but unlinkable
             try {
                 return isModPresent(cl, name);
-            }
-            catch (Exception ignored) {
+            } catch (Exception ignored) {
                 return false;
             }
         }
@@ -152,6 +151,10 @@ public final class CompatManager {
         return false;
     }
 
+    public static boolean isModPresent(CompatFlags flag) {
+        return requiresCompatTo(flag);
+    }
+
     /**
      * Checks whether a mod is present without loading any classes.
      * <ol>
@@ -172,7 +175,7 @@ public final class CompatManager {
             try {
                 return cl.getResources(packageProbe).hasMoreElements();
             } catch (IOException e) {
-                ArmorHider.LOGGER.debug("Failed to probe package resource '{}'.", packageProbe, e);
+                MixinUtil.LOG.debug("Failed to probe package resource '{}'.", packageProbe, e);
                 return false;
             }
         }
@@ -180,25 +183,51 @@ public final class CompatManager {
     }
 
     /**
+     * Assigns an initializer.
+     * @param initializer The initializer to assign
+     */
+    public static void addInitializer(CompatInitializer initializer) {
+        assignInitialization(initializer.targetFlag(), initializer::init);
+    }
+
+    /**
      * Assigns an initialization method
      * @param flag The flag to assign an initialization method to
      */
-    public static void assignInitialization(CompatFlags flag, Supplier<Boolean> initialization) {
+    public static void assignInitialization(CompatFlags flag, Supplier<CompatInitializationResult> initialization) {
         if (!flag.needsInitialization()) {
             return;
         }
-        INITIALIZATIONS.put(flag, initialization);
+
+        if (!INITIALIZATIONS.containsKey(flag)) {
+            var newInitialization = new HashSet<Supplier<CompatInitializationResult>>();
+            newInitialization.add(initialization);
+            INITIALIZATIONS.put(flag, newInitialization);
+        }
+        else {
+            INITIALIZATIONS.get(flag).add(initialization);
+        }
     }
 
     /**
      * Initializes compat flags that require initialization
      * @return A hashmap of compat flags and their initialization result, each being true when successfully initialized, otherwise false.
      */
-    public static HashMap<CompatFlags, Boolean> initializeCompats() {
-        HashMap<CompatFlags, Boolean> compatInitializations = new HashMap<>();
+    public static HashMap<CompatFlags, HashSet<CompatInitializationResult>> initializeCompats() {
+        HashMap<CompatFlags, HashSet<CompatInitializationResult>> compatInitializations = new HashMap<>();
         for (var presentCompat : COMPAT_FLAGS) {
-            if (INITIALIZATIONS.containsKey(presentCompat) && presentCompat.needsInitialization()) {
-                compatInitializations.put(presentCompat, INITIALIZATIONS.get(presentCompat).get());
+            if (presentCompat.needsInitialization()) {
+                if (INITIALIZATIONS.containsKey(presentCompat)) {
+                    var initializationResults = new HashSet<CompatInitializationResult>();
+                    for (var init : INITIALIZATIONS.get(presentCompat)) {
+                        var result = init.get();
+                        initializationResults.add(result);
+                    }
+                    compatInitializations.put(presentCompat, initializationResults);
+                }
+                else {
+                    compatInitializations.put(presentCompat, new HashSet<>(List.of(CompatInitializationResult.MISSING)));
+                }
             }
         }
         return compatInitializations;
@@ -209,7 +238,7 @@ public final class CompatManager {
         return requiresCompatToAnyOf(CompatFlags.CURIOS, CompatFlags.TRINKETS, CompatFlags.ACCESSORIES, CompatFlags.ARTIFACTS);
     }
 
-    private static void setCompatFlag(CompatFlags flag){
+    private static void setCompatFlag(CompatFlags flag) {
         if (!COMPAT_FLAGS.contains(flag)) {
             COMPAT_FLAGS.add(flag);
         }

@@ -1,8 +1,7 @@
 package de.zannagh.armorhider.client.render.interceptors;
 
-import de.zannagh.armorhider.api.CompatFlags;
-import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.api.AhRenderManagementApi;
+import de.zannagh.armorhider.api.compat.CompatFlags;
+import de.zannagh.armorhider.api.compat.CompatManager;import de.zannagh.armorhider.client.api.AhRenderManagementApi;
 import de.zannagh.armorhider.client.common.IdentityCarrier;
 import de.zannagh.armorhider.client.common.RenderInterceptionResult;
 import de.zannagh.armorhider.client.common.RenderScope;
@@ -53,7 +52,7 @@ public class ArmorHiderElytraRenderer extends AbstractArmorHiderRenderer {
         // With ElytraTrims present, ET's own rendering pipeline owns elytra appearance — collapse
         // to full-hide-or-vanilla. The non-hide case must NOT enter scope (would still leak our
         // mod into ET's submissions and re-introduce the blue-trim / missing-trim regressions).
-        if (de.zannagh.armorhider.CompatManager.requiresCompatTo(CompatFlags.ELYTRA_TRIMS) && !mod.shouldHide()) {
+        if (CompatManager.requiresCompatTo(CompatFlags.ELYTRA_TRIMS) && !mod.shouldHide()) {
             return RenderInterceptionResult.ignore();
         }
 

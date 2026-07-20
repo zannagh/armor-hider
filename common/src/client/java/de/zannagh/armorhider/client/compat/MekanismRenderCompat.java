@@ -2,8 +2,8 @@
 /*package de.zannagh.armorhider.client.compat.mekanism;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import de.zannagh.armorhider.api.CompatFlags;
-import de.zannagh.armorhider.CompatManager;
+import de.zannagh.armorhider.api.compat.CompatFlags;
+import de.zannagh.armorhider.api.compat.CompatManager;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.compat.FiguraCompat;
 import mekanism.client.render.MekanismRenderType;

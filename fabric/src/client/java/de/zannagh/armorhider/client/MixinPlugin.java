@@ -1,6 +1,8 @@
 package de.zannagh.armorhider.client;
 
 import de.zannagh.armorhider.ArmorHider;
+import de.zannagh.armorhider.api.compat.CompatFlags;
+import de.zannagh.armorhider.api.compat.CompatManager;
 import de.zannagh.armorhider.util.MixinUtil;
 import org.objectweb.asm.tree.ClassNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
@@ -97,8 +99,8 @@ public class MixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public void onLoad(String mixinPackage) {
-        de.zannagh.armorhider.CompatManager.setCompatFlagsByResourceProbing(MixinPlugin.class.getClassLoader());
-        if (de.zannagh.armorhider.CompatManager.isModPresent(MixinPlugin.class.getClassLoader(), "cpw.mods.modlauncher.Launcher")) {
+        CompatManager.setCompatFlagsByResourceProbing(MixinPlugin.class.getClassLoader());
+        if (CompatManager.isModPresent(CompatFlags.SYNTRA)) {
             forgeEnvironment = true;
             ArmorHider.LOGGER.info("Detected Forge/Sinytra Connector environment.");
         }

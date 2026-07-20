@@ -1,7 +1,7 @@
 package de.zannagh.armorhider.client.gui.elements;
 
 import com.mojang.datafixers.util.Pair;
-import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.api.compat.CompatManager;import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.gui.UiConstants;
 import de.zannagh.armorhider.client.gui.elements.factories.OptionElementFactory;
 import de.zannagh.armorhider.client.gui.elements.implementations.AccessoryAffectButton;
@@ -82,7 +82,7 @@ public class ArmorHiderOptionsPanelWidget extends AbstractWidget {
      * loaded (so the button is omitted from the row entirely).
      */
     private @Nullable AbstractWidget accessoryButtonFor(EquipmentSlot slot, boolean initial, Consumer<Boolean> setter) {
-        if (!de.zannagh.armorhider.CompatManager.anyAccessoryProviderLoaded()) {
+        if (!CompatManager.anyAccessoryProviderLoaded()) {
             return null;
         }
         return new AccessoryAffectButton(initial, slot, UiConstants.SQUARE_BUTTON_WIDTH, UiConstants.DEFAULT_BUTTON_HEIGHT,
@@ -103,7 +103,7 @@ public class ArmorHiderOptionsPanelWidget extends AbstractWidget {
         configs.add(new Pair<>(config.disableArmorHiderOnInvisibility.getValue(), val -> setSetting(val, config.disableArmorHiderOnInvisibility::setValue)));
         // Master accessory-hide toggle — only offered (as a 4th general-row button) when an accessory
         // provider (Curios / Trinkets / Artifacts) is present, so vanilla users don't see a dead toggle.
-        if (de.zannagh.armorhider.CompatManager.anyAccessoryProviderLoaded()) {
+        if (CompatManager.anyAccessoryProviderLoaded()) {
             configs.add(new Pair<>(config.affectAccessories.getValue(), val -> setSetting(val, config.affectAccessories::setValue)));
         }
 

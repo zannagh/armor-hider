@@ -1,5 +1,7 @@
 package de.zannagh.armorhider;
 
+import de.zannagh.armorhider.api.compat.CompatManager;
+
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**

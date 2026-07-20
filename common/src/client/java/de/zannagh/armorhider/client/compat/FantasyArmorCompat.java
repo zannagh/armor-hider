@@ -1,9 +1,10 @@
 package de.zannagh.armorhider.client.compat;
 
-import de.zannagh.armorhider.CompatManager;
-import de.zannagh.armorhider.api.CompatFlags;
+import de.zannagh.armorhider.api.compat.CompatManager;
+import de.zannagh.armorhider.api.compat.CompatFlags;
 import de.zannagh.armorhider.client.common.IdentityCarrier;
 import de.zannagh.armorhider.client.common.SlotModification;
+// Only referenced by the < 1.21.2 branch below (uncommented by Stonecutter there); unused on newer versions.
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.player.PlayerModel;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;

@@ -1,12 +1,15 @@
 package de.zannagh.armorhider.client.compat;
 
 import de.zannagh.armorhider.ArmorHider;
+import de.zannagh.armorhider.api.compat.CompatFlags;
+import de.zannagh.armorhider.api.compat.CompatInitializationResult;
+import de.zannagh.armorhider.api.compat.CompatInitializer;
 import de.zannagh.armorhider.client.render.rendertype.ArmorHiderRenderTypes;
 import net.irisshaders.iris.api.v0.*;
 
-public final class IrisCompat {
+public class IrisCompat implements CompatInitializer {
 
-    private IrisCompat() {}
+    public IrisCompat() {}
 
     public static void registerPipelines() {
         //? if >= 1.21.5 {
@@ -28,5 +31,21 @@ public final class IrisCompat {
         /*ArmorHider.LOGGER.debug("Iris pipeline registration skipped: pinned Iris predates the 26.3 renderpearl API");
         *///?}
         //?}
+    }
+
+    @Override
+    public CompatFlags targetFlag() {
+        return CompatFlags.IRIS;
+    }
+
+    @Override
+    public CompatInitializationResult init() {
+        try {
+            IrisCompat.registerPipelines();
+            return CompatInitializationResult.SUCCESS;
+        } catch (Exception e) {
+            ArmorHider.LOGGER.warn("Failed to register pipelines with Iris", e);
+            return CompatInitializationResult.failure(e.getMessage());
+        }
     }
 }

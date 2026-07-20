@@ -1,6 +1,7 @@
 package de.zannagh.armorhider.client;
 
 import de.zannagh.armorhider.util.MixinUtil;
+import de.zannagh.armorhider.api.compat.CompatManager;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLEnvironment;
 import org.objectweb.asm.tree.ClassNode;
@@ -107,7 +108,7 @@ public class MixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public void onLoad(String mixinPackage) {
-        de.zannagh.armorhider.CompatManager.setCompatFlagsByResourceProbing(MixinPlugin.class.getClassLoader());
+        CompatManager.setCompatFlagsByResourceProbing(MixinPlugin.class.getClassLoader());
     }
 
     @Override

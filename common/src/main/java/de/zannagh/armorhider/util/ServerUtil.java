@@ -1,8 +1,8 @@
 package de.zannagh.armorhider.util;
 
 import de.zannagh.armorhider.ArmorHider;
-import de.zannagh.armorhider.CompatManager;
-import de.zannagh.armorhider.api.CompatFlags;
+import de.zannagh.armorhider.api.compat.CompatManager;
+import de.zannagh.armorhider.api.compat.CompatFlags;
 import de.zannagh.armorhider.server.LuckPermsHook;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.player.Player;

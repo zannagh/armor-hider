@@ -2,7 +2,10 @@ package de.zannagh.armorhider.client.compat;
 
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.api.ArmorHiderApi;
-import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.api.compat.CompatFlags;
+import de.zannagh.armorhider.api.compat.CompatInitializationResult;
+import de.zannagh.armorhider.api.compat.CompatInitializer;
+import de.zannagh.armorhider.api.compat.CompatManager;import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.api.AhCombatApi;
 import de.zannagh.armorhider.client.common.IdentityCarrier;
 import de.zannagh.armorhider.log.DebugLogger;
@@ -13,11 +16,27 @@ import traben.entity_model_features.EMFAnimationApi;
 //? if >= 1.21.4
 import net.minecraft.client.renderer.entity.state.AvatarRenderState;
 
-public final class EmfCompat {
+public class EmfCompat implements CompatInitializer {
 
     private static int callbackLogCounter = 0;
 
-    private EmfCompat() {}
+    public EmfCompat() {}
+
+    @Override
+    public CompatFlags targetFlag() {
+        return CompatFlags.ENTITY_MODEL_FEATURES;
+    }
+
+    @Override
+    public CompatInitializationResult init() {
+        try {
+            EmfCompat.register();
+            return CompatInitializationResult.SUCCESS;
+        } catch (Exception e) {
+            ArmorHider.LOGGER.warn("Failed to register vanilla model condition with EMF", e);
+            return CompatInitializationResult.failure(e.getMessage());
+        }
+    }
 
     public static void register() {
         try {
@@ -55,7 +74,7 @@ public final class EmfCompat {
      * @param renderState The renderState that is internally checked to be a {@link AvatarRenderState}
      */
     public static void clearEquipment(Object identityCarrier, Object renderState) {
-        if (!de.zannagh.armorhider.CompatManager.requiresCompatTo(de.zannagh.armorhider.api.CompatFlags.ENTITY_MODEL_FEATURES)) {
+        if (!CompatManager.requiresCompatTo(CompatFlags.ENTITY_MODEL_FEATURES)) {
             return;
         }
         if (!(identityCarrier instanceof IdentityCarrier carrier)) {
