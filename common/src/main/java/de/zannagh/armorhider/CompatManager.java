@@ -150,19 +150,20 @@ public final class CompatManager {
     /**
      * Checks whether a mod is present without loading any classes.
      * <ol>
-     *   <li>Probes for the exact {@code .class} resource.</li>
-     *   <li>Falls back to checking the package directory formed by the 2nd and 3rd
-     *       dot-separated segments (the org/mod identifier that is unlikely to change
-     *       even when individual classes are renamed).</li>
+     *   <li>Probes for the exact {@code .class} resource — the reliable primary path.</li>
+     *   <li>Falls back to checking the class's own package directory (every segment before the
+     *       last), so a mod whose entrypoint class was renamed but still lives in the same package
+     *       is still detected. Best-effort: a jar without explicit directory entries won't expose the
+     *       package dir as a resource, so this can under-report; the primary probe covers the normal case.</li>
      * </ol>
      */
     public static boolean isModPresent(ClassLoader cl, String className) {
         if (cl.getResource(className.replace('.', '/') + ".class") != null) {
             return true;
         }
-        String[] parts = className.split("\\.");
-        if (parts.length >= 3) {
-            String packageProbe = parts[1] + "/" + parts[2] + "/";
+        int lastDot = className.lastIndexOf('.');
+        if (lastDot > 0) {
+            String packageProbe = className.substring(0, lastDot).replace('.', '/') + "/";
             try {
                 return cl.getResources(packageProbe).hasMoreElements();
             } catch (IOException e) {
