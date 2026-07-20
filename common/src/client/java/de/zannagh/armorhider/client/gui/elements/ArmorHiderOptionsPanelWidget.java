@@ -1,7 +1,8 @@
 package de.zannagh.armorhider.client.gui.elements;
 
 import com.mojang.datafixers.util.Pair;
-import de.zannagh.armorhider.api.compat.CompatManager;import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.api.compat.CompatManager;
+import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.gui.UiConstants;
 import de.zannagh.armorhider.client.gui.elements.factories.OptionElementFactory;
 import de.zannagh.armorhider.client.gui.elements.implementations.AccessoryAffectButton;

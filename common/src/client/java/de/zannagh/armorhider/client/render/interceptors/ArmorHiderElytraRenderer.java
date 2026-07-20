@@ -1,7 +1,8 @@
 package de.zannagh.armorhider.client.render.interceptors;
 
 import de.zannagh.armorhider.api.compat.CompatFlags;
-import de.zannagh.armorhider.api.compat.CompatManager;import de.zannagh.armorhider.client.api.AhRenderManagementApi;
+import de.zannagh.armorhider.api.compat.CompatManager;
+import de.zannagh.armorhider.client.api.AhRenderManagementApi;
 import de.zannagh.armorhider.client.common.IdentityCarrier;
 import de.zannagh.armorhider.client.common.RenderInterceptionResult;
 import de.zannagh.armorhider.client.common.RenderScope;

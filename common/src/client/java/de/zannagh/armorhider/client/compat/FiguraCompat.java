@@ -1,7 +1,8 @@
 package de.zannagh.armorhider.client.compat;
 
 import de.zannagh.armorhider.api.compat.CompatManager;
-import de.zannagh.armorhider.api.compat.CompatFlags;import net.minecraft.world.entity.EquipmentSlot;
+import de.zannagh.armorhider.api.compat.CompatFlags;
+import net.minecraft.world.entity.EquipmentSlot;
 
 import java.util.Arrays;
 

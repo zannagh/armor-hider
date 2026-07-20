@@ -1,6 +1,7 @@
 package de.zannagh.armorhider.api.compat;
 
-import de.zannagh.armorhider.mixin.ArmorHiderMixinPlugin;
+import de.zannagh.armorhider.log.EnrichedLogger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.EnumSet;
@@ -21,6 +22,9 @@ import java.util.function.Supplier;
  * it early breaks client startup on NeoForge. It is only resource-probed early and initialised later.</p>
  */
 public final class CompatManager {
+
+    /** Standalone logger (no ArmorHider/Minecraft dependency) so this stays mixin-load safe. */
+    private static final EnrichedLogger LOG = new EnrichedLogger(LoggerFactory.getLogger("Armor Hider - Compat"));
 
     private static final EnumSet<CompatFlags> COMPAT_FLAGS = EnumSet.noneOf(CompatFlags.class);
 
@@ -83,7 +87,7 @@ public final class CompatManager {
             try {
                 return cl.getResources(packageProbe).hasMoreElements();
             } catch (IOException e) {
-                ArmorHiderMixinPlugin.LOG.debug("Failed to probe package resource '{}'.", packageProbe, e);
+                LOG.debug("Failed to probe package resource '{}'.", packageProbe, e);
                 return false;
             }
         }
