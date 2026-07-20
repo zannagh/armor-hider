@@ -36,6 +36,9 @@ public final class CompatManager {
      */
     public static final EnumSet<CompatFlags> RESOURCE_PROBED_FLAGS = EnumSet.noneOf(CompatFlags.class);
 
+    private static final HashMap<CompatFlags, Supplier<Boolean>> INITIALIZATIONS = new HashMap<>();
+
+
     private CompatManager() {}
 
     /**
@@ -52,7 +55,9 @@ public final class CompatManager {
         try {
             Class.forName(name, false, cl);
             return true;
-        } catch (ClassNotFoundException e) {
+        } catch (ClassNotFoundException | LinkageError e) {
+            // ClassNotFoundException: class absent. LinkageError (NoClassDefFoundError,
+            // UnsupportedClassVersionError, VerifyError, …): class found but unlinkable
             try {
                 return isModPresent(cl, name);
             }
@@ -77,7 +82,7 @@ public final class CompatManager {
 
     /**
      * Smoke/diagnostic consistency check: for every compat flag whose mod is <b>definitively</b> present
-     * (verified here by {@code Class.forName} — safe to do post-boot, unlike at mixin time), assert the
+     * (verified here by {@code Class.forName} - safe to do post-boot, unlike at mixin time). Assert the
      * mixin-safe resource probe ({@link #RESOURCE_PROBED_FLAGS}) also detected it. A mod that loads but
      * was not resource-probed means the class-load-free probing path has a gap and compat gating would
      * silently misfire in production. Returns the set of such gaps ({@code empty} = probing is sound).
@@ -107,10 +112,10 @@ public final class CompatManager {
     }
 
     /**
-     * Sets compat flags by probing for mod presence via resource checks (never {@code Class.forName}).
-     * Each probe first checks the exact class, then falls back to checking whether the mod's
-     * package directory exists (2nd and 3rd dot-separated segments, e.g. {@code geckolib/renderer}
-     * from {@code com.geckolib.renderer.GeoArmorRenderer}).
+     * Gap-fills compat flags with a {@code Class.forName} presence check (via {@link #classExists}), for
+     * mods the mixin-safe resource probe missed. Skips flags already set so it never re-loads an
+     * already-detected mod. Runs at client init, NOT at mixin time, so the class loads it triggers are
+     * safe (see {@link #setCompatFlagsByResourceProbing} for the mixin-time, class-load-free path).
      *
      * @param cl the classloader to probe (usually the MixinPlugin's own classloader)
      */
@@ -150,7 +155,7 @@ public final class CompatManager {
     /**
      * Checks whether a mod is present without loading any classes.
      * <ol>
-     *   <li>Probes for the exact {@code .class} resource — the reliable primary path.</li>
+     *   <li>Probes for the exact {@code .class} resource.</li>
      *   <li>Falls back to checking the class's own package directory (every segment before the
      *       last), so a mod whose entrypoint class was renamed but still lives in the same package
      *       is still detected. Best-effort: a jar without explicit directory entries won't expose the
@@ -176,8 +181,7 @@ public final class CompatManager {
 
     /**
      * Assigns an initialization method
-     * @param flag
-     * @return
+     * @param flag The flag to assign an initialization method to
      */
     public static void assignInitialization(CompatFlags flag, Supplier<Boolean> initialization) {
         if (!flag.needsInitialization()) {
@@ -186,9 +190,10 @@ public final class CompatManager {
         INITIALIZATIONS.put(flag, initialization);
     }
 
-    private static final HashMap<CompatFlags, Supplier<Boolean>> INITIALIZATIONS = new HashMap<>();
-
-
+    /**
+     * Initializes compat flags that require initialization
+     * @return A hashmap of compat flags and their initialization result, each being true when successfully initialized, otherwise false.
+     */
     public static HashMap<CompatFlags, Boolean> initializeCompats() {
         HashMap<CompatFlags, Boolean> compatInitializations = new HashMap<>();
         for (var presentCompat : COMPAT_FLAGS) {
