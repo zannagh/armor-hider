@@ -1,6 +1,7 @@
 package de.zannagh.armorhider.client.compat;
 
-import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.api.compat.CompatManager;
+import de.zannagh.armorhider.api.compat.CompatFlags;
 import net.minecraft.world.entity.EquipmentSlot;
 
 import java.util.Arrays;
@@ -12,6 +13,6 @@ public final class FiguraCompat {
         if (anyAdditionalChecksFailed) {
             return false;
         }
-        return ArmorHiderClient.FIGURA_LOADED && slot == EquipmentSlot.HEAD;
+        return CompatManager.requiresCompatTo(CompatFlags.FIGURA) && slot == EquipmentSlot.HEAD;
     }
 }

@@ -104,13 +104,27 @@ public class OptionElementFactory {
                 }
         );
 
-        int globalButtonCount = 4;
+        var globalButtons = new java.util.ArrayList<AbstractWidget>(java.util.List.of(first, second, third));
+        // Accessory-hide master toggle: present only when an accessory provider is loaded (configs has
+        // a 4th entry). Inserted before the "individual settings" button so that stays right-most.
+        if (configs.size() > 3) {
+            globalButtons.add(new AffectAccessoriesButton(
+                    configs.get(3).getFirst(),
+                    onPress -> {
+                        if (onPress instanceof AffectAccessoriesButton btn) {
+                            configs.get(3).getSecond().accept(btn.toggle());
+                        }
+                    }
+            ));
+        }
+        globalButtons.add(fourth);
+
+        int globalButtonCount = globalButtons.size();
         int totalButtons = globalButtonCount + PresetManager.PRESET_COUNT;
         var allButtons = new AbstractWidget[totalButtons];
-        allButtons[0] = first;
-        allButtons[1] = second;
-        allButtons[2] = third;
-        allButtons[3] = fourth;
+        for (int i = 0; i < globalButtonCount; i++) {
+            allButtons[i] = globalButtons.get(i);
+        }
 
         var presetButtons = new PresetButton[PresetManager.PRESET_COUNT];
         for (int i = 0; i < PresetManager.PRESET_COUNT; i++) {
@@ -177,12 +191,25 @@ public class OptionElementFactory {
                 }
         );
 
-        var allButtons = new AbstractWidget[]{first, second, third};
+        var buttons = new java.util.ArrayList<AbstractWidget>(java.util.List.of(first, second, third));
+        // Optional 4th toggle: accessory-hide master, present only when the panel supplied it (i.e. an
+        // accessory provider — Curios / Trinkets / Artifacts — is loaded).
+        if (configs.size() > 3) {
+            buttons.add(new AffectAccessoriesButton(
+                    configs.get(3).getFirst(),
+                    onPress -> {
+                        if (onPress instanceof AffectAccessoriesButton btn) {
+                            configs.get(3).getSecond().accept(btn.toggle());
+                        }
+                    }
+            ));
+        }
+
         int sq = UiConstants.SQUARE_BUTTON_WIDTH;
         var spacing = new ElementSpacingOptions(rowWidth)
-                .forEvenElements(sq, 3)
+                .forEvenElements(sq, buttons.size())
                 .withLeftAlignment();
-        return new CompoundButtonWidget(allButtons, rowWidth, 20, spacing);
+        return new CompoundButtonWidget(buttons.toArray(new AbstractWidget[0]), rowWidth, 20, spacing);
     }
 
     public void addSliderWithToggles(EquipmentSlot slot,
@@ -203,7 +230,19 @@ public class OptionElementFactory {
                                      @Nullable Consumer<Boolean> glintConsumer,
                                      @Nullable Consumer<Boolean> additionalAffectConsumer,
                                      @Nullable AbstractWidget customToggle){
-        var widget = createSliderWithToggleForSlot(slot, slider, options, initialGlint, initialOtherAffect, glintConsumer, additionalAffectConsumer, customToggle);
+        addSliderWithToggles(slot, slider, options, initialGlint, initialOtherAffect, glintConsumer, additionalAffectConsumer, customToggle, null);
+    }
+
+    public void addSliderWithToggles(EquipmentSlot slot,
+                                     OptionInstance<Double> slider,
+                                     Options options,
+                                     @Nullable Boolean initialGlint,
+                                     @Nullable Boolean initialOtherAffect,
+                                     @Nullable Consumer<Boolean> glintConsumer,
+                                     @Nullable Consumer<Boolean> additionalAffectConsumer,
+                                     @Nullable AbstractWidget customToggle,
+                                     @Nullable AbstractWidget accessoryButton){
+        var widget = createSliderWithToggleForSlot(slot, slider, options, initialGlint, initialOtherAffect, glintConsumer, additionalAffectConsumer, customToggle, accessoryButton);
         addElementAsWidget(widget);
     }
 
@@ -225,6 +264,18 @@ public class OptionElementFactory {
                                                        @Nullable Consumer<Boolean> glintConsumer,
                                                        @Nullable Consumer<Boolean> additionalAffectConsumer,
                                                        @Nullable AbstractWidget customToggle) {
+        return createSliderWithToggleForSlot(slot, slider, options, initialGlint, initialOtherAffect, glintConsumer, additionalAffectConsumer, customToggle, null);
+    }
+
+    public AbstractWidget createSliderWithToggleForSlot(EquipmentSlot slot,
+                                                       OptionInstance<Double> slider,
+                                                       Options options,
+                                                       @Nullable Boolean initialGlint,
+                                                       @Nullable Boolean initialOtherAffect,
+                                                       @Nullable Consumer<Boolean> glintConsumer,
+                                                       @Nullable Consumer<Boolean> additionalAffectConsumer,
+                                                       @Nullable AbstractWidget customToggle,
+                                                       @Nullable AbstractWidget accessoryButton) {
         int smallCount = 1; // secondary always present
         boolean hasGlint = initialGlint != null && glintConsumer != null;
         if (hasGlint) {
@@ -234,6 +285,9 @@ public class OptionElementFactory {
             smallCount++;
         }
         if (customToggle != null && !hasGlint) {
+            smallCount++;
+        }
+        if (accessoryButton != null) {
             smallCount++;
         }
         int sliderWidth = CompoundOptionWidget.getPrimaryWidth(rowWidth, smallCount);
@@ -291,7 +345,7 @@ public class OptionElementFactory {
             tertiary = customToggle;
         }
 
-        return new CompoundOptionWidget(sliderWidget, button, tertiary, affectOtherItemsButton, rowWidth, 20);
+        return new CompoundOptionWidget(sliderWidget, button, tertiary, affectOtherItemsButton, accessoryButton, rowWidth, 20);
     }
 
     public OptionInstance<Double> buildDoubleOption(String key,

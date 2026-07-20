@@ -1,9 +1,11 @@
 package de.zannagh.armorhider.client.gui.elements;
 
 import com.mojang.datafixers.util.Pair;
+import de.zannagh.armorhider.api.compat.CompatManager;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.gui.UiConstants;
 import de.zannagh.armorhider.client.gui.elements.factories.OptionElementFactory;
+import de.zannagh.armorhider.client.gui.elements.implementations.AccessoryAffectButton;
 import de.zannagh.armorhider.client.gui.elements.implementations.ShowShieldWhenBlockingButton;
 import de.zannagh.armorhider.client.gui.screens.AdvancedArmorHiderSettingsScreen;
 import de.zannagh.armorhider.configuration.PresetManager;
@@ -76,6 +78,22 @@ public class ArmorHiderOptionsPanelWidget extends AbstractWidget {
         rebuildOptions();
     }
 
+    /**
+     * The per-slot accessory-hide toggle for a slot, or {@code null} when no accessory provider is
+     * loaded (so the button is omitted from the row entirely).
+     */
+    private @Nullable AbstractWidget accessoryButtonFor(EquipmentSlot slot, boolean initial, Consumer<Boolean> setter) {
+        if (!CompatManager.anyAccessoryProviderLoaded()) {
+            return null;
+        }
+        return new AccessoryAffectButton(initial, slot, UiConstants.SQUARE_BUTTON_WIDTH, UiConstants.DEFAULT_BUTTON_HEIGHT,
+                onPress -> {
+                    if (onPress instanceof AccessoryAffectButton btn) {
+                        setSetting(btn.toggle(), setter);
+                    }
+                });
+    }
+
     private void populateOptions() {
         var factory = new OptionElementFactory(widgetList::addWidget, gameOptions, widgetList.getRowWidth());
         var config = configSource();
@@ -84,6 +102,11 @@ public class ArmorHiderOptionsPanelWidget extends AbstractWidget {
         configs.add(new Pair<>(config.enableCombatDetection.getValue(), val -> setSetting(val, config.enableCombatDetection::setValue)));
         configs.add(new Pair<>(config.inCombatUseDefaultModel.getValue(), val -> setSetting(val, config.inCombatUseDefaultModel::setValue)));
         configs.add(new Pair<>(config.disableArmorHiderOnInvisibility.getValue(), val -> setSetting(val, config.disableArmorHiderOnInvisibility::setValue)));
+        // Master accessory-hide toggle — only offered (as a 4th general-row button) when an accessory
+        // provider (Curios / Trinkets / Artifacts) is present, so vanilla users don't see a dead toggle.
+        if (CompatManager.anyAccessoryProviderLoaded()) {
+            configs.add(new Pair<>(config.affectAccessories.getValue(), val -> setSetting(val, config.affectAccessories::setValue)));
+        }
 
         if (showPresets) {
             // Local config: general behaviour toggles + presets + the "individual settings" entry, one row.
@@ -110,7 +133,9 @@ public class ArmorHiderOptionsPanelWidget extends AbstractWidget {
                 config.helmetGlint.getValue(),
                 config.opacityAffectingHatOrSkull.getValue(),
                 val -> setSetting(val, config.helmetGlint::setValue),
-                val -> setSetting(val, config.opacityAffectingHatOrSkull::setValue)
+                val -> setSetting(val, config.opacityAffectingHatOrSkull::setValue),
+                null,
+                accessoryButtonFor(EquipmentSlot.HEAD, config.affectHeadAccessory.getValue(), config.affectHeadAccessory::setValue)
         );
 
         var chestOption = factory.buildDoubleOption(
@@ -128,7 +153,9 @@ public class ArmorHiderOptionsPanelWidget extends AbstractWidget {
                 config.chestGlint.getValue(),
                 config.opacityAffectingElytra.getValue(),
                 val -> setSetting(val, config.chestGlint::setValue),
-                val -> setSetting(val, config.opacityAffectingElytra::setValue)
+                val -> setSetting(val, config.opacityAffectingElytra::setValue),
+                null,
+                accessoryButtonFor(EquipmentSlot.CHEST, config.affectChestAccessory.getValue(), config.affectChestAccessory::setValue)
         );
 
         var legsOption = factory.buildDoubleOption(
@@ -146,7 +173,9 @@ public class ArmorHiderOptionsPanelWidget extends AbstractWidget {
                 config.legsGlint.getValue(),
                 null,
                 val -> setSetting(val, config.legsGlint::setValue),
-                null
+                null,
+                null,
+                accessoryButtonFor(EquipmentSlot.LEGS, config.affectLegsAccessory.getValue(), config.affectLegsAccessory::setValue)
         );
 
         var bootsOption = factory.buildDoubleOption(
@@ -164,7 +193,9 @@ public class ArmorHiderOptionsPanelWidget extends AbstractWidget {
                 config.bootsGlint.getValue(),
                 null,
                 val -> setSetting(val, config.bootsGlint::setValue),
-                null
+                null,
+                null,
+                accessoryButtonFor(EquipmentSlot.FEET, config.affectFeetAccessory.getValue(), config.affectFeetAccessory::setValue)
         );
 
         var offhandOption = factory.buildDoubleOption(

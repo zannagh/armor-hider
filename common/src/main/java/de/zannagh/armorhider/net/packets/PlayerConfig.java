@@ -41,7 +41,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
     public int configVersion;
 
     /** The current config schema version. */
-    public static final int CURRENT_CONFIG_VERSION = 9;
+    public static final int CURRENT_CONFIG_VERSION = 11;
 
     //? if >= 1.21.11 {
     public static final Identifier PACKET_IDENTIFIER = Identifier.fromNamespaceAndPath("de.zannagh.armorhider", "settings_c2s_packet");
@@ -178,6 +178,35 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
      */
     @SerializedName(value = "opacityAffectingHatOrSkull")
     public @NonNull OpacityAffectingHatOrSkullItem opacityAffectingHatOrSkull;
+
+    /**
+     * Master toggle for hiding accessories rendered by accessory mods (Curios / Trinkets / Artifacts).
+     * When on, accessories are hidden together with the armor slot their accessory-slot type maps to,
+     * refined per region by {@link #affectHeadAccessory} / {@link #affectChestAccessory} /
+     * {@link #affectLegsAccessory} / {@link #affectFeetAccessory}. Accessories can only be hidden (not
+     * faded), so they disappear when the mapped slot is fully hidden. Elytra-like items are excluded and
+     * follow the chest slider via {@link #opacityAffectingElytra} instead.
+     *
+     * @since AH 0.12.x, schema 11
+     */
+    @SerializedName(value = "affectAccessories", alternate = {"hideAccessories"})
+    public @NonNull AffectAccessories affectAccessories;
+
+    /** Whether hat-type accessories are hidden with the helmet slot. @since schema 11 */
+    @SerializedName(value = "affectHeadAccessory")
+    public @NonNull AffectHeadAccessory affectHeadAccessory;
+
+    /** Whether necklace-type accessories are hidden with the chest slot. @since schema 11 */
+    @SerializedName(value = "affectChestAccessory")
+    public @NonNull AffectChestAccessory affectChestAccessory;
+
+    /** Whether belt-type accessories are hidden with the leggings slot. @since schema 11 */
+    @SerializedName(value = "affectLegsAccessory")
+    public @NonNull AffectLegsAccessory affectLegsAccessory;
+
+    /** Whether boot-type accessories are hidden with the boots slot. @since schema 11 */
+    @SerializedName(value = "affectFeetAccessory")
+    public @NonNull AffectFeetAccessory affectFeetAccessory;
 
     /**
      * Whether Armor Hider should be disabled globally for the user themselves and for the other players drawn via the {@link DisableArmorHiderGlobally} configuration item.<br/>
@@ -321,6 +350,11 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         playerName = new PlayerName();
         opacityAffectingHatOrSkull = new OpacityAffectingHatOrSkullItem();
         opacityAffectingElytra = new OpacityAffectingElytraItem();
+        affectAccessories = new AffectAccessories();
+        affectHeadAccessory = new AffectHeadAccessory();
+        affectChestAccessory = new AffectChestAccessory();
+        affectLegsAccessory = new AffectLegsAccessory();
+        affectFeetAccessory = new AffectFeetAccessory();
         disableArmorHider = new DisableArmorHiderGlobally();
         disableArmorHiderForOthers = new DisableArmorHiderForOthers();
         usePlayerSettingsWhenUndeterminable = new UsePlayerSettingsWhenUndeterminable();
@@ -383,6 +417,11 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         fresh.inCombatUseDefaultModel.setValue(old.inCombatUseDefaultModel.getValue());
         fresh.opacityAffectingElytra.setValue(old.opacityAffectingElytra.getValue());
         fresh.opacityAffectingHatOrSkull.setValue(old.opacityAffectingHatOrSkull.getValue());
+        fresh.affectAccessories.setValue(old.affectAccessories.getValue());
+        fresh.affectHeadAccessory.setValue(old.affectHeadAccessory.getValue());
+        fresh.affectChestAccessory.setValue(old.affectChestAccessory.getValue());
+        fresh.affectLegsAccessory.setValue(old.affectLegsAccessory.getValue());
+        fresh.affectFeetAccessory.setValue(old.affectFeetAccessory.getValue());
         fresh.disableArmorHider.setValue(old.disableArmorHider.getValue());
         fresh.disableArmorHiderForOthers.setValue(old.disableArmorHiderForOthers.getValue());
         fresh.usePlayerSettingsWhenUndeterminable.setValue(old.usePlayerSettingsWhenUndeterminable.getValue());
@@ -467,6 +506,11 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         newConfig.inCombatUseDefaultModel.setValue(this.inCombatUseDefaultModel.getValue());
         newConfig.opacityAffectingHatOrSkull.setValue(this.opacityAffectingHatOrSkull.getValue());
         newConfig.opacityAffectingElytra.setValue(this.opacityAffectingElytra.getValue());
+        newConfig.affectAccessories.setValue(this.affectAccessories.getValue());
+        newConfig.affectHeadAccessory.setValue(this.affectHeadAccessory.getValue());
+        newConfig.affectChestAccessory.setValue(this.affectChestAccessory.getValue());
+        newConfig.affectLegsAccessory.setValue(this.affectLegsAccessory.getValue());
+        newConfig.affectFeetAccessory.setValue(this.affectFeetAccessory.getValue());
         newConfig.usePlayerSettingsWhenUndeterminable.setValue(this.usePlayerSettingsWhenUndeterminable.getValue());
         newConfig.showSettingsInSkinCustomization.setValue(this.showSettingsInSkinCustomization.getValue());
         newConfig.offHandOpacity.setValue(this.offHandOpacity.getValue());

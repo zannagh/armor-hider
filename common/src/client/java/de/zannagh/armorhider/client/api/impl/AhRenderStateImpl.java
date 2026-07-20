@@ -10,6 +10,7 @@ import de.zannagh.armorhider.client.common.RenderScopeContext;
 import de.zannagh.armorhider.client.common.SlotModification;
 import de.zannagh.armorhider.log.DebugLogger;
 import de.zannagh.armorhider.log.DebugTracer;
+import de.zannagh.armorhider.net.packets.PlayerConfig;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
@@ -18,6 +19,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.EnumMap;
 import java.util.EnumSet;
+import java.util.Locale;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -231,5 +233,55 @@ public final class AhRenderStateImpl {
         }
 
         return config.inCombatUseDefaultModel.getValue();
+    }
+
+    @Nullable
+    public static EquipmentSlot mapAccessoryTypeToSlot(@Nullable String typeKey) {
+        if (typeKey == null) {
+            return null;
+        }
+        String key = typeKey.toLowerCase(Locale.ROOT);
+        int colon = key.lastIndexOf(':');
+        if (colon >= 0 && colon < key.length() - 1) {
+            key = key.substring(colon + 1);
+        }
+        return switch (key) {
+            case "head", "hat", "face", "mask" -> EquipmentSlot.HEAD;
+            case "necklace", "chest", "body" -> EquipmentSlot.CHEST;
+            case "belt", "legs", "waist" -> EquipmentSlot.LEGS;
+            case "feet", "shoes", "boots" -> EquipmentSlot.FEET;
+            default -> null;
+        };
+    }
+
+    public static boolean shouldHideAccessory(@Nullable String typeKey, @Nullable Object carrier) {
+        EquipmentSlot slot = mapAccessoryTypeToSlot(typeKey);
+        if (slot == null) {
+            return false;
+        }
+        if (!(carrier instanceof IdentityCarrier identityCarrier)) {
+            return false;
+        }
+        String playerName = identityCarrier.armorHider$playerName();
+        if (playerName == null) {
+            return false;
+        }
+        PlayerConfig config = ArmorHiderClient.CLIENT_CONFIG_MANAGER.resolveConfig(playerName);
+        if (!config.affectAccessories.getValue()) {
+            return false;
+        }
+        boolean regionEnabled = switch (slot) {
+            case HEAD -> config.affectHeadAccessory.getValue();
+            case CHEST -> config.affectChestAccessory.getValue();
+            case LEGS -> config.affectLegsAccessory.getValue();
+            case FEET -> config.affectFeetAccessory.getValue();
+            default -> false;
+        };
+        if (!regionEnabled) {
+            return false;
+        }
+        // SlotModification.of already yields an empty (non-hiding) modification when Armor Hider is
+        // disabled / force-off for this player, so those guards are respected without repeating them.
+        return SlotModification.of(config, slot).shouldHide();
     }
 }

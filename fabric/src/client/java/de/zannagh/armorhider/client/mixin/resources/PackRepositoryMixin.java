@@ -1,7 +1,8 @@
 //? if >= 1.21 {
 package de.zannagh.armorhider.client.mixin.resources;
 
-import de.zannagh.armorhider.CompatFlags;
+import de.zannagh.armorhider.api.compat.CompatFlags;
+import de.zannagh.armorhider.api.compat.CompatManager;
 import de.zannagh.armorhider.client.resources.ArmorHiderModPackSource;
 import net.minecraft.server.packs.repository.PackRepository;
 import net.minecraft.server.packs.repository.RepositorySource;
@@ -27,7 +28,7 @@ public abstract class PackRepositoryMixin {
             at = @At(value = "INVOKE", target = "Lcom/google/common/collect/ImmutableSet;copyOf([Ljava/lang/Object;)Lcom/google/common/collect/ImmutableSet;")
     )
     private static Object[] armorHider$appendModPackSource(Object[] sources) {
-        if (CompatFlags.FABRIC_API_RESOURCE_LOADER_LOADED) {
+        if (CompatManager.requiresCompatTo(CompatFlags.FABRIC_API_RESOURCE_LOADER)) {
             return sources;
         }
         var combined = Arrays.copyOf(sources, sources.length + 1, RepositorySource[].class);
