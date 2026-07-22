@@ -62,6 +62,18 @@ public final class ArmorHiderRenderTypes {
     private static RenderPipeline clonePipelineNoDepthWrite(RenderPipeline src, Identifier location) {
         var srcDss = src.getDepthStencilState();
         var noDss = new DepthStencilState(srcDss.depthTest(), false, srcDss.depthBiasScaleFactor(), srcDss.depthBiasConstant());
+        // 26.3-snapshot-5 reworked RenderPipeline: the two shader accessors became a single
+        // getShaders() map, and getColorTargetStates()/getVertexFormatBindings() now return
+        // Lists (Snippet still takes arrays + an active-count int).
+        //? if >= 26.3-0.snapshot.5 {
+        /*var snippet = new RenderPipeline.Snippet(
+                src.getShaders(),
+                Optional.of(src.getShaderDefines()), Optional.of(src.getBindGroupLayouts()),
+                src.getColorTargetStates().toArray(new ColorTargetState[0]), src.getColorTargetStates().size(),
+                Optional.of(noDss), Optional.of(src.getPolygonMode()),
+                Optional.of(src.isCull()), src.getVertexFormatBindings().toArray(new com.mojang.renderpearl.api.vertex.VertexFormat[0]),
+                Optional.of(src.getPrimitiveTopology()));
+        *///?} else {
         var snippet = new RenderPipeline.Snippet(
                 Optional.of(src.getVertexShader()), Optional.of(src.getFragmentShader()),
                 Optional.of(src.getShaderDefines()), Optional.of(src.getBindGroupLayouts()),
@@ -69,6 +81,7 @@ public final class ArmorHiderRenderTypes {
                 Optional.of(noDss), Optional.of(src.getPolygonMode()),
                 Optional.of(src.isCull()), src.getVertexFormatBindings(),
                 Optional.of(src.getPrimitiveTopology()));
+        //?}
         return RenderPipeline.builder(snippet).withLocation(location).build();
     }
 
