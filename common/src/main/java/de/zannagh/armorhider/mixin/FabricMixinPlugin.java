@@ -37,7 +37,7 @@ public class FabricMixinPlugin extends ArmorHiderMixinPlugin {
         //mixinsToAdd.addAll(List.of(BELOW_1_20_5_MIXINS));
 
         //? if >= 26.1-0.snapshot.11
-        mixinsToAdd.add("PackRepositoryMixin");
+        //mixinsToAdd.add("PackRepositoryMixin");
         return mixinsToAdd;
     }
 }

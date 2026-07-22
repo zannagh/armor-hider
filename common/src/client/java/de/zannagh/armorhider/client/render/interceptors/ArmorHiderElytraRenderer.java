@@ -18,7 +18,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * Short-circuits:
  * <ul>
  *   <li>player flying → don't enter the elytra scope at all (the body re-renders the elytra geometry);</li>
- *   <li>ElytraTrims loaded → don't enter the scope so ET's own pipeline drives rendering;</li>
+ *   <li>ElytraTrims loaded (pre-4.x / MC &lt; 1.21.9) → don't enter the scope so ET's own pipeline drives
+ *       rendering; on 1.21.9+ we DO enter and {@code ETElytraTrimSubmitMixin} fades ET's trim submits from
+ *       the active ELYTRA scope;</li>
  *   <li>modification {@code shouldHide} → cancel and signal.</li>
  * </ul>
  */
@@ -47,15 +49,21 @@ public class ArmorHiderElytraRenderer extends AbstractArmorHiderRenderer {
         }
         // Flying must short-circuit BEFORE shouldHide so that 0%-opacity players still see the
         // elytra geometry while actually elytra-flying — the wings are the flight indicator.
-        if (carrier.isPlayerFlying()) {
+        if (carrier.ah$isPlayerFlying()) {
             return RenderInterceptionResult.ignore();
         }
-        // With ElytraTrims present, ET's own rendering pipeline owns elytra appearance — collapse
-        // to full-hide-or-vanilla. The non-hide case must NOT enter scope (would still leak our
-        // mod into ET's submissions and re-introduce the blue-trim / missing-trim regressions).
+        //? if < 1.21.9 {
+        /*// Older ElytraTrims (pre-4.x, no decorator API) owns elytra appearance and cannot be faded —
+        // collapse to full-hide-or-vanilla. The non-hide case must NOT enter scope (would leak our mod
+        // into ET's submissions and re-introduce the blue-trim / missing-trim regressions of #49).
         if (CompatManager.requiresCompatTo(CompatFlags.ELYTRA_TRIMS) && !mod.shouldHide()) {
             return RenderInterceptionResult.ignore();
         }
+        *///?}
+        // On 1.21.9+, ElytraTrims 4.x is faded rather than collapsed: we DO enter the scope under ET on
+        // the non-hide path, so the base elytra fades via the ELYTRA scope and ETElytraTrimSubmitMixin
+        // fades ET's trim submits from the same scope, in lockstep. The hide path below still cancels
+        // outright (ET's renderLayers then never runs, so there is nothing to fade).
 
         if (mod.shouldHide()) {
             // Cancel only — do NOT enter the scope. The WingsLayer render is cancelled at HEAD, so

@@ -82,7 +82,7 @@ public enum CompatFlags {
      *
      * @since 0.10.3
      */
-    GECKO_LIB(1<<10, "com.geckolib.renderer.GeoArmorRenderer"),
+    GECKO_LIB(1<<10, "software.bernie.geckolib.renderer.GeoArmorRenderer"),
 
     /**
      * Curios API for additional slots.

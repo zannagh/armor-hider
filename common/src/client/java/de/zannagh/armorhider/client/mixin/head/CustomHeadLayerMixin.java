@@ -60,7 +60,7 @@ public abstract class CustomHeadLayerMixin {
             *///? } else {
             /*(PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, S entity, float limbSwing, float limbSwingAmount, float partialTick, float ageInTicks, float netHeadYaw, float headPitch, CallbackInfo ci) {
             *///? }
-        enterHeadScope(entity, ci);
+        ah$enterHeadScope(entity, ci);
     }
 
     // @At("RETURN") rather than "TAIL": the head layer's submit body is a single guarded if-block,
@@ -78,7 +78,7 @@ public abstract class CustomHeadLayerMixin {
     }
 
     @Unique
-    private static void enterHeadScope(Object state, CallbackInfo ci) {
+    private static void ah$enterHeadScope(Object state, CallbackInfo ci) {
         var result = AhRenderInterceptionRegistryApi.getRenderer(RenderScope.HEAD).interceptFrom(state, ci);
         if (result.shouldCancel() || !result.shouldIntercept()) {
             return;
@@ -102,7 +102,7 @@ public abstract class CustomHeadLayerMixin {
     )
     private void grabSkullRenderContext(LivingEntityRenderState livingEntityRenderState, SkullBlock.Type type, CallbackInfoReturnable<RenderType> cir) {
         if (!AhRenderManagementApi.hasScopeModification(RenderScope.HEAD)) {
-            enterHeadScope(livingEntityRenderState, null);
+            ah$enterHeadScope(livingEntityRenderState, null);
             armorHider$enteredFromResolve.set(Boolean.TRUE);
         }
     }

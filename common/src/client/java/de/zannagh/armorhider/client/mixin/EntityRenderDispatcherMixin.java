@@ -17,10 +17,10 @@ import net.minecraft.client.renderer.entity.state.EntityRenderState;
 //?}
 
 //? if >= 26.1-0.snapshot.11
-import net.minecraft.client.renderer.state.level.CameraRenderState;
+//import net.minecraft.client.renderer.state.CameraRenderState;
 
 //? if >= 1.21.9 && < 26.1-0.snapshot.11
-//import net.minecraft.client.renderer.state.level.CameraRenderState;
+import net.minecraft.client.renderer.state.CameraRenderState;
 
 //? if < 1.21.9 {
 /*import net.minecraft.client.renderer.MultiBufferSource;
@@ -44,7 +44,7 @@ public class EntityRenderDispatcherMixin {
     //private static final String RENDER_METHOD = "render(Lnet/minecraft/world/entity/Entity;DDDFFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V";
 
     @Unique
-    private static boolean isPlayerEntity(Object entity) {
+    private static boolean ah$isPlayerEntity(Object entity) {
         //~ if < 1.21.9 'AvatarRenderState' -> 'Player'
         return entity instanceof AvatarRenderState;
     }
@@ -56,7 +56,7 @@ public class EntityRenderDispatcherMixin {
     //private <E extends Entity> void enterEntityRendering(E entity, double x, double y, double z, float yRot, PoseStack poseStack, MultiBufferSource bufferSource, int light, CallbackInfo ci) {
     //? if < 1.21.2
     //private <E extends Entity> void enterEntityRendering(E entity, double x, double y, double z, float yRot, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int light, CallbackInfo ci) {
-        if (isPlayerEntity(entity)) {
+        if (ah$isPlayerEntity(entity)) {
             AhRenderManagementApi.setInEntityRender();
             if (entity instanceof IdentityCarrier carrier) {
                 AhRenderManagementApi.setCurrentPlayer(carrier.armorHider$playerName());

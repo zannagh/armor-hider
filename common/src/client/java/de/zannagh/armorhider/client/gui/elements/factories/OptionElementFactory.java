@@ -93,9 +93,9 @@ public class OptionElementFactory {
                 onPress -> {
                     var mc = Minecraft.getInstance();
                     //? if <= 26.1.2
-                    //var currentScreen = mc.screen;
+                    var currentScreen = mc.screen;
                     //? if > 26.1.2
-                    var currentScreen = mc.gui.screen();
+                    //var currentScreen = mc.gui.screen();
                     if (currentScreen == null) {
                         return;
                     }
@@ -301,9 +301,9 @@ public class OptionElementFactory {
                 var mc = Minecraft.getInstance();
 
                 //? if <= 26.1.2
-                //var currentScreen = mc.screen;
+                var currentScreen = mc.screen;
                 //? if > 26.1.2
-                var currentScreen = mc.gui.screen();
+                //var currentScreen = mc.gui.screen();
                 if (currentScreen == null) {
                     return;
                 }
@@ -367,9 +367,9 @@ public class OptionElementFactory {
                 ,
                 defaultValue,
                 //? if > 26.1.2
-                setter::accept
+                //setter::accept
                 //? if <= 26.1.2
-                //setter
+                setter
         );
     }
 
@@ -390,9 +390,9 @@ public class OptionElementFactory {
                 (text, value) -> value ? Component.translatable("armorhider.options.toggle.on") : Component.translatable("armorhider.options.toggle.off"),
                 defaultValue,
                 //? if > 26.1.2
-                setter::accept
+                //setter::accept
                 //? if <= 26.1.2
-                //setter
+                setter
         );
     }
 }

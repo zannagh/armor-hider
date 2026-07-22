@@ -44,7 +44,7 @@ public class ArmorHiderItemRenderer extends AbstractArmorHiderRenderer {
         if (carrier != null) {
             var mod = resolveModification(carrier, resolvedSlot, stack);
             var itemInfo = mod.itemInfo() != null ? mod.itemInfo() : new ItemInfo(stack);
-            if (itemInfo.isElytra() && carrier.isPlayerFlying()) {
+            if (itemInfo.isElytra() && carrier.ah$isPlayerFlying()) {
                 return RenderInterceptionResult.ignore();
             }
             return super.standardIntercept(carrier, resolvedSlot, stack, ci);

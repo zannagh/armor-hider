@@ -99,7 +99,7 @@ public abstract class SkullBlockRenderMixin {
     }
 
     @Unique
-    private static RenderType applyLayer(Identifier texture, RenderType original) {
+    private static RenderType ah$applyLayer(Identifier texture, RenderType original) {
         // A null texture reaches here from resolveSkullRenderType's getSkullRenderType(type, null)
         // call — the real texture is resolved *inside* getSkullRenderType (handled by
         // getCutoutRenderLayer). Building a translucent type from a null texture would NPE the
@@ -123,7 +123,7 @@ public abstract class SkullBlockRenderMixin {
             )
     )
     private static RenderType wrapResolveSkullRenderType(SkullBlock.Type type, Identifier identifier, Operation<RenderType> original) {
-        return applyLayer(identifier, original.call(type, identifier));
+        return ah$applyLayer(identifier, original.call(type, identifier));
     }
     //? }
 
@@ -141,7 +141,7 @@ public abstract class SkullBlockRenderMixin {
             )
     )
     private static RenderType wrapTranslucentLayer(Identifier texture, Operation<RenderType> original) {
-        return applyLayer(texture, original.call(texture));
+        return ah$applyLayer(texture, original.call(texture));
     }
     *///?}
 
@@ -156,15 +156,15 @@ public abstract class SkullBlockRenderMixin {
             at = @At(
                     value = "INVOKE",
                     //? if >= 26.1-0.snapshot.6 {
-                    target = "Lnet/minecraft/client/renderer/rendertype/RenderTypes;entityCutoutZOffset(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/rendertype/RenderType;"
-                    //? } elif >= 1.21.11 {
-                    /*target = "Lnet/minecraft/client/renderer/rendertype/RenderTypes;entityCutoutNoCullZOffset(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/rendertype/RenderType;"*/
+                    /*target = "Lnet/minecraft/client/renderer/rendertype/RenderTypes;entityCutoutZOffset(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/rendertype/RenderType;"
+                    *///? } elif >= 1.21.11 {
+                    target = "Lnet/minecraft/client/renderer/rendertype/RenderTypes;entityCutoutNoCullZOffset(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/rendertype/RenderType;"
                     //? } else {
                     /*target = "Lnet/minecraft/client/renderer/rendertype/RenderType;entityCutoutNoCullZOffset(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/client/renderer/rendertype/RenderType;"
                     *///? }
             )
     )
     private static RenderType getCutoutRenderLayer(Identifier texture, Operation<RenderType> original) {
-        return applyLayer(texture, original.call(texture));
+        return ah$applyLayer(texture, original.call(texture));
     }
 }

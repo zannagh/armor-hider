@@ -30,7 +30,7 @@ import net.minecraft.world.item.Items;
  * to enter — the reason 1.21.2/1.21.3 rendered everything opaque except the first-person offhand.
  * <p>
  * In 1.21.2/1.21.3 the render state does not yet expose {@code wornHeadProfile}/{@code wornHeadType}
- * (added in 1.21.4), so {@link #customHeadItem()} falls back to the entity carrier there.
+ * (added in 1.21.4), so {@link #ah$getCustomHeadItem()} falls back to the entity carrier there.
  */
 @Mixin(AvatarRenderState.class)
 public class LivingEntityRenderStateMixin implements IdentityStateCarrier {
@@ -45,17 +45,17 @@ public class LivingEntityRenderStateMixin implements IdentityStateCarrier {
 
 
     @Override
-    public void attachCarrier(@Nullable IdentityCarrier carrier) {
+    public void ah$attachCarrier(@Nullable IdentityCarrier carrier) {
         armorHider$carrier = carrier;
     }
 
     @Override
-    public @Nullable IdentityCarrier getCarrier() {
+    public @Nullable IdentityCarrier ah$getCarrier() {
         return armorHider$carrier;
     }
 
     @Override
-    public @Nullable ItemStack customHeadItem() {
+    public @Nullable ItemStack ah$getCustomHeadItem() {
         //? if >= 1.21.4 {
         HumanoidRenderState state = (HumanoidRenderState) (Object) this;
         if (state.wornHeadProfile != null) {
@@ -64,12 +64,12 @@ public class LivingEntityRenderStateMixin implements IdentityStateCarrier {
             return ItemsUtil.getItemStackFromSkullBlockType(state.wornHeadType);
         }
         //?}
-        return armorHider$carrier != null ? armorHider$carrier.customHeadItem() : null;
+        return armorHider$carrier != null ? armorHider$carrier.ah$getCustomHeadItem() : null;
     }
 
     @Override
-    public boolean isPlayerFlying() {
-        return armorHider$carrier != null && armorHider$carrier.isPlayerFlying();
+    public boolean ah$isPlayerFlying() {
+        return armorHider$carrier != null && armorHider$carrier.ah$isPlayerFlying();
     }
 
     @Override
@@ -78,8 +78,8 @@ public class LivingEntityRenderStateMixin implements IdentityStateCarrier {
     }
 
     @Override
-    public boolean isPlayerBlocking() {
-        return armorHider$carrier != null && armorHider$carrier.isPlayerBlocking();
+    public boolean ah$isPlayerBlocking() {
+        return armorHider$carrier != null && armorHider$carrier.ah$isPlayerBlocking();
     }
 
     @Override

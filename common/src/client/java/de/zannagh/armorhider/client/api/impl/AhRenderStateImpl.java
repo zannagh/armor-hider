@@ -162,7 +162,7 @@ public final class AhRenderStateImpl {
         setCurrentPlayer(identity);
 
         SlotModification mod = slot != null
-                ? carrier.getModification(slot, item)
+                ? carrier.ah$getModification(slot, item)
                 : SlotModification.empty();
 
         var ctx = new RenderScopeContext(scope, carrier, mod, AhRenderModificationApi.getInstance(mod));

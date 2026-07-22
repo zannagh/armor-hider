@@ -7,7 +7,7 @@ import net.minecraft.network.chat.Component;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 //? if > 1.21.8
 import net.minecraft.client.input.MouseButtonEvent;
 
@@ -45,21 +45,21 @@ public class CompoundButtonWidget extends AbstractWidget {
 
     @Override
     //? if >= 26.1-1.pre.1 {
-    protected void extractWidgetRenderState(@NonNull GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
+    /*protected void extractWidgetRenderState(@NonNull GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
         updateLayout();
         for (AbstractWidget button : buttons) {
             button.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
         }
     }
-    //?}
+    *///?}
     //? if > 1.20.1 && < 26.1-1.pre.1 {
-    /*protected void renderWidget(@NonNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+    protected void renderWidget(@NonNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         updateLayout();
         for (AbstractWidget button : buttons) {
             button.render(guiGraphics, mouseX, mouseY, partialTick);
         }
     }
-    *///?}
+    //?}
     //? if <= 1.20.1 {
     /*public void renderWidget(@NonNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         updateLayout();

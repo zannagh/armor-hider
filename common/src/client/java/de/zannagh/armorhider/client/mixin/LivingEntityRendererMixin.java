@@ -104,7 +104,7 @@ public abstract class LivingEntityRendererMixin
     private void capturePlayerIdentity(LivingEntity entity, LivingEntityRenderState state, float partialTick, CallbackInfo ci) {
         if (entity instanceof IdentityCarrier carrier
                 && state instanceof IdentityStateCarrier stateCarrier) {
-            stateCarrier.attachCarrier(carrier);
+            stateCarrier.ah$attachCarrier(carrier);
             EmfCompat.clearEquipment(carrier, state);
         }
     }

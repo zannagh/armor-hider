@@ -37,10 +37,10 @@ public class DevSkinMixin {
     *///?} else {
     private Property injectDevSkinTextures(MinecraftSessionService service, GameProfile profile, Operation<Property> original) {
     //?}
-        String devTextures = getDevTextures();
+        String devTextures = ah$getDevTextures();
         if (devTextures != null) {
             ArmorHider.LOGGER.debug("[DevSkin] Injecting dev skin textures for profile: {}", profile);
-            return new Property("textures", devTextures, getDevSignature());
+            return new Property("textures", devTextures, ah$getDevSignature());
         }
         return original.call(service, profile);
     }
@@ -49,13 +49,13 @@ public class DevSkinMixin {
     
     @Unique
     @Nullable
-    private static String getDevTextures(){
+    private static String ah$getDevTextures(){
         return System.getProperty("armorhider.dev.skin.textures");
     }
     
     @Unique
     @Nullable
-    private static String getDevSignature(){
+    private static String ah$getDevSignature(){
         return System.getProperty("armorhider.dev.skin.signature");
     }
 }

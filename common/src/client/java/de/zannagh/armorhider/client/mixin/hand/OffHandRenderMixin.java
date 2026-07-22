@@ -40,9 +40,9 @@ public class OffHandRenderMixin {
 
     @Inject(
             //? if < 26.2
-            //method = "renderArmWithItem",
+            method = "renderArmWithItem",
             //? if >= 26.2
-            method = "submitArmWithItem",
+            //method = "submitArmWithItem",
             at = @At("HEAD"),
             cancellable = true
     )
@@ -111,9 +111,9 @@ public class OffHandRenderMixin {
 
     @Inject(
             //? if < 26.2
-            //method = "renderArmWithItem",
+            method = "renderArmWithItem",
             //? if >= 26.2
-            method = "submitArmWithItem",
+            //method = "submitArmWithItem",
             at = @At("TAIL")
     )
     private void releaseContext(CallbackInfo ci) {

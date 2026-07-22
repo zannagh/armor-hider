@@ -20,7 +20,7 @@ public abstract class LayeredImageButton extends LayeredButton {
     }
 
     @Override
-    protected void renderForeground(net.minecraft.client.gui.GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float a) {
+    protected void renderForeground(net.minecraft.client.gui.GuiGraphics guiGraphics, int mouseX, int mouseY, float a) {
         //? if >= 1.21.6 {
         if (spriteForeground(isEnabled) instanceof Identifier identifier && !identifier.getPath().isEmpty()) {
             guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, identifier, this.getX() + (this.width - 15) / 2, this.getY() + (this.height - 15) / 2, 15, 15);

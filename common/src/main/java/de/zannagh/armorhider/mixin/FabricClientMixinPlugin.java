@@ -54,7 +54,8 @@ public abstract class FabricClientMixinPlugin extends ArmorHiderMixinPlugin {
             "compat.emf.EmfModelPartRootMixin",
             "compat.curios.CuriosLayerMixin",
             "compat.trinkets.TrinketRendererMixin",
-            "compat.accessories.AccessoriesRenderLayerMixin"
+            "compat.accessories.AccessoriesRenderLayerMixin",
+            "compat.elytratrims.ETElytraTrimSubmitMixin"
     };
 
     @Override

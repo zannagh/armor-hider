@@ -8,7 +8,7 @@ import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import org.jspecify.annotations.NonNull;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -117,7 +117,7 @@ public class CompoundOptionWidget extends AbstractWidget {
 
     @Override
     //? if >= 26.1-1.pre.1 {
-    protected void extractWidgetRenderState(@NonNull GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
+    /*protected void extractWidgetRenderState(@NonNull GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
         updateLayout();
         primary.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
         secondary.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
@@ -131,9 +131,9 @@ public class CompoundOptionWidget extends AbstractWidget {
             quaternary.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
         }
     }
-    //?}
+    *///?}
     //? if > 1.20.1 && < 26.1-1.pre.1 {
-    /*protected void renderWidget(@NonNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+    protected void renderWidget(@NonNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         updateLayout();
         primary.render(guiGraphics, mouseX, mouseY, partialTick);
         secondary.render(guiGraphics, mouseX, mouseY, partialTick);
@@ -147,7 +147,7 @@ public class CompoundOptionWidget extends AbstractWidget {
             quaternary.render(guiGraphics, mouseX, mouseY, partialTick);
         }
     }
-    *///?}
+    //?}
     //? if <= 1.20.1 {
     /*public void renderWidget(@NonNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         updateLayout();

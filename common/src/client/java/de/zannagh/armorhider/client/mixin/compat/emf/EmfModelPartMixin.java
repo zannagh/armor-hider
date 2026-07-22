@@ -23,7 +23,7 @@ public abstract class EmfModelPartMixin {
 
     @Unique
     @NonNull
-    private ModelPart thisAsPart() { return (ModelPart) (Object) this; }
+    private ModelPart ah$thisAsPart() { return (ModelPart) (Object) this; }
     
     @Unique
     private static int armorHider$logCounter = 0;
@@ -60,7 +60,7 @@ public abstract class EmfModelPartMixin {
                     if (DebugLogger.isEnabled() && armorHider$logCounter++ % 600 == 0) {
                         DebugLogger.log("[EMF mixin] REDIRECT to vanillaRoot | id={} | player={} | class={}", id, AhRenderManagementApi.currentlyHandledPlayerName(), this.getClass().getSimpleName());
                     }
-                    RenderModifications.synchronisePoses(thisAsPart(), vanilla);
+                    RenderModifications.synchronisePoses(ah$thisAsPart(), vanilla);
                     
                     //? if >= 1.21 {
                     vanilla.render(matrices, vertices, light, overlay, k);

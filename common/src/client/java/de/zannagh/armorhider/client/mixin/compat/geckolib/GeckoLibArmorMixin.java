@@ -1,6 +1,6 @@
 package de.zannagh.armorhider.client.mixin.compat.geckolib;
 
-import com.geckolib.renderer.GeoArmorRenderer;
+import software.bernie.geckolib.renderer.GeoArmorRenderer;
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.common.IdentityCarrier;
 import de.zannagh.armorhider.client.api.AhRenderInterceptionRegistryApi;

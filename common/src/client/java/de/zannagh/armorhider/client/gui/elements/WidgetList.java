@@ -3,7 +3,7 @@ package de.zannagh.armorhider.client.gui.elements;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.ContainerObjectSelectionList;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
 
@@ -93,18 +93,18 @@ public class WidgetList extends ContainerObjectSelectionList<WidgetList.WidgetEn
     *///?}
 
     //? if >= 26.1-1.pre.1 {
-    @Override
+    /*@Override
     protected void extractListBackground(GuiGraphicsExtractor context) {
     }
-    //?}
-    //? if >= 1.21 && < 26.1-1.pre.1 {
-    /*@Override
-    protected void renderListBackground(net.minecraft.client.gui.GuiGraphicsExtractor context) {
-    }
     *///?}
+    //? if >= 1.21 && < 26.1-1.pre.1 {
+    @Override
+    protected void renderListBackground(net.minecraft.client.gui.GuiGraphics context) {
+    }
+    //?}
     //? if < 1.21 {
     /*@Override
-    protected void renderBackground(net.minecraft.client.gui.GuiGraphicsExtractor context) {
+    protected void renderBackground(net.minecraft.client.gui.GuiGraphics context) {
     }
     *///?}
 
@@ -116,22 +116,22 @@ public class WidgetList extends ContainerObjectSelectionList<WidgetList.WidgetEn
         }
 
         //? if >= 26.1-1.pre.1 {
-        @Override
+        /*@Override
         public void extractContent(GuiGraphicsExtractor context, int mouseX, int mouseY, boolean hovered, float delta) {
             widget.setX(this.getContentX());
             widget.setY(this.getContentY());
             widget.setWidth(this.getContentWidth());
             widget.extractRenderState(context, mouseX, mouseY, delta);
         }
-        //?} else if >= 1.21.9 {
-        /*@Override
+        *///?} else if >= 1.21.9 {
+        @Override
         public void renderContent(GuiGraphics context, int mouseX, int mouseY, boolean hovered, float delta) {
             widget.setX(this.getContentX());
             widget.setY(this.getContentY());
             widget.setWidth(this.getContentWidth());
             widget.render(context, mouseX, mouseY, delta);
         }
-        *///?} else {
+        //?} else {
         /*@Override
         public void render(GuiGraphics context, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float delta) {
             widget.setX(x);

@@ -37,7 +37,7 @@ public class GenderLegacyLayerMixin {
             CallbackInfo ci) {
         if (!(entity instanceof IdentityCarrier carrier)) return;
         ItemStack chestItem = entity.getItemBySlot(EquipmentSlot.CHEST);
-        var mod = carrier.getModification(EquipmentSlot.CHEST, chestItem);
+        var mod = carrier.ah$getModification(EquipmentSlot.CHEST, chestItem);
         if (mod.shouldHide()) {
             ci.cancel();
         }

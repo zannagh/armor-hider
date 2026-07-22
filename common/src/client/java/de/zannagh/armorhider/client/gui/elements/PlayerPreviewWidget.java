@@ -7,7 +7,7 @@ import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 
 import java.awt.Color;
 import java.util.function.Supplier;
@@ -28,9 +28,9 @@ public class PlayerPreviewWidget extends AbstractWidget {
 
     @Override
     //? if >= 26.1-1.pre.1
-    protected void extractWidgetRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY, float a) {
+    //protected void extractWidgetRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY, float a) {
     //? if < 26.1-1.pre.1
-    //public void renderWidget(GuiGraphics context, int mouseX, int mouseY, float delta) {
+    public void renderWidget(GuiGraphics context, int mouseX, int mouseY, float delta) {
         LivingEntity player = entitySupplier.get();
         if (player == null) {
             return;
@@ -59,9 +59,9 @@ public class PlayerPreviewWidget extends AbstractWidget {
         int entitySize = (int) Math.round(previewSize * 0.35);
 
         //? if < 26.1-1.pre.1
-        //InventoryScreen.renderEntityInInventoryFollowsMouse(
+        InventoryScreen.renderEntityInInventoryFollowsMouse(
         //? if >= 26.1-1.pre.1
-        InventoryScreen.extractEntityInInventoryFollowsMouse(
+        //InventoryScreen.extractEntityInInventoryFollowsMouse(
                 context,
                 panelLeft,
                 panelTop - margin,
@@ -88,7 +88,7 @@ public class PlayerPreviewWidget extends AbstractWidget {
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;

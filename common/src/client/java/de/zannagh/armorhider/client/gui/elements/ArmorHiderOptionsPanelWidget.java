@@ -26,7 +26,7 @@ import net.minecraft.world.entity.EquipmentSlot;
 import org.jspecify.annotations.NonNull;
 import org.jetbrains.annotations.Nullable;
 import de.zannagh.armorhider.net.packets.PlayerConfig;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 
 import java.util.ArrayList;
 import java.util.function.Consumer;
@@ -315,15 +315,15 @@ public class ArmorHiderOptionsPanelWidget extends AbstractWidget {
 
     @Override
     //? if >= 26.1-1.pre.1 {
-    protected void extractWidgetRenderState(@NonNull GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
+    /*protected void extractWidgetRenderState(@NonNull GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
         widgetList.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
     }
-    //?}
+    *///?}
     //? if >= 1.21 && < 26.1-1.pre.1 {
-    /*protected void renderWidget(@NonNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+    protected void renderWidget(@NonNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         widgetList.render(guiGraphics, mouseX, mouseY, partialTick);
     }
-    *///?}
+    //?}
     //? if < 1.21 {
     /*public void renderWidget(@NonNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         widgetList.render(guiGraphics, mouseX, mouseY, partialTick);

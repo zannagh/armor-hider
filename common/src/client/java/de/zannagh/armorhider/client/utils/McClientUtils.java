@@ -19,10 +19,10 @@ public final class McClientUtils {
         var player = Minecraft.getInstance().player;
         if (player != null) {
             //? if >= 26.1-0.snapshot.11 {
-            player.sendOverlayMessage(message);
-            //?}
+            /*player.sendOverlayMessage(message);
+            *///?}
             //? if < 26.1-0.snapshot.11
-            //player.displayClientMessage(message, true);
+            player.displayClientMessage(message, true);
         }
     }
 
@@ -34,10 +34,10 @@ public final class McClientUtils {
         var player = Minecraft.getInstance().player;
         if (player != null) {
             //? if >= 26.1-0.snapshot.11 {
-            player.sendSystemMessage(message);
-            //?}
+            /*player.sendSystemMessage(message);
+            *///?}
             //? if < 26.1-0.snapshot.11
-            //player.displayClientMessage(message, false);
+            player.displayClientMessage(message, false);
         }
     }
     public static @NonNull Boolean isClientConnectedToServer() {

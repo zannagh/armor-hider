@@ -1,6 +1,6 @@
 package de.zannagh.armorhider.client.render.interceptors;
 
-import com.geckolib.constant.DataTickets;
+import software.bernie.geckolib.constant.DataTickets;
 
 import de.zannagh.armorhider.client.api.AhRenderManagementApi;
 import de.zannagh.armorhider.client.common.*;
@@ -13,7 +13,7 @@ import java.util.EnumMap;
 import java.util.HashMap;
 
 //? if >= 1.21.9
-import com.geckolib.renderer.base.GeoRenderState;
+import software.bernie.geckolib.renderer.base.GeoRenderState;
 
 public class AhGeckoLibRenderer extends AbstractArmorHiderRenderer {
 

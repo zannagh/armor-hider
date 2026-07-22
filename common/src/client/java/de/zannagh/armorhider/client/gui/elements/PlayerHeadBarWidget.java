@@ -184,7 +184,7 @@ public class PlayerHeadBarWidget extends AbstractWidget {
         return true;
     }
 
-    private void renderBar(net.minecraft.client.gui.GuiGraphicsExtractor context, int mouseX, int mouseY) {
+    private void renderBar(net.minecraft.client.gui.GuiGraphics context, int mouseX, int mouseY) {
         clampScroll();
         int hovered = cellAt(mouseX, mouseY);
 
@@ -221,20 +221,20 @@ public class PlayerHeadBarWidget extends AbstractWidget {
         setTooltip(hovered >= 0 ? Tooltip.create(Component.literal(entries.get(hovered).name)) : null);
     }
 
-    private void drawArrow(net.minecraft.client.gui.GuiGraphicsExtractor context, Identifier arrow, int x, int y) {
+    private void drawArrow(net.minecraft.client.gui.GuiGraphics context, Identifier arrow, int x, int y) {
         // Subtle dark backdrop so the arrow stays legible over face icons behind it.
         context.fill(x - 1, y - 1, x + ARROW_W + 1, y + ARROW_H + 1, 0x99000000);
         drawTextureRegion(context, arrow, x, y, ARROW_W, ARROW_H, 0.0F, 0.0F, ARROW_W, ARROW_H, ARROW_W, ARROW_H);
     }
 
-    private void drawBorder(net.minecraft.client.gui.GuiGraphicsExtractor context, int x, int y, int w, int h, int color) {
+    private void drawBorder(net.minecraft.client.gui.GuiGraphics context, int x, int y, int w, int h, int color) {
         context.fill(x, y, x + w, y + 1, color);
         context.fill(x, y + h - 1, x + w, y + h, color);
         context.fill(x, y, x + 1, y + h, color);
         context.fill(x + w - 1, y, x + w, y + h, color);
     }
 
-    private void drawCell(net.minecraft.client.gui.GuiGraphicsExtractor context, Entry entry, int x, int y, int size) {
+    private void drawCell(net.minecraft.client.gui.GuiGraphics context, Entry entry, int x, int y, int size) {
         if (entry.fullIcon()) {
             // Full 16x16 icon (e.g. the global-configuration icon), scaled into the cell.
             drawTextureRegion(context, entry.texture(), x, y, size, size, 0.0F, 0.0F, 16, 16, 16, 16);
@@ -246,7 +246,7 @@ public class PlayerHeadBarWidget extends AbstractWidget {
     }
 
     /** Blits a texture region scaled into a drawW x drawH rect. The blit overload differs per rendering epoch. */
-    private void drawTextureRegion(net.minecraft.client.gui.GuiGraphicsExtractor context, Identifier texture,
+    private void drawTextureRegion(net.minecraft.client.gui.GuiGraphics context, Identifier texture,
                                    int x, int y, int drawW, int drawH, float u, float v, int regionW, int regionH, int texW, int texH) {
         //? if >= 1.21.6 {
         context.blit(RenderPipelines.GUI_TEXTURED, texture, x, y, u, v, drawW, drawH, regionW, regionH, texW, texH);
@@ -260,17 +260,17 @@ public class PlayerHeadBarWidget extends AbstractWidget {
     }
 
     //? if >= 26.1-1.pre.1 {
-    @Override
-    protected void extractWidgetRenderState(net.minecraft.client.gui.GuiGraphicsExtractor context, int mouseX, int mouseY, float partialTick) {
-        renderBar(context, mouseX, mouseY);
-    }
-    //?}
-    //? if < 26.1-1.pre.1 {
     /*@Override
-    protected void renderWidget(net.minecraft.client.gui.GuiGraphicsExtractor context, int mouseX, int mouseY, float partialTick) {
+    protected void extractWidgetRenderState(net.minecraft.client.gui.GuiGraphics context, int mouseX, int mouseY, float partialTick) {
         renderBar(context, mouseX, mouseY);
     }
     *///?}
+    //? if < 26.1-1.pre.1 {
+    @Override
+    protected void renderWidget(net.minecraft.client.gui.GuiGraphics context, int mouseX, int mouseY, float partialTick) {
+        renderBar(context, mouseX, mouseY);
+    }
+    //?}
 
     //? if > 1.21.8 {
     @Override
