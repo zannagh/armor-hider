@@ -3,14 +3,22 @@ package de.zannagh.armorhider.client.keybinds;
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import net.minecraft.client.Minecraft;
+//? if >= 26.3-0.snapshot.5 {
+/*import com.mojang.blaze3d.platform.InputConstants;
+*///?} else {
 import org.lwjgl.glfw.GLFW;
+//?}
 
 public class LoadPresetKeyMapping extends CustomKeyMapping {
 
     // Left-Alt is uncommon among vanilla defaults. GLFW keycodes only — an AWT VK
     // value here would mis-map; VK_UNDEFINED (0) in particular collides with the
     // number-row "0" key (both named "key.keyboard.0").
+    //? if >= 26.3-0.snapshot.5 {
+    /*public static final int DEFAULT_KEY = InputConstants.KEY_LALT;
+    *///?} else {
     public static final int DEFAULT_KEY = GLFW.GLFW_KEY_LEFT_ALT;
+    //?}
 
     private static LoadPresetKeyMapping instance;
     private int activatedWhileHeld = -1;
