@@ -41,6 +41,14 @@ with(sc) {
     constants["neoforge"] = current.project.contains("neoforge")
     constants["mekanism"] = hasProperty("mekanism.version")
     constants["waveycapes"] = hasProperty("waveycapes.version")
+    // Deeper and Darker renamed the warden-helmet horn RenderLayer between mod versions:
+    // 1.3.x ships `HelmetHornRenderer`, 1.4.x renamed it `WardenHelmetRenderer`. The version does NOT
+    // track the MC version (e.g. D&D's Fabric 1.21.1 build is still 1.3.3), so a per-variant flag
+    // `deeperdarker.warden_class` selects which compat mixin (and thus which class) compiles.
+    constants["deeperdarker_warden"] = hasProperty("deeperdarker.version") && findProperty("deeperdarker.warden_class") == "true"
+    constants["deeperdarker_horn"] = hasProperty("deeperdarker.version") && findProperty("deeperdarker.warden_class") != "true"
+    // Uranus lib (iafenvoy, e.g. Ice and Fire: CE) — custom armor rendering via IArmorRendererBase.
+    constants["uranus"] = hasProperty("uranus.version")
     // `gender` activates the modern GenderArmorLayer-based mixin.
     // `gender_legacy` activates the GenderLayer.render() coarse mixin for older
     // mod builds (e.g. female-gender NeoForge 1.21/1.21.1, hash kKffHCGl) whose
@@ -103,6 +111,12 @@ if (branch == "common") {
         }
         if (hasProperty("waveycapes.version")) {
             add(modClientDep, "maven.modrinth:wavey-capes:${findProperty("waveycapes.version")}")
+        }
+        if (hasProperty("deeperdarker.version")) {
+            add(modClientDep, "maven.modrinth:deeperdarker:${findProperty("deeperdarker.version")}")
+        }
+        if (hasProperty("uranus.version")) {
+            add(modClientDep, "maven.modrinth:uranus:${findProperty("uranus.version")}")
         }
         if (hasProperty("figura.version")) {
             add(modClientDep, "maven.modrinth:figura:${findProperty("figura.version")}")

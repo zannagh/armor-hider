@@ -75,7 +75,10 @@ public class EmfCompat implements CompatInitializer {
      * @param renderState The renderState that is internally checked to be a {@link AvatarRenderState}
      */
     public static void clearEquipment(Object identityCarrier, Object renderState) {
-        if (!CompatManager.requiresCompatTo(CompatFlags.ENTITY_MODEL_FEATURES)) {
+        // Skip clearing ONLY when EMF is present (Fresh Animations reads equipment off the render
+        // state for arm/body poses — clearing it separates the arms, #217). For everyone else the
+        // clear is the generic hide for modded/custom armor layers that read render-state equipment.
+        if (CompatManager.requiresCompatTo(CompatFlags.ENTITY_MODEL_FEATURES)) {
             return;
         }
         if (!(identityCarrier instanceof IdentityCarrier carrier)) {

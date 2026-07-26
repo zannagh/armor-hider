@@ -11,7 +11,7 @@ sc.constants["neoforge"] = sc.current.project.contains("neoforge")
 val compatKeys = listOf(
     "fabricapi",
     "gender", "geckolib", "waveycapes", "mekanism", "figura",
-    "elytratrims", "iris", "emf", "etf", "modmenu"
+    "elytratrims", "iris", "emf", "etf", "modmenu", "deeperdarker", "uranus"
 )
 val availableHashes = compatKeys.mapNotNull { key ->
     findProperty("$key.version")?.toString()?.let { hash -> key to hash }
@@ -94,6 +94,12 @@ dependencies {
     }
     if (hasProperty("waveycapes.version")) {
         add("compileOnly", "maven.modrinth:wavey-capes:${findProperty("waveycapes.version")}")
+    }
+    if (hasProperty("deeperdarker.version")) {
+        add("compileOnly", "maven.modrinth:deeperdarker:${findProperty("deeperdarker.version")}")
+    }
+    if (hasProperty("uranus.version")) {
+        add("compileOnly", "maven.modrinth:uranus:${findProperty("uranus.version")}")
     }
     if (hasProperty("figura.version")) {
         add("compileOnly", "maven.modrinth:figura:${findProperty("figura.version")}")

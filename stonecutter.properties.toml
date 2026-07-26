@@ -129,6 +129,7 @@ iris.version = "s5eFLITc"
 emf.version = "HLnLv1St"
 etf.version = "v0btz5GE"
 waveycapes.version = "aoyyskwv"
+deeperdarker.version = "GeXcCDSS" # 1.20.1 fabric
 modmenu.version = "lEkperf6"
 gender.version = "nYZ0oktX"
 fabricapi.version = "hu6gukgT"
@@ -137,7 +138,8 @@ fabricapi.version = "hu6gukgT"
 "fabric.minecraft_version" = "1.21.1"
 "fabric.minecraft_version_range" = ">=1.21 <=1.21.1"
 elytratrims.version = "KOEvdSw7"
-geckolib.version = "11VBhLU2"
+geckolib.version = "dnJdtm0u" # 4.9.2 (was 11VBhLU2 / 4.5.8)
+deeperdarker.version = "3MnQb3Tb" # 1.21.1 fabric
 iris.version = "zsoi0dso"
 emf.version = "NLDNY8vg"
 etf.version = "udcdeUXw"
@@ -369,9 +371,12 @@ fabricapi.semver = "0.155.3+26.3"
 # ── NeoForge ──────────────────────────────────────────────────────────────────
 
 ["neoforge-1.21.1"]
-"neoforge.version" = "21.1.219"
+"neoforge.version" = "21.1.244"
 "neoforge.minecraft_version_range" = "[1.21,1.21.1]"
-geckolib.version = "UvKZBX05"
+geckolib.version = "tPkJmim6" # 4.9.2 (was UvKZBX05 / 4.5.8)
+deeperdarker.version = "TuD0Zvi3" # 1.21.1 neoforge (D&D 1.4.1 → WardenHelmetRenderer)
+deeperdarker.warden_class = "true"
+uranus.version = "1YdU56pR" # 2.4.1 neoforge (Ice and Fire: CE custom armor)
 elytratrims.version = "7mqA6CJO"
 iris.version = "t3ruzodq"
 emf.version = "PAYgk63v"
@@ -403,7 +408,7 @@ gender.version = "kKffHCGl"
 gender_legacy_api = "true"
 
 ["neoforge-1.21.3"]
-"neoforge.version" = "21.3.96"
+"neoforge.version" = "21.3.97"
 "neoforge.minecraft_version_range" = "[1.21.3]"
 geckolib.version = "UvKZBX05"
 elytratrims.version = "7mqA6CJO"
@@ -420,7 +425,7 @@ gender.version = "kKffHCGl"
 gender_legacy_api = "true"
 
 ["neoforge-1.21.4"]
-"neoforge.version" = "21.4.156"
+"neoforge.version" = "21.4.157"
 "neoforge.minecraft_version_range" = "[1.21.4]"
 geckolib.version = "eQtABRub"
 iris.version = "FNc0XYTL"
@@ -429,7 +434,7 @@ etf.version = "prVeAFlr"
 waveycapes.version = "vjiRyyU7"
 
 ["neoforge-1.21.8"]
-"neoforge.version" = "21.8.52"
+"neoforge.version" = "21.8.54"
 "neoforge.minecraft_version_range" = "[1.21.5,1.21.8]"
 geckolib.version = "KPEgpbCC"
 elytratrims.version = "RMLnPwtS"
@@ -449,7 +454,7 @@ etf.version = "N8Hz5j7v"
 waveycapes.version = "U1F8UD8y"
 
 ["neoforge-1.21.11"]
-"neoforge.version" = "21.11.42"
+"neoforge.version" = "21.11.44"
 "neoforge.minecraft_version_range" = "[1.21.11]"
 geckolib.version = "FpONDAt3"
 elytratrims.version = "u2w6bgX3"
@@ -459,7 +464,7 @@ etf.version = "4czwwryO"
 waveycapes.version = "aurAWvjX"
 
 ["neoforge-26.1.2"]
-"neoforge.version" = "26.1.2.82"
+"neoforge.version" = "26.1.2.87"
 "neoforge.minecraft_version_range" = "[26.1,26.1.2]"
 geckolib.version = "ScUAwGRA"
 elytratrims.version = "wgUBgHvL"
@@ -468,7 +473,7 @@ emf.version = "hABUrVHX"
 etf.version = "J8nN7dGg"
 
 ["neoforge-26.2"]
-"neoforge.version" = "26.2.0.6-beta"
+"neoforge.version" = "26.2.0.32-beta"
 "neoforge.minecraft_version_range" = "[26.2]"
 geckolib.version = "Y5jWG02T"
 elytratrims.version = "kHpKqNuJ"

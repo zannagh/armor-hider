@@ -55,6 +55,9 @@ public class NeoForgeClientMixinPlugin extends ArmorHiderMixinPlugin {
             "compat.wildfiregender.GenderLegacyLayerMixin",
             "compat.geckolib.GeckoLibArmorMixin",
             "compat.waveycapes.WaveyCapesMixin",
+            "compat.deeperdarker.WardenHelmetLayerMixin",
+            "compat.deeperdarker.HelmetHornLayerMixin",
+            "compat.uranus.UranusArmorRendererMixin",
             // Compat - Pseudo and guarded in source for mekanism constant only (1.21.1 Neo)
             "compat.mekanism.MekanismArmorMixin",
             "compat.mekanism.MekaSuitArmorMixin",
