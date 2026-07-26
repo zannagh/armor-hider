@@ -2,6 +2,8 @@ package de.zannagh.armorhider;
 
 import de.zannagh.armorhider.client.api.impl.AhPlayerConfigApiImpl;
 import de.zannagh.armorhider.configuration.ConfigurationItemFactoryRegistry;
+import de.zannagh.armorhider.configuration.ExclusionItemConfiguration;
+import de.zannagh.armorhider.net.CompressedJsonCodec;
 import de.zannagh.armorhider.configuration.items.ArmorOpacity;
 import de.zannagh.armorhider.net.packets.PlayerConfig;
 import org.junit.jupiter.api.BeforeAll;
@@ -447,5 +449,148 @@ class PlayerConfigurationTests {
         assertEquals(UUID.fromString("6f7d35ad-9152-3823-9277-b683a91158a3"), currentConfig.playerId.getValue());
         assertEquals("Player446", currentConfig.playerName.getValue());
         assertEquals(true, currentConfig.enableCombatDetection.getValue());
+    }
+
+    // ── Config healing (schema v12) ──────────────────────────────────────────────────────────────
+    // These cover the corruption that survives a restart AND a mod reinstall, because it lives in
+    // config/armor-hider.json rather than in the mod. Healing runs on every deserialize, NOT only when
+    // the version is stale — a config already at the current version can still be corrupt.
+
+    @Test
+    @DisplayName("Opacity above the valid range is clamped when read from disk")
+    void healClampsOpacityAboveRange() {
+        var config = PlayerConfig.deserialize("{\"configVersion\": 12, \"helmetOpacity\": 5.0}");
+        assertEquals(1.0, config.helmetOpacity.getValue(),
+                "opacity must clamp to 1.0; the Gson read path uses the value constructor, not setValue");
+    }
+
+    @Test
+    @DisplayName("Negative opacity is clamped when read from disk")
+    void healClampsNegativeOpacity() {
+        var config = PlayerConfig.deserialize("{\"configVersion\": 12, \"chestOpacity\": -3.0}");
+        assertEquals(0.0, config.chestOpacity.getValue());
+    }
+
+    @Test
+    @DisplayName("Non-finite opacity falls back to the default and stays serializable")
+    void healRejectsNonFiniteOpacity() {
+        // Bare NaN/Infinity are not legal JSON, so they cannot arrive through the parser. They reach a config
+        // item through the single-argument constructor — which is exactly the path the Gson type adapter uses
+        // — or through arithmetic on a value. Either way the danger is the same: Gson#toJson throws
+        // IllegalArgumentException on a non-finite double, which escapes the IOException-only catch in the
+        // save path and can leave the settings screen unclosable.
+        var config = PlayerConfig.defaults(UUID.randomUUID(), "Corrupt");
+        config.legsOpacity = new ArmorOpacity(Double.NaN);
+        assertEquals(ArmorOpacity.DEFAULT_OPACITY, config.legsOpacity.getValue(),
+                "the value constructor must reject NaN, since the Gson read path never calls setValue");
+        assertEquals(ArmorOpacity.DEFAULT_OPACITY, new ArmorOpacity(Double.POSITIVE_INFINITY).getValue());
+        assertDoesNotThrow(config::toJson, "a healed config must always be serializable");
+    }
+
+    @Test
+    @DisplayName("Setting an opacity out of range clamps it too")
+    void setValueClampsOpacity() {
+        var opacity = new ArmorOpacity();
+        opacity.setValue(42.0);
+        assertEquals(1.0, opacity.getValue());
+        opacity.setValue(Double.NEGATIVE_INFINITY);
+        assertEquals(ArmorOpacity.DEFAULT_OPACITY, opacity.getValue());
+    }
+
+    @Test
+    @DisplayName("Healing strips synthetic unknown: exclusion IDs, which can never match again")
+    void healPrunesSyntheticExclusionIds() {
+        String json = """
+                {
+                  "configVersion": 12,
+                  "exclusionItems": {
+                    "items": {
+                      "HEAD": {
+                        "minecraft:iron_helmet": {"displayName": "Iron Helmet", "shouldIgnore": false},
+                        "unknown:someitem_12345": {"displayName": "Mystery", "shouldIgnore": false},
+                        "unknown:someitem_67890": {"displayName": "Mystery", "shouldIgnore": false}
+                      }
+                    }
+                  }
+                }
+                """;
+        var config = PlayerConfig.deserialize(json);
+        var head = config.getExclusionItems()
+                .getItemsForSlot(net.minecraft.world.entity.EquipmentSlot.HEAD);
+        assertTrue(head.containsKey("minecraft:iron_helmet"), "real registry IDs must be kept");
+        assertEquals(1, head.size(), "synthetic identity-hash IDs must be dropped");
+        assertTrue(config.hasChangedFromSerializedContent(),
+                "pruning must mark the config dirty so the repaired form is written back");
+    }
+
+    @Test
+    @DisplayName("Healing caps discovered exclusion entries but keeps user-excluded ones")
+    void healCapsDiscoveredExclusionsButKeepsUserIntent() {
+        var config = PlayerConfig.defaults(UUID.randomUUID(), "Hoarder");
+        var exclusions = config.getExclusionItems();
+        int overCap = ExclusionItemConfiguration.MAX_DISCOVERED_ITEMS_PER_SLOT + 50;
+        for (int i = 0; i < overCap; i++) {
+            exclusions.setItem(net.minecraft.world.entity.EquipmentSlot.HEAD, "testmod:helmet_" + i,
+                    de.zannagh.armorhider.configuration.ExclusionItemInfo.intercepted("Helmet " + i));
+        }
+        exclusions.setItem(net.minecraft.world.entity.EquipmentSlot.HEAD, "testmod:user_excluded",
+                de.zannagh.armorhider.configuration.ExclusionItemInfo.ignored("Deliberately excluded"));
+
+        exclusions.prune();
+
+        var head = exclusions.getItemsForSlot(net.minecraft.world.entity.EquipmentSlot.HEAD);
+        assertTrue(head.containsKey("testmod:user_excluded"),
+                "an entry the user deliberately excluded must never be pruned away");
+        assertTrue(head.size() <= ExclusionItemConfiguration.MAX_DISCOVERED_ITEMS_PER_SLOT + 1,
+                "discovered entries must be capped, got " + head.size());
+        assertFalse(head.containsKey("testmod:helmet_0"), "the oldest discovered entries are dropped first");
+    }
+
+    @Test
+    @DisplayName("Healing flattens a recursively nested global override")
+    void healFlattensNestedGlobalOverride() {
+        var config = PlayerConfig.defaults(UUID.randomUUID(), "Viewer");
+        config.globalPlayerOverride = PlayerConfig.defaults(UUID.randomUUID(), "Global");
+        config.globalPlayerOverride.globalPlayerOverride =
+                PlayerConfig.defaults(UUID.randomUUID(), "TooDeep");
+
+        PlayerConfig.heal(config);
+
+        assertNotNull(config.globalPlayerOverride, "one level of override is legitimate and must be kept");
+        assertNull(config.globalPlayerOverride.globalPlayerOverride,
+                "deeper nesting is corruption and must be dropped before it can break serialization");
+    }
+
+    @Test
+    @DisplayName("forNetwork drops the exclusion map so the C2S payload stays under the vanilla limit")
+    void forNetworkDropsExclusionItems() {
+        var config = PlayerConfig.defaults(UUID.randomUUID(), "Sender");
+        var exclusions = config.getExclusionItems();
+        for (int i = 0; i < 2000; i++) {
+            exclusions.setItem(net.minecraft.world.entity.EquipmentSlot.CHEST, "testmod:plate_" + i,
+                    de.zannagh.armorhider.configuration.ExclusionItemInfo.intercepted("Plate number " + i));
+        }
+
+        var network = config.forNetwork();
+        assertFalse(network.getExclusionItems()
+                        .getItemsForSlot(net.minecraft.world.entity.EquipmentSlot.CHEST)
+                        .containsKey("testmod:plate_0"),
+                "the client-only exclusion map must not be broadcast");
+
+        int encodedSize = network.toJson().getBytes(java.nio.charset.StandardCharsets.UTF_8).length;
+        assertTrue(encodedSize < CompressedJsonCodec.MAX_SERVERBOUND_PAYLOAD_BYTES,
+                "even uncompressed, the network config must sit well under the 32767-byte serverbound limit, got "
+                        + encodedSize);
+    }
+
+    @Test
+    @DisplayName("A config already at the current version is still healed")
+    void healRunsEvenWhenVersionIsCurrent() {
+        String json = "{\"configVersion\": " + PlayerConfig.CURRENT_CONFIG_VERSION
+                + ", \"bootsOpacity\": 99.0}";
+        var config = PlayerConfig.deserialize(json);
+        assertFalse(config.shouldMigrate(), "precondition: this config must not qualify for migration");
+        assertEquals(1.0, config.bootsOpacity.getValue(),
+                "healing must not be gated on the schema version — that is why the reporter's config survived a reinstall");
     }
 }

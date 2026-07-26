@@ -31,4 +31,14 @@ public class ArmorOpacity extends DoubleConfigurationItem {
     public Double getDefaultValue() {
         return DEFAULT_OPACITY;
     }
+
+    @Override
+    protected double getMinValue() {
+        return 0.0;
+    }
+
+    @Override
+    protected double getMaxValue() {
+        return 1.0;
+    }
 }

@@ -29,4 +29,29 @@ public abstract class DoubleConfigurationItem extends ConfigurationItemBase<Doub
     public DoubleConfigurationItem() {
         super();
     }
+
+    /** Lower bound, inclusive. Unbounded by default; range-limited items override it. */
+    protected double getMinValue() {
+        return Double.NEGATIVE_INFINITY;
+    }
+
+    /** Upper bound, inclusive. Unbounded by default; range-limited items override it. */
+    protected double getMaxValue() {
+        return Double.POSITIVE_INFINITY;
+    }
+
+    /**
+     * Rejects non-finite values (NaN / ±Infinity) outright and clamps everything else into
+     * {@code [getMinValue(), getMaxValue()]}. NaN in particular has to be caught here: it round-trips
+     * through the config item happily but makes {@code Gson#toJson} throw {@link IllegalArgumentException},
+     * which escapes the IOException-only catch in the save path and can leave a settings screen unclosable.
+     */
+    @Override
+    protected Double sanitize(Double candidate) {
+        if (candidate == null || !Double.isFinite(candidate)) {
+            return getDefaultValue();
+        }
+        // Math.clamp is Java 21+; 1.20.1 builds on Java 17.
+        return Math.min(Math.max(candidate, getMinValue()), getMaxValue());
+    }
 }

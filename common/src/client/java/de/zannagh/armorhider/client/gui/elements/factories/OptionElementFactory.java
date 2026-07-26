@@ -358,8 +358,11 @@ public class OptionElementFactory {
                 key,
                 new NarratedTooltipFactory<>(tooltip, narration),
                 (text, value) -> sliderTextProvider.apply(value),
+                // The trailing flag is applyValueImmediately. It MUST stay false: with it on, the setter
+                // fires on every drag step, and each call writes the whole preset file to disk
+                // synchronously on the render thread — enough to starve frames and input on a slider drag.
                 //? if >= 1.21.11
-                new OptionInstance.IntRange(0, 20).xmap(v -> v / 20.0, v -> (int) Math.round(v * 20), true)
+                new OptionInstance.IntRange(0, 20).xmap(v -> v / 20.0, v -> (int) Math.round(v * 20), false)
                 //? if >= 1.20.5 && < 1.21.11
                 //new OptionInstance.IntRange(0, 20).xmap(v -> v / 20.0, v -> (int) Math.round(v * 20))
                 //? if < 1.20.5

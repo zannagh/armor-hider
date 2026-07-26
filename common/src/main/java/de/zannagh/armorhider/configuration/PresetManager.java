@@ -19,6 +19,8 @@ public class PresetManager {
     private final Path file;
     private final ConfigPreset @Nullable [] presets = new ConfigPreset[PRESET_COUNT];
     private int activeIndex = -1;
+    /** Set by {@link #updateActivePreset}; cleared by {@link #save()}. See {@link #flushPendingSave()}. */
+    private boolean pendingSave;
 
     public PresetManager() {
         this(DEFAULT_FILE);
@@ -62,9 +64,23 @@ public class PresetManager {
         savePreset(index, ConfigPreset.fromPlayerConfig(config));
     }
 
+    /**
+     * Syncs the live config into the active preset <em>in memory only</em>, marking it for a later write.
+     * <p>
+     * This is called from every settings mutation, including slider movement. Writing here is what made a
+     * single slider drag issue a synchronous, pretty-printed serialization of all five presets per frame on
+     * the render thread. Callers flush via {@link #flushPendingSave()} when the settings screen closes.
+     */
     public void updateActivePreset(PlayerConfig config) {
         if (activeIndex >= 0 && activeIndex < PRESET_COUNT && presets[activeIndex] != null) {
             presets[activeIndex] = ConfigPreset.fromPlayerConfig(config);
+            pendingSave = true;
+        }
+    }
+
+    /** Writes presets to disk if {@link #updateActivePreset} left changes pending. */
+    public void flushPendingSave() {
+        if (pendingSave) {
             save();
         }
     }
@@ -111,6 +127,7 @@ public class PresetManager {
     }
 
     private void save() {
+        pendingSave = false;
         try {
             Path parent = file.getParent();
             if (parent != null) {

@@ -106,6 +106,63 @@ public class ExclusionItemConfiguration {
         return info.shouldIgnore;
     }
 
+    /** Prefix of the synthetic IDs minted by {@link #getItemId} when a registry lookup fails. */
+    public static final String SYNTHETIC_ID_PREFIX = "unknown:";
+
+    /**
+     * Maximum number of discovered (non user-configured) entries retained per slot. Entries the user has
+     * explicitly excluded are always kept and do not count against this budget.
+     */
+    public static final int MAX_DISCOVERED_ITEMS_PER_SLOT = 512;
+
+    /**
+     * Drops entries that can never match again and bounds the rest, returning the number of entries removed.
+     * <p>
+     * Two problems are repaired here:
+     * <ul>
+     *   <li><b>Synthetic IDs.</b> {@link #getItemId} falls back to {@code "unknown:<class>_<identityHashCode>"}
+     *       for items missing from the registry. Identity hash codes are not stable across JVM runs, so every
+     *       launch mints fresh keys for the same items and the map grows without bound. None of these keys can
+     *       ever be matched again, so they are pure garbage.</li>
+     *   <li><b>Unbounded discovery.</b> {@link #discoverItem} appends every equipped item ever rendered, for
+     *       every player seen. On a busy modded server that is effectively unbounded.</li>
+     * </ul>
+     * Insertion order is preserved by the backing {@link LinkedHashMap}, so trimming drops the oldest
+     * discovered entries first.
+     */
+    public synchronized int prune() {
+        int removed = 0;
+        for (Map.Entry<String, Map<String, ExclusionItemInfo>> slotEntry : items.entrySet()) {
+            Map<String, ExclusionItemInfo> slotItems = slotEntry.getValue();
+
+            var syntheticKeys = new java.util.ArrayList<String>();
+            for (String key : slotItems.keySet()) {
+                if (key.startsWith(SYNTHETIC_ID_PREFIX)) {
+                    syntheticKeys.add(key);
+                }
+            }
+            for (String key : syntheticKeys) {
+                slotItems.remove(key);
+                removed++;
+            }
+
+            // Anything the user deliberately excluded is intent worth preserving, so only the passively
+            // discovered remainder is subject to the cap.
+            var discoveredKeys = new java.util.ArrayList<String>();
+            for (Map.Entry<String, ExclusionItemInfo> itemEntry : slotItems.entrySet()) {
+                if (!itemEntry.getValue().shouldIgnore) {
+                    discoveredKeys.add(itemEntry.getKey());
+                }
+            }
+            int excess = discoveredKeys.size() - MAX_DISCOVERED_ITEMS_PER_SLOT;
+            for (int i = 0; i < excess; i++) {
+                slotItems.remove(discoveredKeys.get(i));
+                removed++;
+            }
+        }
+        return removed;
+    }
+
     /**
      * If an item is not yet tracked for its slot, adds it with interception enabled.
      * Used for auto-discovery of new equippable items during rendering.
@@ -155,7 +212,7 @@ public class ExclusionItemConfiguration {
                 ArmorHider.LOGGER.warn("Failed to resolve registry ID for item {}: {}", i, e.getMessage());
             }
             // Fallback for items not in the registry
-            return "unknown:" + i.getClass().getSimpleName().toLowerCase() + "_" + System.identityHashCode(i);
+            return SYNTHETIC_ID_PREFIX + i.getClass().getSimpleName().toLowerCase() + "_" + System.identityHashCode(i);
         });
     }
 

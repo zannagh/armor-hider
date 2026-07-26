@@ -41,7 +41,15 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
     public int configVersion;
 
     /** The current config schema version. */
-    public static final int CURRENT_CONFIG_VERSION = 11;
+    public static final int CURRENT_CONFIG_VERSION = 12;
+
+    /**
+     * Maximum nesting depth for {@link #globalPlayerOverride}. The override is itself a {@link PlayerConfig},
+     * so the structure is recursive; exactly one level is meaningful and anything deeper is corruption. A
+     * cycle here makes {@code Gson#toJson} blow the stack, which escapes the IOException-only catch in the
+     * save path, so {@link #heal} flattens it rather than trusting the data.
+     */
+    private static final int MAX_GLOBAL_OVERRIDE_DEPTH = 1;
 
     //? if >= 1.21.11 {
     public static final Identifier PACKET_IDENTIFIER = Identifier.fromNamespaceAndPath("de.zannagh.armorhider", "settings_c2s_packet");
@@ -377,11 +385,68 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
     }
 
     public static PlayerConfig deserialize(Reader reader) {
-        return ArmorHider.GSON.fromJson(reader, PlayerConfig.class);
+        return heal(ArmorHider.GSON.fromJson(reader, PlayerConfig.class));
     }
 
     public static PlayerConfig deserialize(String content) {
-        return ArmorHider.GSON.fromJson(content, PlayerConfig.class);
+        return heal(ArmorHider.GSON.fromJson(content, PlayerConfig.class));
+    }
+
+    /**
+     * Repairs a freshly-deserialized config in place and returns it.
+     * <p>
+     * This is deliberately <em>separate from and independent of</em> {@link #migrate}. Migration only runs
+     * when {@code configVersion < CURRENT_CONFIG_VERSION}, so a config that is already at the current version
+     * but has been corrupted at runtime would otherwise be loaded and used verbatim — which is exactly how a
+     * config that grew a multi-megabyte exclusion map, or a non-finite opacity, survives a restart and even a
+     * reinstall of the mod. Healing therefore runs unconditionally on every deserialize, from disk and from
+     * the network alike.
+     * <p>
+     * Opacity clamping is not done here: it lives in {@code DoubleConfigurationItem#sanitize}, which the Gson
+     * read path already applies through the single-argument constructor.
+     *
+     * @return the same instance, repaired; {@code null} in, {@code null} out
+     */
+    public static @org.jetbrains.annotations.Nullable PlayerConfig heal(
+            @org.jetbrains.annotations.Nullable PlayerConfig config) {
+        return heal(config, 0);
+    }
+
+    private static @org.jetbrains.annotations.Nullable PlayerConfig heal(
+            @org.jetbrains.annotations.Nullable PlayerConfig config, int depth) {
+        if (config == null) {
+            return null;
+        }
+
+        if (config.exclusionItems == null) {
+            config.exclusionItems = ExclusionItemConfiguration.defaults();
+            config.setHasChangedFromSerializedContent();
+        } else {
+            int pruned = config.exclusionItems.prune();
+            if (pruned > 0) {
+                ArmorHider.LOGGER.info("Pruned {} stale exclusion-item entries from the config for {}.",
+                        pruned, config.playerName.getValue());
+                config.setHasChangedFromSerializedContent();
+            }
+        }
+
+        if (config.globalPlayerOverride != null) {
+            if (depth >= MAX_GLOBAL_OVERRIDE_DEPTH) {
+                ArmorHider.LOGGER.warn(
+                        "Dropping a global player override nested {} levels deep in the config for {} — "
+                                + "only one level is meaningful and deeper nesting corrupts serialization.",
+                        depth + 1, config.playerName.getValue());
+                config.globalPlayerOverride = null;
+                config.setHasChangedFromSerializedContent();
+            } else {
+                heal(config.globalPlayerOverride, depth + 1);
+                if (config.globalPlayerOverride.hasChangedFromSerializedContent()) {
+                    config.setHasChangedFromSerializedContent();
+                }
+            }
+        }
+
+        return config;
     }
 
     @Contract("-> new")
@@ -489,9 +554,16 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
      * state: {@link #individualConfigurations}, the {@link #useGlobalOverrideForAllPlayers} flag and the
      * {@link #globalPlayerOverride}. Those are a purely client-side concern and must never be broadcast to
      * the server or other players. ({@link #deepCopy} copies none of them, so this delegates straight to it.)
+     * <p>
+     * {@link #exclusionItems} is also dropped: which items the mod skips is a purely client-side render
+     * decision that nothing server-side reads, while the map is the one unbounded part of the config. Left
+     * in, a large map pushes the gzipped payload past the vanilla 32767-byte custom-payload limit, and a
+     * vanilla server (Realms included) responds by disconnecting the client on join.
      */
     public PlayerConfig forNetwork() {
-        return deepCopy(playerName.getValue(), playerId.getValue());
+        var networkConfig = deepCopy(playerName.getValue(), playerId.getValue());
+        networkConfig.exclusionItems = ExclusionItemConfiguration.defaults();
+        return networkConfig;
     }
 
     public PlayerConfig deepCopy(String playerName, UUID playerId) {

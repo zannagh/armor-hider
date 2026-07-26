@@ -16,7 +16,7 @@ public class ToggleOffKeyMapping extends CustomKeyMapping {
     }
     
     @Override
-    public void onKeyDown() {
+    protected void armorHider$onActivated() {
         // Flip the transient session override only — never persisted, cleared on disconnect/restart. The old
         // behaviour wrote to disk and survived restarts and config migrations, so an accidental press could
         // silently disable the mod "forever" until the config file was deleted. Feedback on the action bar
@@ -26,7 +26,4 @@ public class ToggleOffKeyMapping extends CustomKeyMapping {
                 ? "armorhider.toggle.disabled"
                 : "armorhider.toggle.enabled"));
     }
-
-    @Override
-    public void onKeyUp() { }
 }

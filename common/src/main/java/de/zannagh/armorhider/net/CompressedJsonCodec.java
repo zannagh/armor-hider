@@ -26,6 +26,21 @@ public class CompressedJsonCodec {
     }
     //?}
 
+    /**
+     * Vanilla's clientbound custom-payload ceiling ({@code ClientboundCustomPayloadPacket.MAX_PAYLOAD_SIZE},
+     * 1 MiB). Used as the upper sanity bound for any payload we encode or decode.
+     */
+    public static final int MAX_PAYLOAD_BYTES = 1048576;
+
+    /**
+     * Vanilla's <em>serverbound</em> ceiling ({@code ServerboundCustomPayloadPacket.MAX_PAYLOAD_SIZE}) is far
+     * tighter at 32767, and a vanilla server — Realms included — decodes unknown payloads via
+     * {@code DiscardedPayload}, which throws and disconnects the client for anything larger. Only C2S types
+     * are held to this limit; the S2C {@code ServerConfiguration} broadcast legitimately runs much larger.
+     * A little headroom is kept for the length prefix and framing.
+     */
+    public static final int MAX_SERVERBOUND_PAYLOAD_BYTES = 32767 - 256;
+
     private static <T> void encode(ByteBuf byteBuf, T value) {
         try {
             ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
@@ -35,6 +50,16 @@ public class CompressedJsonCodec {
             }
 
             byte[] compressed = byteStream.toByteArray();
+            // PlayerConfig is our only sizeable C2S payload, so it is the one held to the serverbound limit.
+            // Refusing here beats letting a vanilla server kick the client on join. Backstop only: the
+            // payload should no longer be able to get this big now that forNetwork() drops the exclusion map.
+            int limit = value instanceof de.zannagh.armorhider.net.packets.PlayerConfig
+                    ? MAX_SERVERBOUND_PAYLOAD_BYTES
+                    : MAX_PAYLOAD_BYTES;
+            if (compressed.length > limit) {
+                throw new IllegalStateException("Refusing to encode an oversized armor-hider payload: "
+                        + compressed.length + " bytes exceeds the " + limit + " byte limit");
+            }
             byteBuf.writeInt(compressed.length);
             byteBuf.writeBytes(compressed);
         } catch (Exception e) {
@@ -45,13 +70,24 @@ public class CompressedJsonCodec {
     private static <T> T decode(ByteBuf buf, Class<T> clazz) {
         try {
             int length = buf.readInt();
+            // The length prefix is attacker-controlled; allocating on it unchecked is a trivial OOM.
+            if (length < 0 || length > MAX_PAYLOAD_BYTES || length > buf.readableBytes()) {
+                throw new IllegalArgumentException("Rejecting an armor-hider payload with an implausible "
+                        + "length of " + length + " bytes (" + buf.readableBytes() + " readable)");
+            }
             byte[] compressed = new byte[length];
             buf.readBytes(compressed);
 
             ByteArrayInputStream byteStream = new ByteArrayInputStream(compressed);
             try (GZIPInputStream gzipStream = new GZIPInputStream(byteStream);
                  InputStreamReader reader = new InputStreamReader(gzipStream, StandardCharsets.UTF_8)) {
-                return ArmorHider.GSON.fromJson(reader, clazz);
+                T decoded = ArmorHider.GSON.fromJson(reader, clazz);
+                // Configs arriving off the wire get the same repair pass as configs read from disk —
+                // PlayerConfig.deserialize is bypassed entirely on this path.
+                if (decoded instanceof de.zannagh.armorhider.net.packets.PlayerConfig playerConfig) {
+                    de.zannagh.armorhider.net.packets.PlayerConfig.heal(playerConfig);
+                }
+                return decoded;
             }
         } catch (Exception e) {
             throw new RuntimeException("Failed to decode compressed JSON", e);

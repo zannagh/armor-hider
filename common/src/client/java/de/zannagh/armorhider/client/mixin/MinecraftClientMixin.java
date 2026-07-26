@@ -1,5 +1,6 @@
 package de.zannagh.armorhider.client.mixin;
 
+import de.zannagh.armorhider.client.keybinds.CustomKeyMapping;
 import de.zannagh.armorhider.client.keybinds.LoadPresetKeyMapping;
 import de.zannagh.armorhider.client.net.ClientConnectionEvents;
 import net.minecraft.client.Minecraft;
@@ -13,6 +14,7 @@ public class MinecraftClientMixin {
 
     @Inject(method = "tick", at = @At("HEAD"))
     private void tickPresetKeybind(CallbackInfo ci) {
+        CustomKeyMapping.armorHider$tickAll((Minecraft) (Object) this);
         LoadPresetKeyMapping.tick();
     }
 

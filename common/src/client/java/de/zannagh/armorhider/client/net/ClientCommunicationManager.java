@@ -89,7 +89,15 @@ public final class ClientCommunicationManager {
                 ArmorHiderClient.permissionLevel = 4; // local -> admin
             }
 
-            ClientPacketSender.sendToServer(currentConfig.forNetwork());
+            // A send failure must never abort the join. ClientPacketSender already swallows the
+            // "server doesn't know this channel" case, but the encoder can still reject an oversized
+            // payload and the connection can drop between the check and the write — neither is worth
+            // taking the client down for, since the config is client-authoritative anyway.
+            try {
+                ClientPacketSender.sendToServer(currentConfig.forNetwork());
+            } catch (Exception e) {
+                ArmorHider.LOGGER.warn("Could not send the local config to the server on join.", e);
+            }
 
             // Remind the viewer if Armor Hider is disabled by their saved setting, so a persisted "off" never
             // looks like the mod silently broke. Reads the persisted flag directly (the transient keybind

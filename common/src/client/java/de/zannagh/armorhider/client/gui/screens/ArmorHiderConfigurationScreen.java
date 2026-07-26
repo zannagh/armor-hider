@@ -1,5 +1,6 @@
 package de.zannagh.armorhider.client.gui.screens;
 
+import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.gui.elements.factories.OptionElementFactory;
 import de.zannagh.armorhider.client.gui.elements.WidgetList;
@@ -71,10 +72,21 @@ public abstract class ArmorHiderConfigurationScreen extends Screen {
     
     @Override
     public void onClose() {
-        if (settingsChanged) {
-            saveSettingsOnClose();
+        // Navigation happens in the finally block: if saving throws, the screen must still close. Previously
+        // an exception here (e.g. Gson refusing a non-finite value, or a dropped connection while pushing the
+        // config) left the screen permanently mounted with no way out — and since the offending value was on
+        // disk, it recurred on every launch until the config file was deleted.
+        try {
+            if (settingsChanged) {
+                saveSettingsOnClose();
+            }
+            // Settings edits only touch the active preset in memory; this is the one write per visit.
+            ArmorHiderClient.PRESET_MANAGER.flushPendingSave();
+        } catch (Exception e) {
+            ArmorHider.LOGGER.error("Failed to save Armor Hider settings on close.", e);
+        } finally {
+            this.minecraft.setScreenAndShow(parent);
         }
-        this.minecraft.setScreenAndShow(parent);
     }
     
     //? if < 1.21.4 {

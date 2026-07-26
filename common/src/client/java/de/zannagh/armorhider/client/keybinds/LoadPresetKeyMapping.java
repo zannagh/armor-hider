@@ -28,16 +28,21 @@ public class LoadPresetKeyMapping extends CustomKeyMapping {
         instance = this;
     }
 
+    // This mapping is a hold-modifier, not a press-action: the work happens in tick() while the key
+    // is held down, so a press on its own does nothing.
     @Override
-    public void onKeyDown() {}
-
-    @Override
-    public void onKeyUp() {
-        activatedWhileHeld = -1;
-    }
+    protected void armorHider$onActivated() {}
 
     public static void tick() {
-        if (instance == null || !instance.isDown()) {
+        if (instance == null) {
+            return;
+        }
+        // isDown() is the right state to read for a hold-modifier, and it is safe to read: vanilla
+        // clears it via releaseAll() when a screen opens and restores it via setAll() when one
+        // closes. Resetting here (rather than from a setDown override) keeps the latch honest on
+        // both paths and on every OS.
+        if (!instance.isDown()) {
+            instance.activatedWhileHeld = -1;
             return;
         }
         var mc = Minecraft.getInstance();
