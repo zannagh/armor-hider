@@ -632,6 +632,37 @@ class PlayerConfigurationTests {
     }
 
     @Test
+    @DisplayName("Discovery order survives a save/reload, so prune still drops oldest-first")
+    void exclusionPruneKeepsDiscoveryOrderAcrossReload() {
+        // Insert discovered keys in DESCENDING numeric order, so insertion (discovery) order and sorted order
+        // disagree: discovery-first is "k511", sorted-first is "k000". If the map deserialized as a sorted
+        // structure, prune would drop "k000"; if discovery order is preserved, it drops "k511".
+        var original = new ExclusionItemConfiguration();
+        int count = ExclusionItemConfiguration.MAX_DISCOVERED_ITEMS_PER_SLOT + 1; // one over the cap
+        for (int i = count - 1; i >= 0; i--) {
+            original.setItem(net.minecraft.world.entity.EquipmentSlot.HEAD,
+                    String.format("testmod:k%03d", i),
+                    de.zannagh.armorhider.configuration.ExclusionItemInfo.intercepted("k" + i));
+        }
+
+        // Round-trip through JSON exactly as a real config would on save + next launch.
+        var reloaded = ExclusionItemConfiguration.deserialize(
+                de.zannagh.armorhider.ArmorHider.GSON.toJson(original));
+
+        var beforePrune = new java.util.ArrayList<>(
+                reloaded.getItemsForSlot(net.minecraft.world.entity.EquipmentSlot.HEAD).keySet());
+        assertEquals("testmod:k512", beforePrune.get(0),
+                "the first-discovered key must still iterate first after a reload (insertion order, not sorted)");
+
+        reloaded.prune();
+
+        var head = reloaded.getItemsForSlot(net.minecraft.world.entity.EquipmentSlot.HEAD);
+        assertEquals(ExclusionItemConfiguration.MAX_DISCOVERED_ITEMS_PER_SLOT, head.size());
+        assertFalse(head.containsKey("testmod:k512"), "the oldest-discovered entry must be the one dropped");
+        assertTrue(head.containsKey("testmod:k000"), "the newest-discovered entry must be kept");
+    }
+
+    @Test
     @DisplayName("Healing a self-referential global override does not throw")
     void healToleratesSelfReferentialGlobalOverride() {
         // Not reachable from JSON (a tree), but heal() is public API and callable on programmatically-built

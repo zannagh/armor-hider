@@ -25,8 +25,14 @@ public class ExclusionItemConfiguration {
     /**
      * Slot name → item registry ID → exclusion info.
      * Uses String keys for both slot and item to ensure clean GSON serialization.
+     * <p>
+     * Declared as concrete {@link LinkedHashMap} at both levels on purpose: Gson honours a concrete field
+     * type and constructs {@code LinkedHashMap}s on deserialize, so iteration follows insertion (discovery)
+     * order that {@link #prune()} relies on. Left as the {@code Map} interface, Gson would instead build its
+     * own {@code LinkedTreeMap}; that happens to iterate in insertion order today, but pinning the type keeps
+     * the guarantee from silently depending on a Gson internal across the wide MC/Gson version range we build.
      */
-    Map<String, Map<String, ExclusionItemInfo>> items = new LinkedHashMap<>();
+    LinkedHashMap<String, LinkedHashMap<String, ExclusionItemInfo>> items = new LinkedHashMap<>();
 
     /**
      * Caches Item → registry ID lookups so that non-registry or slow lookups
@@ -52,7 +58,7 @@ public class ExclusionItemConfiguration {
         }
         // Null-tolerant: this is reached from ConfigPreset#applyTo/#fromPlayerConfig, whose exclusion map is
         // read out of armor-hider-presets.json by plain Gson and never passes through PlayerConfig.heal().
-        for (Map.Entry<String, Map<String, ExclusionItemInfo>> slotEntry : items.entrySet()) {
+        for (var slotEntry : items.entrySet()) {
             if (slotEntry.getKey() == null || slotEntry.getValue() == null) {
                 continue;
             }
@@ -82,12 +88,10 @@ public class ExclusionItemConfiguration {
      * Items not in the list default to NOT ignored (mod handles them).
      */
     public boolean shouldArmorHiderIgnore(EquipmentSlot slot, Item item) {
-        String itemId = getItemId(item);
-        Map<String, ExclusionItemInfo> slotItems = items.get(slot.name());
-        if (slotItems == null) return false;
-        ExclusionItemInfo info = slotItems.get(itemId);
-        if (info == null) return false;
-        return info.shouldIgnore;
+        // Routed through getItemsForSlot so it inherits the same null-safety: a corrupt "items": null (in a
+        // config or preset that has not yet been through prune()/heal()) must not NPE a render-path lookup.
+        ExclusionItemInfo info = getItemsForSlot(slot).get(getItemId(item));
+        return info != null && info.shouldIgnore;
     }
 
     /**
@@ -146,8 +150,9 @@ public class ExclusionItemConfiguration {
      *   <li><b>Unbounded discovery.</b> {@link #discoverItem} appends every equipped item ever rendered, for
      *       every player seen. On a busy modded server that is effectively unbounded.</li>
      * </ul>
-     * Insertion order is preserved by the backing {@link LinkedHashMap}, so trimming drops the oldest
-     * discovered entries first.
+     * The backing map is a {@link LinkedHashMap} at both levels (see the {@link #items} field note), so
+     * iteration follows insertion (discovery) order and trimming drops the oldest discovered entries first —
+     * and that holds across a save/reload, not just for a freshly-built instance.
      */
     public synchronized int prune() {
         // This map is deserialized reflectively by Gson — unlike ConfigurationItem fields it is NOT covered
@@ -167,7 +172,7 @@ public class ExclusionItemConfiguration {
 
         var slotIterator = items.entrySet().iterator();
         while (slotIterator.hasNext()) {
-            Map.Entry<String, Map<String, ExclusionItemInfo>> slotEntry = slotIterator.next();
+            var slotEntry = slotIterator.next();
             Map<String, ExclusionItemInfo> slotItems = slotEntry.getValue();
             if (slotEntry.getKey() == null || slotItems == null) {
                 slotIterator.remove();
