@@ -600,6 +600,72 @@ class PlayerConfigurationTests {
     }
 
     @Test
+    @DisplayName("Healing survives nulls inside the exclusion map instead of wiping the config")
+    void healToleratesNullExclusionEntries() {
+        // exclusionItems is a plain reflective Gson map, NOT covered by
+        // ConfigurationSourceSerializer#initializeNullConfigFields, so explicit JSON nulls reach prune()
+        // verbatim. An NPE there escapes deserialize() into PlayerConfigFileProvider's catch-all, which
+        // throws the config away and writes defaults — the exact opposite of healing it.
+        String json = """
+                {
+                  "configVersion": 12,
+                  "helmetOpacity": 0.5,
+                  "exclusionItems": {
+                    "items": {
+                      "HEAD": null,
+                      "CHEST": {"minecraft:iron_chestplate": null, "minecraft:elytra": {"displayName": "Elytra", "shouldIgnore": true}}
+                    }
+                  }
+                }
+                """;
+        var config = assertDoesNotThrow(() -> PlayerConfig.deserialize(json),
+                "healing must tolerate a corrupt exclusion map rather than throwing");
+
+        assertEquals(0.5, config.helmetOpacity.getValue(), "unrelated settings must survive the repair");
+        assertTrue(config.getExclusionItems()
+                        .getItemsForSlot(net.minecraft.world.entity.EquipmentSlot.HEAD).isEmpty(),
+                "a null slot map must be dropped, and getItemsForSlot must never hand back null");
+        var chest = config.getExclusionItems()
+                .getItemsForSlot(net.minecraft.world.entity.EquipmentSlot.CHEST);
+        assertFalse(chest.containsKey("minecraft:iron_chestplate"), "a null entry must be dropped");
+        assertTrue(chest.containsKey("minecraft:elytra"), "valid neighbours must be preserved");
+    }
+
+    @Test
+    @DisplayName("deepCopy tolerates a corrupt exclusion map (presets.json is never healed)")
+    void deepCopyToleratesNullExclusionEntries() {
+        var source = ExclusionItemConfiguration.deserialize(
+                "{\"items\": {\"HEAD\": null, \"CHEST\": {\"minecraft:elytra\": null}}}");
+        var copy = assertDoesNotThrow(source::deepCopy);
+        assertTrue(copy.getItemsForSlot(net.minecraft.world.entity.EquipmentSlot.HEAD).isEmpty());
+        assertTrue(copy.getItemsForSlot(net.minecraft.world.entity.EquipmentSlot.CHEST).isEmpty());
+    }
+
+    @Test
+    @DisplayName("updateActivePreset materialises a missing active preset instead of dropping the edit")
+    void updateActivePresetMaterialisesMissingPreset(
+            @org.junit.jupiter.api.io.TempDir java.nio.file.Path tempDir) throws Exception {
+        // activeIndex pointing at a null preset is reachable from a hand-edited or partially written file.
+        var presetFile = tempDir.resolve("presets.json");
+        java.nio.file.Files.writeString(presetFile,
+                "{\"presets\": [null, null, null, null, null], \"activeIndex\": 0}");
+
+        var manager = new de.zannagh.armorhider.configuration.PresetManager(presetFile);
+        assertNull(manager.getPreset(0), "precondition: the active slot must start empty");
+
+        var config = PlayerConfig.defaults(UUID.randomUUID(), "Editor");
+        config.helmetOpacity.setValue(0.4);
+        manager.updateActivePreset(config);
+        manager.flushPendingSave();
+
+        var preset = manager.getPreset(0);
+        assertNotNull(preset, "the edit must materialise the missing preset rather than being discarded");
+        assertEquals(0.4, preset.helmetOpacity);
+        assertTrue(java.nio.file.Files.readString(presetFile).contains("0.4"),
+                "the materialised preset must be persisted");
+    }
+
+    @Test
     @DisplayName("A failed preset save stays pending and is retried by the next flush")
     void failedPresetSaveIsRetried(@org.junit.jupiter.api.io.TempDir java.nio.file.Path tempDir)
             throws Exception {

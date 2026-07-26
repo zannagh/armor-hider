@@ -71,7 +71,10 @@ public class PresetManager {
      * the render thread. Callers flush via {@link #flushPendingSave()} when the settings screen closes.
      */
     public void updateActivePreset(PlayerConfig config) {
-        if (activeIndex >= 0 && activeIndex < PRESET_COUNT && presets[activeIndex] != null) {
+        // Deliberately does NOT require presets[activeIndex] to be non-null: the preset is rebuilt wholesale
+        // from the live config, so a missing entry is something to materialise, not a reason to skip. Bailing
+        // out there would silently drop every settings change for as long as that slot stayed active.
+        if (activeIndex >= 0 && activeIndex < PRESET_COUNT) {
             presets[activeIndex] = ConfigPreset.fromPlayerConfig(config);
             pendingSave = true;
         }

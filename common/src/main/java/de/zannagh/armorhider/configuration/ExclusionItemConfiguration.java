@@ -47,10 +47,21 @@ public class ExclusionItemConfiguration {
      */
     public ExclusionItemConfiguration deepCopy() {
         var copy = new ExclusionItemConfiguration();
+        if (items == null) {
+            return copy;
+        }
+        // Null-tolerant: this is reached from ConfigPreset#applyTo/#fromPlayerConfig, whose exclusion map is
+        // read out of armor-hider-presets.json by plain Gson and never passes through PlayerConfig.heal().
         for (Map.Entry<String, Map<String, ExclusionItemInfo>> slotEntry : items.entrySet()) {
+            if (slotEntry.getKey() == null || slotEntry.getValue() == null) {
+                continue;
+            }
             var slotCopy = new LinkedHashMap<String, ExclusionItemInfo>();
             for (Map.Entry<String, ExclusionItemInfo> itemEntry : slotEntry.getValue().entrySet()) {
                 ExclusionItemInfo orig = itemEntry.getValue();
+                if (itemEntry.getKey() == null || orig == null) {
+                    continue;
+                }
                 slotCopy.put(itemEntry.getKey(), new ExclusionItemInfo(orig.displayName, orig.shouldIgnore));
             }
             copy.items.put(slotEntry.getKey(), slotCopy);
@@ -83,7 +94,13 @@ public class ExclusionItemConfiguration {
      * Returns all items configured for a given slot.
      */
     public Map<String, ExclusionItemInfo> getItemsForSlot(EquipmentSlot slot) {
-        return items.getOrDefault(slot.name(), Map.of());
+        if (items == null) {
+            return Map.of();
+        }
+        // getOrDefault returns a *stored* null rather than the fallback, so an explicit "HEAD": null in the
+        // JSON would otherwise hand callers a null map.
+        Map<String, ExclusionItemInfo> slotItems = items.get(slot.name());
+        return slotItems != null ? slotItems : Map.of();
     }
 
     /**
@@ -131,19 +148,37 @@ public class ExclusionItemConfiguration {
      * discovered entries first.
      */
     public synchronized int prune() {
+        // This map is deserialized reflectively by Gson — unlike ConfigurationItem fields it is NOT covered
+        // by ConfigurationSourceSerializer#initializeNullConfigFields — so explicit JSON nulls survive into
+        // it verbatim. Since prune() is the repair pass called from PlayerConfig.heal(), it must treat those
+        // nulls as more corruption to clean up rather than tripping over them: an NPE here propagates out of
+        // deserialize() into PlayerConfigFileProvider's catch-all, which discards the whole config and writes
+        // defaults — turning "heal the config" into "silently wipe the config".
         int removed = 0;
-        for (Map.Entry<String, Map<String, ExclusionItemInfo>> slotEntry : items.entrySet()) {
-            Map<String, ExclusionItemInfo> slotItems = slotEntry.getValue();
+        if (items == null) {
+            items = new LinkedHashMap<>();
+            return 0;
+        }
 
-            var syntheticKeys = new java.util.ArrayList<String>();
-            for (String key : slotItems.keySet()) {
-                if (key.startsWith(SYNTHETIC_ID_PREFIX)) {
-                    syntheticKeys.add(key);
-                }
-            }
-            for (String key : syntheticKeys) {
-                slotItems.remove(key);
+        var slotIterator = items.entrySet().iterator();
+        while (slotIterator.hasNext()) {
+            Map.Entry<String, Map<String, ExclusionItemInfo>> slotEntry = slotIterator.next();
+            Map<String, ExclusionItemInfo> slotItems = slotEntry.getValue();
+            if (slotEntry.getKey() == null || slotItems == null) {
+                slotIterator.remove();
                 removed++;
+                continue;
+            }
+
+            // Drop corrupt entries and synthetic identity-hash IDs in one pass.
+            var itemIterator = slotItems.entrySet().iterator();
+            while (itemIterator.hasNext()) {
+                Map.Entry<String, ExclusionItemInfo> itemEntry = itemIterator.next();
+                String itemId = itemEntry.getKey();
+                if (itemId == null || itemEntry.getValue() == null || itemId.startsWith(SYNTHETIC_ID_PREFIX)) {
+                    itemIterator.remove();
+                    removed++;
+                }
             }
 
             // Anything the user deliberately excluded is intent worth preserving, so only the passively
