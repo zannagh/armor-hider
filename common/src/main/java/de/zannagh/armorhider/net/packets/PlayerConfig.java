@@ -418,6 +418,12 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
             return null;
         }
 
+        // Identity fields are only read for log context, and are resolved defensively: healing must never be
+        // the thing that throws. In practice ConfigurationSourceSerializer#initializeNullConfigFields has
+        // already backfilled any null ConfigurationItem field by the time we get here (verified by test), but
+        // heal() is also callable on hand-built instances, where that guarantee does not hold.
+        String owner = describeOwner(config);
+
         if (config.exclusionItems == null) {
             config.exclusionItems = ExclusionItemConfiguration.defaults();
             config.setHasChangedFromSerializedContent();
@@ -425,7 +431,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
             int pruned = config.exclusionItems.prune();
             if (pruned > 0) {
                 ArmorHider.LOGGER.info("Pruned {} stale exclusion-item entries from the config for {}.",
-                        pruned, config.playerName.getValue());
+                        pruned, owner);
                 config.setHasChangedFromSerializedContent();
             }
         }
@@ -435,7 +441,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
                 ArmorHider.LOGGER.warn(
                         "Dropping a global player override nested {} levels deep in the config for {} — "
                                 + "only one level is meaningful and deeper nesting corrupts serialization.",
-                        depth + 1, config.playerName.getValue());
+                        depth + 1, owner);
                 config.globalPlayerOverride = null;
                 config.setHasChangedFromSerializedContent();
             } else {
@@ -447,6 +453,17 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         }
 
         return config;
+    }
+
+    /** Log-context helper for {@link #heal}; never throws, whatever state the config is in. */
+    private static String describeOwner(PlayerConfig config) {
+        try {
+            return config.playerName != null && config.playerName.getValue() != null
+                    ? config.playerName.getValue()
+                    : "<unknown>";
+        } catch (Exception e) {
+            return "<unknown>";
+        }
     }
 
     @Contract("-> new")
@@ -559,10 +576,16 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
      * decision that nothing server-side reads, while the map is the one unbounded part of the config. Left
      * in, a large map pushes the gzipped payload past the vanilla 32767-byte custom-payload limit, and a
      * vanilla server (Realms included) responds by disconnecting the client on join.
+     * <p>
+     * The map is sent <em>empty</em> rather than seeded with {@link ExclusionItemConfiguration#defaults()}:
+     * every default entry is {@code intercepted} (i.e. {@code shouldIgnore == false}), and
+     * {@link ExclusionItemConfiguration#shouldArmorHiderIgnore} also returns {@code false} for an absent
+     * entry — so the two are behaviourally identical for any reader, and empty is a few dozen entries
+     * smaller on the wire.
      */
     public PlayerConfig forNetwork() {
         var networkConfig = deepCopy(playerName.getValue(), playerId.getValue());
-        networkConfig.exclusionItems = ExclusionItemConfiguration.defaults();
+        networkConfig.exclusionItems = new ExclusionItemConfiguration();
         return networkConfig;
     }
 

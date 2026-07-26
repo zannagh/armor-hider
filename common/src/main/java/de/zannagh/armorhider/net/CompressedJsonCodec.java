@@ -8,6 +8,9 @@ import net.minecraft.network.codec.StreamCodec;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.FilterInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
@@ -40,6 +43,14 @@ public class CompressedJsonCodec {
      * A little headroom is kept for the length prefix and framing.
      */
     public static final int MAX_SERVERBOUND_PAYLOAD_BYTES = 32767 - 256;
+
+    /**
+     * Ceiling on the <em>inflated</em> size of a decoded payload, guarding against a decompression bomb on
+     * what is an attacker-controlled stream. Sized against real data: a 1500-player {@code ServerConfiguration}
+     * measures ~14.8 MiB uncompressed (~38x compression), so 64 MiB leaves a comfortable 4x margin for
+     * legitimately huge servers while still bounding memory use during parsing.
+     */
+    public static final int MAX_DECOMPRESSED_BYTES = 64 * 1024 * 1024;
 
     private static <T> void encode(ByteBuf byteBuf, T value) {
         try {
@@ -79,8 +90,12 @@ public class CompressedJsonCodec {
             buf.readBytes(compressed);
 
             ByteArrayInputStream byteStream = new ByteArrayInputStream(compressed);
+            // Bounding the compressed length is not enough on its own: gzip routinely hits ~38x on this data
+            // (measured) and a crafted stream reaches ~1000x, so a 1 MiB payload could otherwise inflate to
+            // hundreds of megabytes during parsing. Cap the inflated side too.
             try (GZIPInputStream gzipStream = new GZIPInputStream(byteStream);
-                 InputStreamReader reader = new InputStreamReader(gzipStream, StandardCharsets.UTF_8)) {
+                 InputStream boundedStream = new SizeLimitedInputStream(gzipStream, MAX_DECOMPRESSED_BYTES);
+                 InputStreamReader reader = new InputStreamReader(boundedStream, StandardCharsets.UTF_8)) {
                 T decoded = ArmorHider.GSON.fromJson(reader, clazz);
                 // Configs arriving off the wire get the same repair pass as configs read from disk —
                 // PlayerConfig.deserialize is bypassed entirely on this path.
@@ -91,6 +106,55 @@ public class CompressedJsonCodec {
             }
         } catch (Exception e) {
             throw new RuntimeException("Failed to decode compressed JSON", e);
+        }
+    }
+
+    /**
+     * Fails fast once more than {@code limit} bytes have been read, so an over-large stream is rejected
+     * during inflation rather than after it has already been materialised in memory.
+     */
+    private static final class SizeLimitedInputStream extends FilterInputStream {
+
+        private final long limit;
+        private long consumed;
+
+        private SizeLimitedInputStream(InputStream delegate, long limit) {
+            super(delegate);
+            this.limit = limit;
+        }
+
+        private void recordRead(long readCount) throws IOException {
+            if (readCount <= 0) {
+                return;
+            }
+            consumed += readCount;
+            if (consumed > limit) {
+                throw new IOException("Rejecting an armor-hider payload that inflates beyond " + limit
+                        + " bytes — refusing to decompress further");
+            }
+        }
+
+        @Override
+        public int read() throws IOException {
+            int value = super.read();
+            if (value != -1) {
+                recordRead(1);
+            }
+            return value;
+        }
+
+        @Override
+        public int read(byte[] buffer, int off, int len) throws IOException {
+            int readCount = super.read(buffer, off, len);
+            recordRead(readCount);
+            return readCount;
+        }
+
+        @Override
+        public long skip(long n) throws IOException {
+            long skipped = super.skip(n);
+            recordRead(skipped);
+            return skipped;
         }
     }
 

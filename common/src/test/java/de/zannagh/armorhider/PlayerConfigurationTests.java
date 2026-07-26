@@ -584,6 +584,51 @@ class PlayerConfigurationTests {
     }
 
     @Test
+    @DisplayName("forNetwork sends an empty exclusion map, not the seeded defaults")
+    void forNetworkSendsEmptyExclusionMap() {
+        var config = PlayerConfig.defaults(UUID.randomUUID(), "Sender");
+        var network = config.forNetwork();
+        for (var slot : net.minecraft.world.entity.EquipmentSlot.values()) {
+            assertTrue(network.getExclusionItems().getItemsForSlot(slot).isEmpty(),
+                    "slot " + slot + " should carry no exclusion entries over the wire");
+        }
+        // Behaviourally identical to sending ExclusionItemConfiguration.defaults(): every default entry is
+        // `intercepted` (shouldIgnore == false), and shouldArmorHiderIgnore also returns false for an absent
+        // entry — so an empty map resolves the same way for every reader while being smaller on the wire.
+        // (Not asserted through shouldArmorHiderIgnore directly: that needs an Item instance, and touching
+        // net.minecraft.world.item.Items requires the MC registry bootstrap these unit tests do not run.)
+    }
+
+    @Test
+    @DisplayName("A failed preset save stays pending and is retried by the next flush")
+    void failedPresetSaveIsRetried(@org.junit.jupiter.api.io.TempDir java.nio.file.Path tempDir)
+            throws Exception {
+        // Block the parent directory with a regular file so Files.createDirectories fails and save() throws.
+        var blocker = tempDir.resolve("presets");
+        java.nio.file.Files.createFile(blocker);
+        var presetFile = blocker.resolve("presets.json");
+
+        var manager = new de.zannagh.armorhider.configuration.PresetManager(presetFile);
+        manager.setActiveIndex(0);
+        var config = PlayerConfig.defaults(UUID.randomUUID(), "Editor");
+        config.helmetOpacity.setValue(0.25);
+        manager.updateActivePreset(config);
+
+        manager.flushPendingSave();
+        assertFalse(java.nio.file.Files.exists(presetFile), "precondition: the first write must have failed");
+
+        // Unblock and flush again. If the failed attempt had cleared the pending flag, this second flush
+        // would be a no-op and the user's edit would be lost with no way to recover it.
+        java.nio.file.Files.delete(blocker);
+        manager.flushPendingSave();
+
+        assertTrue(java.nio.file.Files.exists(presetFile),
+                "a failed save must remain pending so the next flush retries it");
+        assertTrue(java.nio.file.Files.readString(presetFile).contains("0.25"),
+                "the retried write must contain the edit that was pending");
+    }
+
+    @Test
     @DisplayName("A config already at the current version is still healed")
     void healRunsEvenWhenVersionIsCurrent() {
         String json = "{\"configVersion\": " + PlayerConfig.CURRENT_CONFIG_VERSION

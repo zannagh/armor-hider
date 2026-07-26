@@ -5,7 +5,6 @@ import de.zannagh.armorhider.net.packets.PlayerConfig;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.nio.file.Files;
@@ -127,7 +126,6 @@ public class PresetManager {
     }
 
     private void save() {
-        pendingSave = false;
         try {
             Path parent = file.getParent();
             if (parent != null) {
@@ -139,7 +137,10 @@ public class PresetManager {
                 storage.activeIndex = activeIndex;
                 ArmorHider.GSON.toJson(storage, w);
             }
-        } catch (IOException e) {
+            // Cleared only after the write actually succeeds: clearing up front would make a failed save
+            // silently discard the pending edits, since flushPendingSave() would never retry them.
+            pendingSave = false;
+        } catch (Exception e) {
             ArmorHider.LOGGER.error("Failed to save presets!", e);
         }
     }
