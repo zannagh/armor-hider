@@ -133,7 +133,9 @@ public class ExclusionItemConfiguration {
     public static final int MAX_DISCOVERED_ITEMS_PER_SLOT = 512;
 
     /**
-     * Drops entries that can never match again and bounds the rest, returning the number of entries removed.
+     * Drops entries that can never match again and bounds the rest, returning the number of repairs made
+     * (entries removed, plus one if a null backing map had to be materialised) — a non-zero result signals
+     * the caller to persist the cleaned-up form.
      * <p>
      * Two problems are repaired here:
      * <ul>
@@ -157,7 +159,10 @@ public class ExclusionItemConfiguration {
         int removed = 0;
         if (items == null) {
             items = new LinkedHashMap<>();
-            return 0;
+            // Count the materialisation as a repair so the caller persists the fixed form. Returning 0 here
+            // would let an "items": null corruption be re-read and re-repaired on every launch, never written
+            // back, since PlayerConfig.heal() only flags the config dirty when prune() reports > 0.
+            return 1;
         }
 
         var slotIterator = items.entrySet().iterator();

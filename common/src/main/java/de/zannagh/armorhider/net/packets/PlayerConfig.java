@@ -430,13 +430,19 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         } else {
             int pruned = config.exclusionItems.prune();
             if (pruned > 0) {
-                ArmorHider.LOGGER.info("Pruned {} stale exclusion-item entries from the config for {}.",
+                ArmorHider.LOGGER.info("Repaired {} corrupt or stale exclusion-item entries in the config for {}.",
                         pruned, owner);
                 config.setHasChangedFromSerializedContent();
             }
         }
 
-        if (config.globalPlayerOverride != null) {
+        // Capture the override in a local before recursing. If the structure is self-referential
+        // (override == config, only reachable via programmatic construction, not JSON), the recursive call
+        // hits the depth limit and sets config.globalPlayerOverride = null on the shared instance — which
+        // would null this very field. Reading the captured local instead of config.globalPlayerOverride keeps
+        // the follow-up dereference safe, honouring the rule that healing must never itself throw.
+        PlayerConfig override = config.globalPlayerOverride;
+        if (override != null) {
             if (depth >= MAX_GLOBAL_OVERRIDE_DEPTH) {
                 ArmorHider.LOGGER.warn(
                         "Dropping a global player override nested {} levels deep in the config for {} — "
@@ -445,8 +451,8 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
                 config.globalPlayerOverride = null;
                 config.setHasChangedFromSerializedContent();
             } else {
-                heal(config.globalPlayerOverride, depth + 1);
-                if (config.globalPlayerOverride.hasChangedFromSerializedContent()) {
+                heal(override, depth + 1);
+                if (override.hasChangedFromSerializedContent()) {
                     config.setHasChangedFromSerializedContent();
                 }
             }

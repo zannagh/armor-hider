@@ -632,6 +632,33 @@ class PlayerConfigurationTests {
     }
 
     @Test
+    @DisplayName("Healing a self-referential global override does not throw")
+    void healToleratesSelfReferentialGlobalOverride() {
+        // Not reachable from JSON (a tree), but heal() is public API and callable on programmatically-built
+        // instances. A naive re-read of config.globalPlayerOverride after recursing would NPE here, because
+        // the recursive call nulls that very field on the shared instance when it hits the depth limit.
+        var config = PlayerConfig.defaults(UUID.randomUUID(), "SelfRef");
+        config.globalPlayerOverride = config;
+
+        var healed = assertDoesNotThrow(() -> PlayerConfig.heal(config),
+                "healing must never itself throw, even on a self-referential structure");
+        assertNull(healed.globalPlayerOverride,
+                "the self-reference exceeds the one meaningful level and must be dropped");
+    }
+
+    @Test
+    @DisplayName("An items:null exclusion map is repaired AND marked for persistence")
+    void healPersistsNullItemsMapRepair() {
+        // prune() must report the null-map materialisation as a repair (> 0), otherwise heal() never flags the
+        // config dirty and the "items": null corruption is re-read and re-repaired on every launch, forever.
+        var exclusions = ExclusionItemConfiguration.deserialize("{\"items\": null}");
+        assertTrue(exclusions.prune() > 0, "materialising a null backing map must count as a repair");
+        // Idempotent: a second pass over the now-healthy map reports nothing to do.
+        assertEquals(0, exclusions.prune(), "a healthy map needs no further repair");
+        assertTrue(exclusions.getItemsForSlot(net.minecraft.world.entity.EquipmentSlot.HEAD).isEmpty());
+    }
+
+    @Test
     @DisplayName("deepCopy tolerates a corrupt exclusion map (presets.json is never healed)")
     void deepCopyToleratesNullExclusionEntries() {
         var source = ExclusionItemConfiguration.deserialize(
