@@ -113,9 +113,10 @@ public final class ArmorHiderRenderTypes {
     }
 
     // Diagnostic counters for the Female Gender Mod breast-physics relaxation (GenderPhysicsMixin).
-    // TICKS: the getItemBySlot wrap in tickBreastPhysics fired at all (so the @WrapOperation resolved
-    // its target). RELAXED: it saw a fully-hidden chest and handed the physics an empty stack (so the
-    // breasts should jiggle unarmored). The gender smoke asserts both climb while the chest is hidden.
+    // TICKS: the @ModifyReturnValue on PlayerConfig#getArmorPhysicsOverride fired at all (so the
+    // injector resolved its target). RELAXED: it saw a fully-hidden chest and forced FGM's own
+    // "Armor Physics Override" on — zeroing armor tightness and physics resistance, so the breasts
+    // jiggle as if unarmored. The gender smoke asserts both climb while the chest is hidden.
     private static final java.util.concurrent.atomic.AtomicLong GENDER_PHYSICS_TICKS =
             new java.util.concurrent.atomic.AtomicLong();
     private static final java.util.concurrent.atomic.AtomicLong GENDER_PHYSICS_RELAXED =

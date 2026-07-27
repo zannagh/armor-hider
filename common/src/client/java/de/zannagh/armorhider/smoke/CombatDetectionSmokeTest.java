@@ -72,7 +72,9 @@ public final class CombatDetectionSmokeTest implements FabricClientGameTest {
                 config.enableCombatDetection.setValue(true);
             });
 
-            singleplayer.getClientLevel().waitForChunksRender();
+            // Plain tick wait rather than getClientLevel().waitForChunksRender(): this test asserts on
+            // config/state resolution rather than pixels, and getClientLevel() only exists in newer
+            // FCGT builds — waitTicks keeps the test compiling on every version that enables fcgt.
             context.waitTicks(20);
 
             // ── Baseline: out of combat the chest is hidden ──────────────────────────────────────

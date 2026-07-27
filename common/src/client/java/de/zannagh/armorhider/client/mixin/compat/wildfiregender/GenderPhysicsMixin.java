@@ -58,7 +58,19 @@ public class GenderPhysicsMixin {
         }
         // EntityConfig#uuid is public final; PlayerConfig extends it.
         var uuid = ((EntityConfig) (Object) this).uuid;
-        if (uuid == null || !(level.getEntity(uuid) instanceof Player player)) {
+        if (uuid == null) {
+            return false;
+        }
+        // Scan the (short) loaded-player list rather than Level#getEntity(UUID), which does not exist
+        // before 1.21.8 — Level#players() is stable across every version this mod targets.
+        Player player = null;
+        for (Player candidate : level.players()) {
+            if (uuid.equals(candidate.getUUID())) {
+                player = candidate;
+                break;
+            }
+        }
+        if (player == null) {
             return false;
         }
         String playerName = PlayerNameUtil.getPlayerName(player);

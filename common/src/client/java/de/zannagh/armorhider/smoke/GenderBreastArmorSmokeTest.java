@@ -37,9 +37,10 @@ import java.nio.file.Path;
  *       climbs while the breast is faded, pinning down whether the swap fired, and capture a
  *       screenshot at 100 / 50 / 0 % for the eye.</li>
  *   <li><b>Jiggle when the plate is hidden (issue 1).</b> FGM feeds the equipped chestplate's
- *       {@code physicsResistance()} (0.5 for a generic plate) into the bounce, halving it. When Armor
- *       Hider fully hides the plate, {@code GenderPhysicsMixin} presents an empty chest to the physics
- *       tick so the breasts jiggle freely again. After an identical upward impulse we sample the left
+ *       {@code physicsResistance()} / {@code tightness()} into the bounce, damping it. When Armor
+ *       Hider fully hides the plate, {@code GenderPhysicsMixin} forces FGM's own "Armor Physics
+ *       Override" on (via {@code PlayerConfig#getArmorPhysicsOverride}), which zeroes both, so the
+ *       breasts jiggle as if unarmored. After an identical upward impulse we sample the left
  *       breast's vertical bounce range with the plate hidden vs. visible and assert hidden jiggles
  *       clearly more.</li>
  * </ol>
@@ -125,9 +126,10 @@ public final class GenderBreastArmorSmokeTest implements FabricClientGameTest {
                     swapsAfter - swapsBefore);
 
             // ── Issue 1: jiggle with the plate hidden vs. visible ────────────────────────────────
-            // First prove the physics-relaxation wrap actually fires and detects the hidden chest —
-            // the bounce magnitude alone is too small/noisy to trust (see below). These counters are
-            // the real machine check; the bounce numbers are logged for context only.
+            // First prove the physics-relaxation hook actually fires and detects the hidden chest —
+            // the bounce magnitude alone proved too small/noisy to trust while the hook was silently
+            // reading stale state. These counters are the real machine check; the bounce numbers are
+            // logged for context only.
             setChestOpacity(context, 0.0);
             context.waitTicks(15);
             long ticksHidden = context.computeOnClient(client -> ArmorHiderRenderTypes.genderPhysicsTickCount());
@@ -145,15 +147,15 @@ public final class GenderBreastArmorSmokeTest implements FabricClientGameTest {
 
             if (ticksHidden2 <= ticksHidden) {
                 throw new IllegalStateException(
-                        "[smoke/fcgt] tickBreastPhysics wrap never fired (count " + ticksHidden + " -> "
-                                + ticksHidden2 + ") — GenderPhysicsMixin's @WrapOperation missed its target,"
+                        "[smoke/fcgt] getArmorPhysicsOverride hook never fired (count " + ticksHidden + " -> "
+                                + ticksHidden2 + ") — GenderPhysicsMixin's @ModifyReturnValue missed its target,"
                                 + " so armor physics is never relaxed when the plate is hidden");
             }
             if (relaxedHidden2 <= relaxedHidden) {
                 throw new IllegalStateException(
-                        "[smoke/fcgt] physics wrap fired but never relaxed with the chest fully hidden"
-                                + " (relaxed " + relaxedHidden + " -> " + relaxedHidden2 + ") — the hidden-chest"
-                                + " condition (shouldHide) is not being met at physics-tick time");
+                        "[smoke/fcgt] physics hook fired but never forced the armor-physics override with the"
+                                + " chest fully hidden (relaxed " + relaxedHidden + " -> " + relaxedHidden2
+                                + ") — the hidden-chest condition (shouldHide) is not being met at physics time");
             }
             ArmorHider.LOGGER.info("[smoke/fcgt] Gender breast-armor smoke complete");
         }
@@ -169,8 +171,8 @@ public final class GenderBreastArmorSmokeTest implements FabricClientGameTest {
 
     // Applies one identical upward impulse and samples the left breast's vertical bounce position for
     // a fixed window, returning the peak-to-peak range. The bounce magnitude scales with (1 -
-    // physicsResistance), so a hidden plate (empty armor, resistance 0) yields a visibly larger range
-    // than a visible generic plate (resistance 0.5).
+    // physicsResistance), so a hidden plate (armor-physics override forced on, resistance 0) yields a
+    // visibly larger range than a visible generic plate (resistance 0.5).
     private static double measureBounceRange(ClientGameTestContext context, double opacity) {
         setChestOpacity(context, opacity);
         // Settle so the previous condition's oscillation fully decays before the next impulse.
