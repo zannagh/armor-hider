@@ -95,6 +95,47 @@ public final class ArmorHiderRenderTypes {
         return DEFERRED_SUBMIT_COUNT.get();
     }
 
+    // Diagnostic counter: how many times the Female Gender Mod breast-armor render-type swap actually
+    // ran and produced one of our translucent types. The swap is a @Pseudo @WrapOperation with
+    // require=0, so it fails *silently* if it can't resolve its target — leaving the breast piece on
+    // the alpha-tested armorCutoutNoCull type, where a faded (reduced-alpha) colour is discarded
+    // wholesale and the piece vanishes instead of turning translucent. The gender smoke test fades
+    // the breast and asserts this climbs, pinning down whether the swap fired.
+    private static final java.util.concurrent.atomic.AtomicLong BREAST_ARMOR_TRANSLUCENT_SWAPS =
+            new java.util.concurrent.atomic.AtomicLong();
+
+    public static void recordBreastArmorTranslucentSwap() {
+        BREAST_ARMOR_TRANSLUCENT_SWAPS.incrementAndGet();
+    }
+
+    public static long breastArmorTranslucentSwapCount() {
+        return BREAST_ARMOR_TRANSLUCENT_SWAPS.get();
+    }
+
+    // Diagnostic counters for the Female Gender Mod breast-physics relaxation (GenderPhysicsMixin).
+    // TICKS: the getItemBySlot wrap in tickBreastPhysics fired at all (so the @WrapOperation resolved
+    // its target). RELAXED: it saw a fully-hidden chest and handed the physics an empty stack (so the
+    // breasts should jiggle unarmored). The gender smoke asserts both climb while the chest is hidden.
+    private static final java.util.concurrent.atomic.AtomicLong GENDER_PHYSICS_TICKS =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong GENDER_PHYSICS_RELAXED =
+            new java.util.concurrent.atomic.AtomicLong();
+
+    public static void recordGenderPhysicsTick(boolean relaxed) {
+        GENDER_PHYSICS_TICKS.incrementAndGet();
+        if (relaxed) {
+            GENDER_PHYSICS_RELAXED.incrementAndGet();
+        }
+    }
+
+    public static long genderPhysicsTickCount() {
+        return GENDER_PHYSICS_TICKS.get();
+    }
+
+    public static long genderPhysicsRelaxedCount() {
+        return GENDER_PHYSICS_RELAXED.get();
+    }
+
     // Test-only diagnostic switch. When flipped off, the after-terrain redirect is bypassed and the
     // translucent armor falls back to the pre-terrain phase — i.e. the pre-fix behaviour where water
     // overdraws the pads. The water-scene game test toggles this to capture a before/after and to
@@ -284,6 +325,7 @@ public final class ArmorHiderRenderTypes {
                             .setOutline(RenderSetup.OutlineProperty.AFFECTS_OUTLINE)
                             .createRenderSetup())
     );
+
     //? } elif >= 1.21.5 {
     /*private static final Function<Identifier, RenderType> TRANSLUCENT_ARMOR = memoize(
             texture -> RenderType.create("armor_hider_armor_translucent_no_depth", 1536, true, true,

@@ -207,7 +207,7 @@ emf.version = "rPlvbW7d"
 etf.version = "LhiABkEc"
 waveycapes.version = "TJiebQCb"
 modmenu.version = "ku5NivOP"
-gender.version = "Z3yx6MPE"
+gender.version = "Z3yx6MPE" # 4.3
 fabricapi.version = "g58ofrov"
 fabricapi.semver = "0.136.1+1.21.8"
 
@@ -221,7 +221,7 @@ emf.version = "q5SsVEBz"
 etf.version = "yW674mc9"
 waveycapes.version = "XbBsWRV9"
 modmenu.version = "pYbFlVtR"
-gender.version = "wV4whY0G"
+gender.version = "wV4whY0G" # 5.0.0-Beta.2
 fabricapi.version = "tV4Gc0Zo"
 fabricapi.semver = "0.138.4+1.21.10"
 
@@ -235,7 +235,7 @@ emf.version = "CWZPvNbk"
 etf.version = "rAQimlSn"
 waveycapes.version = "lGSZdVwH"
 modmenu.version = "Tyk71iSw"
-gender.version = "W7WJBV1r"
+gender.version = "W7WJBV1r" # 5.0.0-Beta.3
 fabricapi.version = "5zJNhXV2"
 fabricapi.semver = "0.141.4+1.21.11"
 
@@ -249,7 +249,7 @@ emf.version = "3AWXQABp"
 etf.version = "pzW03Rc5"
 waveycapes.version = "K4cdp1K2"
 modmenu.version = "p7gjPPpV"
-gender.version = "VI0GA2EF"
+gender.version = "VI0GA2EF" # 5.0.0-Beta.4
 loader_version = "0.19.3"
 
 ["fabric-26.1-pre-2"]
@@ -262,7 +262,7 @@ emf.version = "3AWXQABp"
 etf.version = "pzW03Rc5"
 waveycapes.version = "K4cdp1K2"
 modmenu.version = "p7gjPPpV"
-gender.version = "VI0GA2EF"
+gender.version = "VI0GA2EF" # 5.0.0-Beta.4
 loader_version = "0.19.3"
 
 ["fabric-26.1-rc-1"]
@@ -275,7 +275,7 @@ emf.version = "3AWXQABp"
 etf.version = "pzW03Rc5"
 waveycapes.version = "K4cdp1K2"
 modmenu.version = "p7gjPPpV"
-gender.version = "VI0GA2EF"
+gender.version = "VI0GA2EF" # 5.0.0-Beta.4
 loader_version = "0.19.3"
 
 ["fabric-26.1-rc-2"]
@@ -288,7 +288,7 @@ emf.version = "3AWXQABp"
 etf.version = "pzW03Rc5"
 waveycapes.version = "K4cdp1K2"
 modmenu.version = "p7gjPPpV"
-gender.version = "VI0GA2EF"
+gender.version = "VI0GA2EF" # 5.0.0-Beta.4
 loader_version = "0.19.3"
 
 ["fabric-26.1.2"]
@@ -301,7 +301,7 @@ emf.version = "3AWXQABp"
 etf.version = "pzW03Rc5"
 waveycapes.version = "K4cdp1K2"
 modmenu.version = "p7gjPPpV"
-gender.version = "VI0GA2EF"
+gender.version = "VI0GA2EF" # 5.0.0-Beta.4
 loader_version = "0.19.3"
 fabricapi.version = "WC1KT7Yg"
 fabricapi.semver = "0.153.0+26.1.2"
@@ -316,7 +316,7 @@ emf.version = "3AWXQABp"
 etf.version = "pzW03Rc5"
 waveycapes.version = "K4cdp1K2"
 modmenu.version = "A1KYIXpK"
-gender.version = "BGSsrIlj"
+gender.version = "BGSsrIlj" # 5.0.0-Beta.4
 loader_version = "0.19.3"
 
 ["fabric-26.2-pre-1"]
@@ -329,7 +329,7 @@ emf.version = "3AWXQABp"
 etf.version = "pzW03Rc5"
 waveycapes.version = "cp2elfPy"
 modmenu.version = "A1KYIXpK"
-gender.version = "BGSsrIlj"
+gender.version = "BGSsrIlj" # 5.0.0-Beta.4
 loader_version = "0.19.3"
 
 ["fabric-26.2"]
@@ -340,7 +340,7 @@ geckolib.version = "GdrAq4td"
 iris.version = "3uIIps8q"
 emf.version = "xQeW3qQB"
 etf.version = "HLCBKYFD"
-gender.version = "BGSsrIlj"
+gender.version = "BGSsrIlj" # 5.0.0-Beta.4
 loader_version = "0.19.3"
 waveycapes.version = "cp2elfPy"
 modmenu.version = "dTGuPZ91"
@@ -358,7 +358,7 @@ geckolib.version = "GdrAq4td"
 iris.version = "3uIIps8q"
 emf.version = "xQeW3qQB"
 etf.version = "HLCBKYFD"
-gender.version = "BGSsrIlj"
+gender.version = "BGSsrIlj" # 5.0.0-Beta.4
 loader_version = "0.19.3"
 waveycapes.version = "cp2elfPy"
 modmenu.version = "dTGuPZ91"
@@ -384,7 +384,7 @@ etf.version = "YEMROAHv"
 mekanism.version = "5KzzycBT"
 waveycapes.version = "uuX7ce0R"
 figura.version = "yXFi1fed"
-gender.version = "kKffHCGl"
+gender.version = "kKffHCGl" # 3.2.2
 # kKffHCGl ships only the legacy GenderLayer API (no GenderArmorLayer / BreastSide).
 # Routes the gender compat through GenderLegacyLayerMixin (coarse hide-cancel only;
 # no transparency or trim recolor on this combo).

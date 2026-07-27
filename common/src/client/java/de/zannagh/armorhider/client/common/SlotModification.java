@@ -1,6 +1,7 @@
 package de.zannagh.armorhider.client.common;
 
 import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.combat.CombatManager;
 import de.zannagh.armorhider.common.ItemInfo;
 import de.zannagh.armorhider.configuration.items.ArmorOpacity;
 import de.zannagh.armorhider.net.packets.PlayerConfig;
@@ -114,6 +115,17 @@ public record SlotModification(
             case OFFHAND -> config.offHandOpacity.getValue();
             default -> 1.0;
         };
+
+        // Combat detection: a player who just took or dealt damage snaps to fully-visible armor and
+        // then fades back to their configured opacity over the combat window. This is applied here,
+        // at the single point every render path resolves its opacity through, so armor, elytra, hand
+        // items and compat layers (Female Gender Mod breast armor, GeckoLib, ...) all follow it.
+        //
+        // Raising the transparency before shouldHide/needsModification are derived is deliberate:
+        // an in-combat piece configured to 0% must stop being *hidden*, not merely become opaque.
+        if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.shouldApplyCombatDetectionTo(config)) {
+            transparency = CombatManager.transformTransparencyBasedOnCombat(config.playerName.getValue(), transparency);
+        }
 
         boolean disableGlint = switch (slot) {
             case HEAD -> !config.helmetGlint.getValue();

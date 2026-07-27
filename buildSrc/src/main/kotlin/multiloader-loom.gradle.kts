@@ -259,11 +259,16 @@ if (branch == "fabric") {
         add("de.zannagh.armorhider.smoke.EntityRenderSmokeTest")
         add("de.zannagh.armorhider.smoke.IndividualConfigSmokeTest")
         add("de.zannagh.armorhider.smoke.KeybindSmokeTest")
+        add("de.zannagh.armorhider.smoke.CombatDetectionSmokeTest")
         // WaterTransparencySmokeTest drives the after-terrain feature phase (the fix), which only
         // exists >= 26.2-1.pre — its class is stonecutter-gated to the same floor, so only register
         // the entrypoint there or fabric-loader would fail to find the commented-out class.
         if (sc.current.parsed >= "26.2-1.pre") {
             add("de.zannagh.armorhider.smoke.WaterTransparencySmokeTest")
+            // Female Gender Mod breast-armor render + physics smoke. Needs the FGM jar present
+            // (pulled in on the gender smoke row) and the after-terrain render architecture, so it
+            // shares WaterTransparency's floor. Class is stonecutter-gated to the same range.
+            add("de.zannagh.armorhider.smoke.GenderBreastArmorSmokeTest")
         }
     }
     val fcgtEntries = if (hasProperty("fabricapi.semver"))

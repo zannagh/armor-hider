@@ -21,11 +21,11 @@ public class LivingEntityMixin {
             method = "handleDamageEvent",
             at = @At(value = "HEAD")
     )
-    private void triggerCombat(DamageSource damageSource, CallbackInfo ci) {
+    private void triggerCombat(DamageSource source, CallbackInfo ci) {
         if ((Object) this instanceof Player player) {
-            AhCombatApi.handleCombat(damageSource, player);
+            AhCombatApi.handleCombat(source, player);
         } else {
-            AhCombatApi.handleCombat(damageSource, null);
+            AhCombatApi.handleCombat(source, null);
         }
     }
 }

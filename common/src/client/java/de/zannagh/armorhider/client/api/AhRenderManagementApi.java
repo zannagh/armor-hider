@@ -94,6 +94,19 @@ public interface AhRenderManagementApi {
     }
 
     /**
+     * As {@link #shouldEnforceVanillaRendering()}, but for an explicitly supplied player rather than
+     * the currently-handled one. Used by compat render hooks (e.g. the Female Gender Mod breast-armor
+     * layer) that know the player they are drawing but run before/outside the current-player scope is
+     * set, so they cannot rely on {@link #currentlyHandledPlayerName()}.
+     *
+     * @param playerName the display name of the player being rendered, or {@code null}.
+     * @return whether combat detection requires the full vanilla (unhidden) model for that player.
+     */
+    static boolean shouldEnforceVanillaRendering(@Nullable String playerName) {
+        return AhRenderStateImpl.shouldEnforceVanillaRendering(playerName);
+    }
+
+    /**
      * Map an accessory slot-type key to the armor slot that governs it, or {@code null} when the type is
      * not one of the four regions Armor Hider tracks (rings, gloves, capes, charms, back/glider slots —
      * the last handled by the elytra system instead — are left alone). Any provider namespace prefix

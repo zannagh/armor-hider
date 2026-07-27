@@ -8,15 +8,9 @@ import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.api.AhRenderManagementApi;
 import de.zannagh.armorhider.client.api.AhRenderInterceptionRegistryApi;
-import de.zannagh.armorhider.api.ArmorHiderApi;
-import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.api.AhRenderManagementApi;
-import de.zannagh.armorhider.client.api.AhRenderInterceptionRegistryApi;
 import de.zannagh.armorhider.client.common.RenderScope;
 import de.zannagh.armorhider.client.render.VanillaArmorTextureManager;
-import de.zannagh.armorhider.common.ItemInfo;
 import de.zannagh.armorhider.log.DebugLogger;
-import de.zannagh.armorhider.net.packets.PlayerConfig;
 import net.minecraft.client.model.Model;
 import net.minecraft.client.renderer.entity.layers.EquipmentLayerRenderer;
 import net.minecraft.client.renderer.rendertype.RenderType;
@@ -387,20 +381,7 @@ public class EquipmentRenderMixin {
     *///?}
     @Unique
     private static boolean armorHider$shouldForceVanillaCombatModel(String playerName) {
-        if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.isArmorHiderGloballyDisabled()) {
-            return false;
-        }
-        PlayerConfig config = ArmorHiderClient.CLIENT_CONFIG_MANAGER.resolveConfig(playerName);
-        if (!config.enableCombatDetection.getValue()) {
-            var serverConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getServerConfig();
-            if (serverConfig == null || !serverConfig.serverWideSettings.enableCombatDetection.getValue()) {
-                return false;
-            }
-        }
-        if (!ArmorHiderApi.getInstance().getCombatManagement().isInCombat(playerName)) {
-            return false;
-        }
-        return config.inCombatUseDefaultModel.getValue();
+        return AhRenderManagementApi.shouldEnforceVanillaRendering(playerName);
     }
 }
 //?}

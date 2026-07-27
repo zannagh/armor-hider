@@ -215,11 +215,14 @@ public final class AhRenderStateImpl {
     }
 
     public static boolean shouldEnforceVanillaRendering() {
+        return shouldEnforceVanillaRendering(currentlyHandledPlayerName());
+    }
+
+    public static boolean shouldEnforceVanillaRendering(@Nullable String playerName) {
         if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.isArmorHiderGloballyDisabled()) {
             return false;
         }
-        String playerName = currentlyHandledPlayerName();
-        if (playerName.isBlank()) {
+        if (playerName == null || playerName.isBlank()) {
             return false;
         }
 

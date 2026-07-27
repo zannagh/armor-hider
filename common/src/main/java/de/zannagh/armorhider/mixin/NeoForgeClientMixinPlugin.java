@@ -53,6 +53,7 @@ public class NeoForgeClientMixinPlugin extends ArmorHiderMixinPlugin {
             // Compat — @Pseudo, auto-skipped if target mod absent
             "compat.wildfiregender.GenderArmorLayerMixin",
             "compat.wildfiregender.GenderLegacyLayerMixin",
+            "compat.wildfiregender.GenderPhysicsMixin",
             "compat.geckolib.GeckoLibArmorMixin",
             "compat.waveycapes.WaveyCapesMixin",
             "compat.deeperdarker.WardenHelmetLayerMixin",

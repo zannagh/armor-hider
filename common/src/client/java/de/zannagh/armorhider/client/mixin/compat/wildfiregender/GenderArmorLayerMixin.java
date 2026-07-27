@@ -83,6 +83,15 @@ public class GenderArmorLayerMixin {
 
     //? if >= 1.21.9 {
     private Pair<Boolean, RenderInterceptionResult> interceptArmor(HumanoidRenderState state, EquipmentSlot slot, ItemStack stack, CallbackInfo ci) {
+        // Combat detection: when this player is in combat and configured to fall back to the vanilla
+        // model, render the breast armor exactly as the mod would (full opacity, no hide) so it stays
+        // in lockstep with the vanilla body chestplate — which EquipmentRenderMixin already forces
+        // back to vanilla. Without this the body plate reappears in combat while the breast cups stay
+        // hidden, and combat detection reads as broken for Female Gender Mod users.
+        if (state instanceof IdentityCarrier carrier
+                && AhRenderManagementApi.shouldEnforceVanillaRendering(carrier.armorHider$playerName())) {
+            return Pair.of(false, RenderInterceptionResult.ignore());
+        }
         var interceptionResult = AhRenderInterceptionRegistryApi
                 .getRenderer(RenderScope.ARMOR_PIECE).intercept(state, slot, stack, ci);
         if (!interceptionResult.shouldIntercept()) {
@@ -193,7 +202,8 @@ public class GenderArmorLayerMixin {
     private RenderType modifyBreastArmorRenderType(Identifier texture, Operation<RenderType> original) {
         var modApi = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE).renderModificationApi();
         var originalType = original.call(texture);
-        if (modApi.getTranslucentArmorRenderType(texture, originalType) instanceof RenderType rt) {
+        if (modApi.getTranslucentArmorRenderType(texture, originalType) instanceof RenderType rt && rt != originalType) {
+            de.zannagh.armorhider.client.render.rendertype.ArmorHiderRenderTypes.recordBreastArmorTranslucentSwap();
             return rt;
         }
         return originalType;
