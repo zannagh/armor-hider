@@ -5,6 +5,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import de.zannagh.armorhider.client.api.AhRenderManagementApi;
 import de.zannagh.armorhider.client.common.RenderScope;
+import de.zannagh.armorhider.client.render.rendertype.ArmorHiderRenderTypes;
 import net.minecraft.client.renderer.SubmitNodeCollection;
 //? if < 26.2-1.pre
 //import net.minecraft.client.renderer.SubmitNodeStorage;
@@ -35,6 +36,31 @@ import org.spongepowered.asm.mixin.Shadow;
 @SuppressWarnings({"unused", "UnusedMixin"})
 @Mixin(SubmitNodeCollection.class)
 public class SubmitNodeCollectorMixin {
+
+    //? if >= 26.2-1.pre {
+    // Our translucent (depth-write-disabled) armor/entity render types must be drawn AFTER the
+    // translucent terrain layer (water, ice, stained glass), not in the pre-terrain
+    // translucentModels phase. Otherwise terrain drawn afterwards overdraws the parts of a piece
+    // that aren't backed by an opaque body pixel — e.g. a chestplate's shoulder pads silhouetted
+    // against a body of water vanish, while the same pads render fine against a solid block.
+    // afterTerrain is the vanilla feature phase executed right after translucentTerrain (see
+    // LevelRenderer#addMainPass → FeatureRenderDispatcher.PreparedFrame#executeTranslucentAfterTerrain).
+    @Shadow @Final public SimpleFeatureRenderPhase afterTerrain;
+
+    // Route a model submit into the after-terrain phase when it carries one of our deferred
+    // translucent types; return true when it was handled here (caller must not submit it again).
+    @Unique
+    private boolean armorHider$deferAfterTerrain(SubmitNode submit) {
+        if (ArmorHiderRenderTypes.isDeferralEnabled()
+                && submit instanceof ModelFeatureRenderer.Submit<?> modelSubmit
+                && ArmorHiderRenderTypes.isDeferredType(modelSubmit.renderType())) {
+            this.afterTerrain.submit(submit);
+            ArmorHiderRenderTypes.recordDeferredSubmit();
+            return true;
+        }
+        return false;
+    }
+    //?}
 
     //? if <= 26.1.2 {
     /*@WrapOperation(
@@ -173,7 +199,11 @@ public class SubmitNodeCollectorMixin {
         // OFFHAND only — see comment on forceTranslucentRoute.
         var activeCtx = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
         if (activeCtx.isEmpty() || !armorHider$isFading(activeCtx.modification().transparency())) {
-            original.call(phase, submit);
+            // Armor/elytra submits arrive here (no OFFHAND scope) already carrying our translucent
+            // type — defer them past the terrain instead of drawing them into translucentModels.
+            if (!armorHider$deferAfterTerrain(submit)) {
+                original.call(phase, submit);
+            }
             return;
         }
         var modApi = activeCtx.renderModificationApi();
@@ -192,7 +222,10 @@ public class SubmitNodeCollectorMixin {
                 modelSubmit.uvMapping(), modelSubmit.sheetedDecalPose()
         );
 
-        original.call(phase, (SubmitNode) modified);
+        // The rebuilt offhand item now carries our translucent type too — defer it past the terrain.
+        if (!armorHider$deferAfterTerrain((SubmitNode) modified)) {
+            original.call(phase, (SubmitNode) modified);
+        }
     }
     *///?} else {
     @WrapOperation(
@@ -211,7 +244,11 @@ public class SubmitNodeCollectorMixin {
         // OFFHAND only — see comment on forceTranslucentRoute.
         var activeCtx = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
         if (activeCtx.isEmpty() || !armorHider$isFading(activeCtx.modification().transparency())) {
-            original.call(phase, submit);
+            // Armor/elytra submits arrive here (no OFFHAND scope) already carrying our translucent
+            // type — defer them past the terrain instead of drawing them into translucentModels.
+            if (!armorHider$deferAfterTerrain(submit)) {
+                original.call(phase, submit);
+            }
             return;
         }
         var modApi = activeCtx.renderModificationApi();
@@ -229,7 +266,10 @@ public class SubmitNodeCollectorMixin {
                 modelSubmit.sprite(), modelSubmit.sheetedDecalPose()
         );
 
-        original.call(phase, (TranslucentSubmit) modified);
+        // The rebuilt offhand item now carries our translucent type too — defer it past the terrain.
+        if (!armorHider$deferAfterTerrain((SubmitNode) modified)) {
+            original.call(phase, (TranslucentSubmit) modified);
+        }
     }
     //?}
 

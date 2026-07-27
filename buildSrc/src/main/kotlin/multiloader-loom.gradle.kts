@@ -255,8 +255,19 @@ if (branch == "fabric") {
     // FCGT (fabric-client-gametest-api-v1) entrypoint registered only on Fabric variants
     // that pin `fabricapi.semver` (currently fabric-26.2). Other variants emit "[]" so the
     // JSON stays valid and fabric-loader simply ignores it.
+    val fcgtTests = buildList {
+        add("de.zannagh.armorhider.smoke.EntityRenderSmokeTest")
+        add("de.zannagh.armorhider.smoke.IndividualConfigSmokeTest")
+        add("de.zannagh.armorhider.smoke.KeybindSmokeTest")
+        // WaterTransparencySmokeTest drives the after-terrain feature phase (the fix), which only
+        // exists >= 26.2-1.pre — its class is stonecutter-gated to the same floor, so only register
+        // the entrypoint there or fabric-loader would fail to find the commented-out class.
+        if (sc.current.parsed >= "26.2-1.pre") {
+            add("de.zannagh.armorhider.smoke.WaterTransparencySmokeTest")
+        }
+    }
     val fcgtEntries = if (hasProperty("fabricapi.semver"))
-        "[\"de.zannagh.armorhider.smoke.EntityRenderSmokeTest\", \"de.zannagh.armorhider.smoke.IndividualConfigSmokeTest\", \"de.zannagh.armorhider.smoke.KeybindSmokeTest\"]"
+        fcgtTests.joinToString(", ", "[", "]") { "\"$it\"" }
     else
         "[]"
 

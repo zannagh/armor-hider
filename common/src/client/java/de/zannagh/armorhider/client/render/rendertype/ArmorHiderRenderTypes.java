@@ -1,5 +1,7 @@
 package de.zannagh.armorhider.client.render.rendertype;
 import net.minecraft.client.renderer.Sheets;
+import java.util.Collections;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 //?if >= 1.21.11 {
@@ -54,6 +56,57 @@ public final class ArmorHiderRenderTypes {
     private static <T, R> Function<T, R> memoize(Function<T, R> fn) {
         var cache = new ConcurrentHashMap<T, R>();
         return t -> cache.computeIfAbsent(t, fn);
+    }
+
+    // Set of every translucent-no-depth-write render type this class hands out. These are the types
+    // whose armor/entity draws must be deferred to the after-translucent-terrain render phase
+    // (>= 26.2-1.pre) so translucent terrain (water, ice, stained glass) drawn afterwards cannot
+    // overdraw the parts of a piece that aren't backed by an opaque body pixel — e.g. chestplate
+    // shoulder pads silhouetted against a body of water. We store the exact memoized instances we
+    // produce (and each carries a unique "armor_hider_*" name), so a plain contains-check is a
+    // reliable membership test and the set stays tiny (one entry per texture actually used).
+    private static final Set<Object> DEFERRED_TYPES = Collections.newSetFromMap(new ConcurrentHashMap<>());
+
+    /**
+     * Whether the given render type is one of this mod's translucent-no-depth-write types that must
+     * be routed into the after-terrain phase. Cross-version safe: takes {@code Object} so the
+     * feature-dispatcher mixin can call it without importing the version-specific {@code RenderType}.
+     *
+     * @param renderType the render type a model submit is about to be enqueued with.
+     * @return {@code true} when the draw should be deferred until after translucent terrain.
+     */
+    public static boolean isDeferredType(Object renderType) {
+        return renderType != null && DEFERRED_TYPES.contains(renderType);
+    }
+
+    // Diagnostic counter of how many model submits have been deferred into the after-terrain phase.
+    // The after-terrain redirect fails *silently* if the mixin target drifts between versions (the
+    // piece just reverts to the old overdraw-by-water behaviour), so — matching this repo's
+    // smoke-test convention of asserting a mixin actually fired rather than only "didn't crash" —
+    // the water-scene game test asserts this climbs above zero.
+    private static final java.util.concurrent.atomic.AtomicLong DEFERRED_SUBMIT_COUNT =
+            new java.util.concurrent.atomic.AtomicLong();
+
+    public static void recordDeferredSubmit() {
+        DEFERRED_SUBMIT_COUNT.incrementAndGet();
+    }
+
+    public static long deferredSubmitCount() {
+        return DEFERRED_SUBMIT_COUNT.get();
+    }
+
+    // Test-only diagnostic switch. When flipped off, the after-terrain redirect is bypassed and the
+    // translucent armor falls back to the pre-terrain phase — i.e. the pre-fix behaviour where water
+    // overdraws the pads. The water-scene game test toggles this to capture a before/after and to
+    // assert the redirect both fires when on and stays quiet when off. Always true in normal play.
+    private static volatile boolean deferralEnabled = true;
+
+    public static void setDeferralEnabled(boolean enabled) {
+        deferralEnabled = enabled;
+    }
+
+    public static boolean isDeferralEnabled() {
+        return deferralEnabled;
     }
 
     // --- Pipelines (>= 1.21.5) ---
@@ -363,11 +416,15 @@ public final class ArmorHiderRenderTypes {
     // --- Public API ---
 
     public static RenderType translucentArmor(Identifier texture) {
-        return TRANSLUCENT_ARMOR.apply(texture);
+        RenderType renderType = TRANSLUCENT_ARMOR.apply(texture);
+        DEFERRED_TYPES.add(renderType);
+        return renderType;
     }
 
     public static RenderType translucentEntity(Identifier texture) {
-        return TRANSLUCENT_ENTITY.apply(texture);
+        RenderType renderType = TRANSLUCENT_ENTITY.apply(texture);
+        DEFERRED_TYPES.add(renderType);
+        return renderType;
     }
 
     public static RenderType translucentArmorTrim() {
