@@ -132,8 +132,9 @@ if (branch == "common") {
         if (hasProperty("gender.version")) {
             add(modClientDep, "maven.modrinth:female-gender:${findProperty("gender.version")}")
         }
-        // Fabric-only, so it is declared here (loom, remapped) and NOT in multiloader-loader.gradle.kts:
-        // FPM's duck interfaces carry Minecraft types, which the unremapped loader-side dep would break.
+        // Fabric-only. Declared here for the remapped common compile; the loader project compiles common's
+        // sources too, so multiloader-loader.gradle.kts declares the same coordinate unremapped. That pairing
+        // only works because FirstPersonCompat avoids every FPM member whose signature names a Minecraft type.
         if (hasProperty("firstperson.version")) {
             add(modClientDep, "maven.modrinth:first-person-model:${findProperty("firstperson.version")}")
         }

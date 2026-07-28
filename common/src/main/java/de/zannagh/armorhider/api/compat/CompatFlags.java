@@ -122,6 +122,8 @@ public enum CompatFlags {
     /**
      * First Person Model (tr7zw), which renders the local player's body in first person and cancels
      * several layer submits for the camera entity.
+     *
+     * @since 0.12.5
      */
     FIRST_PERSON_MODEL(1<<16, "dev.tr7zw.firstperson.FirstPersonModelCore");
 

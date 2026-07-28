@@ -83,8 +83,10 @@ public final class FirstPersonCompat {
             return false;
         }
         // Inlines FPM's LogicHandler#lookingDown(state) — `dynamicHandsEnabled() && state.xRot > 30`.
-        // Calling that overload directly would drag a Minecraft-typed FPM signature onto the loader-side
-        // (unremapped) compile classpath; every FPM member touched here takes and returns primitives only.
+        // Calling that overload directly would put a Minecraft type (LivingEntityRenderState) in an FPM
+        // signature we touch, and the loader-side compile classpath carries the *unremapped* FPM jar, where
+        // MC types resolve to the other namespace. FPM's own types are fine — only MC types are the problem,
+        // so getLogicHandler() (returns LogicHandler) is safe while lookingDown(state) is not.
         return record(state instanceof HumanoidRenderState humanoidState
                 && !(FirstPersonModelCore.instance.getLogicHandler().dynamicHandsEnabled()
                         && humanoidState.xRot > LOOKING_DOWN_X_ROT));

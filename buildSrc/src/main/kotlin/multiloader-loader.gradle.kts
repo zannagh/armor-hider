@@ -108,8 +108,9 @@ dependencies {
         add("compileOnly", "maven.modrinth:female-gender:${findProperty("gender.version")}")
     }
     // First Person Model is Fabric-only, but the loader project compiles common's sources too, so the
-    // unremapped jar has to be here as well. FirstPersonCompat only touches FPM members whose signatures
-    // are primitives, which is what keeps this unremapped classpath entry usable.
+    // unremapped jar has to be here as well. That is usable only because FirstPersonCompat never touches an
+    // FPM member whose signature names a Minecraft type — FPM's own types (LogicHandler and friends) are
+    // fine, since those resolve identically either way; it is the MC types that differ between namespaces.
     if (hasProperty("firstperson.version")) {
         add("compileOnly", "maven.modrinth:first-person-model:${findProperty("firstperson.version")}")
     }
