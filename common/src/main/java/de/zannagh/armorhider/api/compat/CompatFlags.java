@@ -125,7 +125,15 @@ public enum CompatFlags {
      *
      * @since 0.12.5
      */
-    FIRST_PERSON_MODEL(1<<16, "dev.tr7zw.firstperson.FirstPersonModelCore");
+    FIRST_PERSON_MODEL(1<<16, "dev.tr7zw.firstperson.FirstPersonModelCore"),
+
+    /**
+     * Immersive Armors (Conczin), which cancels the vanilla equipment layer and draws its own armor
+     * items as a list of {@code Piece}s.
+     *
+     * @since 0.12.5
+     */
+    IMMERSIVE_ARMORS(1<<17, "immersive_armors.client.render.entity.piece.Piece");
 
     private final long compatFlagValue;
 

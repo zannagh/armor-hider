@@ -49,6 +49,11 @@ with(sc) {
     constants["deeperdarker_horn"] = hasProperty("deeperdarker.version") && findProperty("deeperdarker.warden_class") != "true"
     // Uranus lib (iafenvoy, e.g. Ice and Fire: CE) — custom armor rendering via IArmorRendererBase.
     constants["uranus"] = hasProperty("uranus.version")
+    // Immersive Armors (Conczin) cancels the vanilla equipment layer and draws its armor as its own
+    // `Piece` list. It only ships for 1.20.1, 1.21.1, 26.1.2 and 26.2, and its render path changed
+    // shape twice across those (float rgb → packed argb → SubmitNodeCollector), so the compat mixins
+    // only compile on the variants where the two mods actually overlap.
+    constants["immersivearmors"] = hasProperty("immersivearmors.version")
     // `gender` activates the modern GenderArmorLayer-based mixin.
     // `gender_legacy` activates the GenderLayer.render() coarse mixin for older
     // mod builds (e.g. female-gender NeoForge 1.21/1.21.1, hash kKffHCGl) whose

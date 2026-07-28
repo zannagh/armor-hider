@@ -54,6 +54,8 @@ public abstract class FabricClientMixinPlugin extends ArmorHiderMixinPlugin {
             "compat.deeperdarker.WardenHelmetLayerMixin",
             "compat.deeperdarker.HelmetHornLayerMixin",
             "compat.uranus.UranusArmorRendererMixin",
+            "compat.immersivearmors.ImmersiveArmorsPieceMixin",
+            "compat.immersivearmors.ImmersiveArmorsPieceGeometryMixin",
             "compat.emf.EmfModelPartMixin",
             "compat.emf.EmfModelPartRootMixin",
             "compat.curios.CuriosLayerMixin",

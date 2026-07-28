@@ -59,6 +59,8 @@ public class NeoForgeClientMixinPlugin extends ArmorHiderMixinPlugin {
             "compat.deeperdarker.WardenHelmetLayerMixin",
             "compat.deeperdarker.HelmetHornLayerMixin",
             "compat.uranus.UranusArmorRendererMixin",
+            "compat.immersivearmors.ImmersiveArmorsPieceMixin",
+            "compat.immersivearmors.ImmersiveArmorsPieceGeometryMixin",
             // Compat - Pseudo and guarded in source for mekanism constant only (1.21.1 Neo)
             "compat.mekanism.MekanismArmorMixin",
             "compat.mekanism.MekaSuitArmorMixin",

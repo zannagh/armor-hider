@@ -11,7 +11,8 @@ sc.constants["neoforge"] = sc.current.project.contains("neoforge")
 val compatKeys = listOf(
     "fabricapi",
     "gender", "geckolib", "waveycapes", "mekanism", "figura",
-    "elytratrims", "iris", "emf", "etf", "modmenu", "deeperdarker", "uranus", "firstperson"
+    "elytratrims", "iris", "emf", "etf", "modmenu", "deeperdarker", "uranus", "firstperson",
+    "immersivearmors"
 )
 val availableHashes = compatKeys.mapNotNull { key ->
     findProperty("$key.version")?.toString()?.let { hash -> key to hash }
