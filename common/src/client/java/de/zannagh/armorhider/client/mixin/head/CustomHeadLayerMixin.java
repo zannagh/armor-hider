@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.api.AhRenderManagementApi;
 import de.zannagh.armorhider.client.api.AhRenderInterceptionRegistryApi;
 import de.zannagh.armorhider.client.common.RenderScope;
+import de.zannagh.armorhider.client.compat.FirstPersonCompat;
 import de.zannagh.armorhider.constants.MixinConstants;
 
 import net.minecraft.client.renderer.entity.layers.CustomHeadLayer;
@@ -79,6 +80,11 @@ public abstract class CustomHeadLayerMixin {
 
     @Unique
     private static void enterHeadScope(Object state, CallbackInfo ci) {
+        // First Person Model cancels this submit outright for the camera entity, so the @At("RETURN")
+        // exit below would never run and the scope would leak into the rest of the frame.
+        if (FirstPersonCompat.suppressesHeadLayer(state)) {
+            return;
+        }
         var result = AhRenderInterceptionRegistryApi.getRenderer(RenderScope.HEAD).interceptFrom(state, ci);
         if (result.shouldCancel() || !result.shouldIntercept()) {
             return;

@@ -83,15 +83,18 @@ public class GenderArmorLayerMixin {
 
     //? if >= 1.21.9 {
     private Pair<Boolean, RenderInterceptionResult> interceptArmor(HumanoidRenderState state, EquipmentSlot slot, ItemStack stack, CallbackInfo ci) {
-        // Combat detection: when this player is in combat and configured to fall back to the vanilla
-        // model, render the breast armor exactly as the mod would (full opacity, no hide) so it stays
-        // in lockstep with the vanilla body chestplate — which EquipmentRenderMixin already forces
-        // back to vanilla. Without this the body plate reappears in combat while the breast cups stay
-        // hidden, and combat detection reads as broken for Female Gender Mod users.
-        if (state instanceof IdentityCarrier carrier
-                && AhRenderManagementApi.shouldEnforceVanillaRendering(carrier.armorHider$playerName())) {
-            return Pair.of(false, RenderInterceptionResult.ignore());
-        }
+        // Combat detection is deliberately NOT short-circuited here. It arrives through the normal
+        // interception path: SlotModification.of applies CombatManager.transformTransparencyBasedOnCombat,
+        // which snaps the piece to full opacity when combat starts and ramps it back to the configured
+        // opacity over the combat window. At the snap the resolved transparency is 1.0, so
+        // needsModification() is false and interception no-ops on its own — the breast armor stays in
+        // lockstep with the vanilla body chestplate for free.
+        //
+        // Bailing out on shouldEnforceVanillaRendering() instead (as this did until the fade was wired
+        // into SlotModification) shadows that ramp: the piece rendered fully opaque for the whole combat
+        // window and then popped straight to hidden the moment the combat event expired, while every
+        // vanilla armor piece faded smoothly. shouldEnforceVanillaRendering() governs which *model* is
+        // used (EquipmentRenderMixin, EMF), not opacity, and has no meaning for the mod's own breast model.
         var interceptionResult = AhRenderInterceptionRegistryApi
                 .getRenderer(RenderScope.ARMOR_PIECE).intercept(state, slot, stack, ci);
         if (!interceptionResult.shouldIntercept()) {

@@ -117,7 +117,13 @@ public enum CompatFlags {
      *
      * @since 0.10.10
      */
-    SYNTRA(1<<15, "cpw.mods.modlauncher.Launcher");
+    SYNTRA(1<<15, "cpw.mods.modlauncher.Launcher"),
+
+    /**
+     * First Person Model (tr7zw), which renders the local player's body in first person and cancels
+     * several layer submits for the camera entity.
+     */
+    FIRST_PERSON_MODEL(1<<16, "dev.tr7zw.firstperson.FirstPersonModelCore");
 
     private final long compatFlagValue;
 

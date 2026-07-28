@@ -137,6 +137,35 @@ public final class ArmorHiderRenderTypes {
         return GENDER_PHYSICS_RELAXED.get();
     }
 
+    // Diagnostic counter for the First Person Model layer guards (FirstPersonCompat). Counts how often
+    // we recognised FPM's first-person body and declined to enter a render scope for a layer submit FPM
+    // is about to cancel at its HEAD. Without the guard the scope is entered and never exited (the
+    // cancelled submit skips our @At("RETURN") release), leaking it into the rest of the frame. The
+    // first-person smoke asserts this climbs and that no scope is left active afterwards.
+    private static final java.util.concurrent.atomic.AtomicLong FIRST_PERSON_LAYER_GUARDS =
+            new java.util.concurrent.atomic.AtomicLong();
+
+    public static void recordFirstPersonLayerGuard() {
+        FIRST_PERSON_LAYER_GUARDS.incrementAndGet();
+    }
+
+    public static long firstPersonLayerGuardCount() {
+        return FIRST_PERSON_LAYER_GUARDS.get();
+    }
+
+    // Test-only diagnostic switch, mirroring deferralEnabled below. Flipped off, FirstPersonCompat's
+    // predicates all report false, restoring the unguarded behaviour so the first-person smoke can
+    // observe the scope leak and its absence in a single run. Always true in normal play.
+    private static volatile boolean firstPersonGuardsEnabled = true;
+
+    public static void setFirstPersonGuardsEnabled(boolean enabled) {
+        firstPersonGuardsEnabled = enabled;
+    }
+
+    public static boolean areFirstPersonGuardsEnabled() {
+        return firstPersonGuardsEnabled;
+    }
+
     // Test-only diagnostic switch. When flipped off, the after-terrain redirect is bypassed and the
     // translucent armor falls back to the pre-terrain phase — i.e. the pre-fix behaviour where water
     // overdraws the pads. The water-scene game test toggles this to capture a before/after and to

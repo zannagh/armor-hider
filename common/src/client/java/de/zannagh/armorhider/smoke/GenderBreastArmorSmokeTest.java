@@ -9,6 +9,7 @@ import com.wildfire.main.config.enums.Gender;
 import com.wildfire.main.entitydata.PlayerConfig;
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.client.common.SlotModification;
 import de.zannagh.armorhider.client.render.rendertype.ArmorHiderRenderTypes;
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
@@ -20,6 +21,7 @@ import net.minecraft.client.gui.screens.worldselection.WorldCreationUiState;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.GameType;
 
 import java.nio.file.Path;
 
@@ -43,9 +45,11 @@ import java.nio.file.Path;
  *       breasts jiggle as if unarmored. After an identical upward impulse we sample the left
  *       breast's vertical bounce range with the plate hidden vs. visible and assert hidden jiggles
  *       clearly more.</li>
+ *   <li><b>Combat fade (issue 2).</b> After a damage event the cups must ride the same opacity ramp
+ *       back down as the body plate, rather than staying opaque for the whole combat window and then
+ *       snapping to hidden. Asserted mid-ramp via the same swap counter — see
+ *       {@code assertFadesDuringCombat}.</li>
  * </ol>
- * The combat-detection interaction (issue 2) is exercised implicitly by the render path but is not
- * asserted here (it needs a live damage event); the body-plate combat path already has coverage.
  * <p>
  * Gender is forced on the local player through FGM's own runtime config API
  * ({@link WildfireGender#getOrAddPlayerById}) rather than an on-disk config, so the test is
@@ -157,8 +161,90 @@ public final class GenderBreastArmorSmokeTest implements FabricClientGameTest {
                                 + " chest fully hidden (relaxed " + relaxedHidden + " -> " + relaxedHidden2
                                 + ") — the hidden-chest condition (shouldHide) is not being met at physics time");
             }
+            assertFadesDuringCombat(context, singleplayer);
+
             ArmorHider.LOGGER.info("[smoke/fcgt] Gender breast-armor smoke complete");
         }
+    }
+
+    // ── Issue 2: the breast cups must follow the post-damage combat fade ─────────────────────────
+    // Combat detection snaps every configured piece to full opacity on damage and then ramps it back
+    // down over the combat window (CombatManager#transformTransparencyBasedOnCombat, resolved inside
+    // SlotModification.of). The body plate always did this; the breast cups used to short-circuit on
+    // shouldEnforceVanillaRendering() before interception, which meant they rendered fully opaque for
+    // the entire window and then popped straight to hidden when the combat event expired. Asserting
+    // the translucent swap fires *mid-ramp* is what distinguishes the ramp from that binary behaviour.
+    // Runs last: it puts the player in combat for the fade window, which would unhide the chest the
+    // physics section above depends on.
+    private static void assertFadesDuringCombat(ClientGameTestContext context, TestSingleplayerContext singleplayer) {
+        setChestOpacity(context, 0.5);
+        context.runOnClient(client -> {
+            // Neither is a default. enableCombatDetection is what CombatDetectionSmokeTest turns on the
+            // same way; inCombatUseDefaultModel is what makes this a regression test rather than a
+            // tautology — it is the setting that gates shouldEnforceVanillaRendering(), and the old
+            // short-circuit only fired when a user had it enabled.
+            var combatConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER
+                    .resolveConfig(ArmorHiderClient.getCurrentPlayerName());
+            combatConfig.enableCombatDetection.setValue(true);
+            combatConfig.inCombatUseDefaultModel.setValue(true);
+        });
+        context.waitTicks(5);
+
+        singleplayer.getServer().runOnServer(mcServer -> {
+            var level = mcServer.overworld();
+            var serverPlayer = mcServer.getPlayerList().getPlayers().get(0);
+            // The world is created in creative for the render/physics sections above, and a creative
+            // player shrugs off generic damage — no damage event, no combat, nothing to assert.
+            serverPlayer.setGameMode(GameType.SURVIVAL);
+            serverPlayer.hurtServer(level, level.damageSources().generic(), 4.0F);
+        });
+        context.waitTicks(5);
+
+        double transparencyOnHit = context.computeOnClient(client -> resolveChestTransparency());
+        if (transparencyOnHit < 0.9) {
+            throw new IllegalStateException(
+                    "[smoke/fcgt] chest transparency is " + transparencyOnHit + " right after damage, expected ~1.0"
+                            + " — combat detection never reached opacity resolution, so the fade assertion below"
+                            + " would not be testing the fade");
+        }
+
+        // Ramp is linear over the combat window (10s by default), so a couple of seconds in the
+        // resolved transparency sits between the configured 50% and full opacity.
+        double transparencyMidFade = transparencyOnHit;
+        for (int i = 0; i < 20 && transparencyMidFade > 0.95; i++) {
+            context.waitTicks(10);
+            transparencyMidFade = context.computeOnClient(client -> resolveChestTransparency());
+        }
+        if (transparencyMidFade > 0.95 || transparencyMidFade < 0.5) {
+            throw new IllegalStateException(
+                    "[smoke/fcgt] chest transparency never entered the mid-fade band (last value "
+                            + transparencyMidFade + ") — cannot tell whether the breast armor follows the ramp");
+        }
+
+        long swapsBefore = context.computeOnClient(client -> ArmorHiderRenderTypes.breastArmorTranslucentSwapCount());
+        context.waitTicks(5);
+        long swapsAfter = context.computeOnClient(client -> ArmorHiderRenderTypes.breastArmorTranslucentSwapCount());
+        Path fadeShot = context.takeScreenshot("armorhider_gender_4_combat_fade");
+        ArmorHider.LOGGER.info("[smoke/fcgt] breast armor mid combat fade (transparency {}): {} (swaps {} -> {})",
+                transparencyMidFade, fadeShot, swapsBefore, swapsAfter);
+
+        if (swapsAfter <= swapsBefore) {
+            throw new IllegalStateException(
+                    "[smoke/fcgt] breast-armor render-type swap never fired mid combat fade (count " + swapsBefore
+                            + " -> " + swapsAfter + ") at transparency " + transparencyMidFade + " — the breast cups"
+                            + " ignore the combat ramp and stay fully opaque until the combat event expires, then"
+                            + " snap to hidden, while the body plate fades smoothly");
+        }
+        ArmorHider.LOGGER.info("[smoke/fcgt] breast armor follows the combat fade ({} draws)",
+                swapsAfter - swapsBefore);
+    }
+
+    private static double resolveChestTransparency() {
+        Minecraft client = Minecraft.getInstance();
+        ItemStack chest = client.player != null
+                ? client.player.getItemBySlot(EquipmentSlot.CHEST)
+                : ItemStack.EMPTY;
+        return SlotModification.of(ArmorHiderClient.getCurrentPlayerName(), EquipmentSlot.CHEST, chest).transparency();
     }
 
     private static void setChestOpacity(ClientGameTestContext context, double opacity) {

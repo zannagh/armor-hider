@@ -5,6 +5,7 @@ import de.zannagh.armorhider.client.api.AhRenderManagementApi;
 import de.zannagh.armorhider.client.api.AhRenderInterceptionRegistryApi;
 import de.zannagh.armorhider.client.common.IdentityCarrier;
 import de.zannagh.armorhider.client.common.RenderScope;
+import de.zannagh.armorhider.client.compat.FirstPersonCompat;
 import net.minecraft.client.renderer.entity.layers.WingsLayer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -58,6 +59,11 @@ public class ElytraRenderMixin
     //? if < 1.21.2 {
     /*private void interceptElytraRender(PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, S humanoidRenderState, float limbSwing, float limbSwingAmount, float partialTick, float ageInTicks, float netHeadYaw, float headPitch, CallbackInfo ci) {
     *///?}
+        // First Person Model cancels this submit for a visually swimming camera entity; entering a scope
+        // it will never let us exit would leak it into the rest of the frame.
+        if (FirstPersonCompat.suppressesWingsLayer(humanoidRenderState)) {
+            return;
+        }
         AhRenderInterceptionRegistryApi.getRenderer(RenderScope.ELYTRA).interceptFrom(humanoidRenderState, ci);
     }
 

@@ -5,6 +5,7 @@ import de.zannagh.armorhider.client.api.AhRenderManagementApi;
 import de.zannagh.armorhider.client.api.AhRenderInterceptionRegistryApi;
 import de.zannagh.armorhider.client.common.IdentityCarrier;
 import de.zannagh.armorhider.client.common.RenderScope;
+import de.zannagh.armorhider.client.compat.FirstPersonCompat;
 import net.minecraft.client.renderer.entity.layers.ItemInHandLayer;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.item.ItemStack;
@@ -83,6 +84,9 @@ public class ItemInHandLayerMixin {
         /*if (!(renderState instanceof Player humanoidState)) return;*/
         if (itemState.isEmpty()) return;
         if (!(humanoidState instanceof IdentityCarrier carrier)) return;
+        // First Person Model cancels this submit for the camera entity when both arms are hidden and the
+        // player is not looking down. Our exit hook would never fire, leaking the scope for the frame.
+        if (FirstPersonCompat.suppressesHeldItemLayer(renderState)) return;
 
 
         //? if >= 1.21.11
