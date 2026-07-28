@@ -21,18 +21,32 @@ public final class PaperEnvironment {
     }
 
     /**
-     * Resolves the newest STABLE Paper build for a Minecraft version, skipping the test when the
+     * Resolves the newest usable Paper build for a Minecraft version, skipping the test when the
      * PaperMC API is unreachable.
      */
     public static PaperServerDownloader.PaperBuild resolveOrSkip(String minecraftVersion) {
-        Assumptions.assumeTrue(hasNetwork(), "No network: skipping Paper server smoke test");
+        return resolveOrSkip(PaperServerDownloader.PAPER, minecraftVersion);
+    }
+
+    /**
+     * Resolves the newest usable build of {@code project} ({@code paper} or {@code folia}).
+     *
+     * <p>A version the project never shipped is a <em>skip</em>, not a failure: Folia's coverage is
+     * a subset of Paper's (no 1.21.9, no 1.21.10, no 26.1.1), so a row that is perfectly valid for
+     * Paper can simply not exist for Folia.</p>
+     */
+    public static PaperServerDownloader.PaperBuild resolveOrSkip(String project,
+                                                                 String minecraftVersion) {
+        Assumptions.assumeTrue(hasNetwork(),
+                "No network: skipping " + project + " server smoke test");
         try {
-            return new PaperServerDownloader().resolve(minecraftVersion);
+            return new PaperServerDownloader(project).resolve(minecraftVersion);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new IllegalStateException(e);
         } catch (IOException e) {
-            Assumptions.abort("Could not resolve Paper " + minecraftVersion + ": " + e.getMessage());
+            Assumptions.abort("Could not resolve " + project + " " + minecraftVersion + ": "
+                    + e.getMessage());
             throw new IllegalStateException(e);
         }
     }

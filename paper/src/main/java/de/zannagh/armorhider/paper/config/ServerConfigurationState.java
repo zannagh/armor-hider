@@ -21,6 +21,25 @@ public final class ServerConfigurationState {
 
     public static final String PLAYER_NAME = "playerName";
 
+    /**
+     * Makes a mutation and a snapshot mutually exclusive.
+     *
+     * <p>The two maps are individually concurrent but are updated in <em>separate steps</em> by
+     * {@link #put}, so an unguarded {@link #toJson} racing a {@code put} can observe a config that
+     * is already in {@code playerConfigs} but not yet in {@code playerNameConfigs}. That torn
+     * document is not self-healing: nothing rebuilds {@code playerNameConfigs} client-side (see
+     * {@link #toJson}), so persisting or broadcasting it makes the client's primary by-name lookup
+     * silently return null for that player.</p>
+     *
+     * <p>Two callers make this reachable rather than theoretical: saves run off-thread via
+     * {@code Schedulers#runAsync}, and on Folia the inbound handlers themselves run on regionised
+     * threads, so two players in different regions can be inside {@code put} at the same time.</p>
+     *
+     * <p>Only the in-memory tree build is guarded; the disk write in {@code ServerConfigStorage}
+     * stays outside, so the lock is never held across I/O.</p>
+     */
+    private final Object snapshotLock = new Object();
+
     private final Map<UUID, JsonObject> playerConfigs = new ConcurrentHashMap<>();
     private final Map<String, JsonObject> playerNameConfigs = new ConcurrentHashMap<>();
     private volatile JsonObject serverWideSettings = ServerWideSettingsDefaults.create();
@@ -31,7 +50,9 @@ public final class ServerConfigurationState {
     }
 
     public void setServerWideSettings(JsonObject settings) {
-        serverWideSettings = ServerWideSettingsDefaults.fillMissing(settings);
+        synchronized (snapshotLock) {
+            serverWideSettings = ServerWideSettingsDefaults.fillMissing(settings);
+        }
     }
 
     public Map<UUID, JsonObject> getPlayerConfigs() {
@@ -48,21 +69,23 @@ public final class ServerConfigurationState {
      * incoming config's is re-asserted, and the by-name index is repointed at the new config.
      */
     public void put(UUID uuid, JsonObject config) {
-        playerConfigs.put(uuid, config);
+        synchronized (snapshotLock) {
+            playerConfigs.put(uuid, config);
 
-        String name = readPlayerName(config);
-        if (name == null) {
-            return;
-        }
-
-        Map<UUID, JsonObject> overwrites = new HashMap<>();
-        playerConfigs.forEach((existingId, existing) -> {
-            if (name.equals(readPlayerName(existing))) {
-                overwrites.put(existingId, existing);
+            String name = readPlayerName(config);
+            if (name == null) {
+                return;
             }
-        });
-        playerNameConfigs.put(name, config);
-        overwrites.forEach(playerConfigs::replace);
+
+            Map<UUID, JsonObject> overwrites = new HashMap<>();
+            playerConfigs.forEach((existingId, existing) -> {
+                if (name.equals(readPlayerName(existing))) {
+                    overwrites.put(existingId, existing);
+                }
+            });
+            playerNameConfigs.put(name, config);
+            overwrites.forEach(playerConfigs::replace);
+        }
     }
 
     /**
@@ -74,16 +97,17 @@ public final class ServerConfigurationState {
      */
     public JsonObject toJson() {
         JsonObject root = new JsonObject();
-        root.add("serverWideSettings", serverWideSettings.deepCopy());
+        synchronized (snapshotLock) {
+            root.add("serverWideSettings", serverWideSettings.deepCopy());
 
-        JsonObject byId = new JsonObject();
-        playerConfigs.forEach((uuid, config) -> byId.add(uuid.toString(), config));
-        root.add("playerConfigs", byId);
+            JsonObject byId = new JsonObject();
+            playerConfigs.forEach((uuid, config) -> byId.add(uuid.toString(), config));
+            root.add("playerConfigs", byId);
 
-        JsonObject byName = new JsonObject();
-        playerNameConfigs.forEach(byName::add);
-        root.add("playerNameConfigs", byName);
-
+            JsonObject byName = new JsonObject();
+            playerNameConfigs.forEach(byName::add);
+            root.add("playerNameConfigs", byName);
+        }
         return root;
     }
 

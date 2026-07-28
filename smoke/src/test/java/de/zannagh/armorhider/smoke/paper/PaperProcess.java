@@ -11,14 +11,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 /**
  * One Paper JVM: launch, stream its stdout, wait for a marker, SIGTERM it.
  *
- * <p>stdin is redirected from {@code /dev/null} and never written to. Once Paper's console reader
- * sees EOF it stops reading forever while the server keeps running, with no diagnostic - so the
- * only supported way to stop a server here is a signal.</p>
+ * <p>stdin is redirected from the platform null device and never written to. Once Paper's console
+ * reader sees EOF it stops reading forever while the server keeps running, with no diagnostic - so
+ * the only supported way to stop a server here is a signal.</p>
  */
 final class PaperProcess implements AutoCloseable {
 
@@ -31,9 +32,19 @@ final class PaperProcess implements AutoCloseable {
         ProcessBuilder builder = new ProcessBuilder(command);
         builder.directory(workingDirectory.toFile());
         builder.redirectErrorStream(true);
-        builder.redirectInput(ProcessBuilder.Redirect.from(new File("/dev/null")));
+        builder.redirectInput(ProcessBuilder.Redirect.from(nullDevice()));
         process = builder.start();
         logPump = startLogPump(logFile);
+    }
+
+    /**
+     * The platform's null device. {@code scripts/smoke-all.ps1} makes Windows a supported dev
+     * environment, and {@code /dev/null} does not exist there - {@code ProcessBuilder} would fail
+     * the launch outright rather than degrade.
+     */
+    private static File nullDevice() {
+        boolean windows = System.getProperty("os.name", "").toLowerCase(Locale.ROOT).contains("win");
+        return new File(windows ? "NUL" : "/dev/null");
     }
 
     /** Everything the process has written to stdout/stderr so far. */

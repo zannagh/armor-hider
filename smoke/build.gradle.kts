@@ -84,7 +84,16 @@ tasks.test {
     // --add-plugin, so the jar has to exist and be current.
     dependsOn(":paper:shadowJar")
     systemProperty("smoke.paper.mc", paperMinecraftVersion)
-    listOf("smoke.paper.cache").forEach { key ->
+    listOf(
+        "smoke.paper.cache",
+        // Minecraft version FoliaServerSmokeTest boots (the test defaults to 26.2). Folia ships a
+        // strict subset of Paper's versions - 1.21.9 / 1.21.10 / 26.1.1 do not exist at all - and
+        // the test skips rather than fails on those.
+        "smoke.folia.mc",
+        // Points PaperE2ESmokeTest at `folia` instead of `paper`, so the full client<->server row
+        // exercises the regionised-threading paths. See PaperE2ESmokeTest#serverProject.
+        "smoke.paper.project"
+    ).forEach { key ->
         System.getProperty(key)?.let { systemProperty(key, it) }
     }
     // Resolved in doFirst so a skipped/cached run never provisions a JDK it will not use.

@@ -114,12 +114,14 @@ class PaperE2ESmokeTest {
 
         String minecraftVersion = paperVersionFor(variant);
         Path pluginJar = PaperEnvironment.locatePluginJar();
-        PaperServerDownloader.PaperBuild build = PaperEnvironment.resolveOrSkip(minecraftVersion);
+        PaperServerDownloader.PaperBuild build =
+                PaperEnvironment.resolveOrSkip(serverProject(), minecraftVersion);
         Path java = PaperEnvironment.resolveJavaOrSkip(build.javaVersion());
         Path serverDirectory = Files.createTempDirectory("armor-hider-paper-e2e");
 
-        System.out.println("[paper-e2e] variant=" + variant + " -> paper " + minecraftVersion
-                + " build " + build.build() + " (java " + build.javaVersion() + ")");
+        System.out.println("[paper-e2e] variant=" + variant + " -> " + build.project() + " "
+                + minecraftVersion + " build " + build.build() + " (" + build.channel()
+                + ", java " + build.javaVersion() + ")");
         System.out.println("[paper-e2e] plugin=" + pluginJar);
         System.out.println("[paper-e2e] serverDir=" + serverDirectory);
 
@@ -251,6 +253,20 @@ class PaperE2ESmokeTest {
                     + lastLines(server.getCombinedLogText(), PAPER_LOG_TAIL_LINES), e);
         }
         System.out.println("[paper-e2e] C2S verified: player config persisted by UUID and by name");
+    }
+
+    /**
+     * Which server to boot: {@code paper} (default) or {@code folia}.
+     *
+     * <p>Folia is the only target whose runtime genuinely differs, and this row is the only place
+     * the region-thread paths - {@code ChannelSubscriber} on join, {@code PacketSender} sending from
+     * a region thread, {@code Schedulers#runAsync} on a received config packet - are ever executed.
+     * {@code FoliaServerSmokeTest} proves the plugin boots and detects Folia; this proves it
+     * actually talks. Folia ships a subset of Paper's versions, so a variant Folia never released
+     * skips rather than fails.</p>
+     */
+    private static String serverProject() {
+        return System.getProperty("smoke.paper.project", PaperServerDownloader.PAPER);
     }
 
     /** {@code fabric-26.2} -> {@code 26.2}. The protocol has no tolerance for a mismatch here. */
