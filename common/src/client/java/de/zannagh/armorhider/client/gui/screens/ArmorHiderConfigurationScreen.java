@@ -17,25 +17,25 @@ import org.jetbrains.annotations.Nullable;
 import java.util.function.Consumer;
 
 public abstract class ArmorHiderConfigurationScreen extends Screen {
-    
+
     @Nullable protected final Screen parent;
-   
+
     protected boolean settingsChanged = false;
-    
+
     protected WidgetList widgetList;
-    
+
     protected int rowWidth = this.width;
-    
+
     protected OptionElementFactory factory;
-    
+
     protected Options gameOptions;
-    
+
     protected ArmorHiderConfigurationScreen(@Nullable Screen parent, Options gameOptions, Component title) {
         super(title);
         this.parent = parent;
         this.gameOptions = gameOptions;
     }
-    
+
     protected final int topMargin = 32;
     protected final int bottomMargin = 32;
     protected final int itemHeight = 25;
@@ -63,18 +63,18 @@ public abstract class ArmorHiderConfigurationScreen extends Screen {
         rowWidth = widgetList.getRowWidth();
         factory = new OptionElementFactory(widgetList::addWidget, gameOptions, rowWidth);
     }
-    
+
     protected boolean isPlayerInGame() {
         return this.minecraft.player != null;
     }
-    
+
     protected abstract void saveSettingsOnClose();
-    
+
     @Override
     public void onClose() {
         // Navigation happens in the finally block: if saving throws, the screen must still close. Previously
         // an exception here (e.g. Gson refusing a non-finite value, or a dropped connection while pushing the
-        // config) left the screen permanently mounted with no way out — and since the offending value was on
+        // config) left the screen permanently mounted with no way out - and since the offending value was on
         // disk, it recurred on every launch until the config file was deleted.
         try {
             if (settingsChanged) {
@@ -88,7 +88,7 @@ public abstract class ArmorHiderConfigurationScreen extends Screen {
             this.minecraft.setScreenAndShow(parent);
         }
     }
-    
+
     //? if < 1.21.4 {
     /*@Override
     public void render(net.minecraft.client.gui.GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {

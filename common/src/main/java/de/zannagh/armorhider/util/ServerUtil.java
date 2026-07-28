@@ -15,7 +15,7 @@ public final class ServerUtil {
         if (CompatManager.requiresCompatTo(CompatFlags.LUCK_PERMS)) {
             if (!LUCKPERMS_LOGGED) {
                 LUCKPERMS_LOGGED = true;
-                ArmorHider.LOGGER.info("LuckPerms detected — using it for permission checks instead of default permission handling.");
+                ArmorHider.LOGGER.info("LuckPerms detected - using it for permission checks instead of default permission handling.");
                 ArmorHider.LOGGER.info("Note: Add permission to users with the following key to let them change armor hider settings server-wide: {}", LuckPermsHook.ADMIN_PERMISSION);
             }
             if (getVanillaPermissionLevel(player, server) >= 4) {

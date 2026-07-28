@@ -91,7 +91,7 @@ public class GeckoLibArmorMixin {
     // ========================
 
 
-    // @Inject at HEAD avoids bridge method issues — cancelling from the bridge
+    // @Inject at HEAD avoids bridge method issues - cancelling from the bridge
     // short-circuits before the real method runs, so the inject fires exactly once.
     @Inject(method = "getRenderType*", at = @At("HEAD"), cancellable = true, require = 0)
     private void modifyRenderType(
@@ -104,7 +104,7 @@ public class GeckoLibArmorMixin {
             CallbackInfoReturnable<RenderType> cir) {
         //? if < 1.21.5 {
         
-        /*// Field-based armor-piece scope entry — only valid where GeckoLib still exposes
+        /*// Field-based armor-piece scope entry - only valid where GeckoLib still exposes
         // currentEntity / currentSlot / currentStack as shadowable fields. On 1.21.5-1.21.8
         // GeckoLib dropped those, so we rely on the HumanoidArmorLayer mixin (which fires
         // first in the layer chain) to have already entered ARMOR_PIECE scope.

@@ -41,16 +41,16 @@ public class ArmorHiderElytraRenderer extends AbstractArmorHiderRenderer {
 
         // Pass-through branches: do NOT enter scope. enterScope-with-mod would still register a
         // non-empty modification into the active-scope map, and downstream wraps then react to it
-        // even though we logically "ignored" — that leaks into things like ElytraTrims rendering.
+        // even though we logically "ignored" - that leaks into things like ElytraTrims rendering.
         if (mod.isEmpty()) {
             return RenderInterceptionResult.ignore();
         }
         // Flying must short-circuit BEFORE shouldHide so that 0%-opacity players still see the
-        // elytra geometry while actually elytra-flying — the wings are the flight indicator.
+        // elytra geometry while actually elytra-flying - the wings are the flight indicator.
         if (carrier.isPlayerFlying()) {
             return RenderInterceptionResult.ignore();
         }
-        // With ElytraTrims present, ET's own rendering pipeline owns elytra appearance — collapse
+        // With ElytraTrims present, ET's own rendering pipeline owns elytra appearance - collapse
         // to full-hide-or-vanilla. The non-hide case must NOT enter scope (would still leak our
         // mod into ET's submissions and re-introduce the blue-trim / missing-trim regressions).
         if (CompatManager.requiresCompatTo(CompatFlags.ELYTRA_TRIMS) && !mod.shouldHide()) {
@@ -58,11 +58,11 @@ public class ArmorHiderElytraRenderer extends AbstractArmorHiderRenderer {
         }
 
         if (mod.shouldHide()) {
-            // Cancel only — do NOT enter the scope. The WingsLayer render is cancelled at HEAD, so
+            // Cancel only - do NOT enter the scope. The WingsLayer render is cancelled at HEAD, so
             // its RETURN (which exits the scope) never fires; entering here leaks a hide-scope
             // (alpha 0) for the rest of the entity render. On NeoForge that leaked ELYTRA scope is
             // read by NeoForgeArmorColorMixin (which wraps the shared SubmitNodeCollection) and
-            // applied to every later model submit — turning the skull, offhand, etc. invisible.
+            // applied to every later model submit - turning the skull, offhand, etc. invisible.
             cancel(ci);
             return new RenderInterceptionResult(true, true, getTargetScope(), carrier, mod);
         }

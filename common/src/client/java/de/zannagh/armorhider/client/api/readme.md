@@ -14,7 +14,7 @@ Hider state, plug in custom render behaviour, or hook combat detection from thir
 | `AhRenderModificationApi` | Pass-through-safe operations that apply a modification to colors, render types and glint. | Queried via `AhRenderManagementApi.getActiveScope(scope).renderModificationApi()`. |
 | `AhCombatApi` | Client-side combat detection hooks. | Called from damage-event mixins; query `shouldLogCombatForPlayer` from third-party combat-source code. |
 
-All API interfaces are marked `@ApiStatus.NonExtendable` — only Armor Hider itself implements
+All API interfaces are marked `@ApiStatus.NonExtendable` - only Armor Hider itself implements
 them, and they expose only static entry points. The mutator side of `AhRenderManagementApi`
 is additionally marked `@ApiStatus.Internal`.
 
@@ -60,5 +60,5 @@ AhRenderInterceptionRegistryApi.getRenderer(RenderScope.ARMOR_PIECE)
   API stays game-version independent. Cast via `instanceof RenderType` at the call site.
 - Priority is **lower-is-stronger** for the renderer registry (MC-modding convention). The
   built-in default priority is exposed via `AhRenderInterceptionRegistryApi.defaultPriority()`.
-- `RenderScope.ALL` is a *fallback* — a renderer registered with target scope `ALL` is only
+- `RenderScope.ALL` is a *fallback* - a renderer registered with target scope `ALL` is only
   consulted when no renderer is registered for the requested specific scope.

@@ -17,7 +17,7 @@ public class NeoForgeClientMixinPlugin extends ArmorHiderMixinPlugin {
             "GameRendererMixin",
             "DevSkinMixin",
             "TitleScreenSmokeMixin",
-            // All versions — Stonecutter guards per version range
+            // All versions - Stonecutter guards per version range
             "EntityRenderDispatcherMixin",
             "LivingEntityMixin",
             "LivingEntityRendererMixin",
@@ -39,7 +39,7 @@ public class NeoForgeClientMixinPlugin extends ArmorHiderMixinPlugin {
             "cape.ElytraRenderMixin",
             "head.CustomHeadLayerMixin",
             "head.SkullBlockRenderMixin",
-            // All versions — Stonecutter guards per version range
+            // All versions - Stonecutter guards per version range
             "bodyKneesAndToes.HumanoidArmorLayerMixin",
             "bodyKneesAndToes.HumanoidArmorLayerRenderMixin",
             "cape.CapeRenderMixin",
@@ -50,7 +50,7 @@ public class NeoForgeClientMixinPlugin extends ArmorHiderMixinPlugin {
             "bodyKneesAndToes.NeoForgeHumanoidArmorLayerMixin",
             "OptionsMixin",
             "MinecraftClientMixin",
-            // Compat — @Pseudo, auto-skipped if target mod absent
+            // Compat - @Pseudo, auto-skipped if target mod absent
             "compat.wildfiregender.GenderArmorLayerMixin",
             "compat.wildfiregender.GenderLegacyLayerMixin",
             "compat.wildfiregender.GenderPhysicsMixin",

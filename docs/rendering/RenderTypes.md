@@ -6,10 +6,10 @@ You can check the actual render types themselves at `common/src/client/java/de/z
 
 # Render types provided
 
-- **translucentArmor** — armor layers with translucent blending and no depth write
-- **translucentEntity** — general entity rendering (shields, banners, skulls) with no depth write
-- **translucentArmorTrim** — armor trims using the `ARMOR_TRIMS_SHEET` atlas
-- **translucentItemSheet** — block/item atlas items (e.g. cutout block items swapped to translucent)
+- **translucentArmor** - armor layers with translucent blending and no depth write
+- **translucentEntity** - general entity rendering (shields, banners, skulls) with no depth write
+- **translucentArmorTrim** - armor trims using the `ARMOR_TRIMS_SHEET` atlas
+- **translucentItemSheet** - block/item atlas items (e.g. cutout block items swapped to translucent)
 
 # Version-specific implementations
 

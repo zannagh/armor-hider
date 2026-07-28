@@ -10,7 +10,7 @@ import org.jspecify.annotations.Nullable;
  * <p>
  * Three meaningful states:
  * <ul>
- *   <li><b>{@code shouldIntercept = false}</b>: the renderer has no interest in this call —
+ *   <li><b>{@code shouldIntercept = false}</b>: the renderer has no interest in this call -
  *       caller proceeds with vanilla rendering. Returned by
  *       {@link #ignore()}.</li>
  *   <li><b>{@code shouldIntercept = true}, {@code shouldCancel = false}</b>: the caller should

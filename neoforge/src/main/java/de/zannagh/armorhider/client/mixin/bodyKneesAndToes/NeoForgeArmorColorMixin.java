@@ -33,7 +33,7 @@ import net.minecraft.client.renderer.feature.submit.TranslucentSubmit;
  * <p>
  * On Fabric, armor color is modified upstream via {@code getColorForLayer} in renderLayers.
  * NeoForge patches renderLayers and never invokes {@code getColorForLayer}, so we handle
- * armor transparency at the SubmitNodeCollection level instead — the same approach used
+ * armor transparency at the SubmitNodeCollection level instead - the same approach used
  * for offhand items in {@code SubmitNodeCollectorMixin}.
  ^/
 @SuppressWarnings({"unused", "UnusedMixin"})
@@ -175,7 +175,7 @@ public class NeoForgeArmorColorMixin {
             return false;
         }
         // An inert modification (exactly 100% opacity) must not swap submits to a translucent
-        // render type — at full alpha the translucent trim loses the depth contest against the
+        // render type - at full alpha the translucent trim loses the depth contest against the
         // opaque armor and gets overwritten.
         return AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE, RenderScope.ELYTRA)
                 .renderModificationApi().getTransparencyAlpha() < 1.0f;

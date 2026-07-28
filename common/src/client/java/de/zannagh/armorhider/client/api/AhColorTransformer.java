@@ -8,7 +8,7 @@ package de.zannagh.armorhider.client.api;
  * The built-in {@link de.zannagh.armorhider.client.render.utils.DefaultColorTransformer} uses
  * straight ARGB arithmetic. Implement this interface and pass it to
  * {@link AhRenderModificationApi#registerColorTransformer(AhColorTransformer, int)} to override the
- * arithmetic — useful when a compat layer wants gamma-corrected blending, perceptual fades, or
+ * arithmetic - useful when a compat layer wants gamma-corrected blending, perceptual fades, or
  * shader-friendly color spaces. Lower priority values win, mirroring
  * {@link AhRenderModificationApi#registerRenderTypeFactory(AhRenderTypeFactory, int)}.
  * <p>
@@ -21,7 +21,7 @@ public interface AhColorTransformer {
 
     /**
      * Replace the alpha channel of {@code color} with {@code transparency * 255}, preserving the
-     * RGB channels. Matches the historical {@code applyArmorTransparency} semantics — used when the
+     * RGB channels. Matches the historical {@code applyArmorTransparency} semantics - used when the
      * downstream renderer expects an absolute opacity rather than a multiplier.
      */
     int applyTransparency(int color, float transparency);

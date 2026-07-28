@@ -67,7 +67,7 @@ public class ConfigurationItemSerializer implements TypeAdapterFactory {
      * parameterized superclass we encounter. That distinction matters for map-backed items: for example
      * {@code HashMapConfigItem<T> extends ConfigurationItemBase<HashMap<String, T>>}, so a subclass such as
      * {@code ServerMappedIndividualConfigurations extends HashMapConfigItem<IndividualConfigurations>} has a
-     * value type of {@code HashMap<String, IndividualConfigurations>} — NOT {@code IndividualConfigurations}.
+     * value type of {@code HashMap<String, IndividualConfigurations>} - NOT {@code IndividualConfigurations}.
      * Returning the latter would build the wrong value adapter and break (de)serialization of nested maps.
      */
     private Type getTypeParameter(Class<?> implementation) {

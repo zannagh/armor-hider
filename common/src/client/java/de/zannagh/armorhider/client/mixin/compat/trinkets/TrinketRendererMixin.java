@@ -10,13 +10,13 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Coerce;
 
 /**
- * Compat for the Trinkets accessory provider ({@code dev.emi.trinkets} — the Trinkets / Trinkets-Canary
- * mod, the most-installed Fabric accessory framework) — issue #246.
+ * Compat for the Trinkets accessory provider ({@code dev.emi.trinkets} - the Trinkets / Trinkets-Canary
+ * mod, the most-installed Fabric accessory framework) - issue #246.
  * <p>
  * {@code TrinketFeatureRenderer} draws each equipped trinket by calling
  * {@code TrinketRenderer.render(stack, slotReference, model, pose, collector, light, state, …)} once per
- * trinket (inside the {@code lambda$render$1} it dispatches per item — verified by decompiling
- * trinkets-canary 3.11.1). Wrapping that call lets Armor Hider skip a trinket's render — the only way to
+ * trinket (inside the {@code lambda$render$1} it dispatches per item - verified by decompiling
+ * trinkets-canary 3.11.1). Wrapping that call lets Armor Hider skip a trinket's render - the only way to
  * hide it generically, since {@code TrinketRenderer.render} carries no colour/alpha to fade with.
  * <p>
  * The body region is {@code slotReference.inventory().getSlotType().getGroup()}

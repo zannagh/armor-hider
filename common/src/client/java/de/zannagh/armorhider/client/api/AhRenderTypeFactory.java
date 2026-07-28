@@ -7,7 +7,7 @@ import net.minecraft.resources.Identifier;
  * Resolves the {@link RenderType}s Armor Hider uses to render hidden / translucent armor, items
  * and skulls. Implement this interface and pass it to
  * {@link AhRenderer#registerRenderTypeFactory(AhRenderTypeFactory)} to override the render types
- * used by a specific renderer — useful when a compat layer needs custom render pipelines
+ * used by a specific renderer - useful when a compat layer needs custom render pipelines
  * (e.g. shaders that need a particular blend mode or atlas).
  * <p>
  * If a renderer has no custom factory installed, the built-in

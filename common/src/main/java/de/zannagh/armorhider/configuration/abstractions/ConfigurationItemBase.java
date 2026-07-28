@@ -33,7 +33,7 @@ public abstract class ConfigurationItemBase<T> {
      * <p>
      * This must be applied by the value constructor as well as {@link #setValue}, because the Gson read path
      * ({@code ConfigurationItemSerializer.ConfigurationItemTypeAdapter#read}) instantiates items through the
-     * single-argument constructor and never calls {@code setValue} — so a check placed only in the setter
+     * single-argument constructor and never calls {@code setValue} - so a check placed only in the setter
      * would let a corrupt on-disk or on-wire value through untouched.
      */
     protected T sanitize(T candidate) {

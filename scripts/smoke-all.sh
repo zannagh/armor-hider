@@ -83,7 +83,7 @@ for v in "${VERSIONS[@]}"; do
 done
 
 echo "" | tee -a "$RESULTS"
-echo "Done — pass=${PASS} fail=${FAIL}" | tee -a "$RESULTS"
+echo "Done - pass=${PASS} fail=${FAIL}" | tee -a "$RESULTS"
 if [[ $FAIL -gt 0 ]]; then
     echo "Failed combos:" | tee -a "$RESULTS"
     for v in "${FAILED_COMBOS[@]}"; do echo "  - $v" | tee -a "$RESULTS"; done

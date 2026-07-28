@@ -102,7 +102,7 @@ public class ArmorHiderOptionsPanelWidget extends AbstractWidget {
         configs.add(new Pair<>(config.enableCombatDetection.getValue(), val -> setSetting(val, config.enableCombatDetection::setValue)));
         configs.add(new Pair<>(config.inCombatUseDefaultModel.getValue(), val -> setSetting(val, config.inCombatUseDefaultModel::setValue)));
         configs.add(new Pair<>(config.disableArmorHiderOnInvisibility.getValue(), val -> setSetting(val, config.disableArmorHiderOnInvisibility::setValue)));
-        // Master accessory-hide toggle — only offered (as a 4th general-row button) when an accessory
+        // Master accessory-hide toggle - only offered (as a 4th general-row button) when an accessory
         // provider (Curios / Trinkets / Artifacts) is present, so vanilla users don't see a dead toggle.
         if (CompatManager.anyAccessoryProviderLoaded()) {
             configs.add(new Pair<>(config.affectAccessories.getValue(), val -> setSetting(val, config.affectAccessories::setValue)));

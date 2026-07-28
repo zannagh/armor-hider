@@ -23,8 +23,8 @@ import java.util.function.Consumer;
  *       react.</li>
  * </ul>
  *
- * <p>The central entry point is {@link #resolveConfig(String)}, which decides — for any player being
- * rendered — which {@link PlayerConfig} applies, honouring the server-wide policy, the viewer's per-player
+ * <p>The central entry point is {@link #resolveConfig(String)}, which decides - for any player being
+ * rendered - which {@link PlayerConfig} applies, honouring the server-wide policy, the viewer's per-player
  * and global overrides, and the "unknown player" fallback. See that method for the full precedence.
  *
  * <p>Most methods here are {@code default} and operate purely on {@link #getLocalPlayerConfig()} /
@@ -97,7 +97,7 @@ public interface ArmorHiderPlayerConfigApi {
     }
 
     /**
-     * Marks the local configuration as changed and notifies listeners without necessarily persisting — used
+     * Marks the local configuration as changed and notifies listeners without necessarily persisting - used
      * by UI that mutates the config in place and saves separately on close.
      */
     default void markLocalDirty() {
@@ -198,7 +198,7 @@ public interface ArmorHiderPlayerConfigApi {
             // Materialise a concrete default override so the flag ⇒ override invariant holds and the settings
             // screen and resolveConfig() operate on the same persisted instance. It is deliberately seeded from
             // defaults (a blank canvas the viewer then tunes in the global panel), not from the viewer's own
-            // settings — "how I see strangers" is an independent config, not a copy of my own look.
+            // settings - "how I see strangers" is an independent config, not a copy of my own look.
             local.globalPlayerOverride = freshGlobalOverride();
             saveLocalPlayerConfig(local);
         }
@@ -232,7 +232,7 @@ public interface ArmorHiderPlayerConfigApi {
      * screen. The keybind flips a <b>temporary</b> override that lives only in memory: it is discarded on
      * disconnect and on game restart, so every fresh connection starts from the persisted baseline again (which
      * for most users is "off"). This is what keeps an accidental key press from silently disabling the mod
-     * forever — the state that used to be written to disk (and survive restarts and config migrations) is now
+     * forever - the state that used to be written to disk (and survive restarts and config migrations) is now
      * ephemeral.
      */
     final class SessionState {
@@ -314,7 +314,7 @@ public interface ArmorHiderPlayerConfigApi {
 
     /**
      * @return whether unknown (non-mod) players should use the viewer's own settings (Row B). Returns
-     *         {@code false} — meaning the global configuration would be used — when a server disallows
+     *         {@code false} - meaning the global configuration would be used - when a server disallows
      *         individual configurations, matching how the UI presents that state.
      */
     default boolean shouldUseLocalSettingsForUnknowns() {
@@ -352,7 +352,7 @@ public interface ArmorHiderPlayerConfigApi {
     }
 
     /**
-     * @return whether Armor Hider is fully disabled from the viewer's perspective — either the local kill
+     * @return whether Armor Hider is fully disabled from the viewer's perspective - either the local kill
      *         switch is on, or the server forces Armor Hider off.
      */
     default boolean isArmorHiderGloballyDisabled() {
@@ -369,7 +369,7 @@ public interface ArmorHiderPlayerConfigApi {
      * Whether combat detection should be applied to the given config.
      *
      * <p>Since NOT using combat detection is a potential competitive advantage, the config is probed ahead of
-     * the server — the only exception to server settings taking precedence over an individual configuration.
+     * the server - the only exception to server settings taking precedence over an individual configuration.
      *
      * @param config the config being rendered.
      * @return {@code true} if combat detection applies (either the config enables it, or the server does).

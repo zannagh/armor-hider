@@ -20,14 +20,14 @@ import org.jetbrains.annotations.Nullable;
  * Regression smoke for the mod's key mappings (settings-screen re-open loop).
  * <p>
  * The original bug: {@link CustomKeyMapping} ran its action from a {@code setDown} override. Vanilla calls
- * {@code setDown} for things that are not key presses — {@code KeyMapping.releaseAll()} on every screen open,
+ * {@code setDown} for things that are not key presses - {@code KeyMapping.releaseAll()} on every screen open,
  * and {@code KeyMapping.setAll()} from {@code MouseHandler#grabMouse()} when a screen closes. The latter is
  * gated on {@code InputQuirks.RESTORE_KEY_STATE_AFTER_MOUSE_GRAB}, which is {@code !ON_OSX}, so on
  * Windows/Linux closing the settings screen while the key was still held re-opened it forever.
  * <p>
  * These checks pin the invariant that makes that impossible on <em>every</em> OS: {@code setDown} is inert,
  * and only a real press activates a mapping. A macOS host cannot exercise the {@code setAll()} path at all,
- * so "{@code setDown} does nothing" is the portable form of the same guarantee — on a Windows/Linux runner
+ * so "{@code setDown} does nothing" is the portable form of the same guarantee - on a Windows/Linux runner
  * {@link #assertClosingDoesNotReopen} additionally reproduces the original user action end to end.
  */
 public final class KeybindSmokeTest implements FabricClientGameTest {
@@ -68,8 +68,8 @@ public final class KeybindSmokeTest implements FabricClientGameTest {
     }
 
     /**
-     * The regression guard. Driving {@code setDown} directly — exactly what {@code KeyMapping.setAll()} does
-     * on a mouse re-grab — must not open anything. This is the OS-independent form of the fix.
+     * The regression guard. Driving {@code setDown} directly - exactly what {@code KeyMapping.setAll()} does
+     * on a mouse re-grab - must not open anything. This is the OS-independent form of the fix.
      */
     private static void assertSetDownIsInert(ClientGameTestContext context) {
         context.runOnClient(client -> {
@@ -83,7 +83,7 @@ public final class KeybindSmokeTest implements FabricClientGameTest {
             Screen screen = currentScreen(client);
             if (screen != null) {
                 throw new IllegalStateException("[smoke/fcgt] setDown opened a screen ("
-                        + screen.getClass().getName() + ") — the re-open loop is back");
+                        + screen.getClass().getName() + ") - the re-open loop is back");
             }
         });
         ArmorHider.LOGGER.info("[smoke/fcgt] setDown is inert");

@@ -8,7 +8,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Per-slot toggle deciding whether the accessory type mapped to this armor slot (hat / necklace / belt /
- * boots) is hidden together with the slot. Placeholder foreground uses the slot's armor icon — swap for
+ * boots) is hidden together with the slot. Placeholder foreground uses the slot's armor icon - swap for
  * dedicated accessory art. Only takes effect while the master {@link AffectAccessoriesButton} is on.
  */
 public class AccessoryAffectButton extends LayeredImageButton {

@@ -21,17 +21,17 @@ import org.spongepowered.asm.mixin.injection.At;
  * The mod damps the breast "jiggle" using the equipped chestplate's
  * {@code IGenderArmor.physicsResistance()} / {@code tightness()}, so a rigid plate suppresses the
  * bounce even when Armor Hider has visually hidden that plate. FGM already exposes exactly the
- * behaviour we want under its own "Armor Physics Override" setting, which zeroes both values —
+ * behaviour we want under its own "Armor Physics Override" setting, which zeroes both values -
  * so rather than fake an empty chest stack, we simply force that override on for players whose
  * chest Armor Hider is fully hiding.
  * <p>
  * {@code getArmorPhysicsOverride()} is the single point both consumers read:
  * <ul>
- *   <li>{@code BreastPhysics.update} — the simulation itself (zeroes resistance + tightness), and</li>
- *   <li>{@code GenderRenderState.<init>} — the per-frame render capture.</li>
+ *   <li>{@code BreastPhysics.update} - the simulation itself (zeroes resistance + tightness), and</li>
+ *   <li>{@code GenderRenderState.<init>} - the per-frame render capture.</li>
  * </ul>
  * Hooking it therefore covers the whole pipeline; hooking either consumer alone leaves the other
- * damped. {@link PlayerConfig} overrides the method, so the mixin must target the subclass — a
+ * damped. {@link PlayerConfig} overrides the method, so the mixin must target the subclass - a
  * mixin on {@code EntityConfig} would be bypassed by virtual dispatch for players.
  */
 @SuppressWarnings("UnresolvedMixinReference")
@@ -62,7 +62,7 @@ public class GenderPhysicsMixin {
             return false;
         }
         // Scan the (short) loaded-player list rather than Level#getEntity(UUID), which does not exist
-        // before 1.21.8 — Level#players() is stable across every version this mod targets.
+        // before 1.21.8 - Level#players() is stable across every version this mod targets.
         Player player = null;
         for (Player candidate : level.players()) {
             if (uuid.equals(candidate.getUUID())) {

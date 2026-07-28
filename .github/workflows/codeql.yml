@@ -66,8 +66,14 @@ jobs:
         with:
           languages: ${{ matrix.language }}
 
+      # CodeQL only needs the sources compiled; running the suite here was incidental, and the unit
+      # tests are now the Build workflow's job (it gates pull requests).
+      #
+      # `testClasses` is explicit because `-x test` alone would also drop `compileTestJava` - it is
+      # only reachable through `test` - which would quietly shrink CodeQL's analysis scope to
+      # main sources. This keeps exactly what plain `build` compiled, minus the execution.
       - name: Build
-        run: ./gradlew build
+        run: ./gradlew build testClasses -x test
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4

@@ -11,15 +11,15 @@ import org.spongepowered.asm.mixin.injection.Coerce;
 
 /**
  * Compat for the Accessories accessory provider ({@code io.wispforest.accessories}, the Wisp Forest mod
- * behind Modrinth's <i>Accessories</i>) — issue #246. {@code AccessoriesRenderLayer} draws each equipped
+ * behind Modrinth's <i>Accessories</i>) - issue #246. {@code AccessoriesRenderLayer} draws each equipped
  * accessory by calling {@code AccessoryRenderer.render(accessoryState, entityState, model, pose, collector)}
  * once per accessory, inside the {@code states.forEach(…)} lambda {@code lambda$submit$0} (the third-person
- * body layer). Wrapping that call lets Armor Hider skip an accessory's render — the only way to hide one
+ * body layer). Wrapping that call lets Armor Hider skip an accessory's render - the only way to hide one
  * generically, since {@code AccessoryRenderer.render} carries no colour/alpha to fade with.
  * <p>
  * Only the third-person lambda is hooked: the sibling {@code lambda$submitFirstPerson$1} is a <i>static</i>
  * method (so a single non-static handler cannot target both), and the first-person pass renders only the
- * local player's hands — none of the four regions Armor Hider maps (head / chest / legs / feet) are
+ * local player's hands - none of the four regions Armor Hider maps (head / chest / legs / feet) are
  * visible there, so hiding them first-person would be a no-op anyway.
  * <p>
  * The slot name is {@code accessoryState.getStateData(SLOT_PATH).slotName()} ({@code hat} / {@code necklace}

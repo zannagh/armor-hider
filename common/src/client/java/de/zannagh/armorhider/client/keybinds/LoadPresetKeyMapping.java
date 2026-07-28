@@ -11,7 +11,7 @@ import org.lwjgl.glfw.GLFW;
 
 public class LoadPresetKeyMapping extends CustomKeyMapping {
 
-    // Left-Alt is uncommon among vanilla defaults. GLFW keycodes only — an AWT VK
+    // Left-Alt is uncommon among vanilla defaults. GLFW keycodes only - an AWT VK
     // value here would mis-map; VK_UNDEFINED (0) in particular collides with the
     // number-row "0" key (both named "key.keyboard.0").
     //? if >= 26.3-0.snapshot.5 {

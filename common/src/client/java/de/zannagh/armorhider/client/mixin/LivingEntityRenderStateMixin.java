@@ -21,13 +21,13 @@ import net.minecraft.world.item.Items;
 /**
  * Injects identity carrier delegation onto player render states so that the identity
  * captured during {@code extractRenderState} travels with the render state object to the
- * submission phase — no global ThreadLocal needed.
+ * submission phase - no global ThreadLocal needed.
  * <p>
  * Targets {@code AvatarRenderState} from 1.21.2 onward (the render-state era). Only player
- * render states carry identity — non-player entities are filtered via
+ * render states carry identity - non-player entities are filtered via
  * {@code instanceof IdentityCarrier} in the rendering mixins. Without this the render state has
  * no identity and every render-state-based scope (armor/head/elytra/third-person offhand) fails
- * to enter — the reason 1.21.2/1.21.3 rendered everything opaque except the first-person offhand.
+ * to enter - the reason 1.21.2/1.21.3 rendered everything opaque except the first-person offhand.
  * <p>
  * In 1.21.2/1.21.3 the render state does not yet expose {@code wornHeadProfile}/{@code wornHeadType}
  * (added in 1.21.4), so {@link #customHeadItem()} falls back to the entity carrier there.

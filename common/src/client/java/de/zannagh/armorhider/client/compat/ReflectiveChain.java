@@ -9,7 +9,7 @@ import java.lang.reflect.Method;
  * on objects whose type is not on the compile classpath (optional-dependency mod APIs).
  * <p>
  * The {@link Method} chain is resolved <b>once per concrete receiver class</b> and cached in a
- * {@link ClassValue}, so the render hot path only pays a cheap {@link Method#invoke} — never a fresh
+ * {@link ClassValue}, so the render hot path only pays a cheap {@link Method#invoke} - never a fresh
  * {@code getMethod} lookup per frame. {@code ClassValue} handles the concurrency and its keys are the
  * classes themselves, so the cache is naturally bounded by the (tiny) number of accessory-slot types.
  */
@@ -30,7 +30,7 @@ public final class ReflectiveChain {
                     // getMethod returns a public method, but its declaring class may be non-public
                     // (e.g. a package-private record impl), which Method.invoke would otherwise reject.
                     // Best-effort: on a strict/modular runtime setAccessible can throw
-                    // InaccessibleObjectException — don't let that abort the whole chain; invoke still
+                    // InaccessibleObjectException - don't let that abort the whole chain; invoke still
                     // works when the declaring class is itself public.
                     try {
                         method.setAccessible(true);

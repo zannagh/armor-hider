@@ -19,13 +19,13 @@ import java.util.function.Function;
  * <b>Priority semantics:</b> lower numeric priority takes precedence (MC-modding convention).
  * The renderer with the lowest registered priority value for a scope wins; ties resolve in
  * registration order. {@link #defaultPriority()} is the value used by the built-in default
- * renderers — register at a lower number to override.
+ * renderers - register at a lower number to override.
  * <p>
  * <b>{@link RenderScope#ALL} fallback:</b> a renderer registered with target scope {@code ALL}
  * is consulted only when no renderer is registered for the requested specific scope. It acts as
  * a catch-all default, not a chained pre/post hook.
  * <p>
- * Example — install a custom cape renderer that takes precedence over the built-in default:
+ * Example - install a custom cape renderer that takes precedence over the built-in default:
  * <pre>{@code
  * AhRenderInterceptionRegistryApi.register(
  *     new MyCapeRenderer(),                            // implements AhRenderer, targets CAPE
@@ -54,7 +54,7 @@ public interface AhRenderInterceptionRegistryApi {
      * <p>
      * Multiple renderers may be registered for the same scope; lookups via
      * {@link #getRenderer(RenderScope)} return the one with the lowest priority value.
-     * Re-registering the same renderer at a new priority is allowed and adds a second entry —
+     * Re-registering the same renderer at a new priority is allowed and adds a second entry -
      * call {@link #unregister(AhRenderer, int)} for the old (priority, renderer) pair first if
      * that is not what you want.
      *
@@ -118,7 +118,7 @@ public interface AhRenderInterceptionRegistryApi {
      * if none is registered.
      * <p>
      * Use when calling code needs a specific implementation rather than the scope-resolved
-     * renderer — e.g. resolving a third-party compat interceptor like
+     * renderer - e.g. resolving a third-party compat interceptor like
      * {@code GeckoLibRenderInterceptor} that registers under {@link RenderScope#ALL} but is
      * addressed by type at the call site.
      *

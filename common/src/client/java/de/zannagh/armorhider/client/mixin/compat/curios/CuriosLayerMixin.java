@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.Coerce;
 /**
  * Compat for the Curios accessory provider (issue #246). Curios draws every equipped accessory from
  * {@code CuriosLayer.submit(...)}, which calls {@code ICurioRenderer.render(stack, slotContext, ...)}
- * once per curio. Wrapping that call lets Armor Hider skip a curio's render — the only way to hide an
+ * once per curio. Wrapping that call lets Armor Hider skip a curio's render - the only way to hide an
  * accessory generically, since {@code ICurioRenderer.render} exposes no colour/alpha to fade it.
  * <p>
  * {@code SlotContext.identifier()} (resolved reflectively in {@link AccessoryHidingCompat}) gives the

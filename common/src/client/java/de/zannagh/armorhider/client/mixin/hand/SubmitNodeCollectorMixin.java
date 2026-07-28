@@ -41,7 +41,7 @@ public class SubmitNodeCollectorMixin {
     // Our translucent (depth-write-disabled) armor/entity render types must be drawn AFTER the
     // translucent terrain layer (water, ice, stained glass), not in the pre-terrain
     // translucentModels phase. Otherwise terrain drawn afterwards overdraws the parts of a piece
-    // that aren't backed by an opaque body pixel — e.g. a chestplate's shoulder pads silhouetted
+    // that aren't backed by an opaque body pixel - e.g. a chestplate's shoulder pads silhouetted
     // against a body of water vanish, while the same pads render fine against a solid block.
     // afterTerrain is the vanilla feature phase executed right after translucentTerrain (see
     // LevelRenderer#addMainPass → FeatureRenderDispatcher.PreparedFrame#executeTranslucentAfterTerrain).
@@ -74,7 +74,7 @@ public class SubmitNodeCollectorMixin {
 
         // Only check OFFHAND scope here. HEAD scope is handled directly by SkullBlockRenderMixin
         // (which targets the skull-specific path). Including HEAD here would leak the helmet/skull
-        // opacity onto every model-part submission while CustomHeadLayer's HEAD scope is open —
+        // opacity onto every model-part submission while CustomHeadLayer's HEAD scope is open -
         // including ElytraTrims's trim layers submitted under the same scope bracket.
         var ctx = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
         if (!ctx.isEmpty()) {
@@ -117,7 +117,7 @@ public class SubmitNodeCollectorMixin {
 
     private <S> void wrapModelAdd(ModelFeatureRenderer.Storage storage, RenderType renderType, SubmitNodeStorage.ModelSubmit<S> submit, Operation<Void> original) {
 
-        // OFFHAND scope only — see comment on wrapModelPartAdd above. HEAD scope leaks onto
+        // OFFHAND scope only - see comment on wrapModelPartAdd above. HEAD scope leaks onto
         // unrelated submissions (e.g. ElytraTrims trim layers) when a helmet is worn.
         var activeCtx = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
         if (activeCtx.isEmpty()) {
@@ -146,7 +146,7 @@ public class SubmitNodeCollectorMixin {
 
     //? if >= 26.2-1.pre {
     // Shields/skulls submit with an opaque cutout RenderType. submitModel routes via
-    // RenderType.hasBlending() — opaque → solid phase (unwrapped); translucent → translucentModels
+    // RenderType.hasBlending() - opaque → solid phase (unwrapped); translucent → translucentModels
     // phase (wrapped below). When our OFFHAND/HEAD scope is active, force hasBlending=true so the
     // submit is routed through the translucent phase and wrapModelSubmit can rebuild it with a
     // translucent type + alpha-tinted color.
@@ -161,7 +161,7 @@ public class SubmitNodeCollectorMixin {
         if (original) {
             return true;
         }
-        // OFFHAND only — HEAD scope can be open while CustomHeadLayer's bracket is active and
+        // OFFHAND only - HEAD scope can be open while CustomHeadLayer's bracket is active and
         // would erroneously force unrelated opaque models (e.g. ElytraTrims trim layers) onto
         // the translucent path with helmet-opacity alpha applied.
         var ctx = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
@@ -169,7 +169,7 @@ public class SubmitNodeCollectorMixin {
             return false;
         }
         // Only force the translucent/OIT route when the item is actually being faded. At full
-        // opacity (>=1.0) forcing the OIT route makes the item vanish — OIT weight is (1 - alpha),
+        // opacity (>=1.0) forcing the OIT route makes the item vanish - OIT weight is (1 - alpha),
         // so alpha 1.0 contributes nothing and there is no opaque copy. Leave it on the normal path.
         return armorHider$isFading(ctx.modification().transparency());
     }
@@ -196,11 +196,11 @@ public class SubmitNodeCollectorMixin {
             original.call(phase, submit);
             return;
         }
-        // OFFHAND only — see comment on forceTranslucentRoute.
+        // OFFHAND only - see comment on forceTranslucentRoute.
         var activeCtx = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
         if (activeCtx.isEmpty() || !armorHider$isFading(activeCtx.modification().transparency())) {
             // Armor/elytra submits arrive here (no OFFHAND scope) already carrying our translucent
-            // type — defer them past the terrain instead of drawing them into translucentModels.
+            // type - defer them past the terrain instead of drawing them into translucentModels.
             if (!armorHider$deferAfterTerrain(submit)) {
                 original.call(phase, submit);
             }
@@ -222,7 +222,7 @@ public class SubmitNodeCollectorMixin {
                 modelSubmit.uvMapping(), modelSubmit.sheetedDecalPose()
         );
 
-        // The rebuilt offhand item now carries our translucent type too — defer it past the terrain.
+        // The rebuilt offhand item now carries our translucent type too - defer it past the terrain.
         if (!armorHider$deferAfterTerrain((SubmitNode) modified)) {
             original.call(phase, (SubmitNode) modified);
         }
@@ -241,11 +241,11 @@ public class SubmitNodeCollectorMixin {
             original.call(phase, submit);
             return;
         }
-        // OFFHAND only — see comment on forceTranslucentRoute.
+        // OFFHAND only - see comment on forceTranslucentRoute.
         var activeCtx = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
         if (activeCtx.isEmpty() || !armorHider$isFading(activeCtx.modification().transparency())) {
             // Armor/elytra submits arrive here (no OFFHAND scope) already carrying our translucent
-            // type — defer them past the terrain instead of drawing them into translucentModels.
+            // type - defer them past the terrain instead of drawing them into translucentModels.
             if (!armorHider$deferAfterTerrain(submit)) {
                 original.call(phase, submit);
             }
@@ -266,7 +266,7 @@ public class SubmitNodeCollectorMixin {
                 modelSubmit.sprite(), modelSubmit.sheetedDecalPose()
         );
 
-        // The rebuilt offhand item now carries our translucent type too — defer it past the terrain.
+        // The rebuilt offhand item now carries our translucent type too - defer it past the terrain.
         if (!armorHider$deferAfterTerrain((SubmitNode) modified)) {
             original.call(phase, (TranslucentSubmit) modified);
         }

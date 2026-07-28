@@ -162,7 +162,7 @@ public class OptionElementFactory {
 
     /**
      * Builds a left-aligned row of just the three general behaviour toggles (combat detection, vanilla armor
-     * in combat, respect invisibility) — no presets and no "individual settings" button. Used by the
+     * in combat, respect invisibility) - no presets and no "individual settings" button. Used by the
      * per-player override panel, where presets are not applicable but the behaviour toggles still are.
      */
     public AbstractWidget createGeneralTogglesRow(ArrayList<Pair<Boolean, Consumer<Boolean>>> configs) {
@@ -193,7 +193,7 @@ public class OptionElementFactory {
 
         var buttons = new java.util.ArrayList<AbstractWidget>(java.util.List.of(first, second, third));
         // Optional 4th toggle: accessory-hide master, present only when the panel supplied it (i.e. an
-        // accessory provider — Curios / Trinkets / Artifacts — is loaded).
+        // accessory provider - Curios / Trinkets / Artifacts - is loaded).
         if (configs.size() > 3) {
             buttons.add(new AffectAccessoriesButton(
                     configs.get(3).getFirst(),
@@ -360,7 +360,7 @@ public class OptionElementFactory {
                 (text, value) -> sliderTextProvider.apply(value),
                 // The trailing flag is applyValueImmediately. It MUST stay false: with it on, the setter
                 // fires on every drag step, and each call writes the whole preset file to disk
-                // synchronously on the render thread — enough to starve frames and input on a slider drag.
+                // synchronously on the render thread - enough to starve frames and input on a slider drag.
                 //? if >= 1.21.11
                 new OptionInstance.IntRange(0, 20).xmap(v -> v / 20.0, v -> (int) Math.round(v * 20), false)
                 //? if >= 1.20.5 && < 1.21.11

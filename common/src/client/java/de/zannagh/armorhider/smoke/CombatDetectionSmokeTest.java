@@ -20,20 +20,20 @@ import net.minecraft.world.item.Items;
  * <p>
  * Combat detection is meant to snap a player's hidden/faded armor back to fully visible when they
  * take or deal damage, then fade it back to the configured opacity over the combat window. The fade
- * side of that was implemented but never wired into rendering — {@code getCombatFade} existed with
- * no caller — so with the default config (combat detection on, "use default model" off) a damage
+ * side of that was implemented but never wired into rendering - {@code getCombatFade} existed with
+ * no caller - so with the default config (combat detection on, "use default model" off) a damage
  * event produced no visible change at all. This test locks the whole chain down end to end:
  * <ol>
  *   <li>the client damage hook fires and registers a combat event for the player
  *       ({@code isInCombat} flips true),</li>
- *   <li>the registered event actually reaches opacity resolution — a chest configured to 0%
+ *   <li>the registered event actually reaches opacity resolution - a chest configured to 0%
  *       (fully hidden) resolves to ~full opacity and stops reporting {@code shouldHide} while the
  *       player is in combat.</li>
  * </ol>
  * Both halves matter: asserting only {@code isInCombat} would still pass with the fade unwired,
  * which is precisely the state this test was written to catch.
  * <p>
- * The world is created in SURVIVAL — a creative player ignores the damage that drives the feature.
+ * The world is created in SURVIVAL - a creative player ignores the damage that drives the feature.
  */
 public final class CombatDetectionSmokeTest implements FabricClientGameTest {
 
@@ -74,7 +74,7 @@ public final class CombatDetectionSmokeTest implements FabricClientGameTest {
 
             // Plain tick wait rather than getClientLevel().waitForChunksRender(): this test asserts on
             // config/state resolution rather than pixels, and getClientLevel() only exists in newer
-            // FCGT builds — waitTicks keeps the test compiling on every version that enables fcgt.
+            // FCGT builds - waitTicks keeps the test compiling on every version that enables fcgt.
             context.waitTicks(20);
 
             // ── Baseline: out of combat the chest is hidden ──────────────────────────────────────
@@ -84,7 +84,7 @@ public final class CombatDetectionSmokeTest implements FabricClientGameTest {
                     inCombatBefore, hiddenBefore);
             if (!hiddenBefore) {
                 throw new IllegalStateException(
-                        "[smoke/fcgt] chest at 0% opacity is not hidden before combat — test precondition"
+                        "[smoke/fcgt] chest at 0% opacity is not hidden before combat - test precondition"
                                 + " failed, so the in-combat assertion below would be meaningless");
             }
             context.takeScreenshot("armorhider_combat_1_before_hidden");
@@ -106,7 +106,7 @@ public final class CombatDetectionSmokeTest implements FabricClientGameTest {
 
             if (!inCombatAfter) {
                 throw new IllegalStateException(
-                        "[smoke/fcgt] player is not in combat after taking damage — the client damage hook"
+                        "[smoke/fcgt] player is not in combat after taking damage - the client damage hook"
                                 + " (LivingEntityMixin#triggerCombat on handleDamageEvent) never fired or never"
                                 + " registered a combat event");
             }
@@ -114,13 +114,13 @@ public final class CombatDetectionSmokeTest implements FabricClientGameTest {
             // after the hit this must be far above the configured 0%.
             if (transparencyAfter < 0.9) {
                 throw new IllegalStateException(
-                        "[smoke/fcgt] in-combat chest transparency is " + transparencyAfter + ", expected ~1.0 —"
+                        "[smoke/fcgt] in-combat chest transparency is " + transparencyAfter + ", expected ~1.0 -"
                                 + " the combat event is registered but never reaches opacity resolution"
                                 + " (combat fade not wired into SlotModification)");
             }
             if (hiddenAfter) {
                 throw new IllegalStateException(
-                        "[smoke/fcgt] chest still reports shouldHide while in combat — combat detection does not"
+                        "[smoke/fcgt] chest still reports shouldHide while in combat - combat detection does not"
                                 + " restore hidden armor, so a hidden piece stays invisible during combat");
             }
 

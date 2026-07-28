@@ -92,7 +92,7 @@ foreach ($v in $Versions) {
 }
 
 "" | Tee-Object $Results -Append
-"Done — pass=$pass fail=$fail" | Tee-Object $Results -Append
+"Done - pass=$pass fail=$fail" | Tee-Object $Results -Append
 if ($fail -gt 0) {
     "Failed combos:" | Tee-Object $Results -Append
     foreach ($v in $failed) { "  - $v" | Tee-Object $Results -Append }

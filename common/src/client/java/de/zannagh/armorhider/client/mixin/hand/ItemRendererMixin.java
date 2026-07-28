@@ -31,7 +31,7 @@ public class ItemRendererMixin {
             argsOnly = true
     )
     private MultiBufferSource wrapBufferSourceForTransparency(MultiBufferSource bufferSource) {
-        
+
         var offCtx = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
         var hdCtx = AhRenderManagementApi.getActiveScope(RenderScope.HEAD);
         var activeCtx = !offCtx.isEmpty() ? offCtx : hdCtx;
@@ -65,7 +65,7 @@ public class ItemRendererMixin {
             )
     )
     private void wrapShieldRender(BlockEntityWithoutLevelRenderer instance, ItemStack itemStack, ItemDisplayContext displayCtx, PoseStack poseStack, MultiBufferSource bufferSource, int light, int overlay, Operation<Void> original) {
-        
+
         if (AhRenderManagementApi.hasScopeModification(RenderScope.OFFHAND) || AhRenderManagementApi.hasScopeModification(RenderScope.HEAD)) {
             MultiBufferSource wrappedSource = renderType -> {
                 if (renderType == Sheets.shieldSheet()) {
@@ -91,7 +91,7 @@ public class ItemRendererMixin {
     )
     private RenderType wrapGetRenderType(ItemStack itemStack, boolean fabulous, Operation<RenderType> original) {
         RenderType type = original.call(itemStack, fabulous);
-        
+
         var offCtx3 = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
         var hdCtx3 = AhRenderManagementApi.getActiveScope(RenderScope.HEAD);
         var activeCtx3 = !offCtx3.isEmpty() ? offCtx3 : hdCtx3;
@@ -112,7 +112,7 @@ public class ItemRendererMixin {
             )
     )
     private void wrapPutBulkData(VertexConsumer instance, PoseStack.Pose pose, BakedQuad quad, float r, float g, float b, float alpha, int light, int overlay, Operation<Void> original) {
-        
+
         var offCtx4 = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
         var hdCtx4 = AhRenderManagementApi.getActiveScope(RenderScope.HEAD);
         var activeCtx4 = !offCtx4.isEmpty() ? offCtx4 : hdCtx4;
@@ -135,7 +135,7 @@ public class ItemRendererMixin {
             )
     )
     private void wrapPutBulkData(VertexConsumer instance, PoseStack.Pose pose, BakedQuad quad, float r, float g, float b, float alpha, int light, int overlay, boolean useBlockLight, Operation<Void> original) {
-        
+
         var offCtx5 = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
         var hdCtx5 = AhRenderManagementApi.getActiveScope(RenderScope.HEAD);
         var activeCtx5 = !offCtx5.isEmpty() ? offCtx5 : hdCtx5;
@@ -172,15 +172,15 @@ public class ItemRendererMixin {
 
     @ModifyVariable(
             //? if >= 1.21.6
-            //method = "renderItem(Lnet/minecraft/world/item/ItemDisplayContext;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;II[ILjava/util/List;Lnet/minecraft/client/renderer/rendertype/RenderType;Lnet/minecraft/client/renderer/item/ItemStackRenderState$FoilType;)V",
+            method = "renderItem(Lnet/minecraft/world/item/ItemDisplayContext;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;II[ILjava/util/List;Lnet/minecraft/client/renderer/rendertype/RenderType;Lnet/minecraft/client/renderer/item/ItemStackRenderState$FoilType;)V",
             //? if < 1.21.6
-            method = "renderItem(Lnet/minecraft/world/item/ItemDisplayContext;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;II[ILnet/minecraft/client/resources/model/BakedModel;Lnet/minecraft/client/renderer/rendertype/RenderType;Lnet/minecraft/client/renderer/item/ItemStackRenderState$FoilType;)V",
+            //method = "renderItem(Lnet/minecraft/world/item/ItemDisplayContext;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;II[ILnet/minecraft/client/resources/model/BakedModel;Lnet/minecraft/client/renderer/rendertype/RenderType;Lnet/minecraft/client/renderer/item/ItemStackRenderState$FoilType;)V",
             at = @At("HEAD"),
             ordinal = 0,
             argsOnly = true
     )
     private static RenderType modifyRenderType(RenderType renderType) {
-        
+
         var offCtx = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
         var hdCtx = AhRenderManagementApi.getActiveScope(RenderScope.HEAD);
         var activeCtx = !offCtx.isEmpty() ? offCtx : hdCtx;

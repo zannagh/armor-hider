@@ -17,7 +17,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 /^*
  * Compatibility mixin for Deeper and Darker's Warden armor helmet on the mod's 1.3.x builds
  * (which ship the renderer as {@code HelmetHornRenderer}; the 1.4.x builds renamed it
- * {@code WardenHelmetRenderer} — see {@code WardenHelmetLayerMixin}).
+ * {@code WardenHelmetRenderer} - see {@code WardenHelmetLayerMixin}).
  * <p>
  * Identical behaviour to {@code WardenHelmetLayerMixin}: the Warden armor body renders via the vanilla
  * armor layer (already hidden by our {@code renderArmorPiece} cancellation), while the helmet horns are
@@ -26,7 +26,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * {@link IdentityCarrier#getModification} keeps per-item exclusions and the opacity threshold intact.
  * <p>
  * Entity-based {@code RenderLayer#render} signature (MC &lt; 1.21.2). Gated by the
- * {@code deeperdarker_horn} constant — set for {@code deeperdarker}-enabled variants that do NOT pin a
+ * {@code deeperdarker_horn} constant - set for {@code deeperdarker}-enabled variants that do NOT pin a
  * 1.4.x jar (currently Fabric 1.20.1 and Fabric 1.21.1, both D&amp;D 1.3.3).
  ^/
 @SuppressWarnings("UnresolvedMixinReference")

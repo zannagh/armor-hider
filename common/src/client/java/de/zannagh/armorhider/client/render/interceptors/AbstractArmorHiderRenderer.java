@@ -122,7 +122,7 @@ public abstract class AbstractArmorHiderRenderer implements AhRenderer {
      * Default interception: empty modification → ignore; shouldHide → cancel CI and signal cancel;
      * otherwise → enter scope without cancelling.
      * <p>
-     * Callers must null-check {@code carrier} before invoking — {@link #resolveModification}
+     * Callers must null-check {@code carrier} before invoking - {@link #resolveModification}
      * dereferences the carrier on the first line. Every built-in renderer guards explicitly
      * (typically with {@code if (carrier == null) { setEmptyModification(); return ignore(); }})
      * before reaching this method.

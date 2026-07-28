@@ -1,5 +1,5 @@
 // Drives the First Person Model (tr7zw) compat guards. Needs the FPM jar present at runtime, which is
-// what the `firstperson` constant tracks — the same property that compiles FirstPersonCompat's typed
+// what the `firstperson` constant tracks - the same property that compiles FirstPersonCompat's typed
 // branch, so test and guard are enabled together or not at all.
 //? if fcgt && firstperson {
 package de.zannagh.armorhider.smoke;
@@ -24,7 +24,7 @@ import net.minecraft.world.item.Items;
  * <p>
  * FPM renders the local player's body in first person by extracting an ordinary render state for the
  * camera entity, so our scopes and identity capture run exactly as in third person. The hazard is that
- * FPM then cancels several layer submits at their {@code HEAD} for that entity — {@code CustomHeadLayer}
+ * FPM then cancels several layer submits at their {@code HEAD} for that entity - {@code CustomHeadLayer}
  * unconditionally. Our scope-enter hooks sit at the same {@code HEAD} and are ordered ahead of FPM's, so
  * without a guard we enter a scope, FPM cancels the submit, and our {@code @At("RETURN")} release never
  * runs: the scope stays active until the next entity-render boundary sweeps it up, bleeding the worn
@@ -36,7 +36,7 @@ import net.minecraft.world.item.Items;
  *       the compat recognises FPM's first-person body and is actually declining scopes, not lying
  *       dormant) while {@link AhRenderStateImpl#leakedScopeClears} for {@link RenderScope#HEAD} stays
  *       flat.</li>
- *   <li><b>Guards off.</b> The same scene must now leak HEAD scopes — which is what proves the leak is
+ *   <li><b>Guards off.</b> The same scene must now leak HEAD scopes - which is what proves the leak is
  *       real and the guard is what prevents it, rather than the scene never entering a head scope at
  *       all.</li>
  * </ol>
@@ -77,7 +77,7 @@ public final class FirstPersonSmokeTest implements FabricClientGameTest {
             });
 
             // waitTicks rather than getClientLevel().waitForChunksRender(): this test asserts on
-            // counters rather than pixels, and getClientLevel() only exists in newer FCGT builds — the
+            // counters rather than pixels, and getClientLevel() only exists in newer FCGT builds - the
             // plain wait keeps it compiling on every variant that pins firstperson.
             context.waitTicks(30);
 
@@ -94,14 +94,14 @@ public final class FirstPersonSmokeTest implements FabricClientGameTest {
             if (guardsAfter <= guardsBefore) {
                 throw new IllegalStateException(
                         "[smoke/fcgt] the First Person Model guards never fired (count " + guardsBefore + " -> "
-                                + guardsAfter + ") — either FPM is not rendering the first-person body in this"
+                                + guardsAfter + ") - either FPM is not rendering the first-person body in this"
                                 + " scene, or FirstPersonCompat no longer recognises its camera-entity flag"
                                 + " (LivingEntityRenderStateAccess#isCameraEntity), leaving the compat dormant");
             }
             if (leaksAfter > leaksBefore) {
                 throw new IllegalStateException(
                         "[smoke/fcgt] HEAD scopes leaked with the guards on (" + leaksBefore + " -> " + leaksAfter
-                                + ") — a scope is still being entered for a layer submit that FPM cancels, so the"
+                                + ") - a scope is still being entered for a layer submit that FPM cancels, so the"
                                 + " worn head's opacity bleeds into the rest of the entity render");
             }
 
@@ -119,7 +119,7 @@ public final class FirstPersonSmokeTest implements FabricClientGameTest {
             if (unguardedLeaksAfter <= unguardedLeaksBefore) {
                 throw new IllegalStateException(
                         "[smoke/fcgt] no HEAD scope leaked with the guards disabled (" + unguardedLeaksBefore
-                                + " -> " + unguardedLeaksAfter + ") — this scene does not reproduce the leak the"
+                                + " -> " + unguardedLeaksAfter + ") - this scene does not reproduce the leak the"
                                 + " guards exist for, so the guarded assertion above is vacuous. Either FPM stopped"
                                 + " cancelling CustomHeadLayer#submit, or the head scope is no longer entered here");
             }

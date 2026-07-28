@@ -210,7 +210,7 @@ public class ServerConfiguration implements ConfigurationSource<ServerConfigurat
         hasChangedComparedToSerializedContent = true;
     }
 
-    // ServerConfiguration is a container. Its structural (shape) migration — legacy UUID map -> v3 -> v4 —
+    // ServerConfiguration is a container. Its structural (shape) migration - legacy UUID map -> v3 -> v4 -
     // is format-aware and stays in deserialize(...)/ServerConfigurationDeserializer, because those input
     // shapes aren't ServerConfiguration objects yet and so can't be expressed as migrateFrom(old). Everything
     // downstream of that is per-item linear schema migration (the embedded ServerWideSettings' schema and

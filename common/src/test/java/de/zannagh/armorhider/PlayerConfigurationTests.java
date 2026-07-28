@@ -229,7 +229,7 @@ class PlayerConfigurationTests {
         // the no-arg constructor (which sets exclusionItems = defaults())?
         // Or does it leave it null?
         assertNotNull(config.exclusionItems,
-                "GSON deserialization left exclusionItems null — constructor not called?");
+                "GSON deserialization left exclusionItems null - constructor not called?");
         assertFalse(config.exclusionItems.getItemsForSlot(net.minecraft.world.entity.EquipmentSlot.HEAD).isEmpty(),
                 "exclusionItems was initialized but has no HEAD items");
     }
@@ -351,7 +351,7 @@ class PlayerConfigurationTests {
     void migrationSeedsMissingGlobalOverride() {
         // Reproduce the inert legacy state: an older build created the override lazily, so a user who switched
         // "unknown players → global" (usePlayerSettingsWhenUndeterminable = false) or "global for all players"
-        // ended up with the flag persisted but globalPlayerOverride == null — which resolved to throwaway
+        // ended up with the flag persisted but globalPlayerOverride == null - which resolved to throwaway
         // vanilla defaults and made the mod appear to do nothing until the config file was deleted.
         var legacy = PlayerConfig.defaults(UUID.randomUUID(), "Player446");
         legacy.configVersion = 8;
@@ -454,7 +454,7 @@ class PlayerConfigurationTests {
     // ── Config healing (schema v12) ──────────────────────────────────────────────────────────────
     // These cover the corruption that survives a restart AND a mod reinstall, because it lives in
     // config/armor-hider.json rather than in the mod. Healing runs on every deserialize, NOT only when
-    // the version is stale — a config already at the current version can still be corrupt.
+    // the version is stale - a config already at the current version can still be corrupt.
 
     @Test
     @DisplayName("Opacity above the valid range is clamped when read from disk")
@@ -475,8 +475,8 @@ class PlayerConfigurationTests {
     @DisplayName("Non-finite opacity falls back to the default and stays serializable")
     void healRejectsNonFiniteOpacity() {
         // Bare NaN/Infinity are not legal JSON, so they cannot arrive through the parser. They reach a config
-        // item through the single-argument constructor — which is exactly the path the Gson type adapter uses
-        // — or through arithmetic on a value. Either way the danger is the same: Gson#toJson throws
+        // item through the single-argument constructor - which is exactly the path the Gson type adapter uses
+        // - or through arithmetic on a value. Either way the danger is the same: Gson#toJson throws
         // IllegalArgumentException on a non-finite double, which escapes the IOException-only catch in the
         // save path and can leave the settings screen unclosable.
         var config = PlayerConfig.defaults(UUID.randomUUID(), "Corrupt");
@@ -594,7 +594,7 @@ class PlayerConfigurationTests {
         }
         // Behaviourally identical to sending ExclusionItemConfiguration.defaults(): every default entry is
         // `intercepted` (shouldIgnore == false), and shouldArmorHiderIgnore also returns false for an absent
-        // entry — so an empty map resolves the same way for every reader while being smaller on the wire.
+        // entry - so an empty map resolves the same way for every reader while being smaller on the wire.
         // (Not asserted through shouldArmorHiderIgnore directly: that needs an Item instance, and touching
         // net.minecraft.world.item.Items requires the MC registry bootstrap these unit tests do not run.)
     }
@@ -605,7 +605,7 @@ class PlayerConfigurationTests {
         // exclusionItems is a plain reflective Gson map, NOT covered by
         // ConfigurationSourceSerializer#initializeNullConfigFields, so explicit JSON nulls reach prune()
         // verbatim. An NPE there escapes deserialize() into PlayerConfigFileProvider's catch-all, which
-        // throws the config away and writes defaults — the exact opposite of healing it.
+        // throws the config away and writes defaults - the exact opposite of healing it.
         String json = """
                 {
                   "configVersion": 12,
@@ -760,6 +760,6 @@ class PlayerConfigurationTests {
         var config = PlayerConfig.deserialize(json);
         assertFalse(config.shouldMigrate(), "precondition: this config must not qualify for migration");
         assertEquals(1.0, config.bootsOpacity.getValue(),
-                "healing must not be gated on the schema version — that is why the reporter's config survived a reinstall");
+                "healing must not be gated on the schema version - that is why the reporter's config survived a reinstall");
     }
 }

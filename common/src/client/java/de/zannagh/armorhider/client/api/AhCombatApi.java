@@ -10,7 +10,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Static entry point for client-side combat detection.
  * <p>
- * Armor Hider can re-show armor (revert to the vanilla model) while a player is "in combat" — used
+ * Armor Hider can re-show armor (revert to the vanilla model) while a player is "in combat" - used
  * by the {@code inCombatUseDefaultModel} player setting. Whether a damage event counts as combat is
  * driven by per-player config and (optionally) a server-side override; the implementation here
  * registers combat events with the shared combat manager and forwards them to the server when
@@ -26,7 +26,7 @@ public interface AhCombatApi {
      * the attacker (if either is a player whose config opts into combat detection) and broadcasts
      * the event to the server.
      *
-     * @param damageSource the source of the damage — used to find the attacker.
+     * @param damageSource the source of the damage - used to find the attacker.
      * @param victim       the player who was hit, or {@code null} if the victim is not a player.
      */
     static void handleCombat(DamageSource damageSource, @Nullable Player victim) {

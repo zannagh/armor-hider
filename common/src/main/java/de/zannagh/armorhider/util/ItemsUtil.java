@@ -27,12 +27,12 @@ public final class ItemsUtil {
                     Items.PIGLIN_HEAD));
 
     // Placeholder elytra stack, built lazily and cached only on first *successful* construction.
-    // This class can be loaded — and elytraItemStack() called — before item registries / data
+    // This class can be loaded - and elytraItemStack() called - before item registries / data
     // components are bound: some UI / picture-in-picture mods drive an early render on the render
     // thread while ELYTRA's Holder is still unbound, and building the stack then throws
     // "Components not bound yet" (issue #260). A static-holder <clinit> would cache that failure
     // permanently (ExceptionInInitializerError, then NoClassDefFoundError for the rest of the
-    // session — breaking all elytra handling and crashing the render), so we build on demand,
+    // session - breaking all elytra handling and crashing the render), so we build on demand,
     // cache the result once it succeeds, and fall back to an empty stack until the registry is
     // ready, retrying on the next call. Benign double-build race only; ItemStack was already shared.
     private static volatile ItemStack elytraStack;
@@ -49,7 +49,7 @@ public final class ItemsUtil {
         } catch (NullPointerException registryNotBoundYet) {
             // The known early-render failure: ItemStack's constructor hits Holder.Reference.components() ->
             // Objects.requireNonNull("Components not bound yet") while the registry is still binding (very early
-            // PiP/GUI render). Suppress only this narrow NPE — don't cache the failure, return a harmless empty
+            // PiP/GUI render). Suppress only this narrow NPE - don't cache the failure, return a harmless empty
             // stack and retry next call. Any other exception is a real bug and is allowed to propagate.
             return ItemStack.EMPTY;
         }

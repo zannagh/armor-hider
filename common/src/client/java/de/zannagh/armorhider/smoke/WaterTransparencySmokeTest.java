@@ -37,16 +37,16 @@ import java.nio.file.Path;
  * <p>
  * The scene is built entirely with {@link ServerLevel#setBlock} (no {@code /fill} commands, so no
  * command feedback clutters the chat overlay): a tall, wide backdrop wall a few blocks in front of
- * a hovering player, from a near-horizontal third-person-back camera — so the pauldrons that
+ * a hovering player, from a near-horizontal third-person-back camera - so the pauldrons that
  * protrude past the body silhouette are seen against the wall with no opaque body pixel behind them.
  * The wall is placed with {@code UPDATE_CLIENTS} (no neighbour updates), which keeps the water as
- * non-flowing source blocks — a stable vertical water backdrop vanilla fluid physics would drain.
+ * non-flowing source blocks - a stable vertical water backdrop vanilla fluid physics would drain.
  * <p>
  * Three shots are captured from an identical, snapped pose for eyeballing (FCGT does no pixel diffing
- * here): the redirect toggled off (pre-fix — water overdraws the pads), toggled on (fixed), and a
+ * here): the redirect toggled off (pre-fix - water overdraws the pads), toggled on (fixed), and a
  * stone-backdrop control. The machine-checked assertions are that the deferral stays quiet while the
  * redirect is off ({@link ArmorHiderRenderTypes#deferredSubmitCount()} flat) and fires while it is on
- * — guarding, per this repo's smoke-test convention, against the mixin silently missing its target on
+ * - guarding, per this repo's smoke-test convention, against the mixin silently missing its target on
  * a version bump, which would revert the piece to the old overdraw behaviour with no crash to notice.
  * <p>
  * Gated to the {@code fcgt} constant and, via the render architecture it drives, effectively to
@@ -57,7 +57,7 @@ public final class WaterTransparencySmokeTest implements FabricClientGameTest {
 
     // Near-horizontal back view (matches the reported third-person scenario): the pauldrons that
     // protrude sideways past the body silhouette are seen against the water backdrop behind the
-    // player, with no opaque body pixel behind them — exactly the pixels the bug drops.
+    // player, with no opaque body pixel behind them - exactly the pixels the bug drops.
     private static final float CAMERA_PITCH = 8.0F;
 
     @Override
@@ -79,7 +79,7 @@ public final class WaterTransparencySmokeTest implements FabricClientGameTest {
                 buildArena(mcServer.overworld(), Blocks.WATER.defaultBlockState());
                 var sp = mcServer.getPlayerList().getPlayers().get(0);
                 // Hover the player (creative flight, no gravity) so nothing opaque sits behind the
-                // sideways pauldrons — only the water wall does. Facing +Z (yaw 0) toward the wall.
+                // sideways pauldrons - only the water wall does. Facing +Z (yaw 0) toward the wall.
                 var abilities = sp.getAbilities();
                 abilities.mayfly = true;
                 abilities.flying = true;
@@ -118,7 +118,7 @@ public final class WaterTransparencySmokeTest implements FabricClientGameTest {
             singleplayer.getClientLevel().waitForChunksRender();
             context.waitTicks(40);
 
-            // BEFORE — redirect off: the faded armor is drawn in the pre-terrain phase, so the water
+            // BEFORE - redirect off: the faded armor is drawn in the pre-terrain phase, so the water
             // overdraws the pads that aren't backed by an opaque body pixel (the reported bug).
             context.runOnClient(WaterTransparencySmokeTest::snapPose);
             context.waitTicks(3);
@@ -127,7 +127,7 @@ public final class WaterTransparencySmokeTest implements FabricClientGameTest {
             long brokenEnd = context.computeOnClient(client -> ArmorHiderRenderTypes.deferredSubmitCount());
             ArmorHider.LOGGER.info("[smoke/fcgt] BEFORE (redirect off) screenshot: {}", brokenShot);
 
-            // AFTER — redirect on: the faded armor draws in the after-terrain phase, over the water.
+            // AFTER - redirect on: the faded armor draws in the after-terrain phase, over the water.
             // Same pose (snapped again) so the before/after is a clean pixel-comparable pair.
             context.runOnClient(client -> {
                 ArmorHiderRenderTypes.setDeferralEnabled(true);
@@ -139,7 +139,7 @@ public final class WaterTransparencySmokeTest implements FabricClientGameTest {
             long fixedEnd = context.computeOnClient(client -> ArmorHiderRenderTypes.deferredSubmitCount());
             ArmorHider.LOGGER.info("[smoke/fcgt] AFTER (redirect on) screenshot: {}", fixedShot);
 
-            // Control — same pose, redirect on, but background swapped to solid stone. Pre-fix this
+            // Control - same pose, redirect on, but background swapped to solid stone. Pre-fix this
             // rendered the pads fine; it should look the same as the water AFTER shot.
             server.runOnServer(mcServer -> buildArena(mcServer.overworld(), Blocks.STONE.defaultBlockState()));
             singleplayer.getClientLevel().waitForChunksRender();
@@ -152,12 +152,12 @@ public final class WaterTransparencySmokeTest implements FabricClientGameTest {
             long deltaFixed = fixedEnd - fixedStart;
             if (deltaBroken != 0) {
                 throw new IllegalStateException("[smoke/fcgt] redirect fired while disabled (delta "
-                        + deltaBroken + ") — the deferral toggle is not honoured");
+                        + deltaBroken + ") - the deferral toggle is not honoured");
             }
             if (deltaFixed <= 0) {
                 throw new IllegalStateException(
                         "[smoke/fcgt] after-terrain deferral never fired while enabled (delta " + deltaFixed
-                                + ") — the translucent armor is still drawn before the water terrain;"
+                                + ") - the translucent armor is still drawn before the water terrain;"
                                 + " the redirect mixin missed its target");
             }
             ArmorHider.LOGGER.info("[smoke/fcgt] deferrals: off-window={}, on-window={}", deltaBroken, deltaFixed);
@@ -169,7 +169,7 @@ public final class WaterTransparencySmokeTest implements FabricClientGameTest {
     // Builds a tall, wide backdrop wall a few blocks in front of the hovering player (at +Z, the
     // side the third-person-back camera looks toward). {@code wall} is water for the reproduction,
     // stone for the comparison shot. UPDATE_CLIENTS syncs to the client without neighbour updates,
-    // so the water is placed as non-flowing source blocks — a stable vertical water backdrop that
+    // so the water is placed as non-flowing source blocks - a stable vertical water backdrop that
     // vanilla fluid physics would otherwise drain in a second.
     private static void buildArena(ServerLevel level, BlockState wall) {
         BlockState air = Blocks.AIR.defaultBlockState();

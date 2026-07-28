@@ -34,8 +34,13 @@ tasks.register("stageArtifacts") {
     group = "build"
     description = "Builds all loader variants and copies unique artifacts to staging/"
 
+    // Stonecutter loader variants live under :fabric:<mc> / :neoforge:<mc>. The Paper
+    // plugin is NOT a stonecutter branch: it is a single sibling subproject (":paper",
+    // the :smoke pattern) producing one jar that covers every supported MC version, so
+    // it has to be matched by exact path rather than by prefix.
+    val paperProjectPath = ":paper"
     val loaderProjects = allprojects.filter {
-        it.path.startsWith(":fabric:") || it.path.startsWith(":neoforge:")
+        it.path.startsWith(":fabric:") || it.path.startsWith(":neoforge:") || it.path == paperProjectPath
     }
     loaderProjects.forEach { dependsOn("${it.path}:build") }
 
@@ -45,12 +50,34 @@ tasks.register("stageArtifacts") {
         staging.deleteRecursively()
         staging.mkdirs()
 
+        // Union of every game version any stonecutter variant supports. The Paper plugin
+        // is version-agnostic, so this is what it publishes against.
+        val allGameVersions = loaderProjects
+            .filter { it.path != paperProjectPath }
+            .flatMap {
+                it.findProperty("game_versions")?.toString()
+                    ?.split(",")?.map { v -> v.trim() }?.filter { v -> v.isNotEmpty() }
+                    ?: emptyList()
+            }
+            .distinct()
+
         val versionMap = mutableMapOf<String, MutableMap<String, List<String>>>()
         for (proj in loaderProjects) {
-            val displayVersion = proj.findProperty("display_version")?.toString() ?: continue
-            val gameVersions = proj.findProperty("game_versions")?.toString()
+            val isPaper = proj.path == paperProjectPath
+            // A missing display_version on the Paper project would silently drop the
+            // plugin from versions.json (empty publish matrix, no error) - fail loudly.
+            val rawDisplayVersion = proj.findProperty("display_version")?.toString()
+            if (rawDisplayVersion == null && isPaper) {
+                error("Missing display_version for $paperProjectPath - expected the literal string \"paper\"")
+            }
+            val displayVersion = rawDisplayVersion ?: continue
+            val declaredGameVersions = proj.findProperty("game_versions")?.toString()
                 ?.split(",")?.map { it.trim() }?.filter { it.isNotEmpty() }
-                ?: error("Missing game_versions for ${proj.name}")
+            if (declaredGameVersions == null && !isPaper) {
+                error("Missing game_versions for ${proj.name}")
+            }
+            val gameVersions = declaredGameVersions ?: allGameVersions
+            // ":paper" -> "paper"; ":fabric:1.21.4" -> "fabric" (variant names are "<loader>-<mc>").
             val loader = proj.name.substringBefore("-")
             val existing = versionMap.getOrPut(loader) { mutableMapOf() }
                 .putIfAbsent(displayVersion, gameVersions)

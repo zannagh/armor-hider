@@ -29,10 +29,10 @@ import java.time.Duration
  * affected.
  *
  * Knobs (passed as gradle project properties via -P):
- * - `compat=all` (default)   — fetch every configured compat mod for this MC version
- * - `compat=none`            — empty mods dir
- * - `compat=clean`           — alias of none
- * - `compat=key1,key2,...`   — fetch only the listed keys (matching the property names without
+ * - `compat=all` (default)   - fetch every configured compat mod for this MC version
+ * - `compat=none`            - empty mods dir
+ * - `compat=clean`           - alias of none
+ * - `compat=key1,key2,...`   - fetch only the listed keys (matching the property names without
  *                              the `.version` suffix; e.g. `gender,geckolib`)
  *
  * Modrinth `dependencies[]` of type `required` are followed in two ways:
@@ -78,7 +78,7 @@ abstract class FetchCompatJars : DefaultTask() {
     /**
      * Memo for project_id → latest-compatible version_id resolutions per task run. Multiple
      * compat mods often declare the same required project_id dep (e.g. half the Fabric
-     * ecosystem pulls fabric-language-kotlin) — without memoization we'd re-query Modrinth
+     * ecosystem pulls fabric-language-kotlin) - without memoization we'd re-query Modrinth
      * once per occurrence, easily landing in rate-limit territory on `compat=all` runs.
      * Cleared at the start of every {@link #fetch()} invocation.
      */
@@ -193,7 +193,7 @@ abstract class FetchCompatJars : DefaultTask() {
         val mc = mcGameVersion.orNull
         val ldr = loader.orNull
         if (mc.isNullOrBlank() || ldr.isNullOrBlank()) {
-            logger.warn("[fetchCompatJars] {} required project={} but mcGameVersion/loader unset — skipping auto-resolve",
+            logger.warn("[fetchCompatJars] {} required project={} but mcGameVersion/loader unset - skipping auto-resolve",
                     parentLabel, projectId)
             projectResolutionMemo[projectId] = null
             return null

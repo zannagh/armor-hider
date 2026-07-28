@@ -1,0 +1,20 @@
+name: ArmorHider
+version: '${version}'
+main: de.zannagh.armorhider.paper.ArmorHiderPlugin
+api-version: '1.20'
+description: Server-side relay for the Armor Hider mod - stores and broadcasts player armor settings.
+author: zannagh
+website: https://modrinth.com/mod/armor-hider
+folia-supported: true
+
+dependencies:
+  server:
+    LuckPerms:
+      load: BEFORE
+      required: false
+      join-classpath: true
+
+permissions:
+  armorhider.admin:
+    description: Allows changing Armor Hider's server-wide settings from the in-game menu.
+    default: op

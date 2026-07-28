@@ -10,7 +10,7 @@ import net.minecraft.client.Minecraft;
  * {@code setDown} override. Vanilla calls {@code setDown} for reasons that are not key presses:
  * {@code Minecraft#setScreen(non-null)} runs {@code KeyMapping.releaseAll()}, and closing a screen
  * runs {@code MouseHandler#grabMouse()} which calls {@code KeyMapping.setAll()} whenever
- * {@code InputQuirks.RESTORE_KEY_STATE_AFTER_MOUSE_GRAB} is set — that flag is {@code !ON_OSX}, so it
+ * {@code InputQuirks.RESTORE_KEY_STATE_AFTER_MOUSE_GRAB} is set - that flag is {@code !ON_OSX}, so it
  * is on for Windows/Linux and off for macOS. Running an action from {@code setDown} therefore made
  * "close a screen while the bound key is physically held" re-fire the action, which turned the
  * open-settings binding into an inescapable re-open loop on Windows/Linux only.

@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
- * Boot-smoke only: when the client boots with {@code -Darmorhider.smoke.exit=true} (Phase 1 boot smoke —
+ * Boot-smoke only: when the client boots with {@code -Darmorhider.smoke.exit=true} (Phase 1 boot smoke -
  * the only automated coverage NeoForge and the pre-1.21.4 Fabric versions get, since FCGT is Fabric 1.21.4+
  * only), open each ArmorHider screen once from the title screen so its init + first render actually run on
  * that loader/version. A crash in any screen's init (e.g. the compound-button-row array overflow) then fails

@@ -8,7 +8,7 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * Identifies one rendering "concern" that Armor Hider tracks independently. Each scope has its
- * own active modification context — layer mixins enter/exit their scope, and downstream
+ * own active modification context - layer mixins enter/exit their scope, and downstream
  * interceptors query the scope they care about.
  * <p>
  * Splitting these makes the interception pipeline composable: hiding the chest doesn't have to
@@ -20,17 +20,17 @@ import org.jspecify.annotations.Nullable;
 public enum RenderScope {
     /** Sentinel used by {@link RenderInterceptionResult#ignore()}; no scope is active. */
     NONE,
-    /** Vanilla armor pieces — head/chest/legs/feet armor models, both the equipment and humanoid layers. */
+    /** Vanilla armor pieces - head/chest/legs/feet armor models, both the equipment and humanoid layers. */
     ARMOR_PIECE,
-    /** Elytra wings rendered as a chest-slot model — separate from {@link #ARMOR_PIECE} because the elytra has its own layer. */
+    /** Elytra wings rendered as a chest-slot model - separate from {@link #ARMOR_PIECE} because the elytra has its own layer. */
     ELYTRA,
-    /** Cape rendering — distinct from the chest slot so caped players keep their cape when chest armor is hidden. */
+    /** Cape rendering - distinct from the chest slot so caped players keep their cape when chest armor is hidden. */
     CAPE,
     /** Off-hand item rendered in third person ({@code ItemInHandLayer}) and first person ({@code ItemInHandRenderer}). */
     OFFHAND,
     /** Worn head items (skulls, blocks-on-head) rendered by {@code CustomHeadLayer}. */
     HEAD,
-    /** Fallback "any scope" key for the registry — see {@link de.zannagh.armorhider.client.api.AhRenderInterceptionRegistryApi}. */
+    /** Fallback "any scope" key for the registry - see {@link de.zannagh.armorhider.client.api.AhRenderInterceptionRegistryApi}. */
     ALL;
 
     /**

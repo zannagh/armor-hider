@@ -15,7 +15,7 @@ inputs:
     description: Path to the downloaded artifacts directory
     required: true
   loader:
-    description: The mod loader (fabric, neoforge)
+    description: The mod loader (fabric, neoforge, paper)
     required: true
 
 outputs:
@@ -70,12 +70,20 @@ runs:
         case "$LOADER" in
           fabric)   SHORT_LOADER="fab" ;;
           neoforge) SHORT_LOADER="neo" ;;
+          paper)    SHORT_LOADER="ppr" ;;
           *)        SHORT_LOADER="$LOADER" ;;
         esac
         SHORT_MOD_VERSION="${MOD_VERSION//-pre./-p.}"
 
-        VERSION_NUMBER="${SHORT_LOADER}-${DISPLAY_VERSION_SHORT}-${SHORT_MOD_VERSION}"
-        VERSION_NAME="[${LOADER^}] ${DISPLAY_VERSION} - ${MOD_VERSION}"
+        if [[ "$LOADER" == "paper" ]]; then
+          # The Paper plugin is one version-agnostic server jar (display_version == "paper"),
+          # so repeating the display version would just read "ppr-paper-<ver>" / "[Paper] paper".
+          VERSION_NUMBER="${SHORT_LOADER}-${SHORT_MOD_VERSION}"
+          VERSION_NAME="[Paper] Plugin - ${MOD_VERSION}"
+        else
+          VERSION_NUMBER="${SHORT_LOADER}-${DISPLAY_VERSION_SHORT}-${SHORT_MOD_VERSION}"
+          VERSION_NAME="[${LOADER^}] ${DISPLAY_VERSION} - ${MOD_VERSION}"
+        fi
 
         if [[ "$IS_PRERELEASE" == "true" ]]; then
           VERSION_TYPE="beta"

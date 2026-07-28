@@ -75,7 +75,7 @@ public abstract class LivingEntityRendererMixin
      * <p>
      * In 1.21.4–1.21.8 this is redundant (the scope is already entered by
      * {@code EntityRenderDispatcherMixin} which hooks the wrapping {@code render(Entity)} method),
-     * but harmless — {@code enterEntityRender()} simply resets to SENTINEL.
+     * but harmless - {@code enterEntityRender()} simply resets to SENTINEL.
      * In 1.21.9+ it is required because {@code submit(EntityRenderState)} is a separate call.
      */
     @Inject(

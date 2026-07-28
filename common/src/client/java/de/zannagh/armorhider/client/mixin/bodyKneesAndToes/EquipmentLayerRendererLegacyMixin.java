@@ -28,7 +28,7 @@ import org.spongepowered.asm.mixin.injection.At;
  * HumanoidArmorLayerMixin / ElytraRenderMixin) but no alpha applied. This mixin fills exactly that gap; the
  * internal render calls it wraps ({@code armorCutoutNoCull}, {@code armorTrimsSheet}, {@code renderToBuffer},
  * {@code hasFoil}) are identical to the 1.21.4–1.21.8 branch. The combat "use vanilla model" bookkeeping is
- * intentionally omitted here — it is a separate, higher-version-only concern.
+ * intentionally omitted here - it is a separate, higher-version-only concern.
  ^/
 @SuppressWarnings("UnusedMixin")
 @Mixin(EquipmentLayerRenderer.class)

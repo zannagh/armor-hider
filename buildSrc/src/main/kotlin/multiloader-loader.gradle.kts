@@ -40,7 +40,7 @@ val fetchCompatJars = tasks.register<FetchCompatJars>("fetchCompatJars") {
     include.set(selectedKeys)
     activeMcVersion?.let { mcGameVersion.set(it) }
     activeLoader?.let { loader.set(it) }
-    // Never cache — the action wipes run/mods/ before populating it. If Gradle skips us
+    // Never cache - the action wipes run/mods/ before populating it. If Gradle skips us
     // on a transitively-cached call, a prior smoke row's mods can leak into the next.
     outputs.upToDateWhen { false }
 }
@@ -57,7 +57,7 @@ val fetchFcgtCompatJars = tasks.register<FetchCompatJars>("fetchFcgtCompatJars")
     }
     activeMcVersion?.let { mcGameVersion.set(it) }
     activeLoader?.let { loader.set(it) }
-    // Same caching note as fetchCompatJars — never up-to-date.
+    // Same caching note as fetchCompatJars - never up-to-date.
     outputs.upToDateWhen { false }
 }
 val commonNode = sc.node.sibling("common")
@@ -110,7 +110,7 @@ dependencies {
     }
     // First Person Model is Fabric-only, but the loader project compiles common's sources too, so the
     // unremapped jar has to be here as well. That is usable only because FirstPersonCompat never touches an
-    // FPM member whose signature names a Minecraft type — FPM's own types (LogicHandler and friends) are
+    // FPM member whose signature names a Minecraft type - FPM's own types (LogicHandler and friends) are
     // fine, since those resolve identically either way; it is the MC types that differ between namespaces.
     if (hasProperty("firstperson.version")) {
         add("compileOnly", "maven.modrinth:first-person-model:${findProperty("firstperson.version")}")

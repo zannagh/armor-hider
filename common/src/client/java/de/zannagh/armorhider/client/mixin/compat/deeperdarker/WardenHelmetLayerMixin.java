@@ -17,19 +17,19 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 /^*
  * Compatibility mixin for Deeper and Darker's Warden armor helmet on the mod's 1.4.x builds
  * (which ship the renderer as {@code WardenHelmetRenderer}; the 1.3.x builds call it
- * {@code HelmetHornRenderer} — see {@code HelmetHornLayerMixin}).
+ * {@code HelmetHornRenderer} - see {@code HelmetHornLayerMixin}).
  * <p>
  * The Warden armor pieces are plain {@code ArmorItem}s, so their body renders through the vanilla
  * armor layer and is already hidden by armor-hider's {@code HumanoidArmorLayer}/{@code renderArmorPiece}
  * cancellation. The helmet's horns, however, are drawn by this separate {@code RenderLayer} added to
- * player renderers, which bypasses that path — leaving the horns visible ("sticking out") when the rest
+ * player renderers, which bypasses that path - leaving the horns visible ("sticking out") when the rest
  * of the helmet is hidden.
  * <p>
  * This coarse hide-cancellation drops the horn layer whenever the wearer's HEAD slot is configured to
  * hide, so the horns disappear together with the helmet. Resolving through
  * {@link IdentityCarrier#getModification} keeps per-item exclusions and the opacity threshold intact.
  * <p>
- * Entity-based {@code RenderLayer#render} signature — only valid on MC &lt; 1.21.2. Deeper and Darker
+ * Entity-based {@code RenderLayer#render} signature - only valid on MC &lt; 1.21.2. Deeper and Darker
  * publishes no build above 1.21.1, so every target that exists is entity-based and no render-state
  * ({@code >= 1.21.2}) variant is needed. Gated by the {@code deeperdarker_warden} constant, set for
  * variants pinning a D&amp;D 1.4.x jar (currently NeoForge 1.21.1) via {@code deeperdarker.warden_class}.

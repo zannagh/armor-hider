@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * Default renderer for {@link RenderScope#CAPE}.
  * <p>
  * The cape is a special case: even when the chest piece is "hidden" we usually still want the cape
- * to render — only the elytra-while-flying combination requires suppressing the cape entirely (the
+ * to render - only the elytra-while-flying combination requires suppressing the cape entirely (the
  * elytra-hidden body re-renders the cape itself).
  */
 public class ArmorHiderCapeRenderer extends AbstractArmorHiderRenderer {

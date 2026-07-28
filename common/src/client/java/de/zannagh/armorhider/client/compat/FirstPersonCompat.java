@@ -15,11 +15,11 @@ import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
  * Compatibility for First Person Model (tr7zw), which draws the local player's <em>body</em> in first
  * person by extracting a normal {@code AvatarRenderState} for the camera entity and appending it to the
  * regular entity render list. Identity capture and our per-layer render scopes therefore work exactly as
- * they do in third person — nothing to fix there.
+ * they do in third person - nothing to fix there.
  * <p>
  * What does need handling is that FPM cancels several layer submits at their {@code HEAD} for that camera
  * entity. Our scope-enter hooks also sit at {@code HEAD} and, being ordered ahead of FPM's, run first: we
- * enter the scope, FPM cancels the submit, and our {@code @At("RETURN")} exit never fires — the scope then
+ * enter the scope, FPM cancels the submit, and our {@code @At("RETURN")} exit never fires - the scope then
  * leaks into the rest of the frame and colours unrelated rendering. Rather than entering and hoping for an
  * exit, the predicates below mirror FPM's cancel conditions so we never enter a scope for a submit that is
  * about to be discarded. Skipping is visually free: the submit produces nothing either way.
@@ -82,10 +82,10 @@ public final class FirstPersonCompat {
         if (!access.hideLeftArm() || !access.hideRightArm()) {
             return false;
         }
-        // Inlines FPM's LogicHandler#lookingDown(state) — `dynamicHandsEnabled() && state.xRot > 30`.
+        // Inlines FPM's LogicHandler#lookingDown(state) - `dynamicHandsEnabled() && state.xRot > 30`.
         // Calling that overload directly would put a Minecraft type (LivingEntityRenderState) in an FPM
         // signature we touch, and the loader-side compile classpath carries the *unremapped* FPM jar, where
-        // MC types resolve to the other namespace. FPM's own types are fine — only MC types are the problem,
+        // MC types resolve to the other namespace. FPM's own types are fine - only MC types are the problem,
         // so getLogicHandler() (returns LogicHandler) is safe while lookingDown(state) is not.
         return record(state instanceof HumanoidRenderState humanoidState
                 && !(FirstPersonModelCore.instance.getLogicHandler().dynamicHandsEnabled()

@@ -48,3 +48,10 @@ tasks.test {
     // only run tests once
     enabled = sc.current.isActive
 }
+
+// PaperSchemaContractTests reads :paper's compiled constants off the classpath (see the
+// testImplementation files(...) entry in multiloader-loom), so they must be built first - on the
+// compile task too, not just `test`, or Gradle rejects the undeclared cross-project input.
+tasks.named("compileTestJava") {
+    dependsOn(":paper:classes")
+}

@@ -32,7 +32,7 @@ import java.nio.file.Path;
  * runtime signal, leaving screenshots for eyeballing the rest (this repo's smoke convention):
  * <ol>
  *   <li><b>Breast-armor translucency (issue 3).</b> With a chestplate equipped and chest opacity at
- *       50%, the breast cups must fade like the body plate — not vanish. The breast render-type swap
+ *       50%, the breast cups must fade like the body plate - not vanish. The breast render-type swap
  *       is a {@code @Pseudo @WrapOperation} that fails silently if it can't resolve its target,
  *       leaving the piece on the alpha-tested {@code armorCutoutNoCull} type (a reduced-alpha colour
  *       is then discarded wholesale). We assert {@link ArmorHiderRenderTypes#breastArmorTranslucentSwapCount()}
@@ -47,7 +47,7 @@ import java.nio.file.Path;
  *       clearly more.</li>
  *   <li><b>Combat fade (issue 2).</b> After a damage event the cups must ride the same opacity ramp
  *       back down as the body plate, rather than staying opaque for the whole combat window and then
- *       snapping to hidden. Asserted mid-ramp via the same swap counter — see
+ *       snapping to hidden. Asserted mid-ramp via the same swap counter - see
  *       {@code assertFadesDuringCombat}.</li>
  * </ol>
  * <p>
@@ -91,7 +91,7 @@ public final class GenderBreastArmorSmokeTest implements FabricClientGameTest {
                 player.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.DIAMOND_CHESTPLATE));
                 client.options.setCameraType(CameraType.THIRD_PERSON_FRONT);
 
-                // A prior smoke test (keybind) can leave the session disable override on — clear it so
+                // A prior smoke test (keybind) can leave the session disable override on - clear it so
                 // the chest actually fades here regardless of test ordering.
                 ArmorHiderClient.CLIENT_CONFIG_MANAGER.clearSessionDisableOverride();
             });
@@ -122,7 +122,7 @@ public final class GenderBreastArmorSmokeTest implements FabricClientGameTest {
             if (swapsAfter <= swapsBefore) {
                 throw new IllegalStateException(
                         "[smoke/fcgt] breast-armor render-type swap never fired while the breast was faded"
-                                + " (count " + swapsBefore + " -> " + swapsAfter + ") — the piece stays on the"
+                                + " (count " + swapsBefore + " -> " + swapsAfter + ") - the piece stays on the"
                                 + " alpha-tested cutout type and is discarded instead of turning translucent;"
                                 + " the @Pseudo @WrapOperation missed its target on this version/mod build");
             }
@@ -130,7 +130,7 @@ public final class GenderBreastArmorSmokeTest implements FabricClientGameTest {
                     swapsAfter - swapsBefore);
 
             // ── Issue 1: jiggle with the plate hidden vs. visible ────────────────────────────────
-            // First prove the physics-relaxation hook actually fires and detects the hidden chest —
+            // First prove the physics-relaxation hook actually fires and detects the hidden chest -
             // the bounce magnitude alone proved too small/noisy to trust while the hook was silently
             // reading stale state. These counters are the real machine check; the bounce numbers are
             // logged for context only.
@@ -152,14 +152,14 @@ public final class GenderBreastArmorSmokeTest implements FabricClientGameTest {
             if (ticksHidden2 <= ticksHidden) {
                 throw new IllegalStateException(
                         "[smoke/fcgt] getArmorPhysicsOverride hook never fired (count " + ticksHidden + " -> "
-                                + ticksHidden2 + ") — GenderPhysicsMixin's @ModifyReturnValue missed its target,"
+                                + ticksHidden2 + ") - GenderPhysicsMixin's @ModifyReturnValue missed its target,"
                                 + " so armor physics is never relaxed when the plate is hidden");
             }
             if (relaxedHidden2 <= relaxedHidden) {
                 throw new IllegalStateException(
                         "[smoke/fcgt] physics hook fired but never forced the armor-physics override with the"
                                 + " chest fully hidden (relaxed " + relaxedHidden + " -> " + relaxedHidden2
-                                + ") — the hidden-chest condition (shouldHide) is not being met at physics time");
+                                + ") - the hidden-chest condition (shouldHide) is not being met at physics time");
             }
             assertFadesDuringCombat(context, singleplayer);
 
@@ -181,7 +181,7 @@ public final class GenderBreastArmorSmokeTest implements FabricClientGameTest {
         context.runOnClient(client -> {
             // Neither is a default. enableCombatDetection is what CombatDetectionSmokeTest turns on the
             // same way; inCombatUseDefaultModel is what makes this a regression test rather than a
-            // tautology — it is the setting that gates shouldEnforceVanillaRendering(), and the old
+            // tautology - it is the setting that gates shouldEnforceVanillaRendering(), and the old
             // short-circuit only fired when a user had it enabled.
             var combatConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER
                     .resolveConfig(ArmorHiderClient.getCurrentPlayerName());
@@ -194,7 +194,7 @@ public final class GenderBreastArmorSmokeTest implements FabricClientGameTest {
             var level = mcServer.overworld();
             var serverPlayer = mcServer.getPlayerList().getPlayers().get(0);
             // The world is created in creative for the render/physics sections above, and a creative
-            // player shrugs off generic damage — no damage event, no combat, nothing to assert.
+            // player shrugs off generic damage - no damage event, no combat, nothing to assert.
             serverPlayer.setGameMode(GameType.SURVIVAL);
             serverPlayer.hurtServer(level, level.damageSources().generic(), 4.0F);
         });
@@ -204,7 +204,7 @@ public final class GenderBreastArmorSmokeTest implements FabricClientGameTest {
         if (transparencyOnHit < 0.9) {
             throw new IllegalStateException(
                     "[smoke/fcgt] chest transparency is " + transparencyOnHit + " right after damage, expected ~1.0"
-                            + " — combat detection never reached opacity resolution, so the fade assertion below"
+                            + " - combat detection never reached opacity resolution, so the fade assertion below"
                             + " would not be testing the fade");
         }
 
@@ -218,7 +218,7 @@ public final class GenderBreastArmorSmokeTest implements FabricClientGameTest {
         if (transparencyMidFade > 0.95 || transparencyMidFade < 0.5) {
             throw new IllegalStateException(
                     "[smoke/fcgt] chest transparency never entered the mid-fade band (last value "
-                            + transparencyMidFade + ") — cannot tell whether the breast armor follows the ramp");
+                            + transparencyMidFade + ") - cannot tell whether the breast armor follows the ramp");
         }
 
         long swapsBefore = context.computeOnClient(client -> ArmorHiderRenderTypes.breastArmorTranslucentSwapCount());
@@ -231,7 +231,7 @@ public final class GenderBreastArmorSmokeTest implements FabricClientGameTest {
         if (swapsAfter <= swapsBefore) {
             throw new IllegalStateException(
                     "[smoke/fcgt] breast-armor render-type swap never fired mid combat fade (count " + swapsBefore
-                            + " -> " + swapsAfter + ") at transparency " + transparencyMidFade + " — the breast cups"
+                            + " -> " + swapsAfter + ") at transparency " + transparencyMidFade + " - the breast cups"
                             + " ignore the combat ramp and stay fully opaque until the combat event expires, then"
                             + " snap to hidden, while the body plate fades smoothly");
         }

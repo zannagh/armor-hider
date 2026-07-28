@@ -40,6 +40,30 @@ jobs:
         id: version
         uses: zannagh/versionizer/calculate-version@v1
 
+      # `stageArtifacts` below compiles everything but runs NO tests, so without this step the job
+      # only ever checked that the project builds. Runs first, to fail fast.
+      #
+      # Deliberately NOT `./gradlew test`: :smoke:test arms itself when the requested task names
+      # contain exactly "test" (smoke/build.gradle.kts), which would boot real Minecraft clients and
+      # PaperMC servers on every pull request. Naming the two unit-test tasks explicitly keeps this
+      # to a few seconds and cannot pull in the smoke matrix.
+      #
+      # The common tests are stonecutter-versioned and only enabled on the active variant
+      # (`enabled = sc.current.isActive`), so the variant is read from the controller rather than
+      # hardcoded - otherwise this silently becomes a no-op the next time the active variant moves.
+      - name: Unit tests
+        run: |
+          ACTIVE=$(grep -oE 'stonecutter active "[^"]+"' stonecutter.gradle.kts | sed 's/.*"\(.*\)"/\1/')
+          if [ -z "$ACTIVE" ]; then
+            echo "::error::Could not read the active stonecutter variant from stonecutter.gradle.kts"
+            exit 1
+          fi
+          echo "Active stonecutter variant: $ACTIVE"
+          # Braces are load-bearing: unbraced, `$ACTIVE:test` is parsed by zsh as the `:t` (tail)
+          # parameter modifier, yielding `:common:fabric-26.2est`. Harmless in CI's bash, but it
+          # breaks the moment anyone runs this line in a local zsh shell.
+          ./gradlew :paper:test ":common:${ACTIVE}:test"
+
       - name: Build & Stage Artifacts
         run: ./gradlew stageArtifacts -PsemVer="${{ steps.version.outputs.fullSemVer }}" -Pprerelease="true"
 

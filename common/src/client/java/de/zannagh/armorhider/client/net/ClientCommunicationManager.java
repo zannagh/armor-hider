@@ -13,9 +13,9 @@ import de.zannagh.armorhider.server.ServerConfiguration;
 import de.zannagh.armorhider.util.PlayerNameUtil;
 import net.minecraft.client.multiplayer.ServerData;
 
-//? if >= 1.20.5 
+//? if >= 1.20.5
 import de.zannagh.armorhider.net.PayloadRegistry;
-//? if < 1.20.5 
+//? if < 1.20.5
 //import de.zannagh.armorhider.net.LegacyPacketHandler;
 
 /**
@@ -45,7 +45,7 @@ public final class ClientCommunicationManager {
             }
             handlePermissionPacketReceived(payload);
         });
-        
+
         LegacyPacketHandler.registerS2CHandler(LegacyPacketHandler.getCombatLogNotificationChannel(), ctx -> {
             if (!(ctx.payload() instanceof CombatLogNotificationPacket payload)) {
                 return;
@@ -79,7 +79,7 @@ public final class ClientCommunicationManager {
                     //boolean isSinglePlayer = client.isSingleplayer();
                     if (isSinglePlayer) {
                         ArmorHiderClient.permissionLevel = 4;
-                    } 
+                    }
                 } catch (Exception ignored) {
                     ArmorHider.LOGGER.error("Failed to set permissions for player {}.", playerName);
                 }
@@ -91,7 +91,7 @@ public final class ClientCommunicationManager {
 
             // A send failure must never abort the join. ClientPacketSender already swallows the
             // "server doesn't know this channel" case, but the encoder can still reject an oversized
-            // payload and the connection can drop between the check and the write — neither is worth
+            // payload and the connection can drop between the check and the write - neither is worth
             // taking the client down for, since the config is client-authoritative anyway.
             try {
                 ClientPacketSender.sendToServer(currentConfig.forNetwork());
@@ -125,7 +125,7 @@ public final class ClientCommunicationManager {
     private static void handlePermissionPacketReceived(PermissionPacket ctx) {
         DebugLogger.log("Received permission packet from server: {}", ctx.permissionLevel);
         ArmorHiderClient.permissionLevel = ctx.permissionLevel;
-        
+
     }
 
     private static void handleCombatLogNotificationReceived(CombatLogNotificationPacket ctx) {

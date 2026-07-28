@@ -19,7 +19,7 @@ import java.util.Comparator;
  * swaps, glint toggling, color tweaks). Pass-through-safe: when no modification is active,
  * every method returns the original value unchanged.
  * <p>
- * Obtain an instance via {@link RenderScopeContext#renderModificationApi()} (preferred — the
+ * Obtain an instance via {@link RenderScopeContext#renderModificationApi()} (preferred - the
  * context already carries the resolved modification) or via
  * {@link AhRenderManagementApi#getActiveScope(RenderScope)} for the active scope. For one-off
  * lookups with a known {@link SlotModification}, use {@link #getInstance(SlotModification)}.
@@ -72,7 +72,7 @@ public interface AhRenderModificationApi {
     }
 
     /**
-     * Register a custom {@link AhColorTransformer}. Lower priority values win — mirrors
+     * Register a custom {@link AhColorTransformer}. Lower priority values win - mirrors
      * {@link #registerRenderTypeFactory(AhRenderTypeFactory, int)}. Useful for compat layers that
      * want gamma-corrected blending or shader-friendly color spaces, and for the mod itself to
      * conditionally swap arithmetic per compat scenario without touching mixin call sites.
@@ -90,7 +90,7 @@ public interface AhRenderModificationApi {
     void setColorTransformer(AhColorTransformer colorTransformer);
 
     /**
-     * Returns the {@link AhColorTransformer} used by this instance — either a registered override
+     * Returns the {@link AhColorTransformer} used by this instance - either a registered override
      * (highest precedence) or the built-in {@code DefaultColorTransformer}. Use the returned
      * transformer for any color arithmetic that needs to honor compat overrides, rather than
      * doing the bit-twiddling inline at each call site.
@@ -110,7 +110,7 @@ public interface AhRenderModificationApi {
      * Produce a translucent white color (opaque white with its alpha scaled by the active
      * transparency). Used by render layers whose vanilla color is white (e.g. armor trims,
      * skulls). Returns opaque white ({@code 0xFFFFFFFF}) when no modification is active, so
-     * callers never have to supply — or accidentally mis-supply — a fallback color.
+     * callers never have to supply - or accidentally mis-supply - a fallback color.
      */
     int applyTransparencyFromWhite();
 
@@ -131,7 +131,7 @@ public interface AhRenderModificationApi {
     boolean getHasFoil(boolean original);
 
     /**
-     * Adjust render priority — used in 1.21.9+ to re-order the elytra and skull layers so they
+     * Adjust render priority - used in 1.21.9+ to re-order the elytra and skull layers so they
      * draw after armor (avoids translucent-armor occluding them). Returns the original priority
      * when no modification is active.
      */
@@ -155,7 +155,7 @@ public interface AhRenderModificationApi {
     Object getTrimRenderLayer(boolean decal, Object originalRenderType);
 
     /**
-     * Swap a block-item-sheet render type for a translucent one — used for offhand banners and
+     * Swap a block-item-sheet render type for a translucent one - used for offhand banners and
      * shields on MC versions where they don't use the entity sheet.
      */
     Object getTranslucentItemRenderType(Object originalRenderType);

@@ -89,7 +89,7 @@ public final class VanillaArmorTextureManager {
         if (stack.size() <= 1) {
             negativeLookupCache.put(original, ABSENT);
             if (DebugLogger.isEnabled()) {
-                DebugLogger.log("[VanillaTexture] No override detected for {} — skipping", original);
+                DebugLogger.log("[VanillaTexture] No override detected for {} - skipping", original);
             }
             return null;
         }
@@ -138,7 +138,7 @@ public final class VanillaArmorTextureManager {
                     textureManager.release(fallbackId);
                 }
                 if (DebugLogger.isEnabled()) {
-                    DebugLogger.log("[VanillaTexture] ResourceManager changed — cleared {} cached fallback textures",
+                    DebugLogger.log("[VanillaTexture] ResourceManager changed - cleared {} cached fallback textures",
                             fallbackCache.size());
                 }
             }
@@ -202,7 +202,7 @@ public final class VanillaArmorTextureManager {
         if (stack.size() == 1) {
             negativeLookupCache.put(vanillaTexturePath, ABSENT);
             if (DebugLogger.isEnabled()) {
-                DebugLogger.log("[VanillaTexture] Only vanilla provides {} — using directly", vanillaTexturePath);
+                DebugLogger.log("[VanillaTexture] Only vanilla provides {} - using directly", vanillaTexturePath);
             }
             return vanillaTexturePath;
         }

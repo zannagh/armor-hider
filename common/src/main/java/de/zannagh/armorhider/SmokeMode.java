@@ -11,10 +11,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * <p>
  * Activated by JVM property {@code armorhider.smoke.exit=true}. Optional knobs:
  * <ul>
- *   <li>{@code armorhider.smoke.delay.ms} — milliseconds to wait after arming before exit.
+ *   <li>{@code armorhider.smoke.delay.ms} - milliseconds to wait after arming before exit.
  *       Default {@code 15000}. Set higher on cold CI runs where the initial resource
  *       reload takes longer.</li>
- *   <li>{@code armorhider.smoke.halt.timeout.ms} — fallback hard-halt delay if
+ *   <li>{@code armorhider.smoke.halt.timeout.ms} - fallback hard-halt delay if
  *       {@code System.exit} hangs on LWJGL/GLFW native shutdown. Default {@code 5000}.</li>
  * </ul>
  * No-op when the property is unset, so dev runs are unaffected.
@@ -70,7 +70,7 @@ public final class SmokeMode {
     /**
      * When {@code armorhider.smoke.assertCompat=true} (set by the compat smoke runs), verify that the
      * mixin-safe resource probe detected every compat mod that is actually present. Returns {@code false}
-     * (failing the smoke) if a present mod was missed — that would mean compat gating silently misfires.
+     * (failing the smoke) if a present mod was missed - that would mean compat gating silently misfires.
      * Always {@code true} when the assertion is off, so normal boot smoke is unaffected.
      */
     private static boolean compatProbingConsistent() {
@@ -84,7 +84,7 @@ public final class SmokeMode {
                     gaps, CompatManager.RESOURCE_PROBED_FLAGS);
             return false;
         }
-        ArmorHider.LOGGER.info("[smoke] Compat probing OK — resource-probed flags present: {}",
+        ArmorHider.LOGGER.info("[smoke] Compat probing OK - resource-probed flags present: {}",
                 CompatManager.RESOURCE_PROBED_FLAGS);
         return true;
     }

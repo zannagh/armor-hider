@@ -14,11 +14,11 @@ import java.util.Arrays;
 
 /**
  * When fabric-resource-loader-v0 is absent, vanilla Fabric Loader does not mount mod jars
- * as resource packs — so the armor-hider namespace is invisible to the ResourceManager and
+ * as resource packs - so the armor-hider namespace is invisible to the ResourceManager and
  * its gui sprites render as the missing-texture checkerboard. We append our own
  * {@link ArmorHiderModPackSource} to the varargs passed into the {@link PackRepository}
  * constructor (which stores them as an {@code ImmutableSet}, so modifying the field after
- * construction would throw — we have to inject before {@code ImmutableSet.copyOf}).
+ * construction would throw - we have to inject before {@code ImmutableSet.copyOf}).
  */
 @Mixin(PackRepository.class)
 public abstract class PackRepositoryMixin {

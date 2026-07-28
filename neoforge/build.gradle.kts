@@ -18,7 +18,7 @@ val clientSourceSet = sourceSets.create("client") {
     runtimeClasspath += sourceSets.main.get().output + sourceSets.main.get().runtimeClasspath
 }
 
-// NeoForge doesn't split environments — main has the full MC jar, so common client sources
+// NeoForge doesn't split environments - main has the full MC jar, so common client sources
 // must also be in main for NeoForge-specific code that references common client classes.
 val commonSourceSets = extra["commonSourceSets"] as SourceSetContainer
 sourceSets.main {
@@ -33,7 +33,7 @@ stonecutter {
 val expandResourcesForIdea = registerExpandResourcesForIdea(
     tasks.named<ProcessResources>("processResources") to "out/production/resources"
 )
-// Ensure Gradle fully compiles before IntelliJ runs — IntelliJ's "Make" doesn't trigger
+// Ensure Gradle fully compiles before IntelliJ runs - IntelliJ's "Make" doesn't trigger
 // Stonecutter generation, so without this, generated sources can be stale.
 expandResourcesForIdea.configure { dependsOn(tasks.classes, tasks.named("clientClasses")) }
 patchIdeRunConfigsAllowParallel()

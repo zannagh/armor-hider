@@ -25,9 +25,12 @@ concurrency:
 env:
   MODRINTH_PROJECT_ID: 'zannaghs-armor-hider'
   CURSEFORGE_PROJECT_ID: '1475841'
+  # Hangar project slug (the last path segment of hangar.papermc.io/<owner>/<slug>).
+  HANGAR_PROJECT_SLUG: 'armor-hider'
   # Set to 'true' to enable actual publishing, 'false' for dry-run
   PUBLISH_TO_MODRINTH: 'true'
   PUBLISH_TO_CURSEFORGE: 'true'
+  PUBLISH_TO_HANGAR: 'true'
 
 jobs:
   check-runner:
@@ -181,9 +184,12 @@ jobs:
       - name: Read Supported Versions
         id: versions
         run: |
+          # "paper" is a single version-agnostic plugin jar (display_version == "paper"),
+          # so it contributes exactly one matrix entry: {minecraft: "paper", loader: "paper"}.
           MATRIX=$(jq -c '[
             (.fabric // {} | keys[] | {minecraft: ., loader: "fabric"}),
-            (.neoforge // {} | keys[] | {minecraft: ., loader: "neoforge"})
+            (.neoforge // {} | keys[] | {minecraft: ., loader: "neoforge"}),
+            (.paper // {} | keys[] | {minecraft: ., loader: "paper"})
           ]' staging/versions.json)
           echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
 
@@ -288,7 +294,7 @@ jobs:
       fail-fast: false
       # Serialize: parallel jobs hammer Modrinth's API and get rate-limited (429). mc-publish
       # resolves loaders/game-versions against Modrinth's tag endpoints, and a throttled fetch
-      # silently yields empty metadata — the version publishes with no loaders/game_versions.
+      # silently yields empty metadata - the version publishes with no loaders/game_versions.
       max-parallel: 1
       matrix:
         include: ${{ fromJSON(needs.build.outputs.supported_versions) }}
@@ -337,7 +343,7 @@ jobs:
           echo "  Display Name:  ${{ steps.modrinth.outputs.version_name }}"
           echo "  Version Type:  ${{ steps.modrinth.outputs.version_type }}"
           echo "  Game Versions: ${{ matrix.minecraft }}"
-          echo "  Loader:        ${{ matrix.loader }}${{ matrix.loader == 'fabric' && ', quilt' || '' }}"
+          echo "  Loader:        ${{ matrix.loader }}${{ matrix.loader == 'fabric' && ', quilt' || '' }}${{ matrix.loader == 'paper' && ', folia, purpur, spigot, bukkit' || '' }}"
           echo ""
           echo "Changelog:"
           echo "---"
@@ -363,9 +369,15 @@ jobs:
           name: ${{ steps.modrinth.outputs.version_name }}
           version: ${{ steps.modrinth.outputs.version_number }}
           version-type: ${{ steps.modrinth.outputs.version_type }}
+          # The Paper plugin is pure Bukkit API, so it also covers the Bukkit-derived
+          # server platforms Modrinth models as separate loaders.
           loaders: |
             ${{ matrix.loader }}
             ${{ matrix.loader == 'fabric' && 'quilt' || '' }}
+            ${{ matrix.loader == 'paper' && 'folia' || '' }}
+            ${{ matrix.loader == 'paper' && 'purpur' || '' }}
+            ${{ matrix.loader == 'paper' && 'spigot' || '' }}
+            ${{ matrix.loader == 'paper' && 'bukkit' || '' }}
           game-versions: |
             ${{ steps.game-versions.outputs.list }}
           game-version-filter: any
@@ -391,16 +403,27 @@ jobs:
       matrix:
         include: ${{ fromJSON(needs.build.outputs.supported_versions) }}
     steps:
+      # CurseForge files Bukkit/Paper plugins under a separate game section that is not
+      # reachable from this (Minecraft mod) project, so the Paper artifact is skipped
+      # here rather than failing the job. Note: job-level `if:` cannot read `matrix`,
+      # hence the per-step guards.
+      - name: Skip Paper artifact
+        if: matrix.loader == 'paper'
+        run: echo "Skipping CurseForge upload for the Paper plugin (published to Hangar + Modrinth instead)."
+
       - name: Checkout
+        if: matrix.loader != 'paper'
         uses: actions/checkout@v7
 
       - name: Download Artifacts
+        if: matrix.loader != 'paper'
         uses: actions/download-artifact@v8
         with:
           name: armor-hider-${{ needs.build.outputs.mod_version }}
           path: artifacts
 
       - name: Get game versions
+        if: matrix.loader != 'paper'
         id: game-versions
         run: |
           VERSIONS=$(jq -r '."${{ matrix.loader }}"."${{ matrix.minecraft }}" // ["${{ matrix.minecraft }}"] | .[]' artifacts/versions.json)
@@ -409,6 +432,7 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Prepare CurseForge Upload
+        if: matrix.loader != 'paper'
         id: curseforge
         uses: ./.github/actions/prepare-modrinth-upload
         with:
@@ -419,7 +443,7 @@ jobs:
           loader: ${{ matrix.loader }}
 
       - name: Preview CurseForge Upload
-        if: steps.curseforge.outputs.found == 'true'
+        if: matrix.loader != 'paper' && steps.curseforge.outputs.found == 'true'
         env:
           CHANGELOG: ${{ needs.changelog.outputs.user-facing }}
         run: |
@@ -452,7 +476,7 @@ jobs:
           echo "=========================================="
 
       - name: Publish to CurseForge
-        if: ${{ steps.curseforge.outputs.found == 'true' && env.PUBLISH_TO_CURSEFORGE == 'true' && !inputs.dry_run }}
+        if: ${{ matrix.loader != 'paper' && steps.curseforge.outputs.found == 'true' && env.PUBLISH_TO_CURSEFORGE == 'true' && !inputs.dry_run }}
         uses: Kira-NT/mc-publish@52307b03863581dec6b652b83e597aec02ebb075 # v3.3
         with:
           curseforge-id: ${{ env.CURSEFORGE_PROJECT_ID }}
@@ -475,12 +499,229 @@ jobs:
           curseforge-fail-mode: warn
 
   # ============================================================================
+  # PUBLISH TO HANGAR (Paper plugin only)
+  # ============================================================================
+  # Not matrixed: the Paper plugin is a single version-agnostic jar, so there is
+  # exactly one upload. Published via the Hangar REST API with curl so this job does
+  # not depend on the :paper subproject wiring in the Gradle publish plugin.
+  publish-hangar:
+    name: Publish to Hangar
+    runs-on: ubuntu-latest
+    needs: [analyze, build, changelog]
+    if: |
+      needs.analyze.outputs.should_release == 'true' &&
+      needs.analyze.outputs.is_manual_release == 'true'
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: armor-hider-${{ needs.build.outputs.mod_version }}
+          path: artifacts
+
+      - name: Locate Paper plugin jar
+        id: jar
+        run: |
+          JAR=$(find artifacts -maxdepth 1 -name 'armor-hider-paper-*+paper.jar' ! -name '*-sources.jar' | head -n1)
+          if [[ -z "$JAR" ]]; then
+            echo "::warning::No Paper plugin jar found in the staged artifacts - skipping Hangar upload."
+            echo "found=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "Found Paper jar: $JAR"
+          echo "found=true" >> "$GITHUB_OUTPUT"
+          echo "path=$JAR" >> "$GITHUB_OUTPUT"
+
+      - name: Build Hangar version payload
+        if: steps.jar.outputs.found == 'true'
+        id: payload
+        env:
+          MOD_VERSION: ${{ needs.build.outputs.mod_version }}
+          IS_PRERELEASE: ${{ needs.build.outputs.is_prerelease }}
+          CHANGELOG: ${{ needs.changelog.outputs.user-facing }}
+        run: |
+          set -euo pipefail
+
+          # Hangar sits behind CloudFlare; a default curl UA can be served a challenge page.
+          UA="armor-hider-release/1.0 (+https://github.com/${{ github.repository }})"
+
+          # Hangar version strings must match ^[a-zA-Z0-9-_.+]+$ and be at most 32 chars.
+          if [[ ! "$MOD_VERSION" =~ ^[a-zA-Z0-9._+-]+$ ]]; then
+            echo "::error::Version '$MOD_VERSION' is not a valid Hangar version string (allowed: ^[a-zA-Z0-9-_.+]+\$)."
+            exit 1
+          fi
+          if [[ "${#MOD_VERSION}" -gt 32 ]]; then
+            echo "::error::Version '$MOD_VERSION' is ${#MOD_VERSION} characters - Hangar allows at most 32."
+            exit 1
+          fi
+
+          # Game versions the plugin supports = the union recorded for the "paper"
+          # display version in versions.json.
+          jq -r '.paper.paper[]?' artifacts/versions.json > declared-versions.txt
+          if [[ ! -s declared-versions.txt ]]; then
+            echo "::error::versions.json has no .paper.paper entry - stageArtifacts did not stage the Paper jar."
+            exit 1
+          fi
+
+          # Hangar rejects the WHOLE upload with a 400 if any platform version is unknown
+          # to it (there is no partial acceptance), so intersect our list with the versions
+          # Hangar actually advertises. Note: /api/v1/platforms does not exist - the real
+          # endpoint is /api/v1/platforms/{platform}/versions, and it returns a grouped
+          # array where each group's subVersions re-include the parent, while childless
+          # groups have an empty subVersions but are themselves valid versions:
+          #   [{"version":"26.2","subVersions":[]},
+          #    {"version":"26.1","subVersions":["26.1.2","26.1.1","26.1"]}, ...]
+          curl -sSf -A "$UA" https://hangar.papermc.io/api/v1/platforms/PAPER/versions \
+            -o platforms.json || echo '[]' > platforms.json
+          jq -r '.[] | if (.subVersions | length) > 0 then .subVersions[] else .version end' platforms.json \
+            > known-versions.txt || true
+
+          if [[ -s known-versions.txt ]]; then
+            comm -12 <(sort -u declared-versions.txt) <(sort -u known-versions.txt) > final-versions.txt
+            comm -23 <(sort -u declared-versions.txt) <(sort -u known-versions.txt) > dropped-versions.txt
+            if [[ -s dropped-versions.txt ]]; then
+              echo "::warning::Hangar does not know these versions yet, dropping them: $(paste -sd, dropped-versions.txt)"
+            fi
+          else
+            echo "::warning::Could not read Hangar's platform version list - sending the declared versions unfiltered."
+            cp declared-versions.txt final-versions.txt
+          fi
+
+          if [[ ! -s final-versions.txt ]]; then
+            echo "::error::No supported versions left after filtering against Hangar's platform list."
+            exit 1
+          fi
+
+          # The project defines Release / Beta / Snapshot. Prereleases here are versionizer
+          # "-preview.N" builds, which Modrinth already publishes as version_type=beta - so
+          # map them to Beta to keep the two portals consistent. Snapshot is left for any
+          # future nightly/dev channel.
+          #
+          # Only channels that ALREADY exist on the Hangar project may be used: the upload
+          # does not create channels, and an unknown name fails with a misleading
+          # "channel.noColor" error rather than "unknown channel". Names must also match
+          # ^[a-zA-Z0-9]+$ (1-15 chars) and are matched case-insensitively.
+          CHANNEL="Release"
+          if [[ "$IS_PRERELEASE" == "true" ]]; then CHANNEL="Beta"; fi
+          if [[ ! "$CHANNEL" =~ ^[a-zA-Z0-9]{1,15}$ ]]; then
+            echo "::error::Channel '$CHANNEL' is not a valid Hangar channel name (^[a-zA-Z0-9]+\$, 1-15 chars)."
+            exit 1
+          fi
+
+          jq -n \
+            --arg version "$MOD_VERSION" \
+            --arg channel "$CHANNEL" \
+            --arg description "$CHANGELOG" \
+            --rawfile versions final-versions.txt \
+            '{
+              version: $version,
+              channel: $channel,
+              description: $description,
+              files: [{ platforms: ["PAPER"] }],
+              pluginDependencies: {},
+              platformDependencies: {
+                PAPER: ($versions | split("\n") | map(select(length > 0)))
+              }
+            }' > version-upload.json
+
+          echo "channel=$CHANNEL" >> "$GITHUB_OUTPUT"
+          echo "Payload:"
+          cat version-upload.json
+
+      - name: Preview Hangar Upload
+        if: steps.jar.outputs.found == 'true'
+        run: |
+          echo "=========================================="
+          echo "HANGAR UPLOAD PREVIEW"
+          echo "=========================================="
+          echo "File:          ${{ steps.jar.outputs.path }}"
+          echo "Project slug:  ${{ env.HANGAR_PROJECT_SLUG }}"
+          echo "Version:       ${{ needs.build.outputs.mod_version }}"
+          echo "Channel:       ${{ steps.payload.outputs.channel }}"
+          echo "Platform:      PAPER (Folia/Purpur inherit Paper on Hangar)"
+          echo ""
+          echo "Endpoint:      POST https://hangar.papermc.io/api/v1/projects/${{ env.HANGAR_PROJECT_SLUG }}/upload"
+          echo "Auth:          Authorization: <bare JWT from POST /api/v1/authenticate?apiKey=...>"
+          echo "Multipart:     versionUpload=@version-upload.json;type=application/json"
+          echo "               files=@${{ steps.jar.outputs.path }};type=application/octet-stream"
+          echo ""
+          echo "Payload (version-upload.json):"
+          echo "---"
+          cat version-upload.json || echo "(payload not built)"
+          echo "---"
+          echo ""
+          if [[ "${{ inputs.dry_run }}" != "false" ]]; then
+            echo "DRY RUN - Skipping actual Hangar upload"
+          elif [[ "${{ env.PUBLISH_TO_HANGAR }}" == "true" ]]; then
+            echo "PUBLISH_TO_HANGAR=true - Will publish to Hangar"
+          else
+            echo "PUBLISH_TO_HANGAR=false - Publishing disabled"
+          fi
+          echo "=========================================="
+
+      - name: Publish to Hangar
+        if: ${{ steps.jar.outputs.found == 'true' && env.PUBLISH_TO_HANGAR == 'true' && !inputs.dry_run }}
+        env:
+          HANGAR_API_TOKEN: ${{ secrets.HANGAR_API_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${HANGAR_API_TOKEN:-}" ]]; then
+            echo "::error::HANGAR_API_TOKEN secret is not set."
+            exit 1
+          fi
+
+          # Hangar sits behind CloudFlare; a default curl UA can be served a challenge page.
+          UA="armor-hider-release/1.0 (+https://github.com/${{ github.repository }})"
+
+          # Hangar API keys are exchanged for a JWT before any write call. Despite the
+          # authenticate response reporting expiresIn ~2592000, the token is only valid for
+          # about FIVE MINUTES - so authenticate in the same step immediately before the
+          # upload, never in an earlier step or job, or the upload will 401.
+          JWT=$(curl -sS --fail-with-body -A "$UA" -X POST \
+            "https://hangar.papermc.io/api/v1/authenticate?apiKey=${HANGAR_API_TOKEN}" \
+            | jq -r '.token')
+          if [[ -z "$JWT" || "$JWT" == "null" ]]; then
+            echo "::error::Failed to obtain a Hangar JWT - check HANGAR_API_TOKEN."
+            exit 1
+          fi
+
+          # Send the BARE JWT: Hangar's auth filter strips "HangarAuth"/"Bearer"/whitespace,
+          # so every header form is equivalent and a 401 here means the token is bad/expired.
+          # The multipart part Content-Types are mandatory - without application/json on
+          # versionUpload, Spring cannot bind the metadata part. Upload is rate limited
+          # (burst 5, then 1 per 5s), so this is a single attempt with no retry loop.
+          CODE=$(curl -sS -o hangar-response.json -w '%{http_code}' -X POST \
+            "https://hangar.papermc.io/api/v1/projects/${HANGAR_PROJECT_SLUG}/upload" \
+            -A "$UA" \
+            -H "Authorization: $JWT" \
+            -F "versionUpload=@version-upload.json;type=application/json" \
+            -F "files=@${{ steps.jar.outputs.path }};type=application/octet-stream")
+
+          echo "HTTP $CODE"
+          cat hangar-response.json || true
+          echo ""
+          if [[ "$CODE" != "200" && "$CODE" != "201" && "$CODE" != "204" ]]; then
+            # Hangar cannot overwrite an existing version - a re-upload always 400s.
+            if [[ "$CODE" == "400" ]] && grep -qiE 'already exists|version\.new\.error\.nameAlreadyExists|duplicate' hangar-response.json; then
+              echo "::error::Version ${{ needs.build.outputs.mod_version }} already exists on Hangar for project ${HANGAR_PROJECT_SLUG}. Hangar cannot overwrite versions - bump the version or delete the existing one manually."
+              exit 1
+            fi
+            if [[ "$CODE" == "401" ]]; then
+              echo "::error::Hangar rejected the JWT (401). The token is short-lived (~5 minutes) - check HANGAR_API_TOKEN is a valid, non-revoked API key."
+              exit 1
+            fi
+            echo "::error::Hangar upload failed with HTTP $CODE"
+            exit 1
+          fi
+          echo "Published ${{ needs.build.outputs.mod_version }} to Hangar."
+
+  # ============================================================================
   # SUMMARY
   # ============================================================================
   summary:
     name: Workflow Summary
     runs-on: ubuntu-latest
-    needs: [analyze, validate-version, check-modrinth, build, changelog, create-prerelease, upload-to-release, publish-modrinth, publish-curseforge]
+    needs: [analyze, validate-version, check-modrinth, build, changelog, create-prerelease, upload-to-release, publish-modrinth, publish-curseforge, publish-hangar]
     if: always()
     steps:
       - name: Download Artifacts
@@ -513,6 +754,7 @@ jobs:
             Upload to Release=${{ needs.upload-to-release.result }}
             Publish to Modrinth=${{ needs.publish-modrinth.result }}
             Publish to CurseForge=${{ needs.publish-curseforge.result }}
+            Publish to Hangar=${{ needs.publish-hangar.result }}
           additional-sections: |
             ### Modrinth
 
@@ -522,6 +764,12 @@ jobs:
             ### CurseForge
 
             - **Publish Enabled**: `${{ env.PUBLISH_TO_CURSEFORGE }}`
+            - **Note**: the Paper plugin is intentionally not published to CurseForge.
+
+            ### Hangar
+
+            - **Project Slug**: `${{ env.HANGAR_PROJECT_SLUG }}`
+            - **Publish Enabled**: `${{ env.PUBLISH_TO_HANGAR }}`
 
       - name: Upload Preview
         if: inputs.dry_run == true && needs.build.result == 'success'
@@ -535,25 +783,31 @@ jobs:
           {
             echo "## Upload Preview (Dry Run)"
             echo ""
-            echo "The following versions **would** be published to Modrinth and CurseForge:"
+            echo "The following versions **would** be published:"
             echo ""
-            echo "| Loader(s) | Version Group | Game Versions | Version Name | Type |"
-            echo "| --------- | ------------- | ------------- | ------------ | ---- |"
+            echo "| Loader(s) | Version Group | Game Versions | Version Name | Type | Portals |"
+            echo "| --------- | ------------- | ------------- | ------------ | ---- | ------- |"
 
-            for LOADER in fabric neoforge; do
-              if [[ "$LOADER" == "fabric" ]]; then
-                LOADERS_DISPLAY="Fabric, Quilt"
-              else
-                LOADERS_DISPLAY="${LOADER^}"
-              fi
-              for GROUP in $(jq -r ".${LOADER} | keys[]" artifacts/versions.json); do
+            for LOADER in fabric neoforge paper; do
+              case "$LOADER" in
+                fabric) LOADERS_DISPLAY="Fabric, Quilt"; PORTALS="Modrinth, CurseForge" ;;
+                # No CurseForge: it files Bukkit plugins under a separate game section.
+                paper)  LOADERS_DISPLAY="Paper, Folia, Purpur, Spigot, Bukkit"; PORTALS="Modrinth, Hangar" ;;
+                *)      LOADERS_DISPLAY="${LOADER^}"; PORTALS="Modrinth, CurseForge" ;;
+              esac
+              for GROUP in $(jq -r ".${LOADER} // {} | keys[]" artifacts/versions.json); do
                 GAME_VERSIONS=$(jq -r ".${LOADER}.\"${GROUP}\" // [\"${GROUP}\"] | join(\", \")" artifacts/versions.json)
                 DISPLAY_LOADER="${LOADER^}"
-                echo "| ${LOADERS_DISPLAY} | ${GROUP} | ${GAME_VERSIONS} | [${DISPLAY_LOADER}] ${GROUP} - ${MOD_VERSION} | ${VERSION_TYPE} |"
+                if [[ "$LOADER" == "paper" ]]; then
+                  VERSION_NAME="[Paper] Plugin - ${MOD_VERSION}"
+                else
+                  VERSION_NAME="[${DISPLAY_LOADER}] ${GROUP} - ${MOD_VERSION}"
+                fi
+                echo "| ${LOADERS_DISPLAY} | ${GROUP} | ${GAME_VERSIONS} | ${VERSION_NAME} | ${VERSION_TYPE} | ${PORTALS} |"
                 TOTAL=$((TOTAL + 1))
               done
             done
 
             echo ""
-            echo "**Total uploads per platform: $TOTAL**"
+            echo "**Total version entries: $TOTAL** (see the Portals column - the Paper plugin skips CurseForge)"
           } >> "$GITHUB_STEP_SUMMARY"

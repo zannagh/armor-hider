@@ -38,7 +38,7 @@ public class ServerWideSettings implements ConfigurationSource<ServerWideSetting
 
     /**
      * <ul>
-     * <li>0 = pre-versioning format (initial v4 ServerConfiguration shape — only enableCombatDetection + forceArmorHiderOff)</li>
+     * <li>0 = pre-versioning format (initial v4 ServerConfiguration shape - only enableCombatDetection + forceArmorHiderOff)</li>
      * <li>1 = added disableArmorHiderOnInvisibilityGlobally</li>
      * <li>2 = added allowIndividualPlayerConfigurations</li>
      * </ul>

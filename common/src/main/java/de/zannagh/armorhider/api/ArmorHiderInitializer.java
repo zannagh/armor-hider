@@ -34,7 +34,7 @@ public interface ArmorHiderInitializer {
     void onInitializeArmorHider(ArmorHiderApi api);
 
     /**
-     * Initialization order across registered initializers — lower values run first
+     * Initialization order across registered initializers - lower values run first
      * (MC-modding convention, matching
      * {@link de.zannagh.armorhider.client.api.AhRenderInterceptionRegistryApi#defaultPriority}).
      * <p>

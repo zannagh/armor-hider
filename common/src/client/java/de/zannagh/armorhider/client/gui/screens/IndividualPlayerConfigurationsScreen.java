@@ -30,7 +30,7 @@ import java.util.function.Supplier;
 
 /**
  * Lets the user configure how other players' armor looks to them (a purely client-side override). A
- * horizontally scrollable bar shows a "Global configuration" entry (always available, even offline — it
+ * horizontally scrollable bar shows a "Global configuration" entry (always available, even offline - it
  * spans all servers) followed by the online players' head icons (when connected to a server that allows
  * individual configs). Picking an entry reveals an enable/disable control, the ArmorHider options bound to
  * that entry's override config, and a live preview.
@@ -130,7 +130,7 @@ public class IndividualPlayerConfigurationsScreen extends ArmorHiderConfiguratio
                 }
             }
         }
-        // Selected player is gone (left the server) — fall back to the always-present global entry.
+        // Selected player is gone (left the server) - fall back to the always-present global entry.
         selectedId = null;
         globalSelected = true;
         return 0;
@@ -169,7 +169,7 @@ public class IndividualPlayerConfigurationsScreen extends ArmorHiderConfiguratio
         boolean othersVanilla = manager.isArmorHiderDisableForOthers();
 
         // A row is "gated" (shown as a disabled "Vanilla" state) when the server forces off / disallows,
-        // or — for the unknown/all rows — when "Others: Vanilla" makes them irrelevant.
+        // or - for the unknown/all rows - when "Others: Vanilla" makes them irrelevant.
         Component serverReason = forceOff
                 ? Component.translatable("armorhider.individual.global.gated.forceoff")
                 : (disallowed ? Component.translatable("armorhider.individual.global.gated.disallowed") : null);
@@ -180,7 +180,7 @@ public class IndividualPlayerConfigurationsScreen extends ArmorHiderConfiguratio
         addCenteredNotice(Component.translatable("armorhider.individual.global.title"), controlsY);
         int y = controlsY + 13;
 
-        // Row A — Armor Hider on other players: Adjust (apply) or Vanilla (no-op). A single toggle whose
+        // Row A - Armor Hider on other players: Adjust (apply) or Vanilla (no-op). A single toggle whose
         // label reflects the current state; gated to a disabled "Vanilla" state only by the server.
         Component othersTooltip = Component.translatable("armorhider.individual.global.others.tooltip");
         addToggleRow(y, serverReason, Component.translatable("armorhider.individual.global.others.gated"),
@@ -191,7 +191,7 @@ public class IndividualPlayerConfigurationsScreen extends ArmorHiderConfiguratio
                 () -> manager.setArmorHiderDisabledForOthersTo(!othersVanilla, Optional.of(true)));
         y += 22;
 
-        // Row B — unknown players use the viewer's own settings, or the global configuration. A single toggle
+        // Row B - unknown players use the viewer's own settings, or the global configuration. A single toggle
         // between the two; gated to a disabled "Vanilla" state by the server or when "Others: Vanilla".
         boolean ownForUnknown = manager.shouldUseLocalSettingsForUnknowns();
         Component unknownTooltip = Component.translatable("armorhider.individual.global.unknown.tooltip");
@@ -203,7 +203,7 @@ public class IndividualPlayerConfigurationsScreen extends ArmorHiderConfiguratio
                 () -> manager.setUseOwnSettingsForUnknowns(!ownForUnknown, Optional.of(true)));
         y += 22;
 
-        // Row C — apply the global configuration to every other player. A single ON/OFF toggle.
+        // Row C - apply the global configuration to every other player. A single ON/OFF toggle.
         boolean globalForAll = manager.shouldUseGlobalOverrideForAllPlayers();
         Component allTooltip = Component.translatable("armorhider.individual.global.all.tooltip");
         addToggleRow(y, granularReason, Component.translatable("armorhider.individual.global.all.gated"),
@@ -258,7 +258,7 @@ public class IndividualPlayerConfigurationsScreen extends ArmorHiderConfiguratio
     /**
      * A single full-width toggle button whose {@code label} reflects the current state and whose click runs
      * {@code onToggle} (which flips the underlying setting) then rebuilds. When {@code gateReason} is non-null
-     * it collapses to a disabled button showing {@code gatedLabel} with the reason as its tooltip — used when
+     * it collapses to a disabled button showing {@code gatedLabel} with the reason as its tooltip - used when
      * the server forces off / disallows, or when "Others: Vanilla" makes the finer controls irrelevant.
      */
     private void addToggleRow(int y, @Nullable Component gateReason, Component gatedLabel,

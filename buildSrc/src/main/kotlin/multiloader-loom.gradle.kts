@@ -47,7 +47,7 @@ with(sc) {
     // `deeperdarker.warden_class` selects which compat mixin (and thus which class) compiles.
     constants["deeperdarker_warden"] = hasProperty("deeperdarker.version") && findProperty("deeperdarker.warden_class") == "true"
     constants["deeperdarker_horn"] = hasProperty("deeperdarker.version") && findProperty("deeperdarker.warden_class") != "true"
-    // Uranus lib (iafenvoy, e.g. Ice and Fire: CE) — custom armor rendering via IArmorRendererBase.
+    // Uranus lib (iafenvoy, e.g. Ice and Fire: CE) - custom armor rendering via IArmorRendererBase.
     constants["uranus"] = hasProperty("uranus.version")
     // Immersive Armors (Conczin) cancels the vanilla equipment layer and draws its armor as its own
     // `Piece` list. It only ships for 1.20.1, 1.21.1, 26.1.2 and 26.2, and its render path changed
@@ -61,11 +61,11 @@ with(sc) {
     constants["gender"] = hasProperty("gender.version") && findProperty("gender_legacy_api") != "true"
     constants["gender_legacy"] = hasProperty("gender.version") && findProperty("gender_legacy_api") == "true"
     // First Person Model (tr7zw) renders the local player's body in first person, so layers we hook
-    // (head, wings, held item) submit for the camera entity — and FPM cancels several of them at
+    // (head, wings, held item) submit for the camera entity - and FPM cancels several of them at
     // their submit HEAD. `firstperson` compiles the typed guard that keeps our render scopes from
     // leaking past those cancels. Fabric-only: the property is pinned on fabric variants only.
     constants["firstperson"] = hasProperty("firstperson.version")
-    // `fcgt` activates the Phase 2 smoke test (fabric-client-gametest-api-v1) — true on
+    // `fcgt` activates the Phase 2 smoke test (fabric-client-gametest-api-v1) - true on
     // Fabric variants that pin `fabricapi.semver` so the FCGT module classpath wiring,
     // entrypoint, run task and stonecutter-gated test class line up consistently.
     constants["fcgt"] = hasProperty("fabricapi.semver") && current.project.contains("fabric")
@@ -154,6 +154,16 @@ if (branch == "common") {
         add("testImplementation", platform("org.junit:junit-bom:6.0.1"))
         add("testImplementation", "org.junit.jupiter:junit-jupiter")
         add("testRuntimeOnly", "org.junit.platform:junit-platform-launcher")
+        // :paper's compiled classes, for PaperSchemaContractTests - the Paper plugin re-declares the
+        // parts of the wire schema it has to understand (the serverWideSettings block, the channel
+        // names), and nothing else would notice if the mod's side moved. The classes it asserts on
+        // are Bukkit-free, so no paper-api is needed here.
+        //
+        // A raw classes dir rather than `project(":paper")`: :paper disables its thin `jar` task in
+        // favour of the shaded one, so there is no default artifact to resolve, and re-enabling it
+        // would put a second armor-hider-paper-*.jar in reach of the publish globs.
+        add("testImplementation",
+            files(rootProject.layout.projectDirectory.dir("paper/build/classes/java/main")))
     }
 
     val javaVersionStr = findProperty("java.version")?.toString() ?: error("No Java version specified")
@@ -185,6 +195,25 @@ if (branch == "fabric") {
         simple.startsWith("run") || simple == "genIntellijRuns"
     }
     val devProfile = if (shouldLoadDevProfile) loadDevProfile() else null
+
+    // ── Paper end-to-end smoke identity ──────────────────────────────────────────────
+    // PaperHandshakeSmokeTest connects to an externally-started PaperMC server that has already
+    // OP'd the test player BY NAME before the client launches. The dev client otherwise generates
+    // `Player<millis%1000>` - a different name every launch - so the seeded OP entry would never
+    // match and the PermissionPacket would come back as level 0, failing the run for the wrong
+    // reason. Pin a fixed name (and its offline-mode UUID) whenever the Paper port is supplied.
+    // This deliberately REPLACES any dev-profile identity rather than adding to it: MC's arg
+    // parser cannot take `--username` twice.
+    val paperSmokePort = findProperty("smoke.paper.port")?.toString()
+    val paperSmokeUsername = "ArmorHiderSmoke"
+    val paperSmokeUuid = java.util.UUID
+        .nameUUIDFromBytes("OfflinePlayer:$paperSmokeUsername".toByteArray(Charsets.UTF_8))
+        .toString()
+    val runProfile = if (paperSmokePort != null) {
+        DevProfile(paperSmokeUsername, paperSmokeUuid)
+    } else {
+        devProfile
+    }
 
     loom.apply {
         splitEnvironmentSourceSets()
@@ -219,16 +248,21 @@ if (branch == "fabric") {
             if (project.hasProperty("demo.players")) {
                 vmArg("-Darmorhider.demo.players=${project.findProperty("demo.players")}")
             }
-            if (devProfile != null) {
+            // Port of an externally-started PaperMC server for the end-to-end handshake smoke.
+            // PaperHandshakeSmokeTest skips itself when this is absent, so normal runs are unaffected.
+            if (paperSmokePort != null) {
+                vmArg("-Darmorhider.smoke.paper.port=${paperSmokePort}")
+            }
+            if (runProfile != null) {
                 programArg("--username")
-                programArg(devProfile.username)
+                programArg(runProfile.username)
                 programArg("--uuid")
-                programArg(devProfile.uuid)
-                if (devProfile.skinTexturesValue != null) {
-                    vmArg("-Darmorhider.dev.skin.textures=${devProfile.skinTexturesValue}")
+                programArg(runProfile.uuid)
+                if (runProfile.skinTexturesValue != null) {
+                    vmArg("-Darmorhider.dev.skin.textures=${runProfile.skinTexturesValue}")
                 }
-                if (devProfile.skinTexturesSignature != null) {
-                    vmArg("-Darmorhider.dev.skin.signature=${devProfile.skinTexturesSignature}")
+                if (runProfile.skinTexturesSignature != null) {
+                    vmArg("-Darmorhider.dev.skin.signature=${runProfile.skinTexturesSignature}")
                 }
             }
         }
@@ -249,13 +283,13 @@ if (branch == "fabric") {
             val modMenuDep = if (isDeobf) "compileOnly" else "modCompileOnly"
             add(modMenuDep, "maven.modrinth:modmenu:${findProperty("modmenu.version")}")
         }
-        // FCGT module — multiloader-loader adds common's src as srcDirs, so the test class
+        // FCGT module - multiloader-loader adds common's src as srcDirs, so the test class
         // compiles here too, AND it must be on the dev runtime classpath because the
         // upstream Modrinth fabric-api jar (the one in run/mods/) does not bundle the
         // experimental FCGT module. Without this loom-side runtime entry the FCGT mixin
         // plugin's lifecycle hooks never load, MC boots vanilla and idles at the title.
         // Phase 2 smoke: FCGT (fabric-client-gametest-api-v1) compile classpath on the fabric
-        // loader. The runtime side is handled via a copy-to-run/mods task below — the
+        // loader. The runtime side is handled via a copy-to-run/mods task below - the
         // upstream Modrinth fabric-api jar is the experimental-stripped umbrella and doesn't
         // include the FCGT module, so even with fabric-api in run/mods FCGT's mixin plugin
         // doesn't load.
@@ -271,27 +305,52 @@ if (branch == "fabric") {
     // FCGT (fabric-client-gametest-api-v1) entrypoint registered only on Fabric variants
     // that pin `fabricapi.semver` (currently fabric-26.2). Other variants emit "[]" so the
     // JSON stays valid and fabric-loader simply ignores it.
-    val fcgtTests = buildList {
-        add("de.zannagh.armorhider.smoke.EntityRenderSmokeTest")
-        add("de.zannagh.armorhider.smoke.IndividualConfigSmokeTest")
-        add("de.zannagh.armorhider.smoke.KeybindSmokeTest")
-        add("de.zannagh.armorhider.smoke.CombatDetectionSmokeTest")
+    // (short id, class name) so `-Psmoke.fcgt.only=` can select a subset by a stable, typo-proof
+    // name. The id is part of the build contract - PaperE2ESmokeTest passes `paper-handshake`.
+    val fcgtTestCatalog = buildList {
+        add("entity-render" to "de.zannagh.armorhider.smoke.EntityRenderSmokeTest")
+        add("individual-config" to "de.zannagh.armorhider.smoke.IndividualConfigSmokeTest")
+        add("keybind" to "de.zannagh.armorhider.smoke.KeybindSmokeTest")
+        add("combat-detection" to "de.zannagh.armorhider.smoke.CombatDetectionSmokeTest")
+        // Paper end-to-end handshake smoke. Gated only on `fcgt` like the class itself: it no-ops
+        // unless -Psmoke.paper.port is supplied, so registering it everywhere is harmless.
+        add("paper-handshake" to "de.zannagh.armorhider.smoke.PaperHandshakeSmokeTest")
         // WaterTransparencySmokeTest drives the after-terrain feature phase (the fix), which only
-        // exists >= 26.2-1.pre — its class is stonecutter-gated to the same floor, so only register
+        // exists >= 26.2-1.pre - its class is stonecutter-gated to the same floor, so only register
         // the entrypoint there or fabric-loader would fail to find the commented-out class.
         if (sc.current.parsed >= "26.2-1.pre") {
-            add("de.zannagh.armorhider.smoke.WaterTransparencySmokeTest")
+            add("water-transparency" to "de.zannagh.armorhider.smoke.WaterTransparencySmokeTest")
             // Female Gender Mod breast-armor render + physics smoke. Needs the FGM jar present
             // (pulled in on the gender smoke row) and the after-terrain render architecture, so it
             // shares WaterTransparency's floor. Class is stonecutter-gated to the same range.
-            add("de.zannagh.armorhider.smoke.GenderBreastArmorSmokeTest")
+            add("gender-breast-armor" to "de.zannagh.armorhider.smoke.GenderBreastArmorSmokeTest")
         }
         // First Person Model compat smoke. Guard must stay identical to the test class's own
         // `//? if fcgt && firstperson {` gate, or fabric-loader tries to resolve a commented-out class.
         if (hasProperty("firstperson.version")) {
-            add("de.zannagh.armorhider.smoke.FirstPersonSmokeTest")
+            add("first-person" to "de.zannagh.armorhider.smoke.FirstPersonSmokeTest")
         }
     }
+
+    // `runClientGametest` runs EVERY registered entrypoint in ONE client launch, so an unrelated
+    // sibling failure reds the whole run. `-Psmoke.fcgt.only=a,b` narrows the registered set, which
+    // is what makes a Paper E2E row report on its own merits instead of inheriting the health of
+    // the render/water/gender tests (and makes it far faster - no world build, no screenshots).
+    // Filtering here rather than self-skipping inside each test keeps the knowledge in one place.
+    val fcgtOnly = findProperty("smoke.fcgt.only")?.toString()
+        ?.split(",")?.map(String::trim)?.filter(String::isNotEmpty)?.toSet()
+    if (fcgtOnly != null) {
+        val known = fcgtTestCatalog.map { it.first }.toSet()
+        val unknown = fcgtOnly - known
+        // A typo would otherwise silently register nothing and "pass" - fail loudly instead.
+        require(unknown.isEmpty()) {
+            "-Psmoke.fcgt.only contains unknown test id(s) $unknown; known ids on " +
+                "${sc.current.project}: $known"
+        }
+    }
+    val fcgtTests = fcgtTestCatalog
+        .filter { fcgtOnly == null || it.first in fcgtOnly }
+        .map { it.second }
     val fcgtEntries = if (hasProperty("fabricapi.semver"))
         fcgtTests.joinToString(", ", "[", "]") { "\"$it\"" }
     else
@@ -361,8 +420,15 @@ if (branch == "fabric") {
                 //     the mixins fire but no test class runs and MC sits at the title screen.
                 vmArg("-Dfabric.client.gametest=true")
                 vmArg("-Dfabric.client.gametest.modid=armor-hider")
-                // Phase 1's exit timer would race FCGT's own shutdown — disable on this run.
+                // Phase 1's exit timer would race FCGT's own shutdown - disable on this run.
                 vmArg("-Darmorhider.smoke.exit=false")
+                // The mod injects its payload types directly into the ClientboundCustomPayloadPacket
+                // codec from a netty thread (ClientPacketSender / the codec-injection mixin), which
+                // FCGT's NetworkSynchronizer detects as "interfacing with packets at a lower level"
+                // and turns into a hard AssertionError the moment we connect to a real server.
+                // FCGT names this property in that very error message. Required for any gametest
+                // that joins a server - the codec injection is load-bearing and cannot be dropped.
+                vmArg("-Dfabric.client.gametest.disableNetworkSynchronizer=true")
             }
         }
         // Resolve the FCGT module artifact via a dedicated configuration so we can copy the
@@ -384,7 +450,7 @@ if (branch == "fabric") {
             description = "Drop the FCGT module jar into run/mods/ so its mixin plugin loads at runtime"
             from(fcgtRuntimeMod)
             into(project.layout.projectDirectory.dir("run/mods"))
-            // fetchFcgtCompatJars wipes run/mods first — make sure that runs before this copy.
+            // fetchFcgtCompatJars wipes run/mods first - make sure that runs before this copy.
             mustRunAfter("fetchFcgtCompatJars")
             // Never cache: pair task is also non-cached, and we want the FCGT jar to land
             // every time runClientGametest fires so cross-row leaks can't strand us with a
@@ -392,10 +458,21 @@ if (branch == "fabric") {
             outputs.upToDateWhen { false }
         }
 
+        tasks.named("runClientGametest") {
+            // NOT gated on -Psmoke. The FCGT module jar is what makes this task do anything at all:
+            // without it on the runtime classpath fabric-loader never loads FCGT's mixin plugin, MC
+            // boots vanilla, idles at the title screen and exits ZERO. The task therefore reports
+            // success while running no test. Before this, `runClientGametest` only worked when a
+            // previous -Psmoke run happened to have left the jar in run/mods - fabric-26.2 had that
+            // leftover and every other variant did not, so the Paper E2E matrix "passed" on 26.2 and
+            // silently ran nothing elsewhere.
+            dependsOn(copyFcgtToMods)
+        }
         if (project.hasProperty("smoke")) {
+            // Compat-mod fetching stays smoke-only: it wipes run/mods and pulls the full
+            // third-party stack, which is the compat matrix's concern, not FCGT's.
             tasks.named("runClientGametest") {
                 dependsOn("fetchFcgtCompatJars")
-                dependsOn(copyFcgtToMods)
             }
         }
     }

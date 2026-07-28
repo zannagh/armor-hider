@@ -37,16 +37,16 @@ public final class AhRenderStateImpl {
 
     // Diagnostic counter: scope entries that carried a real (non-empty) modification.
     // The render hooks fail silently when their injection targets drift between MC
-    // versions — smoke tests assert this counter moves to catch dead pipelines.
+    // versions - smoke tests assert this counter moves to catch dead pipelines.
     private static final EnumMap<RenderScope, AtomicLong> MODIFIED_ENTER_COUNTS = new EnumMap<>(RenderScope.class);
 
     // Count of scopes still active in the map when a bulk clear runs (entity-boundary reset or
     // global-scope clear). Each per-scope enter is normally matched by an exitScope; anything left
-    // for the bulk clear to sweep up leaked — it was entered on a render path cancelled before its
+    // for the bulk clear to sweep up leaked - it was entered on a render path cancelled before its
     // exit hook could run (e.g. an elytra hidden at 0%). That leaked hide-scope then bleeds alpha 0
     // onto later model submits. Smoke asserts this stays 0. (A plain enter/exit *count* can't be
-    // used: ARMOR_PIECE is legitimately entered twice per piece — renderArmorPiece wraps the nested
-    // renderLayers — and the single-entry map self-corrects, so counts read 2:1 without any leak.)
+    // used: ARMOR_PIECE is legitimately entered twice per piece - renderArmorPiece wraps the nested
+    // renderLayers - and the single-entry map self-corrects, so counts read 2:1 without any leak.)
     private static final EnumMap<RenderScope, AtomicLong> LEAKED_SCOPE_CLEARS = new EnumMap<>(RenderScope.class);
 
     static {
@@ -118,7 +118,7 @@ public final class AhRenderStateImpl {
 
     public static void clearGlobalScope() {
         if (SCOPE_FLAGS.get().size() <= 1 && ACTIVE_SCOPES.get().isEmpty()) {
-            // The expected case: at most our own flag remains — but it MUST still be removed,
+            // The expected case: at most our own flag remains - but it MUST still be removed,
             // otherwise isInLevelRender() stays true during game ticks and slot hiding leaks
             // into gameplay checks (elytra takeoff, shield blocking).
             SCOPE_FLAGS.get().clear();

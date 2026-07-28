@@ -265,7 +265,7 @@ public class AhPlayerConfigApiImpl implements ArmorHiderPlayerConfigApi, Configu
 
         boolean allowed = areOtherPlayerConfigsAllowed();
 
-        // Null name means the player couldn't be identified — treat as unknown/undeterminable.
+        // Null name means the player couldn't be identified - treat as unknown/undeterminable.
         if (playerName == null) {
             return allowed
                     ? resolveUnknownPlayerConfig(DEFAULT_PLAYER_NAME, DEFAULT_PLAYER_ID)
@@ -316,7 +316,7 @@ public class AhPlayerConfigApiImpl implements ArmorHiderPlayerConfigApi, Configu
             }
         }
 
-        // Unknown player (no server config) — Row B decides the source.
+        // Unknown player (no server config) - Row B decides the source.
         return resolveUnknownPlayerConfig(playerName, playerId);
     }
 

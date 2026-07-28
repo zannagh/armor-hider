@@ -62,7 +62,7 @@ public final class MekanismRenderCompat {
             return;
         }
         // When Figura is loaded and the player has an Avatar, Figura draws its own
-        // body model — suppress the vanilla under-armor body pass for ALL slots, and
+        // body model - suppress the vanilla under-armor body pass for ALL slots, and
         // only delegate the head draw to Figura when the slot actually warrants it.
         if (CompatManager.requiresCompatTo(CompatFlags.FIGURA) && AvatarManager.getAvatar(player) instanceof Avatar avatar) {
             if (FiguraCompat.shouldEnforceHeadRendering(slot)) {
@@ -92,7 +92,7 @@ public final class MekanismRenderCompat {
         // armor pass ran. A part that is still visible was already drawn by the base
         // player model this frame (armor layers render after the body), so re-rendering
         // it here would stack a second, semi-transparent copy of the body on top of the
-        // original — doubled skin layers and offset arms once an animation mod poses the
+        // original - doubled skin layers and offset arms once an animation mod poses the
         // base pass differently. See issue #280.
         boolean anyHiddenPart = false;
         switch (slot) {

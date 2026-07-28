@@ -9,7 +9,7 @@ public abstract class FabricClientMixinPlugin extends ArmorHiderMixinPlugin {
             "GameRendererMixin",
             "DevSkinMixin",
             "TitleScreenSmokeMixin",
-            // All versions — Stonecutter guards per version range
+            // All versions - Stonecutter guards per version range
             "EntityRenderDispatcherMixin",
             "LivingEntityMixin",
             "LivingEntityRendererMixin",
@@ -31,9 +31,9 @@ public abstract class FabricClientMixinPlugin extends ArmorHiderMixinPlugin {
             "cape.ElytraRenderMixin",
             "head.CustomHeadLayerMixin",
             "head.SkullBlockRenderMixin",
-            // Fabric-only — programmatic mod-resource-pack registration when fabric-resource-loader-v0 is absent
+            // Fabric-only - programmatic mod-resource-pack registration when fabric-resource-loader-v0 is absent
             "resources.PackRepositoryMixin",
-            // All versions — Stonecutter guards per version range
+            // All versions - Stonecutter guards per version range
             "bodyKneesAndToes.HumanoidArmorLayerMixin",
             "bodyKneesAndToes.HumanoidArmorLayerRenderMixin",
             "cape.CapeRenderMixin",
@@ -45,7 +45,7 @@ public abstract class FabricClientMixinPlugin extends ArmorHiderMixinPlugin {
             "OptionsMixin",
             "MinecraftClientMixin",
             "PlayerModelMixin",
-            // Compat — @Pseudo, auto-skipped if target mod absent
+            // Compat - @Pseudo, auto-skipped if target mod absent
             "compat.wildfiregender.GenderArmorLayerMixin",
             "compat.wildfiregender.GenderLegacyLayerMixin",
             "compat.wildfiregender.GenderPhysicsMixin",
@@ -73,7 +73,7 @@ public abstract class FabricClientMixinPlugin extends ArmorHiderMixinPlugin {
         var mixinsToAdd = new ArrayList<>(List.of(MIXINS));
         if (syntraConnected) {
             mixinsToAdd.remove("bodyKneesAndToes.HumanoidArmorLayerRenderMixin");
-            LOG.info("Removed HumanoidArmorLayerRenderMixin — Forge-patched bytecode is incompatible with @WrapOperation targets.");
+            LOG.info("Removed HumanoidArmorLayerRenderMixin - Forge-patched bytecode is incompatible with @WrapOperation targets.");
         }
         return mixinsToAdd;
     }

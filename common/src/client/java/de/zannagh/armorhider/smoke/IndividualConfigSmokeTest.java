@@ -30,16 +30,16 @@ import java.util.Optional;
  * <p>
  * Boots into a singleplayer world, then runs three checks entirely on the client thread:
  * <ol>
- *   <li><b>Resolver</b> — with a mod-aware server config that allows individual configs, a stored override
+ *   <li><b>Resolver</b> - with a mod-aware server config that allows individual configs, a stored override
  *       for a player name is what {@code getConfigForPlayer(name)} returns; when the server disallows it, the
  *       override is ignored; and the local player is never overridden.</li>
- *   <li><b>Screen layout</b> — {@link IndividualPlayerConfigurationsScreen} initializes without crashing and
+ *   <li><b>Screen layout</b> - {@link IndividualPlayerConfigurationsScreen} initializes without crashing and
  *       always produces a functional layout (at minimum a Done button; a notice when no peers are online).</li>
- *   <li><b>Widget render</b> — the version-gated {@link PlayerHeadBarWidget} (face blit + scissor),
+ *   <li><b>Widget render</b> - the version-gated {@link PlayerHeadBarWidget} (face blit + scissor),
  *       {@link PlayerPreviewWidget} (arbitrary entity) and the per-player {@link ArmorHiderOptionsPanelWidget}
  *       are laid out and rendered for several frames without throwing.</li>
  * </ol>
- * Runtime rendering can't be validated for correctness (no screenshot baselines — see scripts/README.md);
+ * Runtime rendering can't be validated for correctness (no screenshot baselines - see scripts/README.md);
  * this catches init/layout crashes and dead render paths that compilation can't.
  */
 public final class IndividualConfigSmokeTest implements FabricClientGameTest {
@@ -85,7 +85,7 @@ public final class IndividualConfigSmokeTest implements FabricClientGameTest {
             context.waitTicks(10);
 
             // Global tab under gated states: "Others: Vanilla" collapses rows B/C to disabled buttons, and a
-            // server force-off collapses all three — render both so the gated path is exercised, not just the
+            // server force-off collapses all three - render both so the gated path is exercised, not just the
             // normal two-button choice.
             context.runOnClient(client -> {
                 var manager = ArmorHiderClient.CLIENT_CONFIG_MANAGER;
@@ -167,7 +167,7 @@ public final class IndividualConfigSmokeTest implements FabricClientGameTest {
                         PlayerConfig.defaults(UUID.randomUUID(), localName));
                 if (manager.resolveConfig(localName) != localConfig) {
                     throw new IllegalStateException(
-                            "[smoke/fcgt] the local player was resolved to an override — must use their own config");
+                            "[smoke/fcgt] the local player was resolved to an override - must use their own config");
                 }
                 localConfig.individualConfigurations.removeOverride(serverKey, localName);
             }
@@ -227,7 +227,7 @@ public final class IndividualConfigSmokeTest implements FabricClientGameTest {
             }
             localConfig.individualConfigurations.removeOverride(serverKey, "AhModPlayer");
 
-            // Server force-off is the final guard — even the global config renders vanilla under it.
+            // Server force-off is the final guard - even the global config renders vanilla under it.
             serverConfig.serverWideSettings.forceArmorHiderOff.setValue(true);
             if (!SlotModification.shouldUseVanilla(globalOverride)) {
                 throw new IllegalStateException("[smoke/fcgt] server force-off must still guard the global config");
@@ -256,7 +256,7 @@ public final class IndividualConfigSmokeTest implements FabricClientGameTest {
 
     /**
      * The reported-bug scenario: connected to a server that does NOT run Armor Hider (no server config at
-     * all — e.g. Hypixel). {@link #assertGlobalOverrideResolution} always installs a server config, so this
+     * all - e.g. Hypixel). {@link #assertGlobalOverrideResolution} always installs a server config, so this
      * covers the otherwise-untested {@code serverConfig == null} guards, and asserts that switching unknown
      * players to "global" materialises a concrete (default-seeded) override instead of resolving to throwaway
      * vanilla defaults that make the mod appear inert.
@@ -276,7 +276,7 @@ public final class IndividualConfigSmokeTest implements FabricClientGameTest {
         try {
             // Switching unknowns → global with no prior override must materialise one now, so the switch is
             // not a silent no-op and resolveConfig()/the settings panel share one persisted instance. The
-            // override is an independent "how I see strangers" config seeded from defaults — NOT a copy of the
+            // override is an independent "how I see strangers" config seeded from defaults - NOT a copy of the
             // viewer's own render settings (here: a distinctive 0.25 helmet opacity that must NOT leak in).
             localConfig.globalPlayerOverride = null;
             localConfig.helmetOpacity.setValue(0.25);
@@ -354,7 +354,7 @@ public final class IndividualConfigSmokeTest implements FabricClientGameTest {
         if (!hasDone) {
             throw new IllegalStateException(
                     "[smoke/fcgt] IndividualPlayerConfigurationsScreen produced no Done button (widgets="
-                            + widgetCount + ") — init/layout failed");
+                            + widgetCount + ") - init/layout failed");
         }
         ArmorHider.LOGGER.info("[smoke/fcgt] per-player screen layout ok ({} widgets)", widgetCount);
     }

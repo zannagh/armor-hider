@@ -75,7 +75,7 @@ public class EquipmentRenderMixin {
 
     //? if >= 1.21.9 {
     // In 1.21.9+, the renderLayers entry exposes the entity as a parameter, so we can drive
-    // scope entry from here. Older versions don't have that parameter — HumanoidArmorLayerMixin
+    // scope entry from here. Older versions don't have that parameter - HumanoidArmorLayerMixin
     // handles scope entry there instead, so the entry/reset hooks are gated to 1.21.9+.
     @Inject(method = RENDER_LAYERS_ENTRY, at = @At("HEAD"), cancellable = true)
     private <S> void interceptRender(EquipmentClientInfo.LayerType layerType, ResourceKey<EquipmentAsset> resourceKey, Model<? super S> model, S object, ItemStack itemStack, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int i, int j, CallbackInfo ci) {
@@ -111,11 +111,11 @@ public class EquipmentRenderMixin {
     }
 
     // Slot-adding mods (Elytra Slot, …) render a custom-slot elytra by calling the vanilla detail
-    // renderLayers(WINGS, …) directly — bypassing the entry overload above and the outer
+    // renderLayers(WINGS, …) directly - bypassing the entry overload above and the outer
     // WingsLayer.submit scope entry (whose synthetic-stack decision keys off the empty chest slot).
     // The detail wraps below (render type / colour / trim) only apply transparency when an ELYTRA
-    // scope is active, so those draws stayed fully opaque. Enter the ELYTRA scope here — from the
-    // real render-state carrier and the real elytra stack — so hide/opacity apply deterministically,
+    // scope is active, so those draws stayed fully opaque. Enter the ELYTRA scope here - from the
+    // real render-state carrier and the real elytra stack - so hide/opacity apply deterministically,
     // regardless of injector ordering. This is a general fix: any mod drawing a slotted elytra
     // through vanilla renderLayers(WINGS, …) is covered.
     @Unique
@@ -124,7 +124,7 @@ public class EquipmentRenderMixin {
     @Inject(method = RENDER_LAYERS_DETAIL, at = @At("HEAD"), cancellable = true)
     private <S> void armorHider$interceptForeignElytra(EquipmentClientInfo.LayerType layerType, ResourceKey<EquipmentAsset> resourceKey, Model<? super S> model, S object, ItemStack itemStack, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int i, Identifier identifier, int j, int k, CallbackInfo ci) {
         // Vanilla chest elytra already has the ELYTRA scope active from the outer WingsLayer.submit
-        // HEAD, and armor pieces run under an ARMOR_PIECE scope — leave both untouched so this only
+        // HEAD, and armor pieces run under an ARMOR_PIECE scope - leave both untouched so this only
         // ever covers an otherwise-unscoped foreign elytra draw.
         if (AhRenderManagementApi.hasScopeModification(RenderScope.ELYTRA)
                 || AhRenderManagementApi.hasScopeModification(RenderScope.ARMOR_PIECE)) {
@@ -152,7 +152,7 @@ public class EquipmentRenderMixin {
     //?}
 
     // Scope entry happens per-piece in HumanoidArmorLayerMixin (renderLayers has no entity
-    // parameter here) — only the combat vanilla-model bookkeeping is driven from this level.
+    // parameter here) - only the combat vanilla-model bookkeeping is driven from this level.
     //? if < 1.21.9 {
     /*@Inject(method = RENDER_LAYERS_ENTRY, at = @At("HEAD"))
     private void interceptRender(EquipmentClientInfo.LayerType layerType, ResourceKey<EquipmentAsset> resourceKey, Model model, ItemStack itemStack, PoseStack poseStack, MultiBufferSource multiBufferSource, int i, CallbackInfo ci) {
@@ -208,7 +208,7 @@ public class EquipmentRenderMixin {
     }
 
     // Enchanted armor renders through RenderTypes.armorCutoutNoCullGlint (not armorCutoutNoCull),
-    // which the wrap above never sees — so enchanted pieces kept an opaque cutout type and never
+    // which the wrap above never sees - so enchanted pieces kept an opaque cutout type and never
     // faded. Wrap the glint variant the same way so hidden enchanted armor becomes translucent too.
     //? if >= 26.3-0.snapshot.2 {
     /*@WrapOperation(
@@ -343,7 +343,7 @@ public class EquipmentRenderMixin {
     *///?}
 
     // NeoForge patches renderLayers and never invokes getColorForLayer, so the color is
-    // modified at the renderToBuffer call itself — that call exists on both loaders.
+    // modified at the renderToBuffer call itself - that call exists on both loaders.
     //? if < 1.21.9 {
     /*@WrapOperation(
             method = RENDER_LAYERS_DETAIL,

@@ -138,7 +138,7 @@ public class ExclusionItemConfiguration {
 
     /**
      * Drops entries that can never match again and bounds the rest, returning the number of repairs made
-     * (entries removed, plus one if a null backing map had to be materialised) — a non-zero result signals
+     * (entries removed, plus one if a null backing map had to be materialised) - a non-zero result signals
      * the caller to persist the cleaned-up form.
      * <p>
      * Two problems are repaired here:
@@ -151,16 +151,16 @@ public class ExclusionItemConfiguration {
      *       every player seen. On a busy modded server that is effectively unbounded.</li>
      * </ul>
      * The backing map is a {@link LinkedHashMap} at both levels (see the {@link #items} field note), so
-     * iteration follows insertion (discovery) order and trimming drops the oldest discovered entries first —
+     * iteration follows insertion (discovery) order and trimming drops the oldest discovered entries first -
      * and that holds across a save/reload, not just for a freshly-built instance.
      */
     public synchronized int prune() {
-        // This map is deserialized reflectively by Gson — unlike ConfigurationItem fields it is NOT covered
-        // by ConfigurationSourceSerializer#initializeNullConfigFields — so explicit JSON nulls survive into
+        // This map is deserialized reflectively by Gson - unlike ConfigurationItem fields it is NOT covered
+        // by ConfigurationSourceSerializer#initializeNullConfigFields - so explicit JSON nulls survive into
         // it verbatim. Since prune() is the repair pass called from PlayerConfig.heal(), it must treat those
         // nulls as more corruption to clean up rather than tripping over them: an NPE here propagates out of
         // deserialize() into PlayerConfigFileProvider's catch-all, which discards the whole config and writes
-        // defaults — turning "heal the config" into "silently wipe the config".
+        // defaults - turning "heal the config" into "silently wipe the config".
         int removed = 0;
         if (items == null) {
             items = new LinkedHashMap<>();

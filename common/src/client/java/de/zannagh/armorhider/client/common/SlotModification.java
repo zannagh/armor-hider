@@ -39,7 +39,7 @@ public record SlotModification(
     public static boolean shouldUseVanilla(PlayerConfig config){
         var manager = ArmorHiderClient.CLIENT_CONFIG_MANAGER;
 
-        // Server-wide force-off is the final guard — it overrides everything for every player, including the
+        // Server-wide force-off is the final guard - it overrides everything for every player, including the
         // local one (the server always has the last say).
         var serverConfig = manager.getServerConfig();
         if (serverConfig != null && serverConfig.serverWideSettings.forceArmorHiderOff.getValue()) {
@@ -50,13 +50,13 @@ public record SlotModification(
         // local config instance for the viewer and a distinct copy/override for everyone else, so identity is
         // drift-proof. A name-only check compares the local config's name (snapshotted at join) against the
         // live display name (getCurrentPlayerName()), which can diverge on servers that rewrite the display
-        // name after join (rank prefixes, nicks — e.g. Hypixel) and would then vanilla-out the viewer's OWN
+        // name after join (rank prefixes, nicks - e.g. Hypixel) and would then vanilla-out the viewer's OWN
         // armor. The name check is kept as an OR so this can only ever exempt the local player, never add one.
         boolean isLocalPlayer = config == manager.getLocalPlayerConfig()
                 || config.playerName.getValue().equals(ArmorHiderClient.getCurrentPlayerName());
 
-        // "Disable Armor Hider" master switch. For the local player this reads the effective state — the
-        // transient keybind override if one is active, otherwise the persisted setting — so the toggle key
+        // "Disable Armor Hider" master switch. For the local player this reads the effective state - the
+        // transient keybind override if one is active, otherwise the persisted setting - so the toggle key
         // takes effect without touching disk. For everyone else the flag on their own resolved config applies.
         // When set it trumps the opacity sliders and renders vanilla.
         boolean disableArmorHider = isLocalPlayer
@@ -121,7 +121,7 @@ public record SlotModification(
         // Combat state is keyed by the display name the combat event was registered under
         // (AhCombatApiImpl -> PlayerNameUtil#getPlayerName), which is the player's *live* name. The
         // name persisted on the config is snapshotted at join and can drift on servers that rewrite
-        // display names afterwards (rank prefixes, nicks — the same drift shouldUseVanilla guards
+        // display names afterwards (rank prefixes, nicks - the same drift shouldUseVanilla guards
         // against). Keying combat off the stale snapshot would silently miss every combat event, so
         // prefer the live name whenever the caller has it. This name is also what the resulting
         // record carries, because downstream combat consumers (EquipmentRenderMixin's vanilla-model

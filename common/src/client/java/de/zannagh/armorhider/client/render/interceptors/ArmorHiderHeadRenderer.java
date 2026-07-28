@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * Default renderer for {@link RenderScope#HEAD}.
  * <p>
  * The "head item" is the worn item picked up via {@link IdentityCarrier#customHeadItem()} rather than the
- * helmet slot — skulls and head-mounted blocks are tracked separately from the armor pipeline.
+ * helmet slot - skulls and head-mounted blocks are tracked separately from the armor pipeline.
  */
 public class ArmorHiderHeadRenderer extends AbstractArmorHiderRenderer {
 

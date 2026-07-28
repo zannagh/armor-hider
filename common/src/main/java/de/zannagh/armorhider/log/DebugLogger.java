@@ -22,7 +22,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * (next to the normal game log) instead of polluting the general game log.
  * <p>
  * Callers should always guard expensive string formatting behind
- * {@link #isEnabled()} — the check is a single volatile read.
+ * {@link #isEnabled()} - the check is a single volatile read.
  */
 public final class DebugLogger {
 
@@ -53,7 +53,7 @@ public final class DebugLogger {
             String baseName = LocalDateTime.now().format(FILE_TIMESTAMP);
             BufferedWriter writer = openLogFile(baseName);
             if (writer == null) {
-                LOGGER.error(PREFIX + "Failed to open debug log file — debug logging NOT enabled");
+                LOGGER.error(PREFIX + "Failed to open debug log file - debug logging NOT enabled");
                 return;
             }
             closeQuietly(activeWriter);
@@ -63,7 +63,7 @@ public final class DebugLogger {
             lastMessage = null;
             enabledUntilMillis.set(System.currentTimeMillis() + DURATION_MS);
         }
-        LOGGER.info(PREFIX + "Debug logging ENABLED for 5 minutes — writing to logs/armorHiderLog/");
+        LOGGER.info(PREFIX + "Debug logging ENABLED for 5 minutes - writing to logs/armorHiderLog/");
     }
 
     public static void disable() {

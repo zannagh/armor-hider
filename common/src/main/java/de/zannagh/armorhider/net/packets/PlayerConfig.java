@@ -325,7 +325,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
     /**
      * The client-side, server-independent global override configuration applied to unknown players when
      * {@link #useGlobalOverrideForAllPlayers} is on. Lazily created (left {@code null} until the user enables it) so
-     * the no-arg constructor doesn't recurse — a {@code PlayerConfig} field that always built another
+     * the no-arg constructor doesn't recurse - a {@code PlayerConfig} field that always built another
      * {@code PlayerConfig} would never terminate. Nested overrides never populate their own, so
      * serialization terminates too.
      *
@@ -397,7 +397,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
      * <p>
      * This is deliberately <em>separate from and independent of</em> {@link #migrate}. Migration only runs
      * when {@code configVersion < CURRENT_CONFIG_VERSION}, so a config that is already at the current version
-     * but has been corrupted at runtime would otherwise be loaded and used verbatim — which is exactly how a
+     * but has been corrupted at runtime would otherwise be loaded and used verbatim - which is exactly how a
      * config that grew a multi-megabyte exclusion map, or a non-finite opacity, survives a restart and even a
      * reinstall of the mod. Healing therefore runs unconditionally on every deserialize, from disk and from
      * the network alike.
@@ -438,14 +438,14 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
 
         // Capture the override in a local before recursing. If the structure is self-referential
         // (override == config, only reachable via programmatic construction, not JSON), the recursive call
-        // hits the depth limit and sets config.globalPlayerOverride = null on the shared instance — which
+        // hits the depth limit and sets config.globalPlayerOverride = null on the shared instance - which
         // would null this very field. Reading the captured local instead of config.globalPlayerOverride keeps
         // the follow-up dereference safe, honouring the rule that healing must never itself throw.
         PlayerConfig override = config.globalPlayerOverride;
         if (override != null) {
             if (depth >= MAX_GLOBAL_OVERRIDE_DEPTH) {
                 ArmorHider.LOGGER.warn(
-                        "Dropping a global player override nested {} levels deep in the config for {} — "
+                        "Dropping a global player override nested {} levels deep in the config for {} - "
                                 + "only one level is meaningful and deeper nesting corrupts serialization.",
                         depth + 1, owner);
                 config.globalPlayerOverride = null;
@@ -533,7 +533,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
             // made the mod appear inert until the config file was deleted. Seed a concrete default override so
             // resolution is stable and the settings screen edits a persisted instance (same shape as
             // ArmorHiderPlayerConfigApi#ensureGlobalOverride). Configs that never enabled a global mode keep
-            // the lazy null override — nothing reads it, so there's no reason to write one.
+            // the lazy null override - nothing reads it, so there's no reason to write one.
             fresh.globalPlayerOverride = PlayerConfig.defaults(
                     ArmorHiderPlayerConfigApi.DEFAULT_PLAYER_ID, ArmorHiderPlayerConfigApi.DEFAULT_PLAYER_NAME);
         }
@@ -586,7 +586,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
      * The map is sent <em>empty</em> rather than seeded with {@link ExclusionItemConfiguration#defaults()}:
      * every default entry is {@code intercepted} (i.e. {@code shouldIgnore == false}), and
      * {@link ExclusionItemConfiguration#shouldArmorHiderIgnore} also returns {@code false} for an absent
-     * entry — so the two are behaviourally identical for any reader, and empty is a few dozen entries
+     * entry - so the two are behaviourally identical for any reader, and empty is a few dozen entries
      * smaller on the wire.
      */
     public PlayerConfig forNetwork() {

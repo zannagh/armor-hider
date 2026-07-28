@@ -20,7 +20,7 @@ import java.util.HashSet;
  * resolution, modification lookup, scope-specific suppression rules (elytra-while-flying,
  * mainhand-vs-offhand, custom head slot, etc.) and cancelling the underlying callback all live here.
  * <p>
- * <b>Implementing a custom renderer</b> — extend
+ * <b>Implementing a custom renderer</b> - extend
  * {@link de.zannagh.armorhider.client.render.interceptors.AbstractArmorHiderRenderer} (handles the
  * boilerplate: modification storage, render-type factory plumbing) and override
  * {@link #intercept} or {@link #interceptFrom}. Pick the right {@link RenderScope} via
@@ -41,24 +41,24 @@ public interface AhRenderer extends RenderScopeProvider, AhRenderTypeFactory {
      * Intercept a render call when the caller already has the slot and stack (e.g.
      * {@code EquipmentLayerRenderer} receives them as method arguments).
      *
-     * @param identityCarrier opaque carrier — usually an entity render state or a {@link Player};
+     * @param identityCarrier opaque carrier - usually an entity render state or a {@link Player};
      *                        the renderer casts to {@link IdentityCarrier} if it can.
      *                        May be {@code null} when no entity context is available.
      * @param slot            equipment slot, or {@code null} if the renderer should derive it
      *                        from the stack.
      * @param stack           item stack being rendered, or {@code null} if not available.
-     * @param ci              the mixin callback — the renderer may call {@link CallbackInfo#cancel()}
+     * @param ci              the mixin callback - the renderer may call {@link CallbackInfo#cancel()}
      *                        to short-circuit the underlying method. May be {@code null} for
      *                        context-recovery calls outside a cancellable injection frame.
      * @return a {@link RenderInterceptionResult} describing whether the caller should enter the
      *         scope ({@code shouldIntercept}) and whether the underlying render was cancelled
-     *         ({@code shouldCancel}). Never {@code null} — return {@link RenderInterceptionResult#ignore()}
+     *         ({@code shouldCancel}). Never {@code null} - return {@link RenderInterceptionResult#ignore()}
      *         to opt out.
      */
     RenderInterceptionResult intercept(@Nullable Object identityCarrier, @Nullable EquipmentSlot slot, @Nullable ItemStack stack, @Nullable CallbackInfo ci);
 
     /**
-     * Intercept a render call when only the identity carrier is available — the renderer derives
+     * Intercept a render call when only the identity carrier is available - the renderer derives
      * slot and stack itself (cape: chest equipment; elytra: synthetic elytra stack;
      * head: custom head item; …).
      * <p>
@@ -83,7 +83,7 @@ public interface AhRenderer extends RenderScopeProvider, AhRenderTypeFactory {
      * {@link #interceptFrom(IdentityCarrier, CallbackInfo) interceptFrom} on the current thread.
      * <p>
      * Useful when downstream code needs the modification API immediately (before a scope has been
-     * entered via {@link AhRenderManagementApi#enterScope}) — for example when a mixin queries
+     * entered via {@link AhRenderManagementApi#enterScope}) - for example when a mixin queries
      * the modification API while still deciding whether to enter the scope. After a scope is
      * entered, prefer {@link AhRenderManagementApi#getActiveScope(RenderScope)} which is the
      * authoritative source.
@@ -95,7 +95,7 @@ public interface AhRenderer extends RenderScopeProvider, AhRenderTypeFactory {
 
     /**
      * Installs a custom {@link AhRenderTypeFactory} for this renderer. The factory will be consulted
-     * whenever the renderer needs a translucent render type — overriding the built-in defaults from
+     * whenever the renderer needs a translucent render type - overriding the built-in defaults from
      * {@link de.zannagh.armorhider.client.render.rendertype.ArmorHiderRenderTypes}.
      * <p>
      * Useful when a compat layer needs a custom render pipeline (e.g. a shader-friendly blend mode).

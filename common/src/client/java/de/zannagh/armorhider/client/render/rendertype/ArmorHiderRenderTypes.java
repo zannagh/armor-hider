@@ -61,7 +61,7 @@ public final class ArmorHiderRenderTypes {
     // Set of every translucent-no-depth-write render type this class hands out. These are the types
     // whose armor/entity draws must be deferred to the after-translucent-terrain render phase
     // (>= 26.2-1.pre) so translucent terrain (water, ice, stained glass) drawn afterwards cannot
-    // overdraw the parts of a piece that aren't backed by an opaque body pixel — e.g. chestplate
+    // overdraw the parts of a piece that aren't backed by an opaque body pixel - e.g. chestplate
     // shoulder pads silhouetted against a body of water. We store the exact memoized instances we
     // produce (and each carries a unique "armor_hider_*" name), so a plain contains-check is a
     // reliable membership test and the set stays tiny (one entry per texture actually used).
@@ -81,8 +81,8 @@ public final class ArmorHiderRenderTypes {
 
     // Diagnostic counter of how many model submits have been deferred into the after-terrain phase.
     // The after-terrain redirect fails *silently* if the mixin target drifts between versions (the
-    // piece just reverts to the old overdraw-by-water behaviour), so — matching this repo's
-    // smoke-test convention of asserting a mixin actually fired rather than only "didn't crash" —
+    // piece just reverts to the old overdraw-by-water behaviour), so - matching this repo's
+    // smoke-test convention of asserting a mixin actually fired rather than only "didn't crash" -
     // the water-scene game test asserts this climbs above zero.
     private static final java.util.concurrent.atomic.AtomicLong DEFERRED_SUBMIT_COUNT =
             new java.util.concurrent.atomic.AtomicLong();
@@ -97,7 +97,7 @@ public final class ArmorHiderRenderTypes {
 
     // Diagnostic counter: how many times the Female Gender Mod breast-armor render-type swap actually
     // ran and produced one of our translucent types. The swap is a @Pseudo @WrapOperation with
-    // require=0, so it fails *silently* if it can't resolve its target — leaving the breast piece on
+    // require=0, so it fails *silently* if it can't resolve its target - leaving the breast piece on
     // the alpha-tested armorCutoutNoCull type, where a faded (reduced-alpha) colour is discarded
     // wholesale and the piece vanishes instead of turning translucent. The gender smoke test fades
     // the breast and asserts this climbs, pinning down whether the swap fired.
@@ -115,7 +115,7 @@ public final class ArmorHiderRenderTypes {
     // Diagnostic counters for the Female Gender Mod breast-physics relaxation (GenderPhysicsMixin).
     // TICKS: the @ModifyReturnValue on PlayerConfig#getArmorPhysicsOverride fired at all (so the
     // injector resolved its target). RELAXED: it saw a fully-hidden chest and forced FGM's own
-    // "Armor Physics Override" on — zeroing armor tightness and physics resistance, so the breasts
+    // "Armor Physics Override" on - zeroing armor tightness and physics resistance, so the breasts
     // jiggle as if unarmored. The gender smoke asserts both climb while the chest is hidden.
     private static final java.util.concurrent.atomic.AtomicLong GENDER_PHYSICS_TICKS =
             new java.util.concurrent.atomic.AtomicLong();
@@ -167,7 +167,7 @@ public final class ArmorHiderRenderTypes {
     }
 
     // Test-only diagnostic switch. When flipped off, the after-terrain redirect is bypassed and the
-    // translucent armor falls back to the pre-terrain phase — i.e. the pre-fix behaviour where water
+    // translucent armor falls back to the pre-terrain phase - i.e. the pre-fix behaviour where water
     // overdraws the pads. The water-scene game test toggles this to capture a before/after and to
     // assert the redirect both fires when on and stays quiet when off. Always true in normal play.
     private static volatile boolean deferralEnabled = true;
@@ -325,7 +325,7 @@ public final class ArmorHiderRenderTypes {
                             // 26.3 OIT: a translucent type must carry an OIT set to fade under the
                             // "Improved Transparency" option (drawFromBufferOit throws without it). We do
                             // NOT set an opaque-parts pipeline: opaqueParts makes bothSolidAndTranslucent()
-                            // true, which routes the model into the solid phase too — and since we reduce
+                            // true, which routes the model into the solid phase too - and since we reduce
                             // the whole model's alpha uniformly, that opaque copy just renders it fully
                             // opaque. OIT-only (no opaque parts) fades the entire piece.
                             //? if >= 26.3-0.snapshot.2 {
@@ -500,7 +500,7 @@ public final class ArmorHiderRenderTypes {
     }
 
     public static RenderType translucentArmorTrim() {
-        // 26.3 removed the single Sheets.ARMOR_TRIMS_SHEET atlas — trims are now per-material
+        // 26.3 removed the single Sheets.ARMOR_TRIMS_SHEET atlas - trims are now per-material
         // paletted textures (EquipmentLayerRenderer.TrimTextureKey / PalettedTextureManager).
         // This translucent-trim path is dormant on 26.3 (the trim-interception mixins target the
         // now-removed Sheets.armorTrimsSheet and no-op), so we return a valid translucent item

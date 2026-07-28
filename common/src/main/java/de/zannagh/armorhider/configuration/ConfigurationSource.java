@@ -68,7 +68,7 @@ public interface ConfigurationSource<T extends ConfigurationSource<T>>
     /**
      * Returns {@code old} migrated to the current schema, or {@code old} unchanged when it is already current.
      * The decision and the changed-flag are driven by {@code old} itself (not the receiver), so the result is
-     * independent of which instance this default method is dispatched on — the intended call is
+     * independent of which instance this default method is dispatched on - the intended call is
      * {@code x.ensureSchemaFrom(x)}. When a migration produces a new instance, the changed-flag is set on that
      * returned instance rather than on {@code old}.
      */

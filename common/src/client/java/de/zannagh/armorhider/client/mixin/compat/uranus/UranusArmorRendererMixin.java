@@ -28,14 +28,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * <p>
  * Uranus registers per-item armor renderers ({@link IArmorRendererBase}) and dispatches to them from
  * its own {@code HumanoidArmorLayer} mixin, drawing custom armor models via the interface's default
- * {@code render(...)} INSTEAD of vanilla {@code renderArmorPiece} — so armor-hider's renderArmorPiece
+ * {@code render(...)} INSTEAD of vanilla {@code renderArmorPiece} - so armor-hider's renderArmorPiece
  * path never sees these pieces (the mod's scope trace showed only OFFHAND, never ARMOR_PIECE, for IAF
  * armor). Concrete renderers (e.g. Ice and Fire's {@code BasicArmorRenderer} / {@code ScaleArmorRenderer})
  * only override {@code getHumanoidArmorModel}, so this shared default {@code render} is the single hook
  * that covers every Uranus-based armor piece.
  * <p>
  * The default {@code render} both picks {@code RenderType.armorCutoutNoCull} and calls
- * {@code HumanoidModel.renderToBuffer(...color)} inline, so the full pipeline is handled here — enter the
+ * {@code HumanoidModel.renderToBuffer(...color)} inline, so the full pipeline is handled here - enter the
  * ARMOR_PIECE scope on HEAD (cancel outright when fully hidden), swap to the translucent render type and
  * fade the model color while the scope is active, then exit on RETURN. Mirrors
  * {@code NeoForgeHumanoidArmorLayerMixin}. Injects into an interface default method, so the mixin is an

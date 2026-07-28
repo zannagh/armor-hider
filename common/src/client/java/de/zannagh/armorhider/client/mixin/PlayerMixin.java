@@ -155,7 +155,7 @@ public abstract class PlayerMixin
             return original;
         }
 
-        // Only fake empty slots during level rendering (3D world) — never during
+        // Only fake empty slots during level rendering (3D world) - never during
         // game logic (tick processing, inventory interactions) or HUD/GUI rendering.
         if (!AhRenderManagementApi.isInLevelRender()) {
             return original;

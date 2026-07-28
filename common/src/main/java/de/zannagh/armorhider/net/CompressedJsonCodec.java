@@ -18,7 +18,7 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 public class CompressedJsonCodec {
-    
+
     //? if >= 1.20.5 {
     // Creates a PacketCodec that serializes objects to compressed JSON.
     public static <T> StreamCodec<ByteBuf, T> create(Class<T> clazz) {
@@ -37,7 +37,7 @@ public class CompressedJsonCodec {
 
     /**
      * Vanilla's <em>serverbound</em> ceiling ({@code ServerboundCustomPayloadPacket.MAX_PAYLOAD_SIZE}) is far
-     * tighter at 32767, and a vanilla server — Realms included — decodes unknown payloads via
+     * tighter at 32767, and a vanilla server - Realms included - decodes unknown payloads via
      * {@code DiscardedPayload}, which throws and disconnects the client for anything larger. Only C2S types
      * are held to this limit; the S2C {@code ServerConfiguration} broadcast legitimately runs much larger.
      * A little headroom is kept for the length prefix and framing.
@@ -97,7 +97,7 @@ public class CompressedJsonCodec {
                  InputStream boundedStream = new SizeLimitedInputStream(gzipStream, MAX_DECOMPRESSED_BYTES);
                  InputStreamReader reader = new InputStreamReader(boundedStream, StandardCharsets.UTF_8)) {
                 T decoded = ArmorHider.GSON.fromJson(reader, clazz);
-                // Configs arriving off the wire get the same repair pass as configs read from disk —
+                // Configs arriving off the wire get the same repair pass as configs read from disk -
                 // PlayerConfig.deserialize is bypassed entirely on this path.
                 if (decoded instanceof de.zannagh.armorhider.net.packets.PlayerConfig playerConfig) {
                     de.zannagh.armorhider.net.packets.PlayerConfig.heal(playerConfig);
@@ -130,7 +130,7 @@ public class CompressedJsonCodec {
             consumed += readCount;
             if (consumed > limit) {
                 throw new IOException("Rejecting an armor-hider payload that inflates beyond " + limit
-                        + " bytes — refusing to decompress further");
+                        + " bytes - refusing to decompress further");
             }
         }
 

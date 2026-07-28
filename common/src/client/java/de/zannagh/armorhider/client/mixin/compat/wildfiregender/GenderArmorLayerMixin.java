@@ -87,7 +87,7 @@ public class GenderArmorLayerMixin {
         // interception path: SlotModification.of applies CombatManager.transformTransparencyBasedOnCombat,
         // which snaps the piece to full opacity when combat starts and ramps it back to the configured
         // opacity over the combat window. At the snap the resolved transparency is 1.0, so
-        // needsModification() is false and interception no-ops on its own — the breast armor stays in
+        // needsModification() is false and interception no-ops on its own - the breast armor stays in
         // lockstep with the vanilla body chestplate for free.
         //
         // Bailing out on shouldEnforceVanillaRendering() instead (as this did until the fade was wired

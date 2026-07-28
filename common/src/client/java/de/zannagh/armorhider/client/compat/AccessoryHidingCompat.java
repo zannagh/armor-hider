@@ -7,7 +7,7 @@ import java.lang.reflect.Method;
 
 /**
  * Compat glue that resolves each accessory provider's slot-type string and hands it to
- * {@link AhRenderManagementApi#shouldHideAccessory} — the provider-agnostic hide decision. Providers
+ * {@link AhRenderManagementApi#shouldHideAccessory} - the provider-agnostic hide decision. Providers
  * expose no per-render alpha, so accessories are only ever hidden, not faded.
  * <p>
  * Each provider names its slot type differently:
@@ -17,7 +17,7 @@ import java.lang.reflect.Method;
  * {@link AhRenderManagementApi#mapAccessoryTypeToSlot} accepts all of them.
  * <p>
  * Provider slot values are read through {@link ReflectiveChain} (and the Accessories helper below), which
- * resolves and caches the reflective accessors once per concrete class — the per-frame render path only
+ * resolves and caches the reflective accessors once per concrete class - the per-frame render path only
  * pays a cached {@link Method#invoke}, never a fresh {@code getMethod} lookup.
  */
 public final class AccessoryHidingCompat {

@@ -11,14 +11,14 @@ import java.util.List;
 import java.util.function.Supplier;
 
 /**
- * Lightweight compat flags set during mixin plugin load — before MC classes are available.
+ * Lightweight compat flags set during mixin plugin load - before MC classes are available.
  * This class must NOT import any Minecraft classes to avoid early class loading.
  *
  * <p>Flags are set via {@link #setCompatFlagsByResourceProbing(ClassLoader)} during mixin-plugin load
  * (resource-based probing only), and may be gap-filled later via {@link #setCompatFlags(ClassLoader)}
  * (which can use {@code Class.forName(..., false, ...)}).</p>
  *
- * <p><b>Note:</b> Iris must not be reached through the {@code Class.forName} path at mixin time — loading
+ * <p><b>Note:</b> Iris must not be reached through the {@code Class.forName} path at mixin time - loading
  * it early breaks client startup on NeoForge. It is only resource-probed early and initialised later.</p>
  */
 public final class CompatManager {
@@ -132,7 +132,7 @@ public final class CompatManager {
         for (var compat : CompatFlags.values()) {
             // Resource probing (setCompatFlagsByResourceProbing) runs first, at mixin-plugin load, and
             // already flagged everything it could see without loading a class. Skip those here so the
-            // Class.forName pass never re-loads an already-detected mod — this matters for Iris, whose
+            // Class.forName pass never re-loads an already-detected mod - this matters for Iris, whose
             // early class load breaks client startup on NeoForge. Only gap-fill the mods resource
             // probing missed.
             if (COMPAT_FLAGS.contains(compat)) {
@@ -146,8 +146,8 @@ public final class CompatManager {
     }
 
     /**
-     * Smoke/diagnostic consistency check: for every compat flag whose mod is <b>definitively</b> present —
-     * verified here by {@code Class.forName}, safe to do post-boot unlike at mixin time — assert the
+     * Smoke/diagnostic consistency check: for every compat flag whose mod is <b>definitively</b> present -
+     * verified here by {@code Class.forName}, safe to do post-boot unlike at mixin time - assert the
      * mixin-safe resource probe ({@link #RESOURCE_PROBED_FLAGS}) also detected it. A mod that loads but
      * was not resource-probed means the class-load-free probing path has a gap and compat gating would
      * silently misfire in production. Returns the set of such gaps ({@code empty} = probing is sound).
@@ -197,7 +197,7 @@ public final class CompatManager {
         return requiresCompatTo(flag);
     }
 
-    /** True when any accessory provider is present — gates the accessory-related config UI. */
+    /** True when any accessory provider is present - gates the accessory-related config UI. */
     public static boolean anyAccessoryProviderLoaded() {
         return requiresCompatToAnyOf(CompatFlags.CURIOS, CompatFlags.TRINKETS, CompatFlags.ACCESSORIES, CompatFlags.ARTIFACTS);
     }

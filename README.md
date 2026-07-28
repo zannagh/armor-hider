@@ -140,7 +140,7 @@ For any other player you can define an individual configuration in addition, tha
 
 For hosts, these settings require moderator/operator permissions (for compatibility reasons, the mod only checks for permission level >= 3) and are applied server-wide, overriding individual player preferences.
 
-* **Armor in combat (server)**: Forces combat detection server-wide — when enabled, armor is always shown for any player in combat, overriding each player's individual combat detection setting - useful for PvP servers
+* **Armor in combat (server)**: Forces combat detection server-wide - when enabled, armor is always shown for any player in combat, overriding each player's individual combat detection setting - useful for PvP servers
 * **Force Armor Hider off for all players**: Forces Armor Hider to be disabled for all players on the server (especially useful when you're running a PvP server and don't want people to hide other players' armors)
 * **Armor While Invisible**: enforces that armor is rendered when a player has the invisible effect to prevent competitive advantage
 * **Individual Player Configs**: Allows administrators to enable or disable whether connected clients can use the application of individual configurations (both the client-side global and per-player configs) to override how the client sees other players
