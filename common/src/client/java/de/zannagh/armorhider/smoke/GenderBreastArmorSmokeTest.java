@@ -200,7 +200,12 @@ public final class GenderBreastArmorSmokeTest implements FabricClientGameTest {
             // Faithful "armored elytra": an elytra item that also equips as a chestplate with a humanoid
             // armor asset (copied off a diamond chestplate), so it renders both wings and breast armor.
             ItemStack armoredElytra = new ItemStack(Items.ELYTRA);
-            armoredElytra.set(DataComponents.EQUIPPABLE, new ItemStack(Items.DIAMOND_CHESTPLATE).get(DataComponents.EQUIPPABLE));
+            var chestplateEquippable = new ItemStack(Items.DIAMOND_CHESTPLATE).get(DataComponents.EQUIPPABLE);
+            if (chestplateEquippable == null) {
+                throw new IllegalStateException("[smoke/fcgt] diamond chestplate has no EQUIPPABLE component -"
+                        + " cannot build armored elytra for combat test");
+            }
+            armoredElytra.set(DataComponents.EQUIPPABLE, chestplateEquippable);
             player.setItemSlot(EquipmentSlot.CHEST, armoredElytra);
 
             var cfg = ArmorHiderClient.CLIENT_CONFIG_MANAGER.resolveConfig(ArmorHiderClient.getCurrentPlayerName());

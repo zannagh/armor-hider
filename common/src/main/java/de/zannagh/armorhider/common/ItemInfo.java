@@ -11,27 +11,28 @@ import org.jspecify.annotations.NonNull;
 
 //? if >= 1.21.2 {
 import net.minecraft.core.component.DataComponents;
+//?}
+//? if >= 1.21.4 {
 import net.minecraft.world.item.equipment.EquipmentAssets;
 //?}
+//? if >= 1.21.2 && < 1.21.4
+//import net.minecraft.resources.ResourceLocation;
 //? if < 1.21.2
 //import net.minecraft.world.item.Equipable;
 
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 
 public class ItemInfo {
 
-    public static final Set<Item> SKULL_BLOCK_ITEMS = new HashSet<>(
-            Arrays.asList(
-                    Items.SKELETON_SKULL,
-                    Items.DRAGON_HEAD,
-                    Items.WITHER_SKELETON_SKULL,
-                    Items.PLAYER_HEAD,
-                    Items.ZOMBIE_HEAD,
-                    Items.CREEPER_HEAD,
-                    Items.PIGLIN_HEAD));
+    private static final Set<Item> SKULL_BLOCK_ITEMS = Set.of(
+            Items.SKELETON_SKULL,
+            Items.DRAGON_HEAD,
+            Items.WITHER_SKELETON_SKULL,
+            Items.PLAYER_HEAD,
+            Items.ZOMBIE_HEAD,
+            Items.CREEPER_HEAD,
+            Items.PIGLIN_HEAD);
 
     // Placeholder elytra stack, built lazily and cached only on first *successful* construction.
     // This class can be loaded - and elytraItemStack() called - before item registries / data
@@ -120,7 +121,7 @@ public class ItemInfo {
      * (no glider/equippable-asset data components), so this is always {@code false} there.
      */
     public boolean isArmoredElytra() {
-        //? if >= 1.21.2 {
+        //? if >= 1.21.4 {
         if (!isElytra()) {
             return false;
         }
@@ -129,7 +130,18 @@ public class ItemInfo {
                 && equippable.slot() == EquipmentSlot.CHEST
                 && equippable.assetId().isPresent()
                 && !equippable.assetId().get().equals(EquipmentAssets.ELYTRA);
-        //?} else {
+        //?} elif >= 1.21.2 {
+        /*if (!isElytra()) {
+            return false;
+        }
+        // 1.21.2/1.21.3 predate EquipmentAssets: the equippable exposes its model as a raw
+        // ResourceLocation (later renamed assetId), and the plain elytra's model is minecraft:elytra.
+        var equippable = itemStack.get(DataComponents.EQUIPPABLE);
+        return equippable != null
+                && equippable.slot() == EquipmentSlot.CHEST
+                && equippable.model().isPresent()
+                && !equippable.model().get().equals(ResourceLocation.withDefaultNamespace("elytra"));
+        *///?} else {
         /*return false;
         *///?}
     }

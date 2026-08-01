@@ -42,6 +42,11 @@ public interface AhRenderer extends RenderScopeProvider, AhRenderTypeFactory {
 
     /**
      * Convenience default implementation to use a {@link ItemInfo} instance instead of individual slot + itemStack to intercept rendering. See {@link #intercept(Object, EquipmentSlot, ItemStack, CallbackInfo)} for more details.
+     * <p>
+     * The slot is derived via {@link ItemInfo#getEquippableSlot()}, which is {@code null} for
+     * non-equippable items (hands, etc.); in that case the underlying {@code intercept} receives a
+     * {@code null} slot and derives it from the stack itself. Prefer the explicit
+     * {@code slot + stack} overload when the caller already knows the slot.
      * @param identityCarrier opaque carrier - usually an entity render state or a {@link Player};
      *                        the renderer casts to {@link IdentityCarrier} if it can.
      *                        May be {@code null} when no entity context is available.
@@ -55,9 +60,10 @@ public interface AhRenderer extends RenderScopeProvider, AhRenderTypeFactory {
      *         to opt out.
      * @since 0.12.7
      */
-    default RenderInterceptionResult intercept(@Nullable Object identityCarrier, @Nullable ItemInfo itemInfo, @Nullable CallbackInfo ci)
-    {
-        return intercept(identityCarrier, itemInfo == null ? null : itemInfo.getEquippableSlot(), itemInfo == null ? null : itemInfo.getStack(), ci);
+    default RenderInterceptionResult intercept(@Nullable Object identityCarrier, @Nullable ItemInfo itemInfo, @Nullable CallbackInfo ci) {
+        EquipmentSlot slot = itemInfo == null ? null : itemInfo.getEquippableSlot();
+        ItemStack stack = itemInfo == null ? null : itemInfo.getStack();
+        return intercept(identityCarrier, slot, stack, ci);
     }
 
     /**
