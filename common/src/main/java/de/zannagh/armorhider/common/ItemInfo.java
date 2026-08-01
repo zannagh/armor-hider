@@ -16,7 +16,7 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.equipment.EquipmentAssets;
 //?}
 //? if >= 1.21.2 && < 1.21.4
-//import net.minecraft.resources.ResourceLocation;
+//import net.minecraft.resources.Identifier;
 //? if < 1.21.2
 //import net.minecraft.world.item.Equipable;
 
@@ -135,12 +135,12 @@ public class ItemInfo {
             return false;
         }
         // 1.21.2/1.21.3 predate EquipmentAssets: the equippable exposes its model as a raw
-        // ResourceLocation (later renamed assetId), and the plain elytra's model is minecraft:elytra.
+        // Identifier (later renamed assetId), and the plain elytra's model is minecraft:elytra.
         var equippable = itemStack.get(DataComponents.EQUIPPABLE);
         return equippable != null
                 && equippable.slot() == EquipmentSlot.CHEST
                 && equippable.model().isPresent()
-                && !equippable.model().get().equals(ResourceLocation.withDefaultNamespace("elytra"));
+                && !equippable.model().get().equals(Identifier.withDefaultNamespace("elytra"));
         *///?} else {
         /*return false;
         *///?}

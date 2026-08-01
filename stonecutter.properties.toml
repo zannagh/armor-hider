@@ -132,6 +132,8 @@ waveycapes.version = "aoyyskwv"
 deeperdarker.version = "GeXcCDSS" # 1.20.1 fabric
 modmenu.version = "lEkperf6"
 gender.version = "nYZ0oktX"
+trinkets.version = "AHxQGtuC" # 3.7.2 (1.20.1)
+accessories.version = "A7wwzJ0e" # 1.0.0-beta.48+1.20.1
 fabricapi.version = "hu6gukgT"
 immersivearmors.version = "mGE2GYeN" # 1.7.2+1.20.1 fabric
 
@@ -147,6 +149,8 @@ etf.version = "udcdeUXw"
 modmenu.version = "v6Xx3fbU"
 waveycapes.version = "EcKyPvJR"
 gender.version = "kJmjQvAS"
+trinkets.version = "JagCscwi" # 3.10.0 (1.21.1)
+accessories.version = "Xlt4eWBe" # 1.1.0-beta.53+1.21.1
 fabricapi.version = "Lwt6YYHL"
 immersivearmors.version = "4m0lwLNO" # 1.7.6+1.21.1 fabric
 # fabric-api 0.116.x for 1.21.1 predates fabric-client-gametest-api-v1 - Phase 2 entity
@@ -196,6 +200,7 @@ etf.version = "sXFmuZiZ"
 waveycapes.version = "EcKyPvJR"
 modmenu.version = "qEKKsTqd"
 gender.version = "T31mEfNe"
+accessories.version = "wmLc2Y7f" # 1.2.19-beta+1.21.4 (Trinkets has no 1.21.4 build)
 fabricapi.version = "p96k10UR"
 fabricapi.semver = "0.119.4+1.21.4"
 
@@ -210,6 +215,7 @@ etf.version = "LhiABkEc"
 waveycapes.version = "TJiebQCb"
 modmenu.version = "ku5NivOP"
 gender.version = "Z3yx6MPE" # 4.3
+accessories.version = "MP4v9WZU" # 1.3.8-beta+1.21.8 (Trinkets has no 1.21.8 build)
 fabricapi.version = "g58ofrov"
 fabricapi.semver = "0.136.1+1.21.8"
 
@@ -398,6 +404,7 @@ gender.version = "kKffHCGl" # 3.2.2
 # no transparency or trim recolor on this combo).
 gender_legacy_api = "true"
 immersivearmors.version = "B2YtQYCh" # 1.7.6+1.21.1 neoforge
+curios.version = "yohfFbgD" # 9.5.1+1.21.1 neoforge
 
 ["neoforge-1.21.2"]
 "neoforge.version" = "21.2.1-beta"
@@ -437,6 +444,7 @@ gender_legacy_api = "true"
 "neoforge.version" = "21.4.157"
 "neoforge.minecraft_version_range" = "[1.21.4]"
 geckolib.version = "eQtABRub"
+curios.version = "jtt92CXj" # 10.0.1+1.21.4 neoforge
 iris.version = "FNc0XYTL"
 emf.version = "mSdGwbUW"
 etf.version = "prVeAFlr"
@@ -446,6 +454,7 @@ waveycapes.version = "vjiRyyU7"
 "neoforge.version" = "21.8.54"
 "neoforge.minecraft_version_range" = "[1.21.5,1.21.8]"
 geckolib.version = "KPEgpbCC"
+curios.version = "UW476H0a" # 12.0.0+1.21.8 neoforge
 elytratrims.version = "RMLnPwtS"
 iris.version = "Rhzf61g1"
 emf.version = "hcT0GN6Q"

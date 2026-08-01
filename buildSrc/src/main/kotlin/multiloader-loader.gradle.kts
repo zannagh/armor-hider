@@ -12,7 +12,9 @@ val compatKeys = listOf(
     "fabricapi",
     "gender", "geckolib", "waveycapes", "mekanism", "figura",
     "elytratrims", "iris", "emf", "etf", "modmenu", "deeperdarker", "uranus", "firstperson",
-    "immersivearmors"
+    "immersivearmors",
+    // Accessory providers (issue #246). trinkets + accessories are Fabric; curios is NeoForge-only.
+    "trinkets", "accessories", "curios"
 )
 val availableHashes = compatKeys.mapNotNull { key ->
     findProperty("$key.version")?.toString()?.let { hash -> key to hash }
@@ -107,6 +109,17 @@ dependencies {
     }
     if (hasProperty("gender.version")) {
         add("compileOnly", "maven.modrinth:female-gender:${findProperty("gender.version")}")
+    }
+    // Accessory providers (issue #246). Fabric: trinkets + accessories; NeoForge: curios (added on the
+    // neoforge project). Compat is @Pseudo/@Coerce so these are compileOnly parity deps + smoke-fetch sources.
+    if (hasProperty("trinkets.version")) {
+        add("compileOnly", "maven.modrinth:trinkets:${findProperty("trinkets.version")}")
+    }
+    if (hasProperty("accessories.version")) {
+        add("compileOnly", "maven.modrinth:accessories:${findProperty("accessories.version")}")
+    }
+    if (hasProperty("curios.version")) {
+        add("compileOnly", "maven.modrinth:curios:${findProperty("curios.version")}")
     }
     // First Person Model is Fabric-only, but the loader project compiles common's sources too, so the
     // unremapped jar has to be here as well. That is usable only because FirstPersonCompat never touches an

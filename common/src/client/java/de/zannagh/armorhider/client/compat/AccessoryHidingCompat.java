@@ -28,11 +28,20 @@ public final class AccessoryHidingCompat {
     /** Curios {@code SlotContext.identifier()} → slot-type string. */
     private static final ReflectiveChain CURIOS_IDENTIFIER = new ReflectiveChain("identifier");
 
+    /** Curios {@code SlotContext.entity()} → the wearer. Used on the pre-render-state (1.21.1) path,
+     *  where {@code ICurioRenderer.render} is handed no entity and the wearer lives on the SlotContext. */
+    private static final ReflectiveChain CURIOS_ENTITY = new ReflectiveChain("entity");
+
     /** Trinkets ({@code dev.emi.trinkets}) {@code SlotReference.inventory().getSlotType().getGroup()} → body region. */
     private static final ReflectiveChain TRINKETS_GROUP = new ReflectiveChain("inventory", "getSlotType", "getGroup");
 
-    /** Accessories ({@code io.wispforest.accessories}) {@code SlotPath.slotName()} → slot name. */
+    /** Accessories ({@code io.wispforest.accessories}) {@code SlotPath.slotName()} / {@code SlotReference.slotName()}
+     *  → slot name (both provider slot objects expose {@code slotName()}). */
     private static final ReflectiveChain ACCESSORIES_SLOT_NAME = new ReflectiveChain("slotName");
+
+    /** Accessories {@code SlotReference.entity()} → the wearer. The pre-1.21.8 slot object (SlotReference) is
+     *  entity-bearing; the 1.21.8+ SlotPath is not, so that era passes the render state as the carrier instead. */
+    private static final ReflectiveChain ACCESSORIES_SLOT_REFERENCE_ENTITY = new ReflectiveChain("entity");
 
     /**
      * Curios entry point: resolves {@code SlotContext.identifier()} through the cached reflective chain
@@ -41,6 +50,16 @@ public final class AccessoryHidingCompat {
      */
     public static boolean shouldHideCurio(@Nullable Object slotContext, @Nullable Object carrier) {
         return AhRenderManagementApi.shouldHideAccessory(CURIOS_IDENTIFIER.resolve(slotContext), carrier);
+    }
+
+    /**
+     * Curios pre-render-state (1.21.1) entry point: {@code CuriosLayer.lambda$render$0} passes no wearer to
+     * {@code ICurioRenderer.render}, so both the slot type and the wearer are read off the {@code SlotContext}
+     * ({@code identifier()} / {@code entity()}). The entity is the live {@code LivingEntity} (a Player is an
+     * {@code IdentityCarrier}).
+     */
+    public static boolean shouldHideCurioByContext(@Nullable Object slotContext) {
+        return AhRenderManagementApi.shouldHideAccessory(CURIOS_IDENTIFIER.resolve(slotContext), CURIOS_ENTITY.resolve(slotContext));
     }
 
     /**
@@ -61,6 +80,26 @@ public final class AccessoryHidingCompat {
      */
     public static boolean shouldHideAccessoriesAccessory(@Nullable Object accessoryState, @Nullable Object carrier) {
         return AhRenderManagementApi.shouldHideAccessory(ACCESSORIES_SLOT_NAME.resolve(accessoriesSlotPath(accessoryState)), carrier);
+    }
+
+    /**
+     * Accessories pre-1.21.8 entry point: the per-accessory {@code AccessoryRenderer.render} is handed a
+     * {@code SlotReference}, which is entity-bearing - both the slot name ({@code slotName()}) and the wearer
+     * ({@code entity()}) come off it, so this covers the direct-entity era (1.20.1/1.21.1) and the transitional
+     * render-state era (1.21.4) uniformly.
+     */
+    public static boolean shouldHideAccessoriesBySlotReference(@Nullable Object slotReference) {
+        return AhRenderManagementApi.shouldHideAccessory(
+                ACCESSORIES_SLOT_NAME.resolve(slotReference), ACCESSORIES_SLOT_REFERENCE_ENTITY.resolve(slotReference));
+    }
+
+    /**
+     * Accessories 1.21.8 entry point: the slot object is a {@code SlotPath} (entity-free), so the slot name is
+     * read off it while the wearer is the render state passed to {@code AccessoryRenderer.render} (an
+     * {@code IdentityCarrier}).
+     */
+    public static boolean shouldHideAccessoriesBySlotPath(@Nullable Object slotPath, @Nullable Object carrier) {
+        return AhRenderManagementApi.shouldHideAccessory(ACCESSORIES_SLOT_NAME.resolve(slotPath), carrier);
     }
 
     // --- Accessories SLOT_PATH lookup (context-key + getStateData), resolved once and cached ---

@@ -137,6 +137,14 @@ if (branch == "common") {
         if (hasProperty("gender.version")) {
             add(modClientDep, "maven.modrinth:female-gender:${findProperty("gender.version")}")
         }
+        // Accessory providers (issue #246), Fabric side. Curios is NeoForge-only (added on the neoforge
+        // project). Compat is @Pseudo/@Coerce, so these are compile-only parity deps + smoke-fetch sources.
+        if (hasProperty("trinkets.version")) {
+            add(modClientDep, "maven.modrinth:trinkets:${findProperty("trinkets.version")}")
+        }
+        if (hasProperty("accessories.version")) {
+            add(modClientDep, "maven.modrinth:accessories:${findProperty("accessories.version")}")
+        }
         // Fabric-only. Declared here for the remapped common compile; the loader project compiles common's
         // sources too, so multiloader-loader.gradle.kts declares the same coordinate unremapped. That pairing
         // only works because FirstPersonCompat avoids every FPM member whose signature names a Minecraft type.
