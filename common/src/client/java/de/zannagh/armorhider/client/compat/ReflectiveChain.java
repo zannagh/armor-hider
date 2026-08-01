@@ -58,6 +58,18 @@ public final class ReflectiveChain {
      */
     @Nullable
     public String resolve(@Nullable Object target) {
+        Object value = resolveObject(target);
+        return value instanceof String result ? result : null;
+    }
+
+    /**
+     * As {@link #resolve(Object)} but returns the terminal value as an {@code Object} without a String
+     * cast - for chains whose result is not a String (e.g. {@code SlotContext.entity()} /
+     * {@code SlotReference.entity()} returning the wearer {@code LivingEntity}). Returns {@code null} if
+     * the target is null, the chain could not be resolved, or any value along the chain is null.
+     */
+    @Nullable
+    public Object resolveObject(@Nullable Object target) {
         if (target == null) {
             return null;
         }
@@ -73,7 +85,7 @@ public final class ReflectiveChain {
                 }
                 current = method.invoke(current);
             }
-            return current instanceof String result ? result : null;
+            return current;
         } catch (ReflectiveOperationException | RuntimeException | LinkageError e) {
             return null;
         }

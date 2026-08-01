@@ -59,7 +59,8 @@ public final class AccessoryHidingCompat {
      * {@code IdentityCarrier}).
      */
     public static boolean shouldHideCurioByContext(@Nullable Object slotContext) {
-        return AhRenderManagementApi.shouldHideAccessory(CURIOS_IDENTIFIER.resolve(slotContext), CURIOS_ENTITY.resolve(slotContext));
+        // resolveObject, not resolve: entity() returns the wearer LivingEntity, not a String.
+        return AhRenderManagementApi.shouldHideAccessory(CURIOS_IDENTIFIER.resolve(slotContext), CURIOS_ENTITY.resolveObject(slotContext));
     }
 
     /**
@@ -89,8 +90,9 @@ public final class AccessoryHidingCompat {
      * render-state era (1.21.4) uniformly.
      */
     public static boolean shouldHideAccessoriesBySlotReference(@Nullable Object slotReference) {
+        // resolveObject for the entity: SlotReference.entity() returns the wearer LivingEntity, not a String.
         return AhRenderManagementApi.shouldHideAccessory(
-                ACCESSORIES_SLOT_NAME.resolve(slotReference), ACCESSORIES_SLOT_REFERENCE_ENTITY.resolve(slotReference));
+                ACCESSORIES_SLOT_NAME.resolve(slotReference), ACCESSORIES_SLOT_REFERENCE_ENTITY.resolveObject(slotReference));
     }
 
     /**
