@@ -8,13 +8,17 @@ import com.wildfire.main.WildfireGender;
 import com.wildfire.main.config.enums.Gender;
 import com.wildfire.main.entitydata.PlayerConfig;
 import de.zannagh.armorhider.ArmorHider;
+import de.zannagh.armorhider.api.ArmorHiderApi;
 import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.client.api.impl.AhRenderStateImpl;
+import de.zannagh.armorhider.client.common.RenderScope;
 import de.zannagh.armorhider.client.common.SlotModification;
 import de.zannagh.armorhider.client.render.rendertype.ArmorHiderRenderTypes;
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 import net.fabricmc.fabric.api.client.gametest.v1.context.TestSingleplayerContext;
 import net.minecraft.client.CameraType;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.client.gui.screens.worldselection.WorldCreationUiState;
@@ -49,6 +53,13 @@ import java.nio.file.Path;
  *       back down as the body plate, rather than staying opaque for the whole combat window and then
  *       snapping to hidden. Asserted mid-ramp via the same swap counter - see
  *       {@code assertFadesDuringCombat}.</li>
+ *   <li><b>Armored-elytra combat.</b> The "Elytra Armor" datapack forges a chestplate+elytra into an
+ *       {@code Items.ELYTRA} worn in the chest that also carries a chestplate asset, so FGM renders
+ *       breast armor for it and {@code ItemInfo.isElytra()} is true - which routes the breast
+ *       interception through the ELYTRA scope, not ARMOR_PIECE. With the swap/cleanup keyed off
+ *       ARMOR_PIECE only, the faded breast was discarded (stuck invisible through combat) and the
+ *       ELYTRA scope leaked. {@code assertArmoredElytraFollowsCombat} asserts the breast is drawn
+ *       during combat and the scope does not leak.</li>
  * </ol>
  * <p>
  * Gender is forced on the local player through FGM's own runtime config API
@@ -162,9 +173,110 @@ public final class GenderBreastArmorSmokeTest implements FabricClientGameTest {
                                 + ") - the hidden-chest condition (shouldHide) is not being met at physics time");
             }
             assertFadesDuringCombat(context, singleplayer);
+            assertArmoredElytraFollowsCombat(context, singleplayer);
 
             ArmorHider.LOGGER.info("[smoke/fcgt] Gender breast-armor smoke complete");
         }
+    }
+
+    // ── Issue 2 (armored elytra): breast must follow combat on an elytra-armor chest ─────────────
+    // The "Elytra Armor" datapack forges a chestplate+elytra into an "armored elytra": an Items.ELYTRA
+    // worn in the chest that also carries a humanoid chestplate asset, so FGM renders breast armor for
+    // it AND ItemInfo.isElytra() is true. Because isElytra() is true, ArmorHiderItemRenderer.intercept
+    // delegates the breast interception to the ELYTRA renderer - so the scope entered for the breast is
+    // ELYTRA, not ARMOR_PIECE. The bug: GenderArmorLayerMixin's render-type swap and RETURN cleanup keyed
+    // off ARMOR_PIECE only, so (1) the swap never fired -> the faded breast stayed on the alpha-tested
+    // cutout type and was discarded, i.e. the breast was INVISIBLE all through combat instead of snapping
+    // back to visible, and (2) the entered ELYTRA scope leaked every frame. This reproduces the user
+    // report ("armored elytra + gender mod: chest stuck invisible after entering combat"). Both halves
+    // are asserted: the swap must climb (breast drawn) and the ELYTRA scope must not leak. EMF-agnostic -
+    // the delegation is independent of EMF.
+    private static void assertArmoredElytraFollowsCombat(ClientGameTestContext context, TestSingleplayerContext singleplayer) {
+        context.runOnClient(client -> {
+            var player = client.player;
+            if (player == null) {
+                throw new IllegalStateException("[smoke/fcgt] client player missing for armored-elytra combat test");
+            }
+            // Faithful "armored elytra": an elytra item that also equips as a chestplate with a humanoid
+            // armor asset (copied off a diamond chestplate), so it renders both wings and breast armor.
+            ItemStack armoredElytra = new ItemStack(Items.ELYTRA);
+            armoredElytra.set(DataComponents.EQUIPPABLE, new ItemStack(Items.DIAMOND_CHESTPLATE).get(DataComponents.EQUIPPABLE));
+            player.setItemSlot(EquipmentSlot.CHEST, armoredElytra);
+
+            var cfg = ArmorHiderClient.CLIENT_CONFIG_MANAGER.resolveConfig(ArmorHiderClient.getCurrentPlayerName());
+            cfg.enableCombatDetection.setValue(true);
+            cfg.inCombatUseDefaultModel.setValue(false);
+            // The armored elytra reads as "contains elytra", so the chest opacity only applies to it when
+            // the elytra toggle is on - otherwise SlotModification bails out and there is nothing to hide.
+            cfg.opacityAffectingElytra.setValue(true);
+        });
+        setChestOpacity(context, 0.0);
+        // Wait out any combat left over from assertFadesDuringCombat so the baseline below is clean.
+        for (int i = 0; i < 24 && context.computeOnClient(client -> isInCombat()); i++) {
+            context.waitTicks(10);
+        }
+        context.waitTicks(10);
+
+        // Baseline: hidden + out of combat, the breast must not be drawn (swap flat).
+        long swapIdle0 = context.computeOnClient(client -> ArmorHiderRenderTypes.breastArmorTranslucentSwapCount());
+        context.waitTicks(10);
+        long swapIdle1 = context.computeOnClient(client -> ArmorHiderRenderTypes.breastArmorTranslucentSwapCount());
+        if (swapIdle1 != swapIdle0) {
+            throw new IllegalStateException("[smoke/fcgt] armored-elytra breast is being drawn while hidden and out"
+                    + " of combat (swaps " + swapIdle0 + " -> " + swapIdle1 + ") - baseline precondition failed");
+        }
+
+        long leakBefore = context.computeOnClient(client -> AhRenderStateImpl.leakedScopeClears(RenderScope.ELYTRA));
+        singleplayer.getServer().runOnServer(mcServer -> {
+            var level = mcServer.overworld();
+            var serverPlayer = mcServer.getPlayerList().getPlayers().get(0);
+            serverPlayer.setGameMode(GameType.SURVIVAL);
+            serverPlayer.hurtServer(level, level.damageSources().generic(), 4.0F);
+        });
+        context.waitTicks(5);
+
+        double transparencyOnHit = context.computeOnClient(client -> resolveChestTransparency());
+        if (!context.computeOnClient(client -> isInCombat()) || transparencyOnHit < 0.9) {
+            throw new IllegalStateException("[smoke/fcgt] armored-elytra chest did not snap to ~full opacity after"
+                    + " damage (inCombat=" + context.computeOnClient(client -> isInCombat()) + ", transparency="
+                    + transparencyOnHit + ") - combat detection never reached opacity resolution");
+        }
+
+        // Ride the ramp until partly transparent, then assert the breast render-type swap fires - the
+        // breast is actually being DRAWN (faded), not staying invisible - AND the ELYTRA scope did not leak.
+        double transparencyMid = transparencyOnHit;
+        for (int i = 0; i < 20 && transparencyMid > 0.9; i++) {
+            context.waitTicks(10);
+            transparencyMid = context.computeOnClient(client -> resolveChestTransparency());
+        }
+        long swapsBefore = context.computeOnClient(client -> ArmorHiderRenderTypes.breastArmorTranslucentSwapCount());
+        context.waitTicks(5);
+        long swapsAfter = context.computeOnClient(client -> ArmorHiderRenderTypes.breastArmorTranslucentSwapCount());
+        long leakAfter = context.computeOnClient(client -> AhRenderStateImpl.leakedScopeClears(RenderScope.ELYTRA));
+        Path shot = context.takeScreenshot("armorhider_gender_6_armoredelytra_combat");
+        ArmorHider.LOGGER.info("[smoke/fcgt] armored-elytra combat (transparency {}): swaps {} -> {}, ELYTRA leaks {} -> {} ({})",
+                transparencyMid, swapsBefore, swapsAfter, leakBefore, leakAfter, shot);
+
+        if (swapsAfter <= swapsBefore) {
+            throw new IllegalStateException(
+                    "[smoke/fcgt] armored-elytra breast was never drawn while in combat at transparency "
+                            + transparencyMid + " (swaps " + swapsBefore + " -> " + swapsAfter + ") - the breast"
+                            + " interception was routed to the ELYTRA scope but the render-type swap keys off"
+                            + " ARMOR_PIECE, so the faded breast is discarded and stays invisible through combat");
+        }
+        if (leakAfter > leakBefore) {
+            throw new IllegalStateException(
+                    "[smoke/fcgt] ELYTRA render scope leaked during armored-elytra combat (" + leakBefore + " -> "
+                            + leakAfter + ") - interceptBreastArmor entered the ELYTRA scope (isElytra delegation)"
+                            + " but its RETURN handler only exited ARMOR_PIECE, bleeding alpha onto later submits");
+        }
+        ArmorHider.LOGGER.info("[smoke/fcgt] armored-elytra breast follows combat, no scope leak ({} draws)",
+                swapsAfter - swapsBefore);
+    }
+
+    private static boolean isInCombat() {
+        return ArmorHiderApi.getInstance().getCombatManagement()
+                .isInCombat(ArmorHiderClient.getCurrentPlayerName());
     }
 
     // ── Issue 2: the breast cups must follow the post-damage combat fade ─────────────────────────

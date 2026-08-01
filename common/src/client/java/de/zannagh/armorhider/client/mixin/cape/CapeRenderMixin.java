@@ -126,7 +126,7 @@ public class CapeRenderMixin {
             return false;
         }
         var ctx = AhRenderManagementApi.getActiveScope(RenderScope.CAPE);
-        return ctx.isEmpty() || (!ctx.modification().shouldHide() && de.zannagh.armorhider.util.ItemsUtil.itemStackContainsElytra(itemStack));
+        return ctx.isEmpty() || (!ctx.modification().shouldHide() && new de.zannagh.armorhider.common.ItemInfo(itemStack).isElytra());
     }
 
     @Inject(method = CAPE_CONTEXT_METHOD, at = @At("RETURN"))

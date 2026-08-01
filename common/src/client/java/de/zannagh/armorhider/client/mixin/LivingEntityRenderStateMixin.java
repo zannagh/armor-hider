@@ -13,7 +13,6 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
 //? if >= 1.21.4 {
-import de.zannagh.armorhider.util.ItemsUtil;
 import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 import net.minecraft.world.item.Items;
 //?}
@@ -61,7 +60,7 @@ public class LivingEntityRenderStateMixin implements IdentityStateCarrier {
         if (state.wornHeadProfile != null) {
             return new ItemStack(Items.PLAYER_HEAD);
         } else if (state.wornHeadType != null) {
-            return ItemsUtil.getItemStackFromSkullBlockType(state.wornHeadType);
+            return de.zannagh.armorhider.common.ItemInfo.of(state.wornHeadType).getStack();
         }
         //?}
         return armorHider$carrier != null ? armorHider$carrier.customHeadItem() : null;

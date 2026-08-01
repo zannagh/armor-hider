@@ -5,7 +5,9 @@ import de.zannagh.armorhider.client.common.RenderInterceptionResult;
 import de.zannagh.armorhider.client.common.RenderScope;
 import de.zannagh.armorhider.client.common.RenderScopeProvider;
 import de.zannagh.armorhider.client.suppressions.ConditionalSuppressor;
+import de.zannagh.armorhider.common.ItemInfo;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import org.jspecify.annotations.Nullable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -27,7 +29,8 @@ import java.util.HashSet;
  * {@link RenderScopeProvider#getTargetScope()}, then register with
  * {@link AhRenderInterceptionRegistryApi#register(AhRenderer, int)} at a lower priority value
  * than the built-in ({@value de.zannagh.armorhider.client.api.impl.AhRendererRegistryImpl#DEFAULT_PRIORITY})
- * to take over.
+ * to take over.<br/><br/>
+ * If not otherwise stated, methods in this interface have been available since the introduction of an API in this mod.
  *
  * @since 0.12.0
  */
@@ -35,6 +38,26 @@ public interface AhRenderer extends RenderScopeProvider, AhRenderTypeFactory {
 
     default Type getType() {
         return this.getClass();
+    }
+
+    /**
+     * Convenience default implementation to use a {@link ItemInfo} instance instead of individual slot + itemStack to intercept rendering. See {@link #intercept(Object, EquipmentSlot, ItemStack, CallbackInfo)} for more details.
+     * @param identityCarrier opaque carrier - usually an entity render state or a {@link Player};
+     *                        the renderer casts to {@link IdentityCarrier} if it can.
+     *                        May be {@code null} when no entity context is available.
+     * @param itemInfo        An instance of {@link ItemInfo} to test render interception against.
+     * @param ci              the mixin callback - the renderer may call {@link CallbackInfo#cancel()}
+     *                        to short-circuit the underlying method. May be {@code null} for
+     *                        context-recovery calls outside a cancellable injection frame.
+     * @return a {@link RenderInterceptionResult} describing whether the caller should enter the
+     *         scope ({@code shouldIntercept}) and whether the underlying render was cancelled
+     *         ({@code shouldCancel}). Never {@code null} - return {@link RenderInterceptionResult#ignore()}
+     *         to opt out.
+     * @since 0.12.7
+     */
+    default RenderInterceptionResult intercept(@Nullable Object identityCarrier, @Nullable ItemInfo itemInfo, @Nullable CallbackInfo ci)
+    {
+        return intercept(identityCarrier, itemInfo == null ? null : itemInfo.getEquippableSlot(), itemInfo == null ? null : itemInfo.getStack(), ci);
     }
 
     /**

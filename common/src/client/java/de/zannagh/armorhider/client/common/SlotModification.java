@@ -5,7 +5,6 @@ import de.zannagh.armorhider.combat.CombatManager;
 import de.zannagh.armorhider.common.ItemInfo;
 import de.zannagh.armorhider.configuration.items.ArmorOpacity;
 import de.zannagh.armorhider.net.packets.PlayerConfig;
-import de.zannagh.armorhider.util.ItemsUtil;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -190,13 +189,13 @@ public record SlotModification(
             }
         }
         if (slot == EquipmentSlot.HEAD
-                && ItemsUtil.isSkullBlockItem(resolvedItem.getItem())
+                && resolvedItemInfo.isVanillaSkullItem()
                 && !config.opacityAffectingHatOrSkull.getValue()) {
             return empty(slot);
         }
 
         if (slot == EquipmentSlot.CHEST
-                && ItemsUtil.itemStackContainsElytra(resolvedItem)
+                && resolvedItemInfo.isElytra()
                 && !config.opacityAffectingElytra.getValue()) {
             return empty(slot);
         }

@@ -6,7 +6,6 @@ import de.zannagh.armorhider.client.api.AhRenderManagementApi;
 import de.zannagh.armorhider.client.common.IdentityCarrier;
 import de.zannagh.armorhider.client.common.RenderInterceptionResult;
 import de.zannagh.armorhider.client.common.RenderScope;
-import de.zannagh.armorhider.util.ItemsUtil;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import org.jspecify.annotations.Nullable;
@@ -36,8 +35,8 @@ public class ArmorHiderElytraRenderer extends AbstractArmorHiderRenderer {
             setEmptyModification();
             return RenderInterceptionResult.ignore();
         }
-        ItemStack elytraStack = stack != null ? stack : ItemsUtil.elytraItemStack();
-        var mod = resolveModification(carrier, EquipmentSlot.CHEST, elytraStack);
+        var elytraInfo = stack != null ? new de.zannagh.armorhider.common.ItemInfo(stack) : de.zannagh.armorhider.common.ItemInfo.elytraItemInfo();
+        var mod = resolveModification(carrier, elytraInfo);
 
         // Pass-through branches: do NOT enter scope. enterScope-with-mod would still register a
         // non-empty modification into the active-scope map, and downstream wraps then react to it

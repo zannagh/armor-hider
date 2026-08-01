@@ -7,6 +7,7 @@ import de.zannagh.armorhider.client.common.*;
 import de.zannagh.armorhider.client.render.RenderModifications;
 import de.zannagh.armorhider.client.render.rendertype.ArmorHiderRenderTypes;
 import de.zannagh.armorhider.client.suppressions.ConditionalSuppressor;
+import de.zannagh.armorhider.common.ItemInfo;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -93,6 +94,13 @@ public abstract class AbstractArmorHiderRenderer implements AhRenderer {
         var modifications = AhRenderModificationApi.getInstance(mod);
         modificationApi.set(modifications);
         return mod;
+    }
+
+    protected SlotModification resolveModification(@NonNull IdentityCarrier carrier, @Nullable ItemInfo info) {
+        if (info == null) {
+            return resolveModification(carrier, null, null);
+        }
+        return resolveModification(carrier, info.getEquippableSlot(), info.getStack());
     }
 
     /**

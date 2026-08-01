@@ -101,7 +101,11 @@ public class GenderArmorLayerMixin {
             return Pair.of(false, interceptionResult);
         }
         if (interceptionResult.shouldCancel()) {
-            AhRenderManagementApi.exitScope(RenderScope.ARMOR_PIECE);
+            // Exit BOTH scopes: an "armored elytra" (Elytra Armor datapack - an Items.ELYTRA that also
+            // carries a chestplate asset, so ItemInfo.isElytra() is true) makes the ARMOR_PIECE renderer
+            // delegate to the ELYTRA renderer, so the scope actually entered for this breast piece may be
+            // ELYTRA rather than ARMOR_PIECE. See the enter side in interceptBreastArmor.
+            AhRenderManagementApi.exitScopes(RenderScope.ARMOR_PIECE, RenderScope.ELYTRA);
             return Pair.of(false, interceptionResult);
         }
         return Pair.of(true, interceptionResult);
@@ -163,7 +167,9 @@ public class GenderArmorLayerMixin {
             /*Player player, PoseStack poseStack, MultiBufferSource bufferSource, ArmorItem armorItem, ItemStack itemStack, int light, boolean isLeft,
             *///?}
             CallbackInfo ci) {
-        AhRenderManagementApi.exitScope(RenderScope.ARMOR_PIECE);
+        // Exit BOTH: for an "armored elytra" chest the breast piece is scoped as ELYTRA, not ARMOR_PIECE
+        // (see interceptArmor). Exiting only ARMOR_PIECE leaked the ELYTRA scope for the rest of the frame.
+        AhRenderManagementApi.exitScopes(RenderScope.ARMOR_PIECE, RenderScope.ELYTRA);
     }
 
     //? if >= 1.21 {
@@ -176,7 +182,7 @@ public class GenderArmorLayerMixin {
     )
     private int modifyBreastArmorColor(int i, Operation<Integer> original) {
         int opaqueColor = original.call(i);
-        return AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE).renderModificationApi().applyArmorTransparency(opaqueColor);
+        return AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE, RenderScope.ELYTRA).renderModificationApi().applyArmorTransparency(opaqueColor);
     }
     //?}
 
@@ -203,7 +209,7 @@ public class GenderArmorLayerMixin {
                     remap = true)
     )
     private RenderType modifyBreastArmorRenderType(Identifier texture, Operation<RenderType> original) {
-        var modApi = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE).renderModificationApi();
+        var modApi = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE, RenderScope.ELYTRA).renderModificationApi();
         var originalType = original.call(texture);
         if (modApi.getTranslucentArmorRenderType(texture, originalType) instanceof RenderType rt && rt != originalType) {
             de.zannagh.armorhider.client.render.rendertype.ArmorHiderRenderTypes.recordBreastArmorTranslucentSwap();
@@ -222,7 +228,7 @@ public class GenderArmorLayerMixin {
                     remap = true)
     )
     private RenderType modifyBreastArmorRenderType(Identifier texture, Operation<RenderType> original) {
-        var modApi = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE).renderModificationApi();
+        var modApi = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE, RenderScope.ELYTRA).renderModificationApi();
         var originalType = original.call(texture);
         if (modApi.getTranslucentArmorRenderType(texture, originalType) instanceof RenderType rt) {
             return rt;
@@ -319,7 +325,7 @@ public class GenderArmorLayerMixin {
             /*ArmorMaterial material, PoseStack poseStack, MultiBufferSource bufferSource, int light, ArmorTrim trim, boolean glint, boolean isLeft,
             *///?}
             CallbackInfo ci) {
-        AhRenderManagementApi.exitScope(RenderScope.ARMOR_PIECE);
+        AhRenderManagementApi.exitScopes(RenderScope.ARMOR_PIECE, RenderScope.ELYTRA);
     }
 
     //? if >= 1.21.9 {
@@ -332,7 +338,7 @@ public class GenderArmorLayerMixin {
     )
     private RenderType modifyTrimRenderType(boolean decal, Operation<RenderType> original) {
         return AhRenderManagementApi
-                .getActiveScope(RenderScope.ARMOR_PIECE).renderModificationApi()
+                .getActiveScope(RenderScope.ARMOR_PIECE, RenderScope.ELYTRA).renderModificationApi()
                 .renderTypes().getTranslucentArmorTrimRenderType(decal);
     }
     //?}

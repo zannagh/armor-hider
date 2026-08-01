@@ -36,7 +36,14 @@ public class ArmorHiderItemRenderer extends AbstractArmorHiderRenderer {
             stack = equipmentInfo.getStack();
         }
 
-        if (equipmentInfo.getItemInfo().isElytra()) {
+        // A plain elytra worn in the chest is wings-only, so hand it to the ELYTRA renderer. An
+        // "armored elytra" (glider + a real chest armor asset - e.g. the Elytra Armor datapack, or a
+        // chestplate given a glider component) is NOT delegated: this renderer is only asked to drive
+        // body-armor geometry (the vanilla plate and Female Gender Mod's breast armor), which belongs in
+        // ARMOR_PIECE. Delegating it to ELYTRA scoped the breast wrong, so its render-type swap (keyed on
+        // ARMOR_PIECE) never fired and the piece stayed invisible through combat while the scope leaked.
+        // The wings of an armored elytra still reach the ELYTRA scope via their own WingsLayer render.
+        if (equipmentInfo.getItemInfo().isElytra() && !equipmentInfo.getItemInfo().isArmoredElytra()) {
             var elytraRenderer = AhRenderInterceptionRegistryApi.getRenderer(RenderScope.ELYTRA);
             return elytraRenderer.intercept(identityCarrier, resolvedSlot, stack, ci);
         }
