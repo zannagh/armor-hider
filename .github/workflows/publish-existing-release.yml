@@ -53,7 +53,7 @@ jobs:
           # Fine-grained PAT with Administration:read on this repo (lists runners). Missing/invalid
           # token degrades gracefully to default-runs-on.
           runner-token: ${{ secrets.RUNNER_TOKEN }}
-          required-labels: 'Linux,X64,codeql'
+          required-labels: 'Linux,X64,build'
           default-runs-on: 'ubuntu-latest'
 
   # ============================================================================
