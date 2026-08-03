@@ -41,7 +41,7 @@ jobs:
   analyze:
     name: Analyze (${{ matrix.language }})
     needs: determine-runner
-    runs-on: ${{needs.determine-runner.outputs.runner}}
+    runs-on: ${{ fromJSON(needs.determine-runner.outputs.runner) }}
     defaults:
       run:
         shell: bash

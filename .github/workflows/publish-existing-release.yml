@@ -39,12 +39,30 @@ env:
   CURSEFORGE_BUKKIT_PROJECT_ID: '1629731'
 
 jobs:
+
+  determine-runner:
+    name: Determine Runner
+    runs-on: ubuntu-latest
+    outputs:
+      runner: ${{ steps.pick.outputs.runner }}
+    steps:
+      - name: Pick a runner
+        id: pick
+        uses: zannagh/versionizer/determine-runner@v1
+        with:
+          # Fine-grained PAT with Administration:read on this repo (lists runners). Missing/invalid
+          # token degrades gracefully to default-runs-on.
+          runner-token: ${{ secrets.RUNNER_TOKEN }}
+          required-labels: 'Linux,X64,codeql'
+          default-runs-on: 'ubuntu-latest'
+
   # ============================================================================
   # PREPARE: gate to admins, pull release assets, reconstruct version metadata
   # ============================================================================
   prepare:
     name: Prepare Release Assets
-    runs-on: ubuntu-latest
+    needs: determine-runner
+    runs-on: ${{ fromJSON(needs.determine-runner.outputs.runner) }}
     permissions:
       contents: read
     outputs:
@@ -187,8 +205,8 @@ jobs:
   # ============================================================================
   publish-modrinth:
     name: Publish to Modrinth
-    runs-on: ubuntu-latest
-    needs: prepare
+    needs: [prepare, determine-runner]
+    runs-on: ${{ fromJSON(needs.determine-runner.outputs.runner) }}
     if: inputs.platforms == 'both' || inputs.platforms == 'modrinth'
     permissions:
       contents: read
@@ -281,8 +299,8 @@ jobs:
   # ============================================================================
   publish-curseforge:
     name: Publish to CurseForge
-    runs-on: ubuntu-latest
-    needs: prepare
+    needs: [prepare, determine-runner]
+    runs-on: ${{ fromJSON(needs.determine-runner.outputs.runner) }}
     if: inputs.platforms == 'both' || inputs.platforms == 'curseforge'
     permissions:
       contents: read
@@ -385,8 +403,8 @@ jobs:
   # Not matrixed: the Paper plugin is a single version-agnostic jar, so one upload.
   publish-curseforge-bukkit:
     name: Publish to CurseForge (Bukkit Plugins)
-    runs-on: ubuntu-latest
-    needs: prepare
+    needs: [prepare, determine-runner]
+    runs-on: ${{ fromJSON(needs.determine-runner.outputs.runner) }}
     if: inputs.platforms == 'both' || inputs.platforms == 'curseforge'
     permissions:
       contents: read
@@ -479,8 +497,8 @@ jobs:
   # ============================================================================
   announce:
     name: Announce Release
-    runs-on: ubuntu-latest
-    needs: [prepare, publish-modrinth, publish-curseforge, publish-curseforge-bukkit]
+    needs: [prepare, determine-runner, publish-modrinth, publish-curseforge, publish-curseforge-bukkit]
+    runs-on: ${{ fromJSON(needs.determine-runner.outputs.runner) }}
     # Only announce a real (non-dry-run) publish where nothing failed and at least
     # one portal actually uploaded. A skipped portal (platform not selected) is fine.
     if: >-

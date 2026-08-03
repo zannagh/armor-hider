@@ -34,7 +34,7 @@ jobs:
   build:
     name: Build & Test
     needs: determine-runner
-    runs-on: ${{ fromJSON(needs.determine-runner.outputs.runner || '["ubuntu-latest"]') }}
+    runs-on: ${{ fromJSON(needs.determine-runner.outputs.runner) }}
     defaults:
       run:
         shell: bash
