@@ -40,14 +40,26 @@ env:
   PUBLISH_TO_HANGAR: 'true'
 
 jobs:
-  check-runner:
-    name: Check Runner
-    uses: ./.github/workflows/check-runner.yml
-    secrets: inherit
+  determine-runner:
+    name: Determine Runner
+    runs-on: ubuntu-latest
+    outputs:
+      runner: ${{ steps.pick.outputs.runner }}
+    steps:
+      - name: Pick a runner
+        id: pick
+        uses: zannagh/versionizer/determine-runner@v1
+        with:
+          # Fine-grained PAT with Administration:read on this repo (lists runners). Missing/invalid
+          # token degrades gracefully to default-runs-on.
+          runner-token: ${{ secrets.RUNNER_TOKEN }}
+          required-labels: 'Linux,X64,build'
+          default-runs-on: 'ubuntu-latest'
 
   analyze:
     name: Analyze Changes
-    runs-on: ubuntu-latest
+    needs: [determine-runner]
+    runs-on: ${{needs.determine-runner.outputs.runner}}
     outputs:
       should_release: ${{ steps.release-check.outputs.should_release }}
       is_manual_release: ${{ steps.release-check.outputs.is_manual_release }}
@@ -85,8 +97,8 @@ jobs:
 
   validate-version:
     name: Validate Release Version
-    runs-on: ubuntu-latest
-    needs: analyze
+    needs: [determine-runner, analyze]
+    runs-on: ${{needs.determine-runner.outputs.runner}}
     if: needs.analyze.outputs.is_manual_release == 'true'
     steps:
       - name: Checkout
@@ -146,8 +158,9 @@ jobs:
 
   build:
     name: Build
-    runs-on: ${{ fromJSON(needs.check-runner.outputs.runner || '["ubuntu-latest"]') }}
-    needs: [analyze, check-modrinth, check-runner]
+    needs: [analyze, check-modrinth, determine-runner]
+    runs-on: ${{needs.determine-runner.outputs.runner}}
+    
     if: "!cancelled() && needs.analyze.result == 'success'"
     defaults:
       run:

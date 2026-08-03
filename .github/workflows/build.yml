@@ -15,15 +15,26 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  check-runner:
-    name: Check Runner
-    uses: ./.github/workflows/check-runner.yml
-    secrets: inherit
+  determine-runner:
+    name: Determine Runner
+    runs-on: ubuntu-latest
+    outputs:
+      runner: ${{ steps.pick.outputs.runner }}
+    steps:
+      - name: Pick a runner
+        id: pick
+        uses: zannagh/versionizer/determine-runner@v1
+        with:
+          # Fine-grained PAT with Administration:read on this repo (lists runners). Missing/invalid
+          # token degrades gracefully to default-runs-on.
+          runner-token: ${{ secrets.RUNNER_TOKEN }}
+          required-labels: 'Linux,X64,build'
+          default-runs-on: 'ubuntu-latest'
 
   build:
     name: Build & Test
-    needs: check-runner
-    runs-on: ${{ fromJSON(needs.check-runner.outputs.runner || '["ubuntu-latest"]') }}
+    needs: determine-runner
+    runs-on: ${{ fromJSON(needs.determine-runner.outputs.runner || '["ubuntu-latest"]') }}
     defaults:
       run:
         shell: bash

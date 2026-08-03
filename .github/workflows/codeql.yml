@@ -23,15 +23,25 @@ on:
     - cron: '16 20 * * 1'
 
 jobs:
-  check-runner:
-    name: Check Runner
-    uses: ./.github/workflows/check-runner.yml
-    secrets: inherit
-
+  determine-runner:
+    name: Determine Runner
+    runs-on: ubuntu-latest
+    outputs:
+      runner: ${{ steps.pick.outputs.runner }}
+    steps:
+      - name: Pick a runner
+        id: pick
+        uses: zannagh/versionizer/determine-runner@v1
+        with:
+          # Fine-grained PAT with Administration:read on this repo (lists runners). Missing/invalid
+          # token degrades gracefully to default-runs-on.
+          runner-token: ${{ secrets.RUNNER_TOKEN }}
+          required-labels: 'Linux,X64,codeql'
+          default-runs-on: 'ubuntu-latest'
   analyze:
     name: Analyze (${{ matrix.language }})
-    needs: check-runner
-    runs-on: ubuntu-latest
+    needs: determine-runner
+    runs-on: ${{needs.determine-runner.outputs.runner}}
     defaults:
       run:
         shell: bash
