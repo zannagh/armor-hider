@@ -37,8 +37,10 @@ public final class ArmoredElytraCompat {
     private ArmoredElytraCompat() {}
 
     /**
-     * @return the chestplate stored inside a dorkix armored elytra, or {@code stack} unchanged when it
-     *         is not one (not an elytra, no stored chestplate, or the NBT can't be decoded).
+     * @param stack the worn chest item; may be {@code null}.
+     * @return the chestplate stored inside a dorkix armored elytra; {@code stack} unchanged when it is
+     *         not one (mod absent, not an elytra, no stored chestplate, or the NBT can't be decoded);
+     *         or {@link ItemStack#EMPTY} when {@code stack} is {@code null}.
      */
     public static ItemStack underlyingChestplateOrSelf(@Nullable ItemStack stack) {
         //? if >= 1.21.2 {
@@ -59,10 +61,15 @@ public final class ArmoredElytraCompat {
         if (client.player == null) {
             return stack;
         }
-        CompoundTag customData = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        // Read the component directly and bail before copying its tag when the stack has no CUSTOM_DATA
+        // (the common case) - copyTag() allocates, and this runs on the render path via the FGM mixins.
+        CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
+        if (customData == null) {
+            return stack;
+        }
         // CompoundTag#get(String) returns a nullable Tag on every supported version, avoiding the
         // getCompound() return-type split (raw CompoundTag on older versions, Optional on newer ones).
-        Tag chestTag = customData.get(CHESTPLATE_DATA_KEY);
+        Tag chestTag = customData.copyTag().get(CHESTPLATE_DATA_KEY);
         if (!(chestTag instanceof CompoundTag chestCompound) || chestCompound.isEmpty()) {
             return stack;
         }

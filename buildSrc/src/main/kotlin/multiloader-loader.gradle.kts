@@ -12,7 +12,7 @@ val compatKeys = listOf(
     "fabricapi",
     "gender", "geckolib", "waveycapes", "mekanism", "figura",
     "elytratrims", "iris", "emf", "etf", "modmenu", "deeperdarker", "uranus", "firstperson",
-    "immersivearmors",
+    "immersivearmors", "armoredelytra",
     // Accessory providers (issue #246). trinkets + accessories are Fabric; curios is NeoForge-only.
     "trinkets", "accessories", "curios"
 )
