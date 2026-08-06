@@ -82,6 +82,37 @@ public class GenderArmorLayerMixin {
     private static final String TRIM_METHOD = "renderArmorTrim";
 
     //? if >= 1.21.9 {
+    // Armored Elytra (dorkix) compat. FGM's submit() reads the worn chest item, looks up its equipment
+    // asset and skips the breast armor when that asset has no humanoid layer. A dorkix armored elytra is
+    // a plain Items.ELYTRA (chestplate stashed in CUSTOM_DATA), whose asset is the elytra - no humanoid
+    // layer - so FGM never draws breast armor for it and it vanishes. Substitute the stored chestplate
+    // for that lookup (mirroring what the mod already does for HumanoidArmorLayer) so FGM draws the
+    // breast; Armor Hider's own breast hooks below then fade it per the chest opacity. Non-armored-elytra
+    // items are returned unchanged. require = 0 keeps us in step with the rest of this @Pseudo FGM compat
+    // (silent no-op if FGM's submit shape drifts); ArmoredElytraGenderSmokeTest pins the target.
+    // Armored Elytra (dorkix) compat, gate 2 of 2. FGM's submit() also skips the breast when the worn
+    // item's own equipment asset has no humanoid layer (getLayers(...).isEmpty()) - and a dorkix armored
+    // elytra is a plain Items.ELYTRA whose asset is wings-only. WildfireHelperMixin already makes FGM's
+    // armor config (coversBreasts/texture) resolve to the stored chestplate; this makes the equipment-asset
+    // check see it too, by substituting the chestplate's EQUIPPABLE for the elytra's at the lookup. Both
+    // gates must pass for the breast armor to render. Non-armored-elytra items pass through unchanged.
+    @WrapOperation(
+            method = "submit(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/client/renderer/entity/state/HumanoidRenderState;FF)V",
+            require = 0,
+            at = @At(value = "INVOKE",
+                    target = "Lnet/minecraft/world/item/ItemStack;get(Lnet/minecraft/core/component/DataComponentType;)Ljava/lang/Object;",
+                    remap = true)
+    )
+    private Object armorHider$armoredElytraEquippable(ItemStack instance, net.minecraft.core.component.DataComponentType<?> type, Operation<Object> original) {
+        if (type == net.minecraft.core.component.DataComponents.EQUIPPABLE) {
+            ItemStack chestplate = de.zannagh.armorhider.client.compat.ArmoredElytraCompat.underlyingChestplateOrSelf(instance);
+            if (chestplate != instance) {
+                return original.call(chestplate, type);
+            }
+        }
+        return original.call(instance, type);
+    }
+
     private Pair<Boolean, RenderInterceptionResult> interceptArmor(HumanoidRenderState state, EquipmentSlot slot, ItemStack stack, CallbackInfo ci) {
         // Combat detection is deliberately NOT short-circuited here. It arrives through the normal
         // interception path: SlotModification.of applies CombatManager.transformTransparencyBasedOnCombat,

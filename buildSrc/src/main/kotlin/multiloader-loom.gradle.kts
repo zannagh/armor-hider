@@ -332,6 +332,7 @@ if (branch == "fabric") {
             // (pulled in on the gender smoke row) and the after-terrain render architecture, so it
             // shares WaterTransparency's floor. Class is stonecutter-gated to the same range.
             add("gender-breast-armor" to "de.zannagh.armorhider.smoke.GenderBreastArmorSmokeTest")
+            add("armored-elytra-gender" to "de.zannagh.armorhider.smoke.ArmoredElytraGenderSmokeTest")
         }
         // First Person Model compat smoke. Guard must stay identical to the test class's own
         // `//? if fcgt && firstperson {` gate, or fabric-loader tries to resolve a commented-out class.

@@ -15,7 +15,7 @@ A no-dependency mod to the transparency or fully hide armor and equipment with m
 </p>
 
 ### Features
-Armor Hider features a big selection of [customization options](#customizability) to have your player model drawn up to your liking. Additionally, all settings are [synchronized](#synchronization) in multiplayer and many of them can be adjusted via [administration](#administrative-settings).
+Armor Hider features a big selection of [customization options](#customizability) to have your player model drawn up to your liking. Additionally, all settings are [synchronized](#synchronization) in multiplayer and many of them can be adjusted via [administration](#administrative-settings). Find a full list of features and descriptions on the [Wiki](https://github.com/zannagh/armor-hider/wiki/Features).
 
 - **Per-slot opacity sliders** for helmet, chestplate, leggings, boots and offhand
 - **Enchantment glint control** to selectively hide the glint on any slot
@@ -34,25 +34,11 @@ Armor Hider features a big selection of [customization options](#customizability
 ![Demo](https://github.com/user-attachments/assets/8e1e345c-2eff-49d8-b7e5-2e15c5df2221)
 
 #### Compatibility
-Armor Hider has explicit compatibility with some major mods focused around visuals. 
+Armor Hider has explicit compatibility with major mods focused around visuals, like [Essential](https://github.com/SparkUniverse/Essential-Mod), [Elytra Trims](https://codeberg.org/KikuGie/elytra-trims), [Female Gender Mod](https://github.com/FemaleGenderMod/FemaleGenderMod), [GeckoLib](https://github.com/bernie-g/geckolib), [Accessories](https://modrinth.com/mod/accessories)/[Trinkets](https://modrinth.com/mod/trinkets)/[Curios](https://modrinth.com/mod/curios), [Wavey Capes](https://modrinth.com/mod/wavey-capes), [Iris](https://github.com/IrisShaders/Iris), [EMF](https://github.com/Traben-0/Entity_Model_Features) and many more. 
 
-- [Essential](https://github.com/SparkUniverse/Essential-Mod)
-- [Elytra Trims](https://codeberg.org/KikuGie/elytra-trims)
-- [Wildfire Gender / Female Gender Mod](https://github.com/FemaleGenderMod/FemaleGenderMod)
-- [GeckoLib](https://github.com/bernie-g/geckolib) (any custom armor mod using GeckoLib as intended should work out of the box)
-- [Fantasy Armor](https://github.com/kend1e/FANTASY-ARMOR)
-- [LuckPerms](https://luckperms.net/)
-- [Iris](https://github.com/IrisShaders/Iris)
-- [EMF](https://github.com/Traben-0/Entity_Model_Features) (most custom armor resource packs using EMF for rendering work right out of the box)
-- [Accessories](https://modrinth.com/mod/accessories)/[Trinkets](https://modrinth.com/mod/trinkets)/[Curios](https://modrinth.com/mod/curios) (when either of these accessory-providers is available, you are able to choose whether they should be hidden as well or not)
-- [Mekanism](https://modrinth.com/mod/mekanism)
-- [Figura](https://modrinth.com/mod/figura) (as far as possible, mainly cross-compatibility to Mekanism)
-- [ModMenu](https://modrinth.com/mod/modmenu)
-- [Deeper and Darker](https://modrinth.com/mod/deeperdarker)
-- [Ice and Fire CE](https://modrinth.com/mod/iceandfire-ce)
-- [Wavey Capes](https://modrinth.com/mod/wavey-capes)
+For detailed information on which compatibilities are built-in and what each compatibility does, check out the [Wiki](https://github.com/zannagh/armor-hider/wiki/Mod-Compatibilities).
 
-*If you're using a mod not yet supported, please open an issue on GitHub to let me know or drop a message on Discord.*
+*If you're using a mod, datapack or plugin not yet supported, please open an issue on GitHub to let me know or drop a message on the Discord Server.*
 
 [![OpenBugs](https://img.shields.io/github/issues-search?query=repo%3Azannagh%2Farmor-hider%20is%3Aopen%20label%3Abug&logo=github&label=Open%20Bugs&color=red
 )](https://github.com/zannagh/armor-hider/issues)
@@ -60,7 +46,7 @@ Armor Hider has explicit compatibility with some major mods focused around visua
 )](https://github.com/zannagh/armor-hider/issues)
 [![ClosedIssues](https://img.shields.io/github/issues-closed/zannagh/armor-hider?label=Closed%20Issues&color=green&logo=github)](https://github.com/zannagh/armor-hider/issues)
 
-I track issues (including feature requests) via GitHub and do my best to close out any bugs timely (plus, I get way too excited about new features myself..). If you don't have an account, feel free to join the Discord server and let me know there.
+I track issues and requests via [GitHub](https://github.com/zannagh/armor-hider/issues) and do my best to close out any bugs timely. If you don't have an account, feel free to join the Discord server and let me know there.
 
 If you like my work and would like to support me, you can do so here:
 

@@ -133,7 +133,18 @@ public enum CompatFlags {
      *
      * @since 0.12.5
      */
-    IMMERSIVE_ARMORS(1<<17, "immersive_armors.client.render.entity.piece.Piece");
+    IMMERSIVE_ARMORS(1<<17, "immersive_armors.client.render.entity.piece.Piece"),
+
+    /**
+     * Armored Elytra (dorkix, Modrinth {@code elytra-armor}), which forges a chestplate + elytra into a
+     * single worn {@code Items.ELYTRA} (chestplate stored in CUSTOM_DATA) and swaps the chestplate back
+     * in at {@code HumanoidArmorLayer.renderArmorPiece}. Our FGM breast-armor substitution keys off that
+     * CUSTOM_DATA, so it must only fire when this mod is actually present - otherwise the item is just a
+     * plain elytra and nothing draws the body chestplate.
+     *
+     * @since 0.12.9
+     */
+    ARMORED_ELYTRA(1<<18, "dorkix.armored.elytra.ArmoredElytra");
 
     private final long compatFlagValue;
 
