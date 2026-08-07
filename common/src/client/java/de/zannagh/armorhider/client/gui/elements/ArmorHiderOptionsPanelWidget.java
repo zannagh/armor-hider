@@ -7,6 +7,8 @@ import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.gui.UiConstants;
 import de.zannagh.armorhider.client.gui.elements.factories.OptionElementFactory;
 import de.zannagh.armorhider.client.gui.elements.implementations.AccessoryAffectButton;
+import de.zannagh.armorhider.client.gui.elements.implementations.AffectAccessoriesButton;
+import de.zannagh.armorhider.client.gui.elements.implementations.HiddenModelBehaviourButton;
 import de.zannagh.armorhider.client.gui.elements.implementations.ShowShieldWhenBlockingButton;
 import de.zannagh.armorhider.client.gui.screens.AdvancedArmorHiderSettingsScreen;
 import de.zannagh.armorhider.configuration.PresetManager;
@@ -103,24 +105,11 @@ public class ArmorHiderOptionsPanelWidget extends AbstractWidget {
         configs.add(new Pair<>(config.enableCombatDetection.getValue(), val -> setSetting(val, config.enableCombatDetection::setValue)));
         configs.add(new Pair<>(config.inCombatUseDefaultModel.getValue(), val -> setSetting(val, config.inCombatUseDefaultModel::setValue)));
         configs.add(new Pair<>(config.disableArmorHiderOnInvisibility.getValue(), val -> setSetting(val, config.disableArmorHiderOnInvisibility::setValue)));
-        // Master accessory-hide toggle - only offered (as a 4th general-row button) when an accessory
-        // provider (Curios / Trinkets / Artifacts) is present, so vanilla users don't see a dead toggle.
-        if (CompatManager.anyAccessoryProviderLoaded()) {
-            configs.add(new Pair<>(config.affectAccessories.getValue(), val -> setSetting(val, config.affectAccessories::setValue)));
-        }
-
-        // Hidden-model behaviour toggle only when EMF (Fresh Animations) is present; otherwise null so
-        // the button is omitted from the row entirely.
-        var hiddenModelInitial = CompatManager.requiresCompatTo(CompatFlags.ENTITY_MODEL_FEATURES)
-                ? config.hiddenModelBehaviour.getValue() : null;
-        Consumer<de.zannagh.armorhider.configuration.EmfHiddenModelMode> hiddenModelSetter =
-                val -> setSetting(val, config.hiddenModelBehaviour::setValue);
 
         if (showPresets) {
             // Local config: general behaviour toggles + presets + the "individual settings" entry, one row.
             factory.addElementAsWidget(factory.createCompoundButtonWidget(
-                    configs, presetManager, presetManager.getActiveIndex(), this::onPresetActivated,
-                    hiddenModelInitial, hiddenModelSetter
+                    configs, presetManager, presetManager.getActiveIndex(), this::onPresetActivated
             ));
         } else {
             // Per-player override: behaviour toggles only (presets/individual-settings don't apply here).
@@ -234,6 +223,33 @@ public class ArmorHiderOptionsPanelWidget extends AbstractWidget {
                 null,
                 shieldButton
         );
+
+        // "Compatibilities" row: the accessory-hide master toggle (when an accessory provider is
+        // loaded) and the EMF/Fresh Animations hidden-model toggle (when EMF is present), as a labelled
+        // row of right-bound square icons. Omitted entirely when neither compat applies.
+        var compatButtons = new ArrayList<AbstractWidget>();
+        if (CompatManager.anyAccessoryProviderLoaded()) {
+            compatButtons.add(new AffectAccessoriesButton(
+                    config.affectAccessories.getValue(),
+                    onPress -> {
+                        if (onPress instanceof AffectAccessoriesButton btn) {
+                            setSetting(btn.toggle(), config.affectAccessories::setValue);
+                        }
+                    }));
+        }
+        if (CompatManager.requiresCompatTo(CompatFlags.ENTITY_MODEL_FEATURES)) {
+            compatButtons.add(new HiddenModelBehaviourButton(
+                    config.hiddenModelBehaviour.getValue(),
+                    onPress -> {
+                        if (onPress instanceof HiddenModelBehaviourButton btn) {
+                            setSetting(btn.cycle(), config.hiddenModelBehaviour::setValue);
+                        }
+                    }));
+        }
+        var compatRow = factory.createCompatibilitiesRow(compatButtons);
+        if (compatRow != null) {
+            factory.addElementAsWidget(compatRow);
+        }
 
         if (showPresets) {
             factory.addElementAsWidget(Button.builder(

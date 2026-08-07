@@ -1,23 +1,24 @@
 package de.zannagh.armorhider.client.gui.elements.implementations;
 
 import de.zannagh.armorhider.client.gui.UiConstants;
-import de.zannagh.armorhider.client.gui.elements.LayeredButton;
+import de.zannagh.armorhider.client.gui.elements.LayeredImageButton;
 import de.zannagh.armorhider.configuration.EmfHiddenModelMode;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import org.jetbrains.annotations.Nullable;
 
 /**
- * A three-state cycling button for the {@link EmfHiddenModelMode} of the current config: KEEP (leave
- * Fresh Animations alone), VANILLA (whole vanilla body while hidden), VANILLA_SEAMS (vanilla torso and
- * arms, custom head and legs). Text-labelled; the full meaning is in the tooltip. Only added to the
- * Other Settings row when Entity Model Features is present.
+ * A three-state cycling icon button for the {@link EmfHiddenModelMode} of the current config: KEEP
+ * (leave Fresh Animations alone), VANILLA (whole vanilla body while hidden), VANILLA_SEAMS (vanilla
+ * torso and arms, custom head and legs). Each state has its own sprite; the meaning is in the tooltip.
+ * Only added to the Compatibilities row when Entity Model Features is present.
  */
-public class HiddenModelBehaviourButton extends LayeredButton {
+public class HiddenModelBehaviourButton extends LayeredImageButton {
 
     private EmfHiddenModelMode mode;
 
     public HiddenModelBehaviourButton(EmfHiddenModelMode initial, OnPress onPress) {
-        super(false, UiConstants.SQUARE_BUTTON_WIDTH, UiConstants.DEFAULT_BUTTON_HEIGHT, tooltipFor(initial), onPress);
+        super(null, false, UiConstants.SQUARE_BUTTON_WIDTH, UiConstants.DEFAULT_BUTTON_HEIGHT, tooltipFor(initial), onPress);
         this.mode = initial;
         this.setMessage(tooltipFor(initial));
         this.setTooltip(net.minecraft.client.gui.components.Tooltip.create(tooltipFor(initial)));
@@ -39,12 +40,13 @@ public class HiddenModelBehaviourButton extends LayeredButton {
         return mode;
     }
 
-    private static String label(EmfHiddenModelMode mode) {
-        return switch (mode) {
-            case KEEP -> "FA";
-            case VANILLA -> "Van";
-            case VANILLA_SEAMS -> "Mix";
-        };
+    @Override
+    protected @Nullable Identifier spriteForeground(boolean enabled) {
+        return modSprite(switch (mode) {
+            case KEEP -> "hidden_model_keep";
+            case VANILLA -> "hidden_model_vanilla";
+            case VANILLA_SEAMS -> "hidden_model_mix";
+        });
     }
 
     private static Component tooltipFor(EmfHiddenModelMode mode) {
@@ -53,17 +55,6 @@ public class HiddenModelBehaviourButton extends LayeredButton {
             case VANILLA -> Component.translatable("armorhider.options.hidden_model.tooltip.vanilla");
             case VANILLA_SEAMS -> Component.translatable("armorhider.options.hidden_model.tooltip.vanilla_seams");
         };
-    }
-
-    @Override
-    protected void renderForeground(net.minecraft.client.gui.GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float a) {
-        var font = Minecraft.getInstance().font;
-        int textX = this.getX() + this.width / 2;
-        int textY = this.getY() + (this.height - font.lineHeight) / 2 + 1;
-        //? if >= 26.1-1.pre.1
-        guiGraphics.centeredText(font, label(mode), textX, textY, 0xFFFFFFFF);
-        //? if < 26.1-1.pre.1
-        //guiGraphics.drawCenteredString(font, label(mode), textX, textY, 0xFFFFFFFF);
     }
 
     @Override
