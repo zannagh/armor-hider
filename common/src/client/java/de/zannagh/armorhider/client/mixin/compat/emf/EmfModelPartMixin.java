@@ -3,6 +3,7 @@ package de.zannagh.armorhider.client.mixin.compat.emf;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import de.zannagh.armorhider.client.api.AhRenderManagementApi;
+import de.zannagh.armorhider.client.render.AhArmProbe;
 import de.zannagh.armorhider.client.render.RenderModifications;
 import de.zannagh.armorhider.client.common.VanillaRootAccessor;
 import de.zannagh.armorhider.log.DebugLogger;
@@ -24,7 +25,7 @@ public abstract class EmfModelPartMixin {
     @Unique
     @NonNull
     private ModelPart thisAsPart() { return (ModelPart) (Object) this; }
-    
+
     @Unique
     private static int armorHider$logCounter = 0;
 
@@ -44,6 +45,11 @@ public abstract class EmfModelPartMixin {
         boolean emfForced = EMFAnimationEntityContext.isEntityForcedToVanillaModel();
         boolean playerForced = AhRenderManagementApi.shouldEnforceVanillaRendering();
         if (!emfForced && !playerForced) {
+            // Not forced: EMF draws its own (possibly custom) model. Record it so the #217 smoke
+            // test can see that the un-fixed path leaves the custom model (with its seam) in place.
+            if (AhArmProbe.isEnabled() && this instanceof VanillaRootAccessor) {
+                AhArmProbe.recordCustomModel();
+            }
             return;
         }
 
@@ -61,7 +67,13 @@ public abstract class EmfModelPartMixin {
                         DebugLogger.log("[EMF mixin] REDIRECT to vanillaRoot | id={} | player={} | class={}", id, AhRenderManagementApi.currentlyHandledPlayerName(), this.getClass().getSimpleName());
                     }
                     RenderModifications.synchronisePoses(thisAsPart(), vanilla);
-                    
+
+                    // Forced to vanilla: the clean vanilla model is what gets drawn. Record it so the
+                    // #217 smoke test can assert that hiding the body closed the custom-model seam.
+                    if (AhArmProbe.isEnabled()) {
+                        AhArmProbe.recordForcedVanilla();
+                    }
+
                     //? if >= 1.21 {
                     vanilla.render(matrices, vertices, light, overlay, k);
                     //? } else

@@ -43,6 +43,16 @@ public class EmfCompat implements CompatInitializer {
         try {
             EMFAnimationApi.registerVanillaModelCondition(emfEntity -> {
                 var playerName = PlayerNameUtil.getPlayerName(emfEntity);
+
+                // #217: when the body (chest) region is hidden, force EMF to the vanilla model. A
+                // custom player CEM model - e.g. a Fresh Animations player add-on - poses its arms
+                // off the shoulders; that seam is normally covered by the chestplate, so hiding the
+                // armor exposes it. Armor Hider cannot fix a third-party model's pose, so it falls
+                // back to the clean vanilla body for that player while the body is hidden.
+                if (bodyRegionHidden(emfEntity)) {
+                    return true;
+                }
+
                 boolean inCombat = ArmorHiderApi.getInstance().getCombatManagement().isInCombat(playerName);
 
                 if (!inCombat || !AhCombatApi.shouldApplyCombatDetectionFor(playerName)) {
@@ -64,6 +74,23 @@ public class EmfCompat implements CompatInitializer {
         } catch (Exception e) {
             ArmorHider.LOGGER.warn("Failed to register vanilla model condition with EMF", e);
         }
+    }
+
+    /**
+     * Whether the body (chest) region is currently hidden for the given entity, in which case EMF
+     * should render the vanilla model to avoid exposing a custom player model's arm/torso seam
+     * (#217). Resolved from the entity's live {@link de.zannagh.armorhider.client.common.PlayerModificationInfo}
+     * (config + equipped items), so an empty chest slot or visible armor returns {@code false}.
+     *
+     * @param entity the entity EMF is about to render; only {@link IdentityCarrier} players qualify
+     * @return {@code true} if the chest region resolves to hidden for this player
+     */
+    public static boolean bodyRegionHidden(Object entity) {
+        if (!(entity instanceof IdentityCarrier carrier)) {
+            return false;
+        }
+        var modifications = carrier.armorHider$getPlayerModifications();
+        return modifications != null && modifications.chest().shouldHide();
     }
 
     /**

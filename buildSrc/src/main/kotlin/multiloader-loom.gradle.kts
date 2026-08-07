@@ -339,6 +339,11 @@ if (branch == "fabric") {
         if (hasProperty("firstperson.version")) {
             add("first-person" to "de.zannagh.armorhider.smoke.FirstPersonSmokeTest")
         }
+        // EMF / Fresh Animations arm-detachment repro (issue #217). The class is `//? if fcgt` only
+        // (no FA-pin gate) so it always compiles on fcgt variants; it self-detects whether EMF/FA are
+        // actually present at runtime. Registered everywhere fcgt is on - run it in isolation with
+        // `-Psmoke.fcgt.only=emf-fa -Pcompat=emf,etf,fa`.
+        add("emf-fa" to "de.zannagh.armorhider.smoke.EmfFreshAnimationsSmokeTest")
     }
 
     // `runClientGametest` runs EVERY registered entrypoint in ONE client launch, so an unrelated
@@ -482,6 +487,10 @@ if (branch == "fabric") {
             // third-party stack, which is the compat matrix's concern, not FCGT's.
             tasks.named("runClientGametest") {
                 dependsOn("fetchFcgtCompatJars")
+                // Fresh Animations (issue #217) lands in run/resourcepacks/ when `fa` is in
+                // -Pcompat; the reproduction test enables it at runtime. Separate dir from the
+                // mod fetch, so ordering between the two is irrelevant.
+                dependsOn("fetchFaResourcePack")
             }
         }
     }

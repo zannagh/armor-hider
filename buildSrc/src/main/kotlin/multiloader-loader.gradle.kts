@@ -13,6 +13,9 @@ val compatKeys = listOf(
     "gender", "geckolib", "waveycapes", "mekanism", "figura",
     "elytratrims", "iris", "emf", "etf", "modmenu", "deeperdarker", "uranus", "firstperson",
     "immersivearmors", "armoredelytra",
+    // Fresh Animations (issue #217). Not a mod - a resource pack fetched into run/resourcepacks/
+    // by fetchFaResourcePack, not run/mods/. Requires emf + etf to actually animate.
+    "fa",
     // Accessory providers (issue #246). trinkets + accessories are Fabric; curios is NeoForge-only.
     "trinkets", "accessories", "curios"
 )
@@ -25,6 +28,9 @@ val selectedKeys: Set<String> = when (compatSel.lowercase()) {
     "none", "clean" -> emptySet()
     else -> compatSel.split(",").map { it.trim() }.toSet()
 }
+// Keys that resolve to a mod jar (run/mods). "fa" is a resource pack handled separately by
+// fetchFaResourcePack, so it must never be dropped into run/mods even when listed in -Pcompat.
+val modHashes = availableHashes.filterKeys { it != "fa" }
 val activeMcVersion: String? = listOf("fabric.minecraft_version", "neoforge.minecraft_version")
     .firstNotNullOfOrNull { findProperty(it)?.toString() }
     ?.substringBefore("-pre")?.substringBefore("-rc")?.substringBefore("-alpha")
@@ -38,7 +44,7 @@ val fetchCompatJars = tasks.register<FetchCompatJars>("fetchCompatJars") {
     group = "verification"
     description = "Fetch Modrinth compat jars (controlled by -Pcompat) into run/mods/ for smoke runs"
     modsDir.set(project.layout.projectDirectory.dir("run/mods"))
-    versionHashes.set(availableHashes)
+    versionHashes.set(modHashes)
     include.set(selectedKeys)
     activeMcVersion?.let { mcGameVersion.set(it) }
     activeLoader?.let { loader.set(it) }
@@ -51,8 +57,8 @@ val fetchFcgtCompatJars = tasks.register<FetchCompatJars>("fetchFcgtCompatJars")
     group = "verification"
     description = "Like fetchCompatJars but always includes fabric-api (required for FCGT runtime activation)"
     modsDir.set(project.layout.projectDirectory.dir("run/mods"))
-    versionHashes.set(availableHashes)
-    if (availableHashes.containsKey("fabricapi")) {
+    versionHashes.set(modHashes)
+    if (modHashes.containsKey("fabricapi")) {
         include.set(selectedKeys + "fabricapi")
     } else {
         include.set(selectedKeys)
@@ -62,6 +68,21 @@ val fetchFcgtCompatJars = tasks.register<FetchCompatJars>("fetchFcgtCompatJars")
     // Same caching note as fetchCompatJars - never up-to-date.
     outputs.upToDateWhen { false }
 }
+// Fresh Animations resource pack (issue #217). Dropped into run/resourcepacks/ - NOT run/mods/ -
+// and enabled at runtime by the reproduction FCGT test. Dependency-following is off so FA's
+// required emf/etf deps aren't pulled into the pack dir (they go into run/mods/ via the mod fetch).
+val fetchFaResourcePack = tasks.register<FetchCompatJars>("fetchFaResourcePack") {
+    group = "verification"
+    description = "Fetch the Fresh Animations resource pack into run/resourcepacks/ for smoke runs"
+    modsDir.set(project.layout.projectDirectory.dir("run/resourcepacks"))
+    versionHashes.set(availableHashes.filterKeys { it == "fa" })
+    include.set(selectedKeys)
+    followDependencies.set(false)
+    activeMcVersion?.let { mcGameVersion.set(it) }
+    activeLoader?.let { loader.set(it) }
+    outputs.upToDateWhen { false }
+}
+
 val commonNode = sc.node.sibling("common")
     ?: error("Could not find common branch sibling for ${sc.current.project}")
 val commonPath = commonNode.hierarchy.toString()

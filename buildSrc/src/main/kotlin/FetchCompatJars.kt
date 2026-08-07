@@ -71,6 +71,17 @@ abstract class FetchCompatJars : DefaultTask() {
     @get:Optional
     abstract val loader: Property<String>
 
+    /**
+     * Whether to follow Modrinth {@code required} dependencies of the fetched versions. Defaults to
+     * {@code true} (the compat-mod-set behaviour). Set {@code false} when fetching a resource pack
+     * (e.g. Fresh Animations) into {@code run/resourcepacks/}: its required deps are the EMF/ETF
+     * mod jars, which belong in {@code run/mods/} and would otherwise be dropped into the pack dir
+     * where Minecraft tries to load them as packs.
+     */
+    @get:Input
+    @get:Optional
+    abstract val followDependencies: Property<Boolean>
+
     private val http: HttpClient by lazy {
         HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(20)).build()
     }
@@ -160,6 +171,7 @@ abstract class FetchCompatJars : DefaultTask() {
         ).body().use { Files.copy(it, out, StandardCopyOption.REPLACE_EXISTING) }
 
         // Follow required deps: version-pinned first, project-id auto-resolution second.
+        if (followDependencies.getOrElse(true) == false) return
         json.getAsJsonArray("dependencies")?.forEach { dep ->
             val obj = dep.asJsonObject
             val type = obj.get("dependency_type")?.asString ?: return@forEach
