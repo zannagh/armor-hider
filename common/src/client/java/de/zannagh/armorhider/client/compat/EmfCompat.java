@@ -79,15 +79,6 @@ public class EmfCompat implements CompatInitializer {
     }
 
     /**
-     * Whether the body (chest) region is currently hidden for the given entity, in which case EMF
-     * should render the vanilla model to avoid exposing a custom player model's arm/torso seam
-     * (#217). Resolved from the entity's live {@link de.zannagh.armorhider.client.common.PlayerModificationInfo}
-     * (config + equipped items), so an empty chest slot or visible armor returns {@code false}.
-     *
-     * @param entity the entity EMF is about to render; only {@link IdentityCarrier} players qualify
-     * @return {@code true} if the chest region resolves to hidden for this player
-     */
-    /**
      * The {@link de.zannagh.armorhider.configuration.EmfHiddenModelMode} that applies to the given
      * entity right now: the player's configured mode when the body (chest) region is hidden, else
      * {@link de.zannagh.armorhider.configuration.EmfHiddenModelMode#KEEP} (do nothing). Non-players and
@@ -104,6 +95,15 @@ public class EmfCompat implements CompatInitializer {
         return config.hiddenModelBehaviour.getValue();
     }
 
+    /**
+     * Whether the body (chest) region is currently hidden for the given entity, in which case EMF
+     * should render the vanilla model to avoid exposing a custom player model's arm/torso seam
+     * (#217). Resolved from the entity's live {@link de.zannagh.armorhider.client.common.PlayerModificationInfo}
+     * (config + equipped items), so an empty chest slot or visible armor returns {@code false}.
+     *
+     * @param entity the entity EMF is about to render; only {@link IdentityCarrier} players qualify
+     * @return {@code true} if the chest region resolves to hidden for this player
+     */
     public static boolean bodyRegionHidden(Object entity) {
         if (!(entity instanceof IdentityCarrier carrier)) {
             return false;

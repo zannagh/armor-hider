@@ -77,13 +77,14 @@ public final class EmfFreshAnimationsSmokeTest implements FabricClientGameTest {
         clearOldScreenshots();
         context.waitForScreen(TitleScreen.class);
 
-        boolean emfPresent = context.computeOnClient(client ->
-                CompatManager.requiresCompatTo(CompatFlags.ENTITY_MODEL_FEATURES));
+        // Compat flags and the probe are thread-safe mod statics (set/read via volatiles), so they do
+        // not need a client-thread hop - reading them directly keeps the setup simple.
+        boolean emfPresent = CompatManager.requiresCompatTo(CompatFlags.ENTITY_MODEL_FEATURES);
         // Deterministic repro: write a synthetic CEM player.jem with detached arms and enable it, so
         // the "hidden model behaviour" modes have a visible seam to act on regardless of skin.
         boolean synthInstalled = writeSyntheticPack();
         boolean packEnabled = context.computeOnClient(EmfFreshAnimationsSmokeTest::enableCustomPacks);
-        context.runOnClient(client -> AhArmProbe.enable());
+        AhArmProbe.enable();
         ArmorHider.LOGGER.info("[smoke/fcgt] repro env: emfPresent={}, synthPackWritten={}, customPacksEnabled={}",
                 emfPresent, synthInstalled, packEnabled);
         context.waitTicks(60);
@@ -142,7 +143,7 @@ public final class EmfFreshAnimationsSmokeTest implements FabricClientGameTest {
             });
             context.waitTicks(5);
             context.takeScreenshot("ah217_" + label + "_options_screen");
-            context.runOnClient(client -> net.minecraft.client.Minecraft.getInstance().setScreenAndShow(null));
+            context.runOnClient(client -> client.setScreenAndShow(null));
         }
     }
 
@@ -176,7 +177,7 @@ public final class EmfFreshAnimationsSmokeTest implements FabricClientGameTest {
         });
         // EMF re-evaluates its vanilla-model condition per frame; give the reload/redraw room.
         context.waitTicks(30);
-        String path = context.computeOnClient(client -> AhArmProbe.lastPath());
+        String path = AhArmProbe.lastPath();
         ArmorHider.LOGGER.info("[smoke/fcgt] #217 mode={} tag={} render path={} (expected {})",
                 mode, tag, path, expectedPath);
         context.takeScreenshot("ah217_" + label + "_" + tag);

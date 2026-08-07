@@ -30,8 +30,9 @@ val selectedKeys: Set<String> = when (compatSel.lowercase()) {
     "none", "clean" -> emptySet()
     else -> compatSel.split(",").map { it.trim() }.toSet()
 }
-// Keys that resolve to a mod jar (run/mods). "fa" is a resource pack handled separately by
-// fetchFaResourcePack, so it must never be dropped into run/mods even when listed in -Pcompat.
+// Keys that resolve to a mod jar (run/mods). "fa" (Fresh Animations) and "faplayer" (its Player
+// Extension) are resource packs handled separately by fetchFaResourcePack into run/resourcepacks,
+// so they must never be dropped into run/mods even when listed in -Pcompat.
 val modHashes = availableHashes.filterKeys { it != "fa" && it != "faplayer" }
 val activeMcVersion: String? = listOf("fabric.minecraft_version", "neoforge.minecraft_version")
     .firstNotNullOfOrNull { findProperty(it)?.toString() }
