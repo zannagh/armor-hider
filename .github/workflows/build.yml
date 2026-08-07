@@ -15,11 +15,12 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  determine-runner:
-    name: Determine Runner
+  runner-and-version:
+    name: Determine Runner & Get Version
     runs-on: ubuntu-latest
     outputs:
       runner: ${{ steps.pick.outputs.runner }}
+      fullSemVer: ${{ steps.version.outputs.fullSemVer }}
     steps:
       - name: Pick a runner
         id: pick
@@ -30,26 +31,28 @@ jobs:
           runner-token: ${{ secrets.RUNNER_TOKEN }}
           required-labels: 'Linux,X64,build'
           default-runs-on: 'ubuntu-latest'
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Calculate Version
+        id: version
+        uses: zannagh/versionizer/calculate-version@v1
 
   build:
     name: Build & Test
-    needs: determine-runner
-    runs-on: ${{ fromJSON(needs.determine-runner.outputs.runner) }}
+    needs: runner-and-version
+    runs-on: ${{ fromJSON(needs.runner-and-version.outputs.runner) }}
     defaults:
       run:
         shell: bash
     steps:
       - name: Checkout
         uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
 
       - name: Setup Gradle Environment
         uses: zannagh/versionizer/setup-gradle-env@v1
-
-      - name: Calculate Version
-        id: version
-        uses: zannagh/versionizer/calculate-version@v1
 
       # `stageArtifacts` below compiles everything but runs NO tests, so without this step the job
       # only ever checked that the project builds. Runs first, to fail fast.
@@ -76,11 +79,11 @@ jobs:
           ./gradlew :paper:test ":common:${ACTIVE}:test"
 
       - name: Build & Stage Artifacts
-        run: ./gradlew stageArtifacts -PsemVer="${{ steps.version.outputs.fullSemVer }}" -Pprerelease="true"
+        run: ./gradlew stageArtifacts -PsemVer="${{ needs.runner-and-version.outputs.fullSemVer }}" -Pprerelease="true"
 
-      - name: Upload Build Artifacts
+      - name: Upload Staged Artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: armor-hider-${{ steps.version.outputs.fullSemVer }}
+          name: armor-hider-${{ needs.runner-and-version.outputs.fullSemVer }}
           path: staging/*.jar
           if-no-files-found: warn

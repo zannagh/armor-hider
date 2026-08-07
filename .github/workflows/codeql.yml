@@ -1,19 +1,9 @@
 name: "CodeQL"
 
 on:
-  push:
-    branches:
-      - "main"
-      - 'release/**'
-    paths-ignore:
-      - '**/*.md'
-      - '**/*.txt'
-      - '**/*.png'
-      - '**/*.yml'
   pull_request:
     branches:
       - "main"
-      - 'release/**'
     paths-ignore:
       - '**/*.md'
       - '**/*.txt'
@@ -23,25 +13,9 @@ on:
     - cron: '16 20 * * 1'
 
 jobs:
-  determine-runner:
-    name: Determine Runner
-    runs-on: ubuntu-latest
-    outputs:
-      runner: ${{ steps.pick.outputs.runner }}
-    steps:
-      - name: Pick a runner
-        id: pick
-        uses: zannagh/versionizer/determine-runner@v1
-        with:
-          # Fine-grained PAT with Administration:read on this repo (lists runners). Missing/invalid
-          # token degrades gracefully to default-runs-on.
-          runner-token: ${{ secrets.RUNNER_TOKEN }}
-          required-labels: 'Linux,X64,codeql'
-          default-runs-on: 'ubuntu-latest'
   analyze:
     name: Analyze (${{ matrix.language }})
-    needs: determine-runner
-    runs-on: ${{ fromJSON(needs.determine-runner.outputs.runner) }}
+    runs-on: ubuntu-latest
     defaults:
       run:
         shell: bash
@@ -60,32 +34,25 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v7
 
-      - name: Setup Gradle Environment
-        uses: zannagh/versionizer/setup-gradle-env@v1
-        with:
-          java-distribution: 'microsoft'
-
-      - name: Cache NeoForge NFRT Artifacts
-        uses: actions/cache@v6
-        with:
-          path: neoforge/versions/*/build/moddev/artifacts/
-          key: nfrt-${{ runner.os }}-${{ hashFiles('neoforge/versions/*/gradle.properties') }}
-
+      # build-mode: none extracts straight from source - no compiler, no Gradle. The repo is Java
+      # only (the sole Kotlin is buildSrc Gradle logic, which `none` skips and which carries nothing
+      # worth scanning), so this analyses every one of the 288 Java sources with none of the cost of
+      # a traced build. If shipped Kotlin is ever added, switch this back to a traced build (drop
+      # build-mode, restore a Gradle compile step) so kotlinc gets traced.
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4
         with:
           languages: ${{ matrix.language }}
-
-      # CodeQL only needs the sources compiled; running the suite here was incidental, and the unit
-      # tests are now the Build workflow's job (it gates pull requests).
-      #
-      # `testClasses` is explicit because `-x test` alone would also drop `compileTestJava` - it is
-      # only reachable through `test` - which would quietly shrink CodeQL's analysis scope to
-      # main sources. This keeps exactly what plain `build` compiled, minus the execution.
-      - name: Build
-        run: ./gradlew build testClasses -x test
+          build-mode: ${{ matrix.build-mode }}
+          # Default suite is security-only and deliberately narrow; security-and-quality adds the
+          # maintainability/quality query family so the code-scanning overview reflects both. Quality
+          # queries work fully on source, so they pair well with build-mode: none. (The deepest
+          # dataflow security queries would benefit from a traced build that resolves deps, but for a
+          # client-side mod the source-only extraction is an acceptable trade.)
+          queries: security-and-quality
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
         with:
           category: "/language:${{matrix.language}}"
+          upload: true
