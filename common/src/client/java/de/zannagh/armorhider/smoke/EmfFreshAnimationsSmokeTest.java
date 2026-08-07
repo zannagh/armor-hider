@@ -6,6 +6,7 @@ import de.zannagh.armorhider.api.compat.CompatFlags;
 import de.zannagh.armorhider.api.compat.CompatManager;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.render.AhArmProbe;
+import de.zannagh.armorhider.configuration.EmfHiddenModelMode;
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 import net.fabricmc.fabric.api.client.gametest.v1.context.TestSingleplayerContext;
@@ -48,23 +49,19 @@ public final class EmfFreshAnimationsSmokeTest implements FabricClientGameTest {
      * are given a lowered, splayed pivot (translate y -16 vs vanilla -22, x ±7 vs ±5) so the arms
      * render detached from the shoulders - the #217 symptom, made deterministic.
      */
+    // Only the arms are defined (with a lowered pivot, translate y -18 vs vanilla -22 => dropped ~4px);
+    // parts absent from a CEM .jem keep vanilla geometry, so head/body/legs stay correct and only the
+    // arms detach - a faithful stand-in for a Fresh Animations player add-on whose arms sit off the
+    // shoulders, and a fair basis for judging the seam-bearing / repair modes.
     private static final String PLAYER_JEM = """
             {
-              "credit": "armor-hider #217 synthetic repro",
+              "credit": "armor-hider #217 synthetic repro (arms only)",
               "textureSize": [64, 64],
               "models": [
-                {"part":"head","id":"head","invertAxis":"xy","translate":[0,-24,0],
-                  "boxes":[{"coordinates":[-4,-8,-4,8,8,8],"textureOffset":[0,0]}]},
-                {"part":"body","id":"body","invertAxis":"xy","translate":[0,-24,0],
-                  "boxes":[{"coordinates":[-4,0,-2,8,12,4],"textureOffset":[16,16]}]},
-                {"part":"right_arm","id":"right_arm","invertAxis":"xy","translate":[7,-16,0],
+                {"part":"right_arm","id":"right_arm","invertAxis":"xy","translate":[5,-18,0],
                   "boxes":[{"coordinates":[-3,-2,-2,4,12,4],"textureOffset":[40,16]}]},
-                {"part":"left_arm","id":"left_arm","invertAxis":"xy","translate":[-7,-16,0],
-                  "boxes":[{"coordinates":[-1,-2,-2,4,12,4],"textureOffset":[32,48]}]},
-                {"part":"right_leg","id":"right_leg","invertAxis":"xy","translate":[1.9,-12,0],
-                  "boxes":[{"coordinates":[-2,0,-2,4,12,4],"textureOffset":[0,16]}]},
-                {"part":"left_leg","id":"left_leg","invertAxis":"xy","translate":[-1.9,-12,0],
-                  "boxes":[{"coordinates":[-2,0,-2,4,12,4],"textureOffset":[16,48]}]}
+                {"part":"left_arm","id":"left_arm","invertAxis":"xy","translate":[-5,-18,0],
+                  "boxes":[{"coordinates":[-1,-2,-2,4,12,4],"textureOffset":[32,48]}]}
               ]
             }
             """;
@@ -77,10 +74,13 @@ public final class EmfFreshAnimationsSmokeTest implements FabricClientGameTest {
     public void runTest(ClientGameTestContext context) {
         String label = label();
         ArmorHider.LOGGER.info("[smoke/fcgt] EMF/FA repro starting (label={})", label);
+        clearOldScreenshots();
         context.waitForScreen(TitleScreen.class);
 
         boolean emfPresent = context.computeOnClient(client ->
                 CompatManager.requiresCompatTo(CompatFlags.ENTITY_MODEL_FEATURES));
+        // Deterministic repro: write a synthetic CEM player.jem with detached arms and enable it, so
+        // the "hidden model behaviour" modes have a visible seam to act on regardless of skin.
         boolean synthInstalled = writeSyntheticPack();
         boolean packEnabled = context.computeOnClient(EmfFreshAnimationsSmokeTest::enableCustomPacks);
         context.runOnClient(client -> AhArmProbe.enable());
@@ -122,49 +122,69 @@ public final class EmfFreshAnimationsSmokeTest implements FabricClientGameTest {
                 config.bootsOpacity.setValue(HIDDEN);
             });
 
-            context.waitTicks(40);
-            context.takeScreenshot("ah217_" + label + "_1_hidden_front");
+            // Assert each hidden-model mode drives the render path it should. The synthetic pack is a
+            // custom EMF player model, so the default KEEP leaves it in place (custom_model); the two
+            // opt-in modes fall back to vanilla wholly (VANILLA) or on the seam parts (VANILLA_SEAMS).
+            boolean assertable = emfPresent && packEnabled;
+            assertMode(context, label, "0_keep", EmfHiddenModelMode.KEEP, AhArmProbe.PATH_CUSTOM, assertable);
+            assertMode(context, label, "1_vanilla", EmfHiddenModelMode.VANILLA, AhArmProbe.PATH_FORCED_VANILLA, assertable);
+            assertMode(context, label, "2_vanilla_seams", EmfHiddenModelMode.VANILLA_SEAMS, AhArmProbe.PATH_SEAM_COMPOSITE, assertable);
 
-            // Assert the fix: with the body hidden and a custom EMF player model present, EMF must be
-            // forced to the vanilla model (which closes the arm/torso seam). Without the fix this stays
-            // on the custom model and the seam shows - exactly #217.
-            String pathHidden = context.computeOnClient(client -> AhArmProbe.lastPath());
-            ArmorHider.LOGGER.info("[smoke/fcgt] #217 probe (chest hidden): render path = {}", pathHidden);
-            if (emfPresent && packEnabled) {
-                if (!AhArmProbe.PATH_FORCED_VANILLA.equals(pathHidden)) {
-                    throw new IllegalStateException(
-                            "[smoke/fcgt] #217: body hidden with a custom EMF player model, but EMF was not"
-                                    + " forced to the vanilla model (render path=" + pathHidden + "). The custom"
-                                    + " model's arm/torso seam is left exposed - EmfCompat#bodyRegionHidden did"
-                                    + " not trigger the vanilla fallback.");
-                }
-            } else {
-                ArmorHider.LOGGER.warn("[smoke/fcgt] #217 assertion skipped: emfPresent={}, packEnabled={}"
-                        + " (run with -Pcompat=emf,etf to exercise the fix)", emfPresent, packEnabled);
-            }
+            ArmorHider.LOGGER.info("[smoke/fcgt] #217 hidden-model-mode checks passed (label={})", label);
 
-            // Control: strip all armor and restore full opacity so Armor Hider does nothing. If the
-            // arms are still detached here it is the custom player model's doing (AH merely exposed
-            // it); if they re-attach, AH is actively perturbing the model.
+            // Visual + no-crash check that the toggle shows up in Other Settings when EMF is present.
             context.runOnClient(client -> {
-                var player = client.player;
-                if (player != null) {
-                    player.setItemSlot(EquipmentSlot.HEAD, ItemStack.EMPTY);
-                    player.setItemSlot(EquipmentSlot.CHEST, ItemStack.EMPTY);
-                    player.setItemSlot(EquipmentSlot.LEGS, ItemStack.EMPTY);
-                    player.setItemSlot(EquipmentSlot.FEET, ItemStack.EMPTY);
-                    var config = ArmorHiderClient.CLIENT_CONFIG_MANAGER
-                            .resolveConfig(ArmorHiderClient.getCurrentPlayerName());
-                    config.helmetOpacity.setValue(1.0);
-                    config.chestOpacity.setValue(1.0);
-                    config.legsOpacity.setValue(1.0);
-                    config.bootsOpacity.setValue(1.0);
-                }
+                var config = ArmorHiderClient.CLIENT_CONFIG_MANAGER
+                        .resolveConfig(ArmorHiderClient.getCurrentPlayerName());
+                config.hiddenModelBehaviour.setValue(EmfHiddenModelMode.KEEP);
+                net.minecraft.client.Minecraft.getInstance().setScreenAndShow(
+                        new de.zannagh.armorhider.client.gui.screens.ArmorHiderOptionsScreen(null, client.options));
             });
-            context.waitTicks(40);
-            context.takeScreenshot("ah217_" + label + "_2_noarmor_front");
+            context.waitTicks(5);
+            context.takeScreenshot("ah217_" + label + "_options_screen");
+            context.runOnClient(client -> net.minecraft.client.Minecraft.getInstance().setScreenAndShow(null));
+        }
+    }
 
-            ArmorHider.LOGGER.info("[smoke/fcgt] EMF/FA repro screenshots captured (label={})", label);
+    /**
+     * Deletes this test's screenshots from prior runs so each run leaves only its own artifacts and
+     * nothing has to be cleaned up by hand. FCGT writes to {@code <runDir>/screenshots/} with an
+     * {@code NNNN_} sequence prefix; we match on the {@code ah217_} basename.
+     */
+    private static void clearOldScreenshots() {
+        try {
+            Path dir = Path.of("screenshots");
+            if (!Files.isDirectory(dir)) {
+                return;
+            }
+            try (var stream = Files.newDirectoryStream(dir, "*ah217_*.png")) {
+                for (Path p : stream) {
+                    Files.deleteIfExists(p);
+                }
+            }
+        } catch (IOException e) {
+            ArmorHider.LOGGER.warn("[smoke/fcgt] could not clear old #217 screenshots", e);
+        }
+    }
+
+    private static void assertMode(ClientGameTestContext context, String label, String tag,
+            EmfHiddenModelMode mode, String expectedPath, boolean assertable) {
+        context.runOnClient(client -> {
+            var config = ArmorHiderClient.CLIENT_CONFIG_MANAGER
+                    .resolveConfig(ArmorHiderClient.getCurrentPlayerName());
+            config.hiddenModelBehaviour.setValue(mode);
+        });
+        // EMF re-evaluates its vanilla-model condition per frame; give the reload/redraw room.
+        context.waitTicks(30);
+        String path = context.computeOnClient(client -> AhArmProbe.lastPath());
+        ArmorHider.LOGGER.info("[smoke/fcgt] #217 mode={} tag={} render path={} (expected {})",
+                mode, tag, path, expectedPath);
+        context.takeScreenshot("ah217_" + label + "_" + tag);
+        if (assertable && !expectedPath.equals(path)) {
+            throw new IllegalStateException(
+                    "[smoke/fcgt] #217: hiddenModelBehaviour=" + mode + " with the body hidden should render"
+                            + " via '" + expectedPath + "', but the EMF model part path was '" + path + "'."
+                            + " The mode is not being honoured for the custom player model.");
         }
     }
 

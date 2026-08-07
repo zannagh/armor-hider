@@ -16,6 +16,7 @@ public final class AhArmProbe {
     public static final String PATH_NONE = "none";
     public static final String PATH_CUSTOM = "custom_model";
     public static final String PATH_FORCED_VANILLA = "forced_vanilla";
+    public static final String PATH_SEAM_COMPOSITE = "seam_composite";
 
     private static volatile boolean enabled = false;
     private static volatile String lastPath = PATH_NONE;
@@ -42,6 +43,10 @@ public final class AhArmProbe {
 
     public static void recordForcedVanilla() {
         lastPath = PATH_FORCED_VANILLA;
+    }
+
+    public static void recordSeamComposite() {
+        lastPath = PATH_SEAM_COMPOSITE;
     }
 
     public static String lastPath() {

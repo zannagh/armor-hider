@@ -23,6 +23,7 @@ public class ConfigPreset {
     public boolean opacityAffectingElytra;
     public boolean enableCombatDetection;
     public boolean inCombatUseDefaultModel;
+    public EmfHiddenModelMode hiddenModelBehaviour;
     public ExclusionItemConfiguration exclusionItems;
 
     public ConfigPreset() {
@@ -39,6 +40,7 @@ public class ConfigPreset {
         opacityAffectingElytra = true;
         enableCombatDetection = false;
         inCombatUseDefaultModel = false;
+        hiddenModelBehaviour = EmfHiddenModelMode.KEEP;
         exclusionItems = ExclusionItemConfiguration.defaults();
     }
 
@@ -57,6 +59,7 @@ public class ConfigPreset {
         preset.opacityAffectingElytra = config.opacityAffectingElytra.getValue();
         preset.enableCombatDetection = config.enableCombatDetection.getValue();
         preset.inCombatUseDefaultModel = config.inCombatUseDefaultModel.getValue();
+        preset.hiddenModelBehaviour = config.hiddenModelBehaviour.getValue();
         preset.exclusionItems = config.exclusionItems.deepCopy();
         return preset;
     }
@@ -75,6 +78,7 @@ public class ConfigPreset {
         config.opacityAffectingElytra.setValue(opacityAffectingElytra);
         config.enableCombatDetection.setValue(enableCombatDetection);
         config.inCombatUseDefaultModel.setValue(inCombatUseDefaultModel);
+        config.hiddenModelBehaviour.setValue(hiddenModelBehaviour);
         config.exclusionItems = exclusionItems.deepCopy();
     }
 
@@ -91,7 +95,8 @@ public class ConfigPreset {
                 && opacityAffectingHatOrSkull == config.opacityAffectingHatOrSkull.getValue()
                 && opacityAffectingElytra == config.opacityAffectingElytra.getValue()
                 && enableCombatDetection == config.enableCombatDetection.getValue()
-                && inCombatUseDefaultModel == config.inCombatUseDefaultModel.getValue();
+                && inCombatUseDefaultModel == config.inCombatUseDefaultModel.getValue()
+                && hiddenModelBehaviour == config.hiddenModelBehaviour.getValue();
     }
 
     public ConfigPreset deepCopy() {
@@ -109,6 +114,7 @@ public class ConfigPreset {
         copy.opacityAffectingElytra = opacityAffectingElytra;
         copy.enableCombatDetection = enableCombatDetection;
         copy.inCombatUseDefaultModel = inCombatUseDefaultModel;
+        copy.hiddenModelBehaviour = hiddenModelBehaviour;
         copy.exclusionItems = exclusionItems.deepCopy();
         return copy;
     }

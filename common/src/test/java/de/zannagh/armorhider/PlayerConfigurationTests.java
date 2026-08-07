@@ -2,6 +2,7 @@ package de.zannagh.armorhider;
 
 import de.zannagh.armorhider.client.api.impl.AhPlayerConfigApiImpl;
 import de.zannagh.armorhider.configuration.ConfigurationItemFactoryRegistry;
+import de.zannagh.armorhider.configuration.EmfHiddenModelMode;
 import de.zannagh.armorhider.configuration.ExclusionItemConfiguration;
 import de.zannagh.armorhider.net.CompressedJsonCodec;
 import de.zannagh.armorhider.configuration.items.ArmorOpacity;
@@ -134,6 +135,26 @@ class PlayerConfigurationTests {
         assertEquals(UUID.fromString("6f7d35ad-9152-3823-9277-b683a91158a3"), currentConfig.playerId.getValue());
         assertEquals("Player446", currentConfig.playerName.getValue());
         assertEquals(true, currentConfig.enableCombatDetection.getValue());
+    }
+
+    @Test
+    @DisplayName("hiddenModelBehaviour: defaults to KEEP for old configs, round-trips, heals garbage")
+    void hiddenModelBehaviour() {
+        // A config from before the field existed backfills to the default (KEEP), never null.
+        var oldConfig = new StringPlayerConfigProvider(getVersion3PlayerConfig()).getValue();
+        assertEquals(EmfHiddenModelMode.KEEP, oldConfig.hiddenModelBehaviour.getValue());
+
+        // An explicit value survives a serialize/deserialize round-trip.
+        var config = PlayerConfig.empty();
+        config.hiddenModelBehaviour.setValue(EmfHiddenModelMode.VANILLA_SEAMS);
+        var restored = PlayerConfig.deserialize(config.toJson());
+        assertEquals(EmfHiddenModelMode.VANILLA_SEAMS, restored.hiddenModelBehaviour.getValue());
+
+        // An unknown / hand-edited value heals to the default instead of throwing.
+        var garbage = PlayerConfig.deserialize(
+                "{\"configVersion\": %d, \"hiddenModelBehaviour\": \"NONSENSE\"}"
+                        .formatted(PlayerConfig.CURRENT_CONFIG_VERSION));
+        assertEquals(EmfHiddenModelMode.KEEP, garbage.hiddenModelBehaviour.getValue());
     }
 
     @Test

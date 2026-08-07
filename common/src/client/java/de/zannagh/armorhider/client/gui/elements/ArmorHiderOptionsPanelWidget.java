@@ -1,6 +1,7 @@
 package de.zannagh.armorhider.client.gui.elements;
 
 import com.mojang.datafixers.util.Pair;
+import de.zannagh.armorhider.api.compat.CompatFlags;
 import de.zannagh.armorhider.api.compat.CompatManager;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.gui.UiConstants;
@@ -108,10 +109,18 @@ public class ArmorHiderOptionsPanelWidget extends AbstractWidget {
             configs.add(new Pair<>(config.affectAccessories.getValue(), val -> setSetting(val, config.affectAccessories::setValue)));
         }
 
+        // Hidden-model behaviour toggle only when EMF (Fresh Animations) is present; otherwise null so
+        // the button is omitted from the row entirely.
+        var hiddenModelInitial = CompatManager.requiresCompatTo(CompatFlags.ENTITY_MODEL_FEATURES)
+                ? config.hiddenModelBehaviour.getValue() : null;
+        Consumer<de.zannagh.armorhider.configuration.EmfHiddenModelMode> hiddenModelSetter =
+                val -> setSetting(val, config.hiddenModelBehaviour::setValue);
+
         if (showPresets) {
             // Local config: general behaviour toggles + presets + the "individual settings" entry, one row.
             factory.addElementAsWidget(factory.createCompoundButtonWidget(
-                    configs, presetManager, presetManager.getActiveIndex(), this::onPresetActivated
+                    configs, presetManager, presetManager.getActiveIndex(), this::onPresetActivated,
+                    hiddenModelInitial, hiddenModelSetter
             ));
         } else {
             // Per-player override: behaviour toggles only (presets/individual-settings don't apply here).

@@ -60,7 +60,9 @@ public class OptionElementFactory {
             ArrayList<Pair<Boolean, Consumer<Boolean>>> configs,
             PresetManager presetManager,
             int activePresetIndex,
-            Consumer<Integer> onPresetActivated
+            Consumer<Integer> onPresetActivated,
+            @org.jetbrains.annotations.Nullable de.zannagh.armorhider.configuration.EmfHiddenModelMode hiddenModelInitial,
+            @org.jetbrains.annotations.Nullable Consumer<de.zannagh.armorhider.configuration.EmfHiddenModelMode> hiddenModelSetter
     ){
         var first = new CombatDetectionButton(
                 configs.get(0).getFirst(),
@@ -105,6 +107,18 @@ public class OptionElementFactory {
         );
 
         var globalButtons = new java.util.ArrayList<AbstractWidget>(java.util.List.of(first, second, third));
+        // Hidden-model behaviour (EMF / Fresh Animations): only offered when EMF is present, so vanilla
+        // users don't see a dead toggle. Inserted before the accessory + individual-settings buttons.
+        if (hiddenModelInitial != null && hiddenModelSetter != null) {
+            globalButtons.add(new de.zannagh.armorhider.client.gui.elements.implementations.HiddenModelBehaviourButton(
+                    hiddenModelInitial,
+                    onPress -> {
+                        if (onPress instanceof de.zannagh.armorhider.client.gui.elements.implementations.HiddenModelBehaviourButton btn) {
+                            hiddenModelSetter.accept(btn.cycle());
+                        }
+                    }
+            ));
+        }
         // Accessory-hide master toggle: present only when an accessory provider is loaded (configs has
         // a 4th entry). Inserted before the "individual settings" button so that stays right-most.
         if (configs.size() > 3) {

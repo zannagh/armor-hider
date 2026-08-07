@@ -16,6 +16,8 @@ val compatKeys = listOf(
     // Fresh Animations (issue #217). Not a mod - a resource pack fetched into run/resourcepacks/
     // by fetchFaResourcePack, not run/mods/. Requires emf + etf to actually animate.
     "fa",
+    // Fresh Animations: Player Extension (the add-on that actually animates the player model).
+    "faplayer",
     // Accessory providers (issue #246). trinkets + accessories are Fabric; curios is NeoForge-only.
     "trinkets", "accessories", "curios"
 )
@@ -30,7 +32,7 @@ val selectedKeys: Set<String> = when (compatSel.lowercase()) {
 }
 // Keys that resolve to a mod jar (run/mods). "fa" is a resource pack handled separately by
 // fetchFaResourcePack, so it must never be dropped into run/mods even when listed in -Pcompat.
-val modHashes = availableHashes.filterKeys { it != "fa" }
+val modHashes = availableHashes.filterKeys { it != "fa" && it != "faplayer" }
 val activeMcVersion: String? = listOf("fabric.minecraft_version", "neoforge.minecraft_version")
     .firstNotNullOfOrNull { findProperty(it)?.toString() }
     ?.substringBefore("-pre")?.substringBefore("-rc")?.substringBefore("-alpha")
@@ -75,7 +77,7 @@ val fetchFaResourcePack = tasks.register<FetchCompatJars>("fetchFaResourcePack")
     group = "verification"
     description = "Fetch the Fresh Animations resource pack into run/resourcepacks/ for smoke runs"
     modsDir.set(project.layout.projectDirectory.dir("run/resourcepacks"))
-    versionHashes.set(availableHashes.filterKeys { it == "fa" })
+    versionHashes.set(availableHashes.filterKeys { it == "fa" || it == "faplayer" })
     include.set(selectedKeys)
     followDependencies.set(false)
     activeMcVersion?.let { mcGameVersion.set(it) }

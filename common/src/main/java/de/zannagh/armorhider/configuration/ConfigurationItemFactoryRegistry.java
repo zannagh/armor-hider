@@ -43,6 +43,7 @@ public class ConfigurationItemFactoryRegistry {
         registerFactoriesForClass(EnableGlint.class);
         registerFactoriesForClass(ShowSettingsInSkinCustomization.class);
         registerFactoriesForClass(InCombatUseDefaultArmorSkin.class);
+        registerFactoriesForClass(HiddenModelBehaviour.class);
         registerFactoriesForClass(ShowShieldWhenBlocking.class);
         registerFactoriesForClass(DisableArmorHiderOnInvisibility.class);
         registerFactoriesForClass(DisableArmorHiderOnInvisibilityGlobally.class);

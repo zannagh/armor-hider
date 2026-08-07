@@ -41,7 +41,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
     public int configVersion;
 
     /** The current config schema version. */
-    public static final int CURRENT_CONFIG_VERSION = 12;
+    public static final int CURRENT_CONFIG_VERSION = 13;
 
     /**
      * Maximum nesting depth for {@link #globalPlayerOverride}. The override is itself a {@link PlayerConfig},
@@ -277,6 +277,17 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
     public @NonNull InCombatUseDefaultArmorSkin inCombatUseDefaultModel;
 
     /**
+     * How a custom EMF (Fresh Animations) player model is treated while the body armor is hidden.
+     * Defaults to {@code KEEP} (leave the custom model alone); the opt-in {@code VANILLA} /
+     * {@code VANILLA_SEAMS} modes fall back to vanilla geometry for models that still show a seam.
+     * Only meaningful when Entity Model Features is present.
+     *
+     * @since AH 0.12.x, schema 13
+     */
+    @SerializedName(value = "hiddenModelBehaviour")
+    public @NonNull HiddenModelBehaviour hiddenModelBehaviour;
+
+    /**
      * Whether the shield should be drawn at full opacity when the player is blocking, defined via the {@link ShowShieldWhenBlocking} configuration item.<br/><br/>
      *
      * This was initially released in AH v0.11.4-pre.1 on 6th Feb 2026.
@@ -353,6 +364,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         legsOpacity = new ArmorOpacity();
         bootsOpacity = new ArmorOpacity();
         inCombatUseDefaultModel = new InCombatUseDefaultArmorSkin();
+        hiddenModelBehaviour = new HiddenModelBehaviour();
         enableCombatDetection = new CombatDetection();
         playerId = new PlayerUuid();
         playerName = new PlayerName();
@@ -503,6 +515,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         fresh.bootsGlint.setValue(old.bootsGlint.getValue());
         fresh.enableCombatDetection.setValue(old.enableCombatDetection.getValue());
         fresh.inCombatUseDefaultModel.setValue(old.inCombatUseDefaultModel.getValue());
+        fresh.hiddenModelBehaviour.setValue(old.hiddenModelBehaviour.getValue());
         fresh.opacityAffectingElytra.setValue(old.opacityAffectingElytra.getValue());
         fresh.opacityAffectingHatOrSkull.setValue(old.opacityAffectingHatOrSkull.getValue());
         fresh.affectAccessories.setValue(old.affectAccessories.getValue());
@@ -605,6 +618,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         newConfig.bootsOpacity.setValue(this.bootsOpacity.getValue());
         newConfig.enableCombatDetection.setValue(this.enableCombatDetection.getValue());
         newConfig.inCombatUseDefaultModel.setValue(this.inCombatUseDefaultModel.getValue());
+        newConfig.hiddenModelBehaviour.setValue(this.hiddenModelBehaviour.getValue());
         newConfig.opacityAffectingHatOrSkull.setValue(this.opacityAffectingHatOrSkull.getValue());
         newConfig.opacityAffectingElytra.setValue(this.opacityAffectingElytra.getValue());
         newConfig.affectAccessories.setValue(this.affectAccessories.getValue());
