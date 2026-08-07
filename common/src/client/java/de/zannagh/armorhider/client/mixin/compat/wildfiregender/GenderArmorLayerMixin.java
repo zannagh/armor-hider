@@ -126,8 +126,19 @@ public class GenderArmorLayerMixin {
         // window and then popped straight to hidden the moment the combat event expired, while every
         // vanilla armor piece faded smoothly. shouldEnforceVanillaRendering() governs which *model* is
         // used (EquipmentRenderMixin, EMF), not opacity, and has no meaning for the mod's own breast model.
+        //
+        // Armored Elytra (dorkix): the worn chest item is a plain Items.ELYTRA (chestplate stashed in
+        // CUSTOM_DATA), so its ItemInfo.isArmoredElytra() is false and the ARMOR_PIECE renderer would
+        // delegate this breast piece to the ELYTRA renderer - making its opacity follow opacityAffectElytra
+        // instead of the chest slot. But the breast armor IS the stored chestplate's armor (FGM resolves it
+        // via WildfireHelperMixin), and the vanilla body plate dorkix swaps into HumanoidArmorLayer already
+        // follows the chest opacity. Feed the interception the underlying chestplate so the breast is scoped
+        // as ARMOR_PIECE/chest and stays in lockstep with the body plate - e.g. with opacityAffectElytra OFF
+        // the chestplate hides yet the wings stay visible, which is the whole point of an armored elytra.
+        // Non-armored-elytra stacks (and a real chestplate) pass through unchanged.
+        ItemStack effectiveStack = de.zannagh.armorhider.client.compat.ArmoredElytraCompat.underlyingChestplateOrSelf(stack);
         var interceptionResult = AhRenderInterceptionRegistryApi
-                .getRenderer(RenderScope.ARMOR_PIECE).intercept(state, slot, stack, ci);
+                .getRenderer(RenderScope.ARMOR_PIECE).intercept(state, slot, effectiveStack, ci);
         if (!interceptionResult.shouldIntercept()) {
             return Pair.of(false, interceptionResult);
         }

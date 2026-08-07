@@ -121,8 +121,36 @@ public final class ArmoredElytraGenderSmokeTest implements FabricClientGameTest 
                         + " was drawn (swap delta " + withElytra + ") - the CUSTOM_DATA substitution fired without the"
                         + " mod present; it must be gated on CompatFlags.ARMORED_ELYTRA");
             }
+
+            // ── Armored elytra with opacityAffectElytra OFF: the breast is chest armor, not a wing, so it
+            //    must STILL fade in lockstep with the hidden chestplate (the swap keeps climbing). Turning
+            //    the elytra toggle off keeps the wings visible - the whole point of an armored elytra - but
+            //    must not spare the breast. Before interceptArmor substituted the underlying chestplate the
+            //    breast delegated to the ELYTRA renderer and, with this toggle off, rendered fully opaque
+            //    (swap delta 0) while the vanilla body plate hid: the reported bug. ────────────────────────
+            context.runOnClient(client -> {
+                var config = ArmorHiderClient.CLIENT_CONFIG_MANAGER
+                        .resolveConfig(ArmorHiderClient.getCurrentPlayerName());
+                config.opacityAffectingElytra.setValue(false);
+            });
+            context.waitTicks(10);
+            long elytraToggleOff = breastSwapDelta(context);
+            context.takeScreenshot("armorhider_ae_gender_3_elytratoggleoff");
+            ArmorHider.LOGGER.info("[smoke/fcgt] ARMORED-ELYTRA opacityAffectElytra=OFF: breast swap delta = {}",
+                    elytraToggleOff);
+            if (dorkixPresent && elytraToggleOff <= 0) {
+                throw new IllegalStateException("[smoke/fcgt] Armored-elytra breast did not fade with opacityAffectElytra"
+                        + " OFF (swap delta " + elytraToggleOff + ") - it is following the elytra toggle instead of the"
+                        + " chest slot; interceptArmor must substitute the underlying chestplate so the breast is scoped"
+                        + " ARMOR_PIECE like the body plate");
+            }
+            if (!dorkixPresent && elytraToggleOff > 0) {
+                throw new IllegalStateException("[smoke/fcgt] Armored Elytra mod ABSENT but the armored-elytra breast"
+                        + " faded with opacityAffectElytra OFF (swap delta " + elytraToggleOff + ") - the chestplate"
+                        + " substitution fired without the mod present; it must be gated on CompatFlags.ARMORED_ELYTRA");
+            }
             ArmorHider.LOGGER.info("[smoke/fcgt] Armored-elytra + gender smoke passed (control={}, armoredElytra={},"
-                    + " dorkixPresent={})", control, withElytra, dorkixPresent);
+                    + " elytraToggleOff={}, dorkixPresent={})", control, withElytra, elytraToggleOff, dorkixPresent);
         }
     }
 
