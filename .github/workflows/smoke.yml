@@ -1,0 +1,58 @@
+# Tiered headless smoke on the self-hosted `fcgt` runner (Xvfb + Mesa llvmpipe software GL).
+#
+# HARD-DISABLED for now, on purpose. This lands the wiring so it's ready, but nothing runs until you
+# opt in - both jobs are gated on the repo variable SMOKE_CI_ENABLED, and the only trigger is manual
+# (workflow_dispatch). To turn it on later:
+#   1. Set repo variable SMOKE_CI_ENABLED = true (Settings > Secrets and variables > Actions > Variables).
+#   2. Uncomment the pull_request trigger (fast lane) and/or the schedule trigger (nightly full matrix).
+# The full matrix currently still has genuine reds (emf-fa on 26.2, the batched-FCGT render rows), so
+# keep it non-blocking until those are addressed.
+name: Smoke (headless)
+
+on:
+  workflow_dispatch:
+  # Enable later for the ~2-min PR gate (boots fabric-26.2 only):
+  # pull_request:
+  #   paths-ignore: ['**.md', 'docs/**']
+  # Enable later for the nightly full matrix:
+  # schedule:
+  #   - cron: '0 3 * * *'
+
+permissions:
+  contents: read
+
+# Headless software-GL environment for booting real clients on the runner.
+env:
+  LIBGL_ALWAYS_SOFTWARE: "1"
+  MESA_GL_VERSION_OVERRIDE: "4.5"
+
+jobs:
+  # ~2-minute PR gate: just the active variant, single compat. Meant to hang off pull_request.
+  fast-lane:
+    name: PR fast-lane (fabric-26.2)
+    if: ${{ vars.SMOKE_CI_ENABLED == 'true' }}
+    runs-on: [self-hosted, fcgt]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Setup Gradle Environment
+        uses: zannagh/versionizer/setup-gradle-env@v1
+      - name: Fast smoke (fabric-26.2, single compat)
+        run: |
+          xvfb-run -a -s "-screen 0 1280x1024x24" \
+            ./gradlew :smoke:smokeTest -Dsmoke.only=fabric-26.2 -Dsmoke.compat=none --no-daemon --console=plain
+
+  # Full matrix (all loaders/versions + Paper/Folia), parallelised. Meant to hang off schedule (nightly).
+  full-matrix:
+    name: Nightly full matrix
+    if: ${{ vars.SMOKE_CI_ENABLED == 'true' }}
+    runs-on: [self-hosted, fcgt]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Setup Gradle Environment
+        uses: zannagh/versionizer/setup-gradle-env@v1
+      - name: Full smoke matrix (parallel)
+        run: |
+          xvfb-run -a -s "-screen 0 1280x1024x24" \
+            ./gradlew :smoke:smokeTest -Dsmoke.parallel=4 --no-daemon --console=plain

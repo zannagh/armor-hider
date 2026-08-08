@@ -64,6 +64,19 @@ testing {
             targets.configureEach {
                 testTask.configure {
                     systemProperty("junit.jupiter.execution.timeout.test.default", "10m")
+                    // Opt-in parallelism: `-Dsmoke.parallel=N` runs the matrix rows across N JUnit
+                    // worker threads. Each row still forks its own `./gradlew`, so the threads mostly
+                    // block on their child; different variants are independent gradle subprojects and
+                    // run truly concurrently, while SmokeMatrixTest's per-variant lock keeps a single
+                    // variant's rows serialised. Default (unset) stays fully sequential.
+                    System.getProperty("smoke.parallel")?.let { n ->
+                        systemProperty("junit.jupiter.execution.parallel.enabled", "true")
+                        systemProperty("junit.jupiter.execution.parallel.mode.default", "concurrent")
+                        systemProperty("junit.jupiter.execution.parallel.mode.classes.default", "concurrent")
+                        systemProperty("junit.jupiter.execution.parallel.config.strategy", "fixed")
+                        systemProperty("junit.jupiter.execution.parallel.config.fixed.parallelism", n)
+                        systemProperty("junit.jupiter.execution.parallel.config.fixed.max-pool-size", n)
+                    }
                     // Show test logs in IDE/CI output instead of swallowing them.
                     testLogging {
                         events("passed", "skipped", "failed")

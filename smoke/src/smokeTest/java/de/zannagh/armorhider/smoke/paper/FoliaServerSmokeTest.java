@@ -2,6 +2,7 @@ package de.zannagh.armorhider.smoke.paper;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.parallel.ResourceLock;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
@@ -33,6 +34,9 @@ import java.util.List;
  * that, point the full end-to-end row at Folia:
  * {@code ./gradlew :smoke:test -Dsmoke.paper.e2e -Dsmoke.paper.project=folia}.</p>
  */
+// Serialise all server-booting smokes against each other (they bind a server port) - see the shared
+// "smoke-server" lock; under -Dsmoke.parallel they must not run at the same time as one another.
+@ResourceLock("smoke-server")
 @DisplayName("Folia server boot smoke")
 class FoliaServerSmokeTest {
 

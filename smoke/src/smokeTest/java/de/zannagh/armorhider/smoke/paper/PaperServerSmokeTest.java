@@ -3,6 +3,7 @@ package de.zannagh.armorhider.smoke.paper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.parallel.ResourceLock;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -19,6 +20,7 @@ import java.util.List;
  * pre-seeded {@code armor-hider.json} survived a load/save round trip through {@code onDisable}.
  * Everything network-dependent degrades to a skip, so a CI runner without egress stays green.</p>
  */
+@ResourceLock("smoke-server")
 @DisplayName("Paper server boot smoke")
 class PaperServerSmokeTest {
 

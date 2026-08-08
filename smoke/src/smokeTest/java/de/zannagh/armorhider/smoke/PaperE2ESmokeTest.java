@@ -8,6 +8,7 @@ import de.zannagh.armorhider.smoke.paper.PaperServerSeed;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.parallel.ResourceLock;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -52,6 +53,7 @@ import java.util.stream.Stream;
  * <p>Each row registers only the {@code paper-handshake} FCGT entrypoint (see {@link #FCGT_TEST_ID}),
  * so it cannot be reddened by an unrelated sibling gametest sharing the same client launch.</p>
  */
+@ResourceLock("smoke-server")
 @DisplayName("Paper end-to-end smoke (client <-> Paper server)")
 // Overrides the suite-wide 10 m default: a Paper boot plus a cold client gametest exceeds it. The
 // real watchdogs are PAPER_BOOT_TIMEOUT and CLIENT_CEILING_MS, which produce diagnosable failures.
