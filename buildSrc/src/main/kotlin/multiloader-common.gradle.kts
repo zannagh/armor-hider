@@ -1,6 +1,7 @@
 plugins {
     id("java")
     id("java-library")
+    id("jacoco")
 }
 
 repositories {
@@ -47,9 +48,32 @@ tasks.test {
     }
     // only run tests once
     enabled = sc.current.isActive
+    // Emit JaCoCo coverage (XML for CI/PR comment, HTML for humans + the IDE) right after the tests.
+    finalizedBy(tasks.named("jacocoTestReport"))
 }
 
-// PaperSchemaContractTests reads :paper's compiled constants off the classpath (see the
+// Coverage is only meaningful on the active variant (the only one whose `test` runs); the inactive
+// branches have no exec data, so skip their reports rather than emit empty ones.
+tasks.named<JacocoReport>("jacocoTestReport") {
+    dependsOn(tasks.test)
+    onlyIf { sc.current.isActive }
+    // Mixins only execute inside a live client/server (Tier 2/3), never in the JVM unit tests, so they
+    // would sit at 0% and drag the denominator down. Excluded from coverage for now - to be covered
+    // later. Rebuilt from the source set (rather than filtering the convention value) so ordering with
+    // the jacoco plugin's own wiring can't clobber it.
+    classDirectories.setFrom(
+        sourceSets["main"].output.classesDirs.asFileTree.matching { exclude("**/mixin/**") }
+    )
+    // JaCoCo's HTML formatter overwrites but never deletes, so a package that drops out of the report
+    // (e.g. the now-excluded mixins) leaves a stale page behind until a clean. Wipe the dir first.
+    doFirst { delete(reports.html.outputLocation) }
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+    }
+}
+
+// PaperSchemaContractTest reads :paper's compiled constants off the classpath (see the
 // testImplementation files(...) entry in multiloader-loom), so they must be built first - on the
 // compile task too, not just `test`, or Gradle rejects the undeclared cross-project input.
 tasks.named("compileTestJava") {

@@ -10,7 +10,7 @@ import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class ElementSpacingOptionsTests {
+class ElementSpacingOptionsTest {
 
     @Nested
     @DisplayName("Even elements")

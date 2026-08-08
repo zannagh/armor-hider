@@ -1,6 +1,14 @@
 plugins {
     id("dev.kikugie.stonecutter")
     id("net.neoforged.moddev") version "2.0.140" apply false
+    // Supplies the JaCoCo tooling classpath used by the `aggregatedCoverage` JacocoReport below.
+    id("jacoco")
+}
+
+// The root project defines no repositories of its own (subprojects do), but the jacoco plugin's
+// `:jacocoAnt` tooling configuration must resolve org.jacoco.ant from somewhere.
+repositories {
+    mavenCentral()
 }
 
 stonecutter active "fabric-26.2" /* [SC] DO NOT EDIT */
@@ -107,5 +115,53 @@ tasks.register("stageArtifacts") {
         val files = staging.listFiles()?.filter { it.extension == "jar" }?.sortedBy { it.name } ?: emptyList()
         println("Staged ${files.size} artifacts:")
         files.forEach { println("  ${it.name} (${it.length() / 1024} KB)") }
+    }
+}
+
+// Tier-3 client/server-spawning smoke suite (see CONTRIBUTING.md > Testing). Kept OUT of `test`/`check`
+// so ordinary builds never boot a Minecraft client; invoke deliberately with `./gradlew smokeTest`.
+// A distinct task name gives it its own Develocity build-scan timeline, separate from unit tests.
+tasks.register("smokeTest") {
+    group = "verification"
+    description = "Client/server-spawning smoke + E2E suite (Tier 3, drives the in-game FCGT tests)."
+    dependsOn(":smoke:smokeTest")
+}
+
+// Repo-wide Tier-1 coverage merged into ONE report (build/reports/jacoco/aggregate/). Sums the
+// active common variant + paper. Only the ACTIVE common variant is included on purpose: every
+// stonecutter variant carries an identical copy of the classes, so aggregating all of them would
+// multiply the denominator and make the percentage meaningless.
+run {
+    val coverageProjects = listOfNotNull(
+        project(":paper"),
+        stonecutter.current?.project?.let { project(":common:$it") }
+    )
+    // Evaluate the target projects first so their `main` source sets + test tasks are resolvable here.
+    coverageProjects.forEach { evaluationDependsOn(it.path) }
+
+    tasks.register<JacocoReport>("aggregatedCoverage") {
+        group = "verification"
+        description = "Merged Tier-1 (unit) coverage across paper + the active common variant."
+        coverageProjects.forEach { p ->
+            val testTask = p.tasks.named<Test>("test")
+            dependsOn(testTask)
+            // executionData(Test) tolerates a run that produced no .exec (skipped/no-source).
+            executionData(testTask.get())
+            val main = p.extensions.getByType(SourceSetContainer::class.java).getByName("main")
+            sourceDirectories.from(main.allSource.srcDirs)
+            // Exclude mixin packages: they only execute in a live client/server, never in the JVM unit
+            // tests, so counting them would just depress the denominator. Kept in sync with the per-module
+            // exclude in multiloader-common.gradle.kts. To be covered later.
+            classDirectories.from(main.output.classesDirs.asFileTree.matching { exclude("**/mixin/**") })
+        }
+        // JaCoCo's HTML formatter overwrites but never deletes, so a package dropped from the report
+        // (e.g. the excluded mixins) would leave a stale page until a clean. Wipe the dir first.
+        doFirst { delete(reports.html.outputLocation) }
+        reports {
+            xml.required.set(true)
+            html.required.set(true)
+            html.outputLocation.set(layout.buildDirectory.dir("reports/jacoco/aggregate/html"))
+            xml.outputLocation.set(layout.buildDirectory.file("reports/jacoco/aggregate/jacocoAggregate.xml"))
+        }
     }
 }

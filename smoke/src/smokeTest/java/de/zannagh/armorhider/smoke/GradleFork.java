@@ -9,6 +9,9 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -34,9 +37,27 @@ final class GradleFork {
     private static final String REPO_ROOT_PROPERTY = "armorhider.repo.root";
     private static final long POLL_INTERVAL_MS = 200;
     private static final long READER_JOIN_MS = 2_000;
+    private static final long TREE_EXIT_WAIT_MS = 5_000;
 
     /** Exit code synthesised when we kill the child for exceeding its wall-clock ceiling. */
     static final int TIMEOUT_EXIT_CODE = 124;
+
+    /**
+     * Every forked {@code ./gradlew} still running, so a shutdown hook can reap their whole process
+     * trees if THIS JVM (the {@code :smoke:test} runner) is itself interrupted (Ctrl-C / SIGTERM)
+     * mid-row - otherwise the in-flight Minecraft JVM would orphan alongside its gradle parent.
+     */
+    private static final Set<Process> LIVE_FORKS = ConcurrentHashMap.newKeySet();
+
+    static {
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            for (Process fork : LIVE_FORKS) {
+                if (fork.isAlive()) {
+                    destroyTree(fork);
+                }
+            }
+        }, "smoke-fork-reaper"));
+    }
 
     private GradleFork() {
     }
@@ -115,9 +136,34 @@ final class GradleFork {
                 .directory(workingDirectory)
                 .redirectErrorStream(true)
                 .start();
+        LIVE_FORKS.add(process);
         Capture capture = new Capture(process, marker);
         capture.startReader();
         return capture;
+    }
+
+    /**
+     * Forcibly destroys {@code process} AND every descendant. The heavy Minecraft JVM is a descendant
+     * of the forked {@code ./gradlew} (gradle launcher -&gt; forked game JVM), so destroying only the
+     * top process leaves it orphaned - the exact multi-GB stray this reaps. Descendants are snapshotted
+     * BEFORE the root is killed, because once it exits its children are reparented to init and drop off
+     * {@link Process#descendants()}.
+     */
+    static void destroyTree(Process process) {
+        List<ProcessHandle> tree = new ArrayList<>();
+        process.descendants().forEach(tree::add);
+        tree.add(process.toHandle());
+        for (ProcessHandle handle : tree) {
+            handle.destroyForcibly();
+        }
+        for (ProcessHandle handle : tree) {
+            try {
+                handle.onExit().get(TREE_EXIT_WAIT_MS, TimeUnit.MILLISECONDS);
+            } catch (Exception ignored) {
+                // Best-effort: a handle we cannot await (already gone, or not awaitable on this
+                // platform) is fine - the destroyForcibly signal was already delivered above.
+            }
+        }
     }
 
     /** A running child plus the state the two completion strategies poll. */
@@ -161,12 +207,14 @@ final class GradleFork {
             if (process.isAlive()) {
                 return null;
             }
+            LIVE_FORKS.remove(process);
             reader.join(READER_JOIN_MS);
             return new Result(process.exitValue(), lines);
         }
 
         private Result kill(int exitCode) throws InterruptedException {
-            process.destroyForcibly();
+            destroyTree(process);
+            LIVE_FORKS.remove(process);
             reader.join(READER_JOIN_MS);
             return new Result(exitCode, lines);
         }

@@ -6,7 +6,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Smoke-test mode: arms a one-shot timer that exits the JVM cleanly some seconds after
- * {@link #maybeArm()} is called. Used by CI and the {@code scripts/smoke-all} runners
+ * {@link #maybeArm()} is called. Used by the {@code smokeTest} suite (see CONTRIBUTING.md > Testing)
  * to verify "MC + this mod (+ optionally compat mods) boot without crashing".
  * <p>
  * Activated by JVM property {@code armorhider.smoke.exit=true}. Optional knobs:

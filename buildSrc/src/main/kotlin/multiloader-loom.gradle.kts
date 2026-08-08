@@ -162,7 +162,7 @@ if (branch == "common") {
         add("testImplementation", platform("org.junit:junit-bom:6.0.1"))
         add("testImplementation", "org.junit.jupiter:junit-jupiter")
         add("testRuntimeOnly", "org.junit.platform:junit-platform-launcher")
-        // :paper's compiled classes, for PaperSchemaContractTests - the Paper plugin re-declares the
+        // :paper's compiled classes, for PaperSchemaContractTest - the Paper plugin re-declares the
         // parts of the wire schema it has to understand (the serverWideSettings block, the channel
         // names), and nothing else would notice if the mod's side moved. The classes it asserts on
         // are Bukkit-free, so no paper-api is needed here.
@@ -235,6 +235,10 @@ if (branch == "fabric") {
         runConfigs.configureEach {
             runDir = "run"
             ideConfigGenerated(true)
+            // Dev-run safety net: halt this game JVM if the launcher (gradle/IDE) that spawned it dies,
+            // so an interrupted runClient/runServer never orphans a multi-GB Minecraft JVM. Dev-only;
+            // production jars never see this property. See DevRunWatchdog.
+            vmArg("-Darmorhider.devRun.watchdog=true")
             if (isDeobf) {
                 vmArg("-Dfabric.gameVersion=${fabricVersion}")
             }

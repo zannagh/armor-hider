@@ -50,6 +50,9 @@ neoForge {
         register("client") {
             client()
             taskBefore(expandResourcesForIdea)
+            // Halt the game JVM if the gradle/IDE launcher dies, so an interrupted run never orphans
+            // a multi-GB Minecraft JVM. Dev-only; production jars never see this property. See DevRunWatchdog.
+            jvmArgument("-Darmorhider.devRun.watchdog=true")
             if (project.hasProperty("smoke")) {
                 taskBefore(tasks.named("fetchCompatJars"))
                 jvmArgument("-Darmorhider.smoke.exit=true")
@@ -69,6 +72,7 @@ neoForge {
         register("server") {
             server()
             taskBefore(expandResourcesForIdea)
+            jvmArgument("-Darmorhider.devRun.watchdog=true")
         }
     }
 

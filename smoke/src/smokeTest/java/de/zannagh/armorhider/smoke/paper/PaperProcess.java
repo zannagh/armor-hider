@@ -38,9 +38,9 @@ final class PaperProcess implements AutoCloseable {
     }
 
     /**
-     * The platform's null device. {@code scripts/smoke-all.ps1} makes Windows a supported dev
-     * environment, and {@code /dev/null} does not exist there - {@code ProcessBuilder} would fail
-     * the launch outright rather than degrade.
+     * The platform's null device. {@code ./gradlew smokeTest} is a supported Windows dev flow, and
+     * {@code /dev/null} does not exist there - {@code ProcessBuilder} would fail the launch outright
+     * rather than degrade.
      */
     private static File nullDevice() {
         boolean windows = System.getProperty("os.name", "").toLowerCase(Locale.ROOT).contains("win");

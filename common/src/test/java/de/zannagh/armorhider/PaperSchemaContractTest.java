@@ -38,7 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * other era, which is the point: the settings channels change namespace at 1.21.11.</p>
  */
 @DisplayName("Paper plugin mirrors the mod's wire schema")
-class PaperSchemaContractTests {
+class PaperSchemaContractTest {
 
     /**
      * The whole {@code serverWideSettings} block in one assertion: field names, shipped defaults and

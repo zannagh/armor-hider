@@ -13,6 +13,24 @@ plugins {
     id("com.gradle.develocity") version("4.3.2")
 }
 
+// Build-scan publishing is OPT-IN: only when the env var ARMOR_HIDER_BUILD_SCAN_PUBLISH=true is set
+// do we accept the Gradle Terms of Use and upload the scan to the public scans.gradle.com. This keeps
+// a random clone building locally from ever publishing scans - it must be enabled deliberately (this
+// repo's maintainers export it in their shell; CI sets it on the runner). When enabled in CI, the
+// official `gradle/actions/setup-gradle` step (used via the setup-gradle-env composite action) adds
+// the scan link to the GitHub Actions job summary automatically.
+val publishBuildScan = System.getenv("ARMOR_HIDER_BUILD_SCAN_PUBLISH").equals("true", ignoreCase = true)
+develocity {
+    buildScan {
+        termsOfUseUrl = "https://gradle.com/help/legal-terms-of-use"
+        // Agree to the ToS only when opted in; leaving it unset means the plugin never publishes.
+        if (publishBuildScan) {
+            termsOfUseAgree = "yes"
+        }
+        publishing.onlyIf { publishBuildScan }
+    }
+}
+
 stonecutter {
     kotlinController = true
     centralScript = "build.gradle.kts"

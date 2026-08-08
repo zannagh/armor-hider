@@ -14,6 +14,11 @@ concurrency:
   group: build-${{ github.ref }}
   cancel-in-progress: true
 
+# Opt in to publishing Gradle build scans (gated on this var in settings.gradle.kts); the
+# setup-gradle action then surfaces the scan link in the job summary.
+env:
+  ARMOR_HIDER_BUILD_SCAN_PUBLISH: "true"
+
 jobs:
   runner-and-version:
     name: Determine Runner & Get Version
@@ -44,6 +49,11 @@ jobs:
     name: Build & Test
     needs: runner-and-version
     runs-on: ${{ fromJSON(needs.runner-and-version.outputs.runner) }}
+    # `contents: read` to check out; `pull-requests: write` so the coverage step can post/update its
+    # summary comment on the PR.
+    permissions:
+      contents: read
+      pull-requests: write
     defaults:
       run:
         shell: bash
@@ -57,26 +67,31 @@ jobs:
       # `stageArtifacts` below compiles everything but runs NO tests, so without this step the job
       # only ever checked that the project builds. Runs first, to fail fast.
       #
-      # Deliberately NOT `./gradlew test`: :smoke:test arms itself when the requested task names
-      # contain exactly "test" (smoke/build.gradle.kts), which would boot real Minecraft clients and
-      # PaperMC servers on every pull request. Naming the two unit-test tasks explicitly keeps this
-      # to a few seconds and cannot pull in the smoke matrix.
-      #
-      # The common tests are stonecutter-versioned and only enabled on the active variant
-      # (`enabled = sc.current.isActive`), so the variant is read from the controller rather than
-      # hardcoded - otherwise this silently becomes a no-op the next time the active variant moves.
-      - name: Unit tests
-        run: |
-          ACTIVE=$(grep -oE 'stonecutter active "[^"]+"' stonecutter.gradle.kts | sed 's/.*"\(.*\)"/\1/')
-          if [ -z "$ACTIVE" ]; then
-            echo "::error::Could not read the active stonecutter variant from stonecutter.gradle.kts"
-            exit 1
-          fi
-          echo "Active stonecutter variant: $ACTIVE"
-          # Braces are load-bearing: unbraced, `$ACTIVE:test` is parsed by zsh as the `:t` (tail)
-          # parameter modifier, yielding `:common:fabric-26.2est`. Harmless in CI's bash, but it
-          # breaks the moment anyone runs this line in a local zsh shell.
-          ./gradlew :paper:test ":common:${ACTIVE}:test"
+      # `aggregatedCoverage` runs the Tier-1 unit tests (`:paper:test` + the active `:common:<variant>:test`,
+      # which it depends on) and merges them into one report. It resolves the active stonecutter variant
+      # itself (via `stonecutter.current`), so no shell-side variant grep is needed. The Tier-3
+      # client/server-spawning suite lives in its own `smokeTest` task and is never reachable from here.
+      # See CONTRIBUTING.md > Testing.
+      - name: Unit tests + coverage
+        run: ./gradlew aggregatedCoverage
+
+      # The merged Tier-1 report (build/reports/jacoco/aggregate) drives one clean coverage % on the PR.
+      - name: Coverage summary (PR comment)
+        uses: madrapps/jacoco-report@v1.7.2
+        with:
+          paths: ${{ github.workspace }}/build/reports/jacoco/aggregate/jacocoAggregate.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          title: Coverage report
+          update-comment: true
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-${{ needs.runner-and-version.outputs.fullSemVer }}
+          # Merged report + both per-module reports.
+          path: '**/build/reports/jacoco/**'
+          if-no-files-found: warn
 
       - name: Build & Stage Artifacts
         run: ./gradlew stageArtifacts -PsemVer="${{ needs.runner-and-version.outputs.fullSemVer }}" -Pprerelease="true"

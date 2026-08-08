@@ -32,7 +32,10 @@ import java.util.stream.Stream;
  * </ul>
  * <p>
  * The client-plus-Paper end-to-end phase lives in {@link PaperE2ESmokeTest}
- * because it needs a server process alongside the forked client.
+ * because it needs a server process alongside the forked client. The in-game FCGT scenarios are
+ * batched here (one {@code runClientGametest} launch runs them all) for the FCGT variants EXCEPT
+ * {@link #FCGT_PER_ID_VARIANT}, which {@link FcgtScenarioTest} covers one launch per scenario so
+ * each shows as its own IDE node.
  */
 @DisplayName("MC boot smoke matrix")
 class SmokeMatrixTest {
@@ -80,6 +83,15 @@ class SmokeMatrixTest {
             "fabric-26.1.2", "fabric-26.2"
     );
 
+    /**
+     * The FCGT variant covered per-scenario by {@link FcgtScenarioTest} instead of by the batched
+     * {@code runClientGametest} row here. {@code FcgtScenarioTest} forks one launch per FCGT id on
+     * this variant, giving each scenario its own IDE-discoverable node - so a batched all-in-one
+     * ENTITY_RENDER row for the same variant would only duplicate (coarser) coverage. The other
+     * {@link #FCGT_VARIANTS} keep their single batched row for cross-version breadth.
+     */
+    static final String FCGT_PER_ID_VARIANT = "fabric-26.2";
+
     enum Phase {
         /** Phase 1 - boots client, verifies no startup crash within smoke.delay.ms. */
         BOOT("runClient"),
@@ -123,7 +135,8 @@ class SmokeMatrixTest {
                 if (wantBoot) {
                     rows.add(Arguments.of(loader, variant, compat, Phase.BOOT));
                 }
-                if (wantEntityRender && FCGT_VARIANTS.contains(variant)) {
+                if (wantEntityRender && FCGT_VARIANTS.contains(variant)
+                        && !variant.equals(FCGT_PER_ID_VARIANT)) {
                     rows.add(Arguments.of(loader, variant, compat, Phase.ENTITY_RENDER));
                 }
             }

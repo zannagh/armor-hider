@@ -16,7 +16,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class ServerConfigurationTests {
+public class ServerConfigurationTest {
     @BeforeAll
     static void initializeFactories() {
         ConfigurationItemFactoryRegistry.initialize();

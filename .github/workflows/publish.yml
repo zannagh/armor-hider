@@ -23,6 +23,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
+  # Opt in to publishing Gradle build scans (gated on this var in settings.gradle.kts).
+  ARMOR_HIDER_BUILD_SCAN_PUBLISH: "true"
   MODRINTH_PROJECT_ID: 'zannaghs-armor-hider'
   # "Armor Hider" in the Minecraft > Mods section (classId 6): the Fabric/NeoForge mod.
   CURSEFORGE_PROJECT_ID: '1475841'

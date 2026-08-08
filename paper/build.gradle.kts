@@ -1,5 +1,6 @@
 plugins {
     java
+    jacoco
     id("com.gradleup.shadow") version "9.2.2"
 }
 
@@ -73,6 +74,15 @@ tasks.test {
     testLogging {
         events("passed", "failed")
         exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+    }
+    finalizedBy(tasks.jacocoTestReport)
+}
+
+tasks.jacocoTestReport {
+    dependsOn(tasks.test)
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
     }
 }
 
