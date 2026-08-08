@@ -175,9 +175,24 @@ public final class EmfFreshAnimationsSmokeTest implements FabricClientGameTest {
                     .resolveConfig(ArmorHiderClient.getCurrentPlayerName());
             config.hiddenModelBehaviour.setValue(mode);
         });
-        // EMF re-evaluates its vanilla-model condition per frame; give the reload/redraw room.
-        context.waitTicks(30);
-        String path = AhArmProbe.lastPath();
+        // EMF re-evaluates its vanilla-model condition per frame and the reload/redraw can lag - badly
+        // under software GL (headless CI on Mesa llvmpipe), where a fixed short wait read a STALE path
+        // and flaked (the render itself is correct - verified on real hardware). Poll until the path
+        // settles to what's expected, early-exiting as soon as it matches, up to a generous ceiling; a
+        // genuine mismatch still fails once the ceiling passes. When not assertable (EMF/pack absent)
+        // the path stays "none", so just let a few frames render for the screenshot instead of spinning.
+        String path;
+        if (assertable) {
+            int waited = 0;
+            do {
+                context.waitTicks(10);
+                path = AhArmProbe.lastPath();
+                waited += 10;
+            } while (!expectedPath.equals(path) && waited < 300);
+        } else {
+            context.waitTicks(30);
+            path = AhArmProbe.lastPath();
+        }
         ArmorHider.LOGGER.info("[smoke/fcgt] #217 mode={} tag={} render path={} (expected {})",
                 mode, tag, path, expectedPath);
         context.takeScreenshot("ah217_" + label + "_" + tag);
