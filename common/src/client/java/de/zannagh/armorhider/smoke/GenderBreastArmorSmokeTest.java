@@ -9,6 +9,8 @@ import com.wildfire.main.config.enums.Gender;
 import com.wildfire.main.entitydata.PlayerConfig;
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.api.ArmorHiderApi;
+import de.zannagh.armorhider.api.compat.CompatFlags;
+import de.zannagh.armorhider.api.compat.CompatManager;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.api.impl.AhRenderStateImpl;
 import de.zannagh.armorhider.client.common.RenderScope;
@@ -74,6 +76,13 @@ public final class GenderBreastArmorSmokeTest implements FabricClientGameTest {
     @Override
     public void runTest(ClientGameTestContext context) {
         ArmorHider.LOGGER.info("[smoke/fcgt] Gender breast-armor smoke starting");
+        // Self-skip when FGM is absent (e.g. compat=none): this entrypoint is registered by MC version,
+        // not by compat, so it also runs on bare rows - and touching WildfireGender there would throw
+        // NoClassDefFoundError and red the whole batch. Guard BEFORE any FGM class is referenced.
+        if (!CompatManager.requiresCompatTo(CompatFlags.GENDER_MOD)) {
+            ArmorHider.LOGGER.info("[smoke/fcgt] Gender breast-armor smoke skipped: Female Gender Mod not present");
+            return;
+        }
         context.waitForScreen(TitleScreen.class);
 
         try (TestSingleplayerContext singleplayer = context.worldBuilder()

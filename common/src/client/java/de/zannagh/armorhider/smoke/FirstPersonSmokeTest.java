@@ -5,6 +5,8 @@
 package de.zannagh.armorhider.smoke;
 
 import de.zannagh.armorhider.ArmorHider;
+import de.zannagh.armorhider.api.compat.CompatFlags;
+import de.zannagh.armorhider.api.compat.CompatManager;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.api.impl.AhRenderStateImpl;
 import de.zannagh.armorhider.client.common.RenderScope;
@@ -51,6 +53,14 @@ public final class FirstPersonSmokeTest implements FabricClientGameTest {
     @Override
     public void runTest(ClientGameTestContext context) {
         ArmorHider.LOGGER.info("[smoke/fcgt] First Person Model compat smoke starting");
+        // Self-skip when FPM is absent at runtime (e.g. compat=none). The entrypoint registers wherever
+        // firstperson.version is pinned, so it also runs on bare rows where FPM's guards can never fire -
+        // that must read as "skipped", not the "guards never fired" failure (which means FPM is present
+        // but dormant). Presence is the runtime class probe, so it distinguishes the two.
+        if (!CompatManager.requiresCompatTo(CompatFlags.FIRST_PERSON_MODEL)) {
+            ArmorHider.LOGGER.info("[smoke/fcgt] First Person Model compat smoke skipped: FPM not present");
+            return;
+        }
         context.waitForScreen(TitleScreen.class);
 
         try (TestSingleplayerContext singleplayer = context.worldBuilder()
