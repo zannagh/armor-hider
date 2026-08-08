@@ -79,13 +79,23 @@ final class GradleFork {
         }
     }
 
+    /** Exit code synthesised when a crash signature is seen in the child output after the marker. */
+    static final int CRASH_EXIT_CODE = 1;
+
     /**
-     * Kills the child - and synthesises exit code {@code 0} - once {@code marker} has been seen and
-     * the output has then been silent for {@code idleThresholdMs}. Gradle would otherwise report the
-     * killed JVM as a failure even though the boot itself succeeded.
+     * Kills the child - synthesising exit code {@code 0} - once {@code marker} has been seen and the
+     * boot has settled. "Settled" is EITHER the output going silent for {@code idleThresholdMs} OR
+     * {@code graceAfterMarkerMs} having elapsed since the marker. The grace path exists because the
+     * marker fires at DIFFERENT boot stages per loader: on Fabric it lands late (a good "booted"
+     * proxy, and the client then idles), but on NeoForge {@code ArmorHider.init()} runs during mod
+     * loading, so the marker is premature and the client keeps logging its way to the title screen -
+     * it never goes idle, and the run task doesn't cleanly hand back, so idle-only detection ran every
+     * NeoForge boot to the ceiling and reported a false failure. Grace turns "armed, then survived
+     * {@code graceAfterMarkerMs} without crashing" into a pass. A crash signature in the meantime
+     * (see {@link #CRASH_SIGNATURES}) still fails - so a boot that actually dies is not masked.
      */
     static Result runUntilIdleAfterMarker(List<String> command, File workingDirectory, String marker,
-                                          long idleThresholdMs, long ceilingMs)
+                                          long idleThresholdMs, long graceAfterMarkerMs, long ceilingMs)
             throws IOException, InterruptedException {
         Capture capture = start(command, workingDirectory, marker);
         long startedAt = System.currentTimeMillis();
@@ -95,11 +105,18 @@ final class GradleFork {
                 return finished;
             }
             long now = System.currentTimeMillis();
+            if (capture.sawCrash.get()) {
+                return capture.kill(CRASH_EXIT_CODE);
+            }
             if (now - startedAt > ceilingMs) {
                 return capture.kill(TIMEOUT_EXIT_CODE);
             }
-            if (capture.sawMarker.get() && now - capture.lastLineAt.get() >= idleThresholdMs) {
-                return capture.kill(0);
+            if (capture.sawMarker.get()) {
+                boolean idle = now - capture.lastLineAt.get() >= idleThresholdMs;
+                boolean gracePassed = now - capture.markerAt.get() >= graceAfterMarkerMs;
+                if (idle || gracePassed) {
+                    return capture.kill(0);
+                }
             }
             Thread.sleep(POLL_INTERVAL_MS);
         }
@@ -166,6 +183,17 @@ final class GradleFork {
         }
     }
 
+    /**
+     * Unambiguous fatal-crash lines. A normal smoke shutdown (SmokeMode's {@code System.exit}) logs
+     * "Stopping server"/"Saving worlds" and the like - deliberately NOT matched here - so grace only
+     * masks a hung hand-back, never an actual crash.
+     */
+    private static final List<String> CRASH_SIGNATURES = List.of(
+            "Minecraft has crashed!",
+            "---- Minecraft Crash Report ----",
+            "Exception in thread \"main\"",
+            "A fatal error has been detected by the Java Runtime Environment");
+
     /** A running child plus the state the two completion strategies poll. */
     private static final class Capture {
 
@@ -174,6 +202,10 @@ final class GradleFork {
         private final List<String> lines = Collections.synchronizedList(new ArrayList<>());
         private final AtomicLong lastLineAt = new AtomicLong(System.currentTimeMillis());
         private final AtomicBoolean sawMarker = new AtomicBoolean(false);
+        /** When the marker was first seen (used for the grace window); 0 until then. */
+        private final AtomicLong markerAt = new AtomicLong(0);
+        /** Set once a {@link #CRASH_SIGNATURES} line appears - a real crash, so fail rather than pass. */
+        private final AtomicBoolean sawCrash = new AtomicBoolean(false);
         private Thread reader;
 
         private Capture(Process process, String marker) {
@@ -193,9 +225,16 @@ final class GradleFork {
                 while ((line = in.readLine()) != null) {
                     lines.add(line);
                     System.out.println(line);
-                    lastLineAt.set(System.currentTimeMillis());
-                    if (marker != null && line.contains(marker)) {
-                        sawMarker.set(true);
+                    long at = System.currentTimeMillis();
+                    lastLineAt.set(at);
+                    if (marker != null && line.contains(marker) && sawMarker.compareAndSet(false, true)) {
+                        markerAt.set(at);
+                    }
+                    for (String crash : CRASH_SIGNATURES) {
+                        if (line.contains(crash)) {
+                            sawCrash.set(true);
+                            break;
+                        }
                     }
                 }
             } catch (IOException ignored) {

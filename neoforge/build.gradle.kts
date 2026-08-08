@@ -55,6 +55,8 @@ neoForge {
             jvmArgument("-Darmorhider.devRun.watchdog=true")
             if (project.hasProperty("smoke")) {
                 taskBefore(tasks.named("fetchCompatJars"))
+                // Cap the smoke client heap (tiny synthetic worlds) - see multiloader-loom.gradle.kts.
+                jvmArgument("-Xmx2g")
                 jvmArgument("-Darmorhider.smoke.exit=true")
                 val delayMs = project.findProperty("smoke.delay.ms")?.toString() ?: "15000"
                 jvmArgument("-Darmorhider.smoke.delay.ms=${delayMs}")

@@ -243,6 +243,11 @@ if (branch == "fabric") {
                 vmArg("-Dfabric.gameVersion=${fabricVersion}")
             }
             if (project.hasProperty("smoke")) {
+                // Smoke scenes are tiny synthetic worlds (boot-to-title, or a one-player FCGT world),
+                // so the client needs nowhere near a real session's heap. Capping it keeps the box light
+                // and - the real payoff - lets many more clients run concurrently when the matrix is
+                // parallelised (~2g each vs the uncapped ~default lets ~10 fit in 23g instead of ~5).
+                vmArg("-Xmx2g")
                 vmArg("-Darmorhider.smoke.exit=true")
                 val delayMs = project.findProperty("smoke.delay.ms")?.toString() ?: "15000"
                 vmArg("-Darmorhider.smoke.delay.ms=${delayMs}")

@@ -2,6 +2,7 @@ package de.zannagh.armorhider.smoke;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -30,6 +31,10 @@ import java.util.List;
  * <p>Ids mirror the {@code fcgtTestCatalog} registry in {@code multiloader-loom.gradle.kts}; a stale id
  * fails fast because {@code runClientGametest} rejects an unknown {@code -Psmoke.fcgt.only} value.</p>
  */
+// OPT-IN: this per-scenario expansion (8 client launches) is redundant with the fast batched
+// ENTITY_RENDER row that SmokeMatrixTest runs for this same variant, so it stays OUT of the default
+// suite to save ~7 min. Enable it for granular IDE debugging with -Dsmoke.fcgt.perId=true.
+@EnabledIfSystemProperty(named = "smoke.fcgt.perId", matches = "true")
 @DisplayName("FCGT scenarios (per-id, " + SmokeMatrixTest.FCGT_PER_ID_VARIANT + ")")
 class FcgtScenarioTest {
 

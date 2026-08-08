@@ -56,6 +56,14 @@ class SmokeMatrixTest {
     private static final String BOOT_READY_MARKER = "[smoke] Armed: will exit JVM";
     /** Cut the boot row short once we've gone this many ms without a new log line. */
     private static final long BOOT_IDLE_THRESHOLD_MS = 3_000;
+    /**
+     * Once the marker is seen, also cut the boot short after this long even if the output never
+     * idles. NeoForge arms during mod loading (the marker is premature) and then keeps logging its
+     * way to the title screen without ever hitting {@link #BOOT_IDLE_THRESHOLD_MS} of silence, so
+     * idle-only detection ran every NeoForge boot to the ceiling. This bounds a booted-but-chatty
+     * client to marker+grace; a crash in the window still fails (GradleFork crash-signature guard).
+     */
+    private static final long BOOT_GRACE_AFTER_MARKER_MS = 20_000;
     /** Hard ceiling - if we never see the marker, kill the JVM and call it a failure. */
     private static final long BOOT_HARD_CEILING_MS = 90_000;
 
@@ -84,11 +92,11 @@ class SmokeMatrixTest {
     );
 
     /**
-     * The FCGT variant covered per-scenario by {@link FcgtScenarioTest} instead of by the batched
-     * {@code runClientGametest} row here. {@code FcgtScenarioTest} forks one launch per FCGT id on
-     * this variant, giving each scenario its own IDE-discoverable node - so a batched all-in-one
-     * ENTITY_RENDER row for the same variant would only duplicate (coarser) coverage. The other
-     * {@link #FCGT_VARIANTS} keep their single batched row for cross-version breadth.
+     * The canonical variant {@link FcgtScenarioTest} expands per-scenario (one client launch per FCGT
+     * id, each its own IDE node). Per-id is OPT-IN ({@code -Dsmoke.fcgt.perId=true}) and ADDITIVE - the
+     * batched {@code ENTITY_RENDER} row below still runs for every {@link #FCGT_VARIANTS} entry incl.
+     * this one, so the default suite keeps fast one-launch FCGT coverage on 26.2 (~1 min) and pays the
+     * ~8-launch per-id cost only when explicitly asked for granular debugging.
      */
     static final String FCGT_PER_ID_VARIANT = "fabric-26.2";
 
@@ -135,8 +143,7 @@ class SmokeMatrixTest {
                 if (wantBoot) {
                     rows.add(Arguments.of(loader, variant, compat, Phase.BOOT));
                 }
-                if (wantEntityRender && FCGT_VARIANTS.contains(variant)
-                        && !variant.equals(FCGT_PER_ID_VARIANT)) {
+                if (wantEntityRender && FCGT_VARIANTS.contains(variant)) {
                     rows.add(Arguments.of(loader, variant, compat, Phase.ENTITY_RENDER));
                 }
             }
@@ -172,7 +179,7 @@ class SmokeMatrixTest {
 
         GradleFork.Result r = phase == Phase.BOOT
                 ? GradleFork.runUntilIdleAfterMarker(cmd, repoRoot.toFile(), BOOT_READY_MARKER,
-                        BOOT_IDLE_THRESHOLD_MS, BOOT_HARD_CEILING_MS)
+                        BOOT_IDLE_THRESHOLD_MS, BOOT_GRACE_AFTER_MARKER_MS, BOOT_HARD_CEILING_MS)
                 : GradleFork.runToExit(cmd, repoRoot.toFile(), ROW_HARD_CEILING_MS);
 
         if (r.exitCode() != 0) {
