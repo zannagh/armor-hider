@@ -79,7 +79,11 @@ final class GradleFork {
         }
     }
 
-    /** Exit code synthesised when a crash signature is seen in the child output after the marker. */
+    /**
+     * Exit code synthesised when a crash signature appears anywhere in the child output - deliberately
+     * NOT gated on the marker, so a crash BEFORE the boot arms fails fast instead of waiting out the
+     * ceiling, and a crash after the marker is never masked by the grace window.
+     */
     static final int CRASH_EXIT_CODE = 1;
 
     /**

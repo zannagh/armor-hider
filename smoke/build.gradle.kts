@@ -69,13 +69,16 @@ testing {
                     // block on their child; different variants are independent gradle subprojects and
                     // run truly concurrently, while SmokeMatrixTest's per-variant lock keeps a single
                     // variant's rows serialised. Default (unset) stays fully sequential.
-                    System.getProperty("smoke.parallel")?.let { n ->
+                    // Only enable for a valid positive integer, so a blank/non-numeric value
+                    // (e.g. `-Dsmoke.parallel=`) is ignored rather than forwarded to JUnit and
+                    // failing the task at startup.
+                    System.getProperty("smoke.parallel")?.trim()?.toIntOrNull()?.takeIf { it > 0 }?.let { n ->
                         systemProperty("junit.jupiter.execution.parallel.enabled", "true")
                         systemProperty("junit.jupiter.execution.parallel.mode.default", "concurrent")
                         systemProperty("junit.jupiter.execution.parallel.mode.classes.default", "concurrent")
                         systemProperty("junit.jupiter.execution.parallel.config.strategy", "fixed")
-                        systemProperty("junit.jupiter.execution.parallel.config.fixed.parallelism", n)
-                        systemProperty("junit.jupiter.execution.parallel.config.fixed.max-pool-size", n)
+                        systemProperty("junit.jupiter.execution.parallel.config.fixed.parallelism", n.toString())
+                        systemProperty("junit.jupiter.execution.parallel.config.fixed.max-pool-size", n.toString())
                     }
                     // Show test logs in IDE/CI output instead of swallowing them.
                     testLogging {
