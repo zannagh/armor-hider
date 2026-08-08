@@ -1,0 +1,23 @@
+# Coverage is measured over Tier-1-reachable code only: mixins and the client/server-spawning tiers
+# are already excluded in the JaCoCo report itself (see CONTRIBUTING.md > Testing), so the numbers
+# Codecov sees are intentionally a subset of the whole mod. Keep the checks INFORMATIONAL so a dip
+# reports on the PR without blocking merge - coverage here is a signal, not a gate (for now).
+coverage:
+  status:
+    project:
+      default:
+        informational: true
+    patch:
+      default:
+        informational: true
+
+comment:
+  layout: "reach, diff, flags, files"
+  require_changes: false
+
+# Belt-and-braces: these never reach the JaCoCo XML anyway, but make the intent explicit for Codecov.
+ignore:
+  - "**/mixin/**"
+  - "smoke/**"
+  - "**/src/test/**"
+  - "**/src/smokeTest/**"

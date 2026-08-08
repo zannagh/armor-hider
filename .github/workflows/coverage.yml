@@ -1,0 +1,52 @@
+# Baseline coverage for the trend line.
+#
+# build.yml uploads each PR's coverage to Codecov, but Codecov can only show "was yy%, now xx%" if the
+# BASE branch has coverage too. build.yml runs on pull_request only, so main never uploads - this tiny
+# workflow fills that gap by running the Tier-1 unit tests + merged JaCoCo report on every push to main
+# and uploading it. It intentionally does NOT build artifacts (publish.yml owns that); it only needs the
+# coverage XML, so a plain ubuntu runner is enough.
+name: Coverage
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+
+permissions:
+  contents: read
+
+# Publish a build scan (gated in settings.gradle.kts); harmless if the var is ever unset.
+env:
+  ARMOR_HIDER_BUILD_SCAN_PUBLISH: "true"
+
+jobs:
+  coverage:
+    name: Coverage baseline
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Gradle Environment
+        uses: zannagh/versionizer/setup-gradle-env@v1
+
+      # Runs :paper:test + the active :common:<variant>:test and merges them (mixins excluded).
+      - name: Unit tests + coverage
+        run: ./gradlew aggregatedCoverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: build/reports/jacoco/aggregate/jacocoAggregate.xml
+          disable_search: true
+          fail_ci_if_error: false
+
+      # Test Analytics baseline from main: feeds run-time history + flake detection on the default branch.
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/test-results-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}

@@ -60,8 +60,15 @@ so they are not measured). Running the unit tests emits both an XML and an HTML 
   client/server (Tier 2/3), never in the JVM unit tests, so counting them would just depress the
   number. This is a temporary carve-out - they are meant to be covered later.
 - **CI:** the PR build runs `aggregatedCoverage`, posts the merged coverage % as a PR comment
-  (`madrapps/jacoco-report`), and uploads every report as a `coverage-*` artifact. Report dirs live
-  under `build/` and are never committed.
+  (`madrapps/jacoco-report`, which shows *changed-lines* coverage), and uploads every report as a
+  `coverage-*` artifact. Report dirs live under `build/` and are never committed.
+- **Trend (Codecov):** the merged XML is also uploaded to [Codecov](https://about.codecov.io/), which
+  tracks project coverage over time and shows the "was yy%, now xx% ▲/▼" delta vs `main`. The `main`
+  baseline is produced by `coverage.yml` (runs on push to `main`); PRs upload from `build.yml`. Status
+  checks are informational (see `.github/codecov.yml`), so a dip never blocks a merge.
+- **Test Analytics (Codecov):** the Gradle JUnit result XML (`**/build/test-results/test/*.xml`) is
+  uploaded via `codecov/test-results-action`, giving per-test run times, failure rates, and flaky-test
+  detection. Uploaded with `if: !cancelled()` so a failing run still reports its failed tests.
 
 **Build scans** publish to `scans.gradle.com` only when opted in via `ARMOR_HIDER_BUILD_SCAN_PUBLISH=true`
 (gated in `settings.gradle.kts`), so a plain clone never uploads its builds. CI sets it on the runner and

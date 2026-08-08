@@ -19,7 +19,8 @@ plugins {
 // repo's maintainers export it in their shell; CI sets it on the runner). When enabled in CI, the
 // official `gradle/actions/setup-gradle` step (used via the setup-gradle-env composite action) adds
 // the scan link to the GitHub Actions job summary automatically.
-val publishBuildScan = System.getenv("ARMOR_HIDER_BUILD_SCAN_PUBLISH").equals("true", ignoreCase = true)
+// Non-null literal as the receiver so a missing env var (null) can never NPE during settings eval.
+val publishBuildScan = "true".equals(System.getenv("ARMOR_HIDER_BUILD_SCAN_PUBLISH"), ignoreCase = true)
 develocity {
     buildScan {
         termsOfUseUrl = "https://gradle.com/help/legal-terms-of-use"

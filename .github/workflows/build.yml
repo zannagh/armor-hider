@@ -93,6 +93,27 @@ jobs:
           path: '**/build/reports/jacoco/**'
           if-no-files-found: warn
 
+      # Upload the merged JaCoCo XML to Codecov for the historical trend (project % delta vs main) +
+      # patch coverage. The base to diff against comes from coverage.yml uploading on push-to-main.
+      # `fail_ci_if_error: false` keeps a Codecov/token hiccup (or a fork PR without the secret) from
+      # reddening the build. madrapps (above) still provides the changed-lines gate.
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: build/reports/jacoco/aggregate/jacocoAggregate.xml
+          disable_search: true
+          fail_ci_if_error: false
+
+      # Codecov Test Analytics: test run times + flaky/failed-test detection. Gradle already writes the
+      # JUnit XML the CLI auto-discovers under **/build/test-results/. `!cancelled()` so it still uploads
+      # when a test FAILED - that's exactly the run we want the failed-tests report for.
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/test-results-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
       - name: Build & Stage Artifacts
         run: ./gradlew stageArtifacts -PsemVer="${{ needs.runner-and-version.outputs.fullSemVer }}" -Pprerelease="true"
 
