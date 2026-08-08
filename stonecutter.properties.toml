@@ -153,6 +153,7 @@ trinkets.version = "JagCscwi" # 3.10.0 (1.21.1)
 accessories.version = "Xlt4eWBe" # 1.1.0-beta.53+1.21.1
 fabricapi.version = "Lwt6YYHL"
 immersivearmors.version = "4m0lwLNO" # 1.7.6+1.21.1 fabric
+uranus.version = "H6EWSmDu" # 2.4.1 fabric (Ice and Fire: CE custom armor)
 # fabric-api 0.116.x for 1.21.1 predates fabric-client-gametest-api-v1 - Phase 2 entity
 # render smoke can't be wired here. fabricapi.semver intentionally omitted; the variant
 # stays on Phase 1 boot smoke only.
