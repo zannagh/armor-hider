@@ -30,13 +30,19 @@ val selectedKeys: Set<String> = when (compatSel.lowercase()) {
     "none", "clean" -> emptySet()
     else -> compatSel.split(",").map { it.trim() }.toSet()
 }
-// Keys that resolve to a mod jar (run/mods). "fa" (Fresh Animations) and "faplayer" (its Player
-// Extension) are resource packs handled separately by fetchFaResourcePack into run/resourcepacks,
-// so they must never be dropped into run/mods even when listed in -Pcompat.
-val modHashes = availableHashes.filterKeys { it != "fa" && it != "faplayer" }
 val activeMcVersion: String? = listOf("fabric.minecraft_version", "neoforge.minecraft_version")
     .firstNotNullOfOrNull { findProperty(it)?.toString() }
     ?.substringBefore("-pre")?.substringBefore("-rc")?.substringBefore("-alpha")
+// Keys that resolve to a mod jar (run/mods). "fa" (Fresh Animations) and "faplayer" (its Player
+// Extension) are resource packs handled separately by fetchFaResourcePack into run/resourcepacks,
+// so they must never be dropped into run/mods even when listed in -Pcompat.
+val modHashes = availableHashes
+    .filterKeys { it != "fa" && it != "faplayer" }
+    // On 1.20.1, Iris pulls a Sodium whose EarlyDriverScanner rejects loom's dev-runtime LWJGL
+    // (caffeine gh-2561), hard-failing the boot - and 1.20.1 is not an FCGT variant, so iris/sodium
+    // exercise nothing here. Drop iris from the FETCH only (the compileOnly stays, so IrisCompat still
+    // builds); it detects iris absent at runtime and no-ops. Real launchers ship a matching LWJGL.
+    .filterKeys { !(it == "iris" && activeMcVersion == "1.20.1") }
 val activeLoader: String? = when {
     sc.current.project.contains("fabric") -> "fabric"
     sc.current.project.contains("neoforge") -> "neoforge"
