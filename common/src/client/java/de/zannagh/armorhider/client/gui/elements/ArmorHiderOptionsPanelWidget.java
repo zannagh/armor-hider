@@ -151,6 +151,7 @@ public class ArmorHiderOptionsPanelWidget extends AbstractWidget {
                 config.chestGlint.getValue(),
                 config.opacityAffectingElytra.getValue(),
                 val -> setSetting(val, config.chestGlint::setValue),
+                // TODO: This needs to be removed
                 val -> setSetting(val, config.opacityAffectingElytra::setValue),
                 null,
                 accessoryButtonFor(EquipmentSlot.CHEST, config.affectChestAccessory.getValue(), config.affectChestAccessory::setValue)
@@ -195,6 +196,9 @@ public class ArmorHiderOptionsPanelWidget extends AbstractWidget {
                 null,
                 accessoryButtonFor(EquipmentSlot.FEET, config.affectFeetAccessory.getValue(), config.affectFeetAccessory::setValue)
         );
+
+        // TODO: We should add the elytra slider here. Should be below feet, above offhand.
+        // Needs the opacity slider for ElytraOpacity, a toggle for 'in flight' and a toggle for 'glint'.
 
         var offhandOption = factory.buildDoubleOption(
                 "armorhider.offhand.transparency",

@@ -12,6 +12,7 @@ import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 //?}
+import org.apache.logging.log4j.core.appender.rolling.action.IfAccumulatedFileCount;
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.NonNull;
 
@@ -193,6 +194,15 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
      */
     @SerializedName(value =  "elytraInFlight")
     public @NonNull ElytraInFlight elytraInFlight;
+
+    /**
+     * Gets the configuration item {@link EnableGlint} that determines whether Elytra should be rendered with glint (when true) or
+     * should be intercepted as usual by the mod (when false).
+     *
+     * @since AH 0.12.14, schema 14
+     */
+    @SerializedName(value = "elytraGlint")
+    public @NonNull EnableGlint elytraGlint;
 
     /**
      * Whether Armor Hider's helmet opacity {@link PlayerConfig helmetOpacity} should affect skulls.<br/><br/>
@@ -391,6 +401,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         opacityAffectingElytra = new OpacityAffectingElytraItem();
         elytraOpacity = new ElytraOpacity();
         elytraInFlight = new ElytraInFlight();
+        elytraGlint = new EnableGlint();
         affectAccessories = new AffectAccessories();
         affectHeadAccessory = new AffectHeadAccessory();
         affectChestAccessory = new AffectChestAccessory();
@@ -574,6 +585,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
 
         fresh.elytraOpacity.setValue(ElytraOpacity.fromLegacyConfig(old).getValue());
         fresh.elytraInFlight.setValue(old.elytraInFlight.getValue());
+        fresh.elytraGlint.setValue(old.opacityAffectingElytra.getValue() ? old.chestGlint.getValue() : true);
 
         fresh.setHasChangedFromSerializedContent();
         return fresh;
