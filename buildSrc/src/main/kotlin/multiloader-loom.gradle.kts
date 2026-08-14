@@ -55,9 +55,12 @@ with(sc) {
     // only compile on the variants where the two mods actually overlap.
     constants["immersivearmors"] = hasProperty("immersivearmors.version")
     // `gender` activates the modern GenderArmorLayer-based mixin.
-    // `gender_legacy` activates the GenderLayer.render() coarse mixin for older
-    // mod builds (e.g. female-gender NeoForge 1.21/1.21.1, hash kKffHCGl) whose
-    // jar ships only the legacy GenderLayer API.
+    // `gender_legacy` activates GenderLegacyLayerMixin for the older FGM builds
+    // (e.g. female-gender NeoForge 1.21/1.21.1/1.21.2/1.21.3, hash kKffHCGl) whose
+    // GenderLayer.render draws the breast body AND armor inline with no separate
+    // renderBreastArmor hook. That mixin hides only the inline breast armor (by
+    // substituting FGM's non-covering "no armor" config when the chest is hidden),
+    // leaving the breast body intact - it does not touch the modern GenderArmorLayer.
     constants["gender"] = hasProperty("gender.version") && findProperty("gender_legacy_api") != "true"
     constants["gender_legacy"] = hasProperty("gender.version") && findProperty("gender_legacy_api") == "true"
     // First Person Model (tr7zw) renders the local player's body in first person, so layers we hook
