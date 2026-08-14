@@ -312,10 +312,6 @@ public class AdvancedArmorHiderSettingsScreen extends ArmorHiderConfigurationScr
             var localConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig();
             localConfig.disableArmorHider.setValue(setDisableLocal);
             localConfig.settingsScreenLocation.setValue(setSettingsLocation);
-            // Keep the deprecated boolean in sync so the pre-1.21 options-embed path that still reads it
-            // matches the three-way selection (true only when the entry point lives in Skin Customization).
-            //noinspection deprecation
-            localConfig.showSettingsInSkinCustomization.setValue(setSettingsLocation == SettingsLocation.SKIN_CUSTOMIZATION);
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.saveCurrent();
         }
     }

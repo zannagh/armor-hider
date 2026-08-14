@@ -2,8 +2,8 @@ package de.zannagh.armorhider.configuration;
 
 public enum SettingsLocation {
     /**
-     * Armor Hider settings are to be displayed as a button (to go to the settings screen) embedded in the skin customization screen.
-     * The displayed screen is the skin customization screen.
+     * The Armor Hider controls are embedded directly into the vanilla Skin Customization screen (as a
+     * panel, not a separate button). The keybind opens the Skin Customization screen.
      *
      * @since AH 0.12.14
      */

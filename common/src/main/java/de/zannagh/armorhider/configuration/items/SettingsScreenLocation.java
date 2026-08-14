@@ -21,11 +21,7 @@ public class SettingsScreenLocation extends ConfigurationItemBase<SettingsLocati
 
     public void migrate(PlayerConfig oldConfig) {
         //noinspection deprecation
-        if (oldConfig.showSettingsInSkinCustomization.getValue()) {
-            value = SettingsLocation.SKIN_CUSTOMIZATION;
-        }
-        else {
-            value = SettingsLocation.OPTIONS_SCREEN;
-        }
+        boolean wasInSkinCustomization = oldConfig.showSettingsInSkinCustomization.getValue();
+        setValue(wasInSkinCustomization ? SettingsLocation.SKIN_CUSTOMIZATION : SettingsLocation.OPTIONS_SCREEN);
     }
 }

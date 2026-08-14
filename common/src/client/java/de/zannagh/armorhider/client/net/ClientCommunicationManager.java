@@ -75,6 +75,12 @@ public final class ClientCommunicationManager {
             if (client.player == null) {
                 return;
             }
+            // Start every connection assuming the server does NOT run the mod. Relying only on the
+            // disconnect handler to clear this is unsafe: a stale true (from singleplayer or an
+            // incomplete disconnect) would let the gate treat the next - possibly vanilla - server as
+            // supported and send it custom payloads before any handshake, risking a kick. The handshake
+            // handler (or the local-server shortcut below) re-sets it to true when appropriate.
+            SERVER_SUPPORTS_MOD = false;
             ClientPacketSender.reset();
             var playerName = PlayerNameUtil.getPlayerName(client.player);
             if (playerName == null || playerName.isBlank()) {
