@@ -4,9 +4,11 @@ import de.zannagh.armorhider.configuration.abstractions.DoubleConfigurationItem;
 import de.zannagh.armorhider.net.packets.PlayerConfig;
 
 /**
- * A {@link DoubleConfigurationItem} that determines the opacity of the armor.
+ * A {@link DoubleConfigurationItem} that determines the opacity of the elytra, decoupled from the
+ * chestplate slider. Replaces the legacy {@code opacityAffectingElytra} toggle (see
+ * {@link #fromLegacyConfig}).
  *
- * @since 0.1.0
+ * @since 0.12.14, schema 14
  */
 public class ElytraOpacity extends DoubleConfigurationItem {
 

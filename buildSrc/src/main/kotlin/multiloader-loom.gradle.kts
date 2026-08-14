@@ -91,7 +91,7 @@ if (branch == "common") {
         splitEnvironmentSourceSets()
         accessWidenerPath.set(awFile)
         mixin { useLegacyMixinAp = false }
-        runConfigs.configureEach { runDirectory.dir("run") }
+        runConfigs.configureEach { runDirectory.set(layout.projectDirectory.dir("run")) }
     }
 
     dependencies {
@@ -233,7 +233,7 @@ if (branch == "fabric") {
             }
         }
         runConfigs.configureEach {
-            runDirectory.dir("run")
+            runDirectory.set(layout.projectDirectory.dir("run"))
             generateRunConfig.set(true)
             // Dev-run safety net: halt this game JVM if the launcher (gradle/IDE) that spawned it dies,
             // so an interrupted runClient/runServer never orphans a multi-GB Minecraft JVM. Dev-only;
@@ -432,7 +432,7 @@ if (branch == "fabric") {
         loom.apply {
             runConfigs.create("clientGametest") {
                 client()
-                runDirectory.dir("run")
+                runDirectory.set(layout.projectDirectory.dir("run"))
                 displayName.set("Client GameTest")
                 generateRunConfig.set(true)
                 // FCGT activates via TWO properties (verified by decompiling the runner):

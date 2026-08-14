@@ -12,7 +12,6 @@ import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 //?}
-import org.apache.logging.log4j.core.appender.rolling.action.IfAccumulatedFileCount;
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.NonNull;
 
@@ -659,6 +658,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         newConfig.opacityAffectingElytra.setValue(this.opacityAffectingElytra.getValue());
         newConfig.elytraOpacity.setValue(this.elytraOpacity.getValue());
         newConfig.elytraInFlight.setValue(this.elytraInFlight.getValue());
+        newConfig.elytraGlint.setValue(this.elytraGlint.getValue());
         newConfig.affectAccessories.setValue(this.affectAccessories.getValue());
         newConfig.affectHeadAccessory.setValue(this.affectHeadAccessory.getValue());
         newConfig.affectChestAccessory.setValue(this.affectChestAccessory.getValue());
