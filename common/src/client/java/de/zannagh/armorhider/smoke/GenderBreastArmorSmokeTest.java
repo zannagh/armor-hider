@@ -116,7 +116,13 @@ public final class GenderBreastArmorSmokeTest implements FabricClientGameTest {
                 ArmorHiderClient.CLIENT_CONFIG_MANAGER.clearSessionDisableOverride();
             });
 
+            // fabric-client-gametest-api 6.0 (26.3-snapshot-8) dropped TestSingleplayerContext.getClientLevel();
+            // the chunk-wait moved onto the TestServerConnection returned by getConnection().
+            //? if >= 26.3-0.snapshot.8 {
+            /*singleplayer.getConnection().waitForChunksRender();
+            *///?} else {
             singleplayer.getClientLevel().waitForChunksRender();
+            //?}
             context.waitTicks(20);
 
             // ── Issue 3: breast-armor translucency at partial opacity ────────────────────────────

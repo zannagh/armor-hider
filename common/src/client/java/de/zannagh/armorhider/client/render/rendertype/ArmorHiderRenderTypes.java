@@ -188,7 +188,8 @@ public final class ArmorHiderRenderTypes {
         var noDss = new DepthStencilState(srcDss.depthTest(), false, srcDss.depthBiasScaleFactor(), srcDss.depthBiasConstant());
         // 26.3-snapshot-5 reworked RenderPipeline: the two shader accessors became a single
         // getShaders() map, and getColorTargetStates()/getVertexFormatBindings() now return
-        // Lists (Snippet still takes arrays + an active-count int).
+        // Lists (Snippet takes arrays + an active-count int). 26.3-snapshot-8 added a trailing
+        // pushConstantSize int to the Snippet canonical constructor.
         //? if >= 26.3-0.snapshot.5 {
         /*var snippet = new RenderPipeline.Snippet(
                 src.getShaders(),
@@ -196,7 +197,7 @@ public final class ArmorHiderRenderTypes {
                 src.getColorTargetStates().toArray(new ColorTargetState[0]), src.getColorTargetStates().size(),
                 Optional.of(noDss), Optional.of(src.getPolygonMode()),
                 Optional.of(src.isCull()), src.getVertexFormatBindings().toArray(new com.mojang.renderpearl.api.vertex.VertexFormat[0]),
-                Optional.of(src.getPrimitiveTopology()));
+                Optional.of(src.getPrimitiveTopology()), src.pushConstantSize());
         *///?} else {
         var snippet = new RenderPipeline.Snippet(
                 Optional.of(src.getVertexShader()), Optional.of(src.getFragmentShader()),

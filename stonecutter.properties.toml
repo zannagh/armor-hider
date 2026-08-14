@@ -68,11 +68,11 @@ display_version = "26.2"
 accesswidener.version = "current"
 game_versions = "26.2"
 
-["26.3-snapshot-5"]
+["26.3-snapshot-8"]
 java.version = "25"
-display_version = "26.3-snap.5"
+display_version = "26.3-snap.8"
 accesswidener.version = "current"
-game_versions = "26.3-snapshot-5"
+game_versions = "26.3-snapshot-8"
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Per project - loader-specific properties.
@@ -256,9 +256,9 @@ fabricapi.semver = "0.153.0+26.2"
 immersivearmors.version = "8gIhM6R2" # 1.8.1+26.2 fabric
 armoredelytra.version = "IbMR9Ie6" # 1.14.1+26.2 fabric (dorkix); loaded on the compat=all FCGT row so the ArmoredElytraGenderSmokeTest exercises the mod-present branch
 
-["fabric-26.3-snapshot-5"]
-"fabric.minecraft_version" = "26.3-alpha.5"
-"fabric.minecraft_version_range" = ">=26.3-alpha.5 <=26.3-alpha.5"
+["fabric-26.3-snapshot-8"]
+"fabric.minecraft_version" = "26.3-alpha.8"
+"fabric.minecraft_version_range" = ">=26.3-alpha.8 <=26.3-alpha.8"
 elytratrims.version = "tKGLQKLD"
 geckolib.version = "GdrAq4td"
 iris.version = "3uIIps8q"
@@ -272,7 +272,7 @@ fabricapi.version = "1jpphFGE"
 # Upstream fabric-api version_number - needed for loom's `fabricApi.module(...)` resolution
 # of individual API modules off fabric maven (e.g. fabric-client-gametest-api-v1 for the
 # Phase 2 entity-render smoke test). Mirrors `fabricapi.version`'s Modrinth hash.
-fabricapi.semver = "0.155.3+26.3"
+fabricapi.semver = "0.157.1+26.3"
 
 # ── NeoForge ──────────────────────────────────────────────────────────────────
 

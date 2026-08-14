@@ -51,6 +51,9 @@ jobs:
           # dataflow security queries would benefit from a traced build that resolves deps, but for a
           # client-side mod the source-only extraction is an acceptable trade.)
           queries: security-and-quality
+          # Excludes noisy-but-signal-free quality queries (e.g. java/unused-parameter,
+          # which every mixin injection handler trips). See the config for rationale.
+          config-file: ./.github/codeql/codeql-config.yml
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4

@@ -9,7 +9,12 @@ import de.zannagh.armorhider.client.api.AhRenderInterceptionRegistryApi;
 import de.zannagh.armorhider.client.common.IdentityCarrier;
 import de.zannagh.armorhider.client.common.RenderScope;
 import net.minecraft.client.player.AbstractClientPlayer;
+//? if >= 26.3-0.snapshot.8 {
+/*import net.minecraft.client.renderer.FirstPersonHandsAndItemsRenderer;
+import net.minecraft.client.renderer.state.level.FirstPersonHandsAndItemsRenderState;
+*///?} else {
 import net.minecraft.client.renderer.ItemInHandRenderer;
+//?}
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
@@ -35,7 +40,13 @@ import net.minecraft.world.level.Level;
 
 
 @SuppressWarnings({"unused", "UnusedMixin"})
+// 26.3-snapshot-8 renamed ItemInHandRenderer to FirstPersonHandsAndItemsRenderer and moved the
+// first-person hand rendering onto the render-state pipeline.
+//? if >= 26.3-0.snapshot.8 {
+/*@Mixin(FirstPersonHandsAndItemsRenderer.class)
+*///?} else {
 @Mixin(ItemInHandRenderer.class)
+//?}
 public class OffHandRenderMixin {
 
     @Inject(
@@ -46,7 +57,13 @@ public class OffHandRenderMixin {
             at = @At("HEAD"),
             cancellable = true
     )
-    //? if >= 1.21.9
+    // The level render-state class is state.level.PlayerRenderState on snap8, but the bare token
+    // PlayerRenderState collides with the global AvatarRenderState<->PlayerRenderState constant swap;
+    // spell it fully-qualified via the canonical AvatarRenderState token and let the package-qualified
+    // >= snapshot.8 replacement in stonecutter.gradle.kts rewrite it to the level PlayerRenderState.
+    //? if >= 26.3-0.snapshot.8
+    //private void onRenderItem(net.minecraft.client.renderer.state.level.AvatarRenderState playerRenderState, FirstPersonHandsAndItemsRenderState firstPersonState, float f, float g, InteractionHand interactionHand, float h, ItemStack itemStack, float i, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int j, CallbackInfo ci){
+    //? if >= 1.21.9 && < 26.3-0.snapshot.8
     private void onRenderItem(AbstractClientPlayer abstractClientPlayer, float f, float g, InteractionHand interactionHand, float h, ItemStack itemStack, float i, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int j, CallbackInfo ci){
     //? if < 1.21.9
     //private void onRenderItem(AbstractClientPlayer abstractClientPlayer, float f, float g, InteractionHand interactionHand, float h, ItemStack itemStack, float i, PoseStack poseStack, MultiBufferSource multiBufferSource, int j, CallbackInfo ci){
@@ -54,6 +71,10 @@ public class OffHandRenderMixin {
         if (interactionHand == InteractionHand.MAIN_HAND) {
             return;
         }
+        // First-person hands always belong to the local player; the render-state signature no
+        // longer carries the entity, so recover it from the client on 26.3-snapshot-8+.
+        //? if >= 26.3-0.snapshot.8
+        //AbstractClientPlayer abstractClientPlayer = net.minecraft.client.Minecraft.getInstance().player;
 
         var result = AhRenderInterceptionRegistryApi.getRenderer(RenderScope.OFFHAND).intercept(abstractClientPlayer, EquipmentSlot.OFFHAND, itemStack, ci);
         if (result.shouldCancel() || !result.shouldIntercept()) {
@@ -63,7 +84,13 @@ public class OffHandRenderMixin {
     }
 
     @WrapOperation(
+            // 26.3-snapshot-8 inlined the old renderItem(...) into submitArmWithItem, so the
+            // ItemStackRenderState.submit call to wrap now lives there.
+            //? if >= 26.3-0.snapshot.8 {
+            /*method = "submitArmWithItem",
+            *///?} else {
             method = "renderItem",
+            //?}
             at = @At(
                     value = "INVOKE",
                     //? if >= 1.21.9

@@ -35,6 +35,12 @@ stonecutter parameters {
     replacements.string(current.parsed >= "26.3-0.snapshot.3") { replace("com.mojang.blaze3d.pipeline.DepthStencilState", "com.mojang.renderpearl.api.pipeline.DepthStencilState") }
     replacements.string(current.parsed >= "26.3-0.snapshot.3") { replace("com.mojang.blaze3d.pipeline.ColorTargetState", "com.mojang.renderpearl.api.pipeline.ColorTargetState") }
     replacements.string(current.parsed >= "26.3-0.snapshot.3") { replace("info.shade()", "info.shadeDirectionOverride()") }
+    // 26.3-snapshot-8 renamed ItemInHandRenderer to FirstPersonHandsAndItemsRenderer and introduced a
+    // per-frame level render state, net.minecraft.client.renderer.state.level.PlayerRenderState. The bare
+    // token PlayerRenderState collides with the global AvatarRenderState<->PlayerRenderState swap above, so
+    // OffHandRenderMixin spells that class with the canonical AvatarRenderState token and this
+    // package-qualified rule rewrites only the level class (never the unrelated entity.state.AvatarRenderState).
+    replacements.string(current.parsed >= "26.3-0.snapshot.8") { replace("net.minecraft.client.renderer.state.level.AvatarRenderState", "net.minecraft.client.renderer.state.level.PlayerRenderState") }
 
 }
 

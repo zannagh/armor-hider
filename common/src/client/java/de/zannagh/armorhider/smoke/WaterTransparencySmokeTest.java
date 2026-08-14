@@ -114,8 +114,15 @@ public final class WaterTransparencySmokeTest implements FabricClientGameTest {
                 ArmorHiderRenderTypes.setDeferralEnabled(false);
             });
 
+            // fabric-client-gametest-api 6.0 (26.3-snapshot-8) dropped TestSingleplayerContext.getClientLevel();
+            // the chunk-wait moved onto the TestServerConnection returned by getConnection().
+            //? if >= 26.3-0.snapshot.8 {
+            /*singleplayer.getConnection().waitForChunksRender();
+            singleplayer.getConnection().waitForChunksRender();
+            *///?} else {
             singleplayer.getClientLevel().waitForChunksRender();
             singleplayer.getClientLevel().waitForChunksRender();
+            //?}
             context.waitTicks(40);
 
             // BEFORE - redirect off: the faded armor is drawn in the pre-terrain phase, so the water
@@ -142,7 +149,11 @@ public final class WaterTransparencySmokeTest implements FabricClientGameTest {
             // Control - same pose, redirect on, but background swapped to solid stone. Pre-fix this
             // rendered the pads fine; it should look the same as the water AFTER shot.
             server.runOnServer(mcServer -> buildArena(mcServer.overworld(), Blocks.STONE.defaultBlockState()));
+            //? if >= 26.3-0.snapshot.8 {
+            /*singleplayer.getConnection().waitForChunksRender();
+            *///?} else {
             singleplayer.getClientLevel().waitForChunksRender();
+            //?}
             context.runOnClient(WaterTransparencySmokeTest::snapPose);
             context.waitTicks(6);
             Path stoneShot = context.takeScreenshot("armorhider_3_solid_redirect_on");
