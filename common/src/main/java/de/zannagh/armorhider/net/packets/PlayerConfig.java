@@ -21,8 +21,8 @@ import java.util.UUID;
 
 //? if >= 1.21.11 {
 import net.minecraft.resources.Identifier;
-import org.jspecify.annotations.Nullable;
         //?}
+import org.jspecify.annotations.Nullable;
 //? if >= 1.20.5 && < 1.21.11 {
 /*import net.minecraft.resources.Identifier;
 *///?}

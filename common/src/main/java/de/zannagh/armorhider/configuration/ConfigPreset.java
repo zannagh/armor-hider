@@ -21,6 +21,9 @@ public class ConfigPreset {
     public boolean bootsGlint;
     public boolean opacityAffectingHatOrSkull;
     public boolean opacityAffectingElytra;
+    public double elytraOpacity;
+    public boolean elytraGlint;
+    public boolean elytraInFlight;
     public boolean enableCombatDetection;
     public boolean inCombatUseDefaultModel;
     public EmfHiddenModelMode hiddenModelBehaviour;
@@ -38,6 +41,9 @@ public class ConfigPreset {
         bootsGlint = true;
         opacityAffectingHatOrSkull = true;
         opacityAffectingElytra = true;
+        elytraOpacity = 1.0;
+        elytraGlint = true;
+        elytraInFlight = true;
         enableCombatDetection = false;
         inCombatUseDefaultModel = false;
         hiddenModelBehaviour = EmfHiddenModelMode.KEEP;
@@ -57,6 +63,9 @@ public class ConfigPreset {
         preset.bootsGlint = config.bootsGlint.getValue();
         preset.opacityAffectingHatOrSkull = config.opacityAffectingHatOrSkull.getValue();
         preset.opacityAffectingElytra = config.opacityAffectingElytra.getValue();
+        preset.elytraOpacity = config.elytraOpacity.getValue();
+        preset.elytraGlint = config.elytraGlint.getValue();
+        preset.elytraInFlight = config.elytraInFlight.getValue();
         preset.enableCombatDetection = config.enableCombatDetection.getValue();
         preset.inCombatUseDefaultModel = config.inCombatUseDefaultModel.getValue();
         preset.hiddenModelBehaviour = config.hiddenModelBehaviour.getValue();
@@ -76,6 +85,9 @@ public class ConfigPreset {
         config.bootsGlint.setValue(bootsGlint);
         config.opacityAffectingHatOrSkull.setValue(opacityAffectingHatOrSkull);
         config.opacityAffectingElytra.setValue(opacityAffectingElytra);
+        config.elytraOpacity.setValue(elytraOpacity);
+        config.elytraGlint.setValue(elytraGlint);
+        config.elytraInFlight.setValue(elytraInFlight);
         config.enableCombatDetection.setValue(enableCombatDetection);
         config.inCombatUseDefaultModel.setValue(inCombatUseDefaultModel);
         config.hiddenModelBehaviour.setValue(hiddenModelBehaviour);
@@ -94,6 +106,9 @@ public class ConfigPreset {
                 && bootsGlint == config.bootsGlint.getValue()
                 && opacityAffectingHatOrSkull == config.opacityAffectingHatOrSkull.getValue()
                 && opacityAffectingElytra == config.opacityAffectingElytra.getValue()
+                && Double.compare(elytraOpacity, config.elytraOpacity.getValue()) == 0
+                && elytraGlint == config.elytraGlint.getValue()
+                && elytraInFlight == config.elytraInFlight.getValue()
                 && enableCombatDetection == config.enableCombatDetection.getValue()
                 && inCombatUseDefaultModel == config.inCombatUseDefaultModel.getValue()
                 && hiddenModelBehaviour == config.hiddenModelBehaviour.getValue();
@@ -112,6 +127,9 @@ public class ConfigPreset {
         copy.bootsGlint = bootsGlint;
         copy.opacityAffectingHatOrSkull = opacityAffectingHatOrSkull;
         copy.opacityAffectingElytra = opacityAffectingElytra;
+        copy.elytraOpacity = elytraOpacity;
+        copy.elytraGlint = elytraGlint;
+        copy.elytraInFlight = elytraInFlight;
         copy.enableCombatDetection = enableCombatDetection;
         copy.inCombatUseDefaultModel = inCombatUseDefaultModel;
         copy.hiddenModelBehaviour = hiddenModelBehaviour;
@@ -126,6 +144,7 @@ public class ConfigPreset {
         preset.legsOpacity = opacity;
         preset.bootsOpacity = opacity;
         preset.offHandOpacity = opacity;
+        preset.elytraOpacity = opacity;
         return preset;
     }
 }

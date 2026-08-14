@@ -91,7 +91,7 @@ if (branch == "common") {
         splitEnvironmentSourceSets()
         accessWidenerPath.set(awFile)
         mixin { useLegacyMixinAp = false }
-        runConfigs.configureEach { runDir = "run" }
+        runConfigs.configureEach { runDirectory.dir("run") }
     }
 
     dependencies {
@@ -233,29 +233,29 @@ if (branch == "fabric") {
             }
         }
         runConfigs.configureEach {
-            runDir = "run"
-            ideConfigGenerated(true)
+            runDirectory.dir("run")
+            generateRunConfig.set(true)
             // Dev-run safety net: halt this game JVM if the launcher (gradle/IDE) that spawned it dies,
             // so an interrupted runClient/runServer never orphans a multi-GB Minecraft JVM. Dev-only;
             // production jars never see this property. See DevRunWatchdog.
-            vmArg("-Darmorhider.devRun.watchdog=true")
+            jvmArguments.add("-Darmorhider.devRun.watchdog=true")
             if (isDeobf) {
-                vmArg("-Dfabric.gameVersion=${fabricVersion}")
+                jvmArguments.add("-Dfabric.gameVersion=${fabricVersion}")
             }
             if (project.hasProperty("smoke")) {
                 // Smoke scenes are tiny synthetic worlds (boot-to-title, or a one-player FCGT world),
                 // so the client needs nowhere near a real session's heap. Capping it keeps the box light
                 // and - the real payoff - lets many more clients run concurrently when the matrix is
                 // parallelised (~2g each vs the uncapped ~default lets ~10 fit in 23g instead of ~5).
-                vmArg("-Xmx2g")
-                vmArg("-Darmorhider.smoke.exit=true")
+                jvmArguments.add("-Xmx2g")
+                jvmArguments.add("-Darmorhider.smoke.exit=true")
                 val delayMs = project.findProperty("smoke.delay.ms")?.toString() ?: "15000"
-                vmArg("-Darmorhider.smoke.delay.ms=${delayMs}")
+                jvmArguments.add("-Darmorhider.smoke.delay.ms=${delayMs}")
                 // With compat mods fetched into run/mods, assert the mixin-safe resource probe actually
                 // detected every present mod (a present-but-unprobed mod = silent compat gating failure).
                 val compat = project.findProperty("compat")?.toString() ?: "none"
                 if (compat != "none") {
-                    vmArg("-Darmorhider.smoke.assertCompat=true")
+                    jvmArguments.add("-Darmorhider.smoke.assertCompat=true")
                 }
             }
             // Dev/UI testing: seed N fake players into the head bar of the per-player screen so the
@@ -263,23 +263,23 @@ if (branch == "fabric") {
             // IndividualPlayerConfigurationsScreen via Integer.getInteger("armorhider.demo.players").
             // Enable with e.g. -Pdemo.players=30 on any runClient invocation.
             if (project.hasProperty("demo.players")) {
-                vmArg("-Darmorhider.demo.players=${project.findProperty("demo.players")}")
+                jvmArguments.add("-Darmorhider.demo.players=${project.findProperty("demo.players")}")
             }
             // Port of an externally-started PaperMC server for the end-to-end handshake smoke.
             // PaperHandshakeSmokeTest skips itself when this is absent, so normal runs are unaffected.
             if (paperSmokePort != null) {
-                vmArg("-Darmorhider.smoke.paper.port=${paperSmokePort}")
+                jvmArguments.add("-Darmorhider.smoke.paper.port=${paperSmokePort}")
             }
             if (runProfile != null) {
-                programArg("--username")
-                programArg(runProfile.username)
-                programArg("--uuid")
-                programArg(runProfile.uuid)
+                programArguments.add("--username")
+                programArguments.add(runProfile.username)
+                programArguments.add("--uuid")
+                programArguments.add(runProfile.uuid)
                 if (runProfile.skinTexturesValue != null) {
-                    vmArg("-Darmorhider.dev.skin.textures=${runProfile.skinTexturesValue}")
+                    jvmArguments.add("-Darmorhider.dev.skin.textures=${runProfile.skinTexturesValue}")
                 }
                 if (runProfile.skinTexturesSignature != null) {
-                    vmArg("-Darmorhider.dev.skin.signature=${runProfile.skinTexturesSignature}")
+                    jvmArguments.add("-Darmorhider.dev.skin.signature=${runProfile.skinTexturesSignature}")
                 }
             }
         }
@@ -432,26 +432,26 @@ if (branch == "fabric") {
         loom.apply {
             runConfigs.create("clientGametest") {
                 client()
-                runDir = "run"
-                name = "Client GameTest"
-                ideConfigGenerated(true)
+                runDirectory.dir("run")
+                displayName.set("Client GameTest")
+                generateRunConfig.set(true)
                 // FCGT activates via TWO properties (verified by decompiling the runner):
                 //  - `fabric.client.gametest` (any value) → ClientGameTestMixinConfigPlugin
                 //     applies the lifecycle/threading mixins that hand control to the runner.
                 //  - `fabric.client.gametest.modid` → FabricClientGameTestRunner uses this to
                 //     filter `fabric-client-gametest` entrypoints to dispatch. Without it,
                 //     the mixins fire but no test class runs and MC sits at the title screen.
-                vmArg("-Dfabric.client.gametest=true")
-                vmArg("-Dfabric.client.gametest.modid=armor-hider")
+                jvmArguments.add("-Dfabric.client.gametest=true")
+                jvmArguments.add("-Dfabric.client.gametest.modid=armor-hider")
                 // Phase 1's exit timer would race FCGT's own shutdown - disable on this run.
-                vmArg("-Darmorhider.smoke.exit=false")
+                jvmArguments.add("-Darmorhider.smoke.exit=false")
                 // The mod injects its payload types directly into the ClientboundCustomPayloadPacket
                 // codec from a netty thread (ClientPacketSender / the codec-injection mixin), which
                 // FCGT's NetworkSynchronizer detects as "interfacing with packets at a lower level"
                 // and turns into a hard AssertionError the moment we connect to a real server.
                 // FCGT names this property in that very error message. Required for any gametest
                 // that joins a server - the codec injection is load-bearing and cannot be dropped.
-                vmArg("-Dfabric.client.gametest.disableNetworkSynchronizer=true")
+                jvmArguments.add("-Dfabric.client.gametest.disableNetworkSynchronizer=true")
             }
         }
         // Resolve the FCGT module artifact via a dedicated configuration so we can copy the

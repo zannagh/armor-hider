@@ -149,10 +149,9 @@ public class ArmorHiderOptionsPanelWidget extends AbstractWidget {
                 chestOption,
                 gameOptions,
                 config.chestGlint.getValue(),
-                config.opacityAffectingElytra.getValue(),
+                null,
                 val -> setSetting(val, config.chestGlint::setValue),
-                // TODO: This needs to be removed
-                val -> setSetting(val, config.opacityAffectingElytra::setValue),
+                null,
                 null,
                 accessoryButtonFor(EquipmentSlot.CHEST, config.affectChestAccessory.getValue(), config.affectChestAccessory::setValue)
         );
@@ -197,8 +196,24 @@ public class ArmorHiderOptionsPanelWidget extends AbstractWidget {
                 accessoryButtonFor(EquipmentSlot.FEET, config.affectFeetAccessory.getValue(), config.affectFeetAccessory::setValue)
         );
 
-        // TODO: We should add the elytra slider here. Should be below feet, above offhand.
-        // Needs the opacity slider for ElytraOpacity, a toggle for 'in flight' and a toggle for 'glint'.
+        // Elytra sits between the boots and the offhand: its own opacity slider (decoupled from the
+        // chestplate since AH 0.12.14) plus a glint toggle and an "in flight" toggle.
+        var elytraOption = factory.buildDoubleOption(
+                "armorhider.elytra.transparency",
+                Component.translatable("armorhider.options.elytra.tooltip"),
+                Component.translatable("armorhider.options.elytra.tooltip_narration"),
+                currentValue -> Component.translatable("armorhider.options.elytra.button_text", String.format("%.0f%%", currentValue * 100)),
+                config.elytraOpacity.getValue(),
+                val -> setSetting(val, config.elytraOpacity::setValue)
+        );
+        factory.addElementAsWidget(factory.createElytraSliderRow(
+                elytraOption,
+                gameOptions,
+                config.elytraGlint.getValue(),
+                val -> setSetting(val, config.elytraGlint::setValue),
+                config.elytraInFlight.getValue(),
+                val -> setSetting(val, config.elytraInFlight::setValue)
+        ));
 
         var offhandOption = factory.buildDoubleOption(
                 "armorhider.offhand.transparency",

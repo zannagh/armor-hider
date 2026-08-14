@@ -196,11 +196,33 @@ public record SlotModification(
 
         if (slot == EquipmentSlot.CHEST
                 && resolvedItemInfo.isElytra()
-                && !config.opacityAffectingElytra.getValue()) {
-            return empty(slot);
+                && !resolvedItemInfo.isArmoredElytra()) {
+            return elytraModification(resolvedItemInfo);
         }
 
         return new SlotModification(slot, needsModification, shouldHide, shouldDisableGlint, transparency, playerName, config, resolvedItemInfo);
+    }
+
+    /**
+     * Builds the modification for an elytra worn in the chest slot. Since AH 0.12.14 the elytra is
+     * decoupled from the chestplate: it follows its own {@link PlayerConfig#elytraOpacity} and
+     * {@link PlayerConfig#elytraGlint} rather than the chest slider (the "chest opacity affects elytra"
+     * toggle is gone). Combat detection is applied the same way {@link #of} applies it to every other
+     * slot. Returns an empty (no-op) modification when nothing needs changing so the elytra render
+     * scope is left untouched and the wings render vanilla.
+     */
+    private SlotModification elytraModification(ItemInfo elytraInfo) {
+        double elytraTransparency = config.elytraOpacity.getValue();
+        if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.shouldApplyCombatDetectionTo(config)) {
+            elytraTransparency = CombatManager.transformTransparencyBasedOnCombat(playerName, elytraTransparency);
+        }
+        boolean disableGlint = !config.elytraGlint.getValue();
+        boolean hideEntirely = elytraTransparency < ArmorOpacity.TRANSPARENCY_STEP;
+        boolean needsMod = (elytraTransparency < 1 - ArmorOpacity.TRANSPARENCY_STEP / 2) || disableGlint;
+        if (!needsMod) {
+            return empty(slot);
+        }
+        return new SlotModification(slot, true, hideEntirely, disableGlint, elytraTransparency, playerName, config, elytraInfo);
     }
 
     public static boolean isSlotModified(@NotNull String playerName, @NotNull EquipmentSlot slot, @NotNull ItemStack item) {

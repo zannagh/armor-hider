@@ -355,6 +355,39 @@ public class OptionElementFactory {
         return new CompoundOptionWidget(sliderWidget, button, tertiary, affectOtherItemsButton, accessoryButton, rowWidth, 20);
     }
 
+    /**
+     * Builds the elytra row: an opacity slider (left) plus a glint toggle and an "in flight" toggle
+     * (right). The elytra is not a vanilla {@link EquipmentSlot}, so it uses its own dedicated toggle
+     * buttons instead of the slot-keyed ones and carries no item-exclusion button.
+     */
+    public AbstractWidget createElytraSliderRow(OptionInstance<Double> slider,
+                                                Options options,
+                                                boolean initialGlint,
+                                                Consumer<Boolean> glintConsumer,
+                                                boolean initialInFlight,
+                                                Consumer<Boolean> inFlightConsumer) {
+        int smallCount = 2; // glint + in-flight
+        int sliderWidth = CompoundOptionWidget.getPrimaryWidth(rowWidth, smallCount);
+        int buttonWidth = CompoundOptionWidget.getAdditionalElementWidth(rowWidth, smallCount);
+
+        AbstractWidget sliderWidget = slider.createButton(options, 0, 0, sliderWidth);
+
+        var glintButton = new ElytraGlintButton(initialGlint, buttonWidth, UiConstants.DEFAULT_BUTTON_HEIGHT,
+                onPress -> {
+                    if (onPress instanceof ElytraGlintButton btn) {
+                        glintConsumer.accept(btn.toggle());
+                    }
+                });
+        var inFlightButton = new ElytraInFlightButton(initialInFlight, buttonWidth, UiConstants.DEFAULT_BUTTON_HEIGHT,
+                onPress -> {
+                    if (onPress instanceof ElytraInFlightButton btn) {
+                        inFlightConsumer.accept(btn.toggle());
+                    }
+                });
+
+        return new CompoundOptionWidget(sliderWidget, glintButton, inFlightButton, null, rowWidth, 20);
+    }
+
     public OptionInstance<Double> buildDoubleOption(String key,
                                                     MutableComponent tooltip,
                                                     @Nullable MutableComponent narration,
