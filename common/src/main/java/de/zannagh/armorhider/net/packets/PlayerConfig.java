@@ -6,7 +6,6 @@ import de.zannagh.armorhider.api.ArmorHiderPlayerConfigApi;
 import de.zannagh.armorhider.configuration.*;
 import de.zannagh.armorhider.configuration.items.*;
 import de.zannagh.armorhider.configuration.items.InCombatUseDefaultArmorSkin;
-import com.google.gson.annotations.Expose;
 //? if >= 1.20.5 {
 import de.zannagh.armorhider.net.CompressedJsonCodec;
 import io.netty.buffer.ByteBuf;
@@ -21,7 +20,8 @@ import java.util.UUID;
 
 //? if >= 1.21.11 {
 import net.minecraft.resources.Identifier;
- //?}
+import org.jspecify.annotations.Nullable;
+        //?}
 //? if >= 1.20.5 && < 1.21.11 {
 /*import net.minecraft.resources.Identifier;
 *///?}
@@ -41,7 +41,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
     public int configVersion;
 
     /** The current config schema version. */
-    public static final int CURRENT_CONFIG_VERSION = 13;
+    public static final int CURRENT_CONFIG_VERSION = 14;
 
     /**
      * Maximum nesting depth for {@link #globalPlayerOverride}. The override is itself a {@link PlayerConfig},
@@ -171,9 +171,28 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
      * Gets the configuration item {@link OpacityAffectingElytraItem} that determines whether the chest opacity slider should affect Elytra rendering too.
      *
      * @since AH 0.5.0, schema 1
+     * @deprecated since AH 0.12.14, should not be used. Use {@link ElytraOpacity}.
      */
+    @Deprecated(forRemoval = false, since = "0.12.14")
     @SerializedName(value = "opacityAffectingElytra")
     public @NonNull OpacityAffectingElytraItem opacityAffectingElytra;
+
+    /**
+     * Gets the configuration item {@link ElytraOpacity} that determines the opacity of Elytra rendering.
+     * Replaces {@link OpacityAffectingElytraItem}.
+     *
+     * @since AH 0.12.14, schema 14
+     */
+    @SerializedName(value = "elytraOpacity")
+    public @NonNull ElytraOpacity elytraOpacity;
+
+    /**
+     * Gets the configuration item {@link ElytraInFlight} that determines whether Elytra should be rendered in flight.
+     *
+     * @since AH 0.12.14, schema 14
+     */
+    @SerializedName(value =  "elytraInFlight")
+    public @NonNull ElytraInFlight elytraInFlight;
 
     /**
      * Whether Armor Hider's helmet opacity {@link PlayerConfig helmetOpacity} should affect skulls.<br/><br/>
@@ -343,7 +362,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
      * @since AH 0.12.0-pre.10, schema 8
      */
     @SerializedName(value = "globalPlayerOverride")
-    public @org.jetbrains.annotations.Nullable PlayerConfig globalPlayerOverride;
+    public @Nullable PlayerConfig globalPlayerOverride;
 
     public @NonNull PlayerUuid playerId;
 
@@ -370,6 +389,8 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         playerName = new PlayerName();
         opacityAffectingHatOrSkull = new OpacityAffectingHatOrSkullItem();
         opacityAffectingElytra = new OpacityAffectingElytraItem();
+        elytraOpacity = new ElytraOpacity();
+        elytraInFlight = new ElytraInFlight();
         affectAccessories = new AffectAccessories();
         affectHeadAccessory = new AffectHeadAccessory();
         affectChestAccessory = new AffectChestAccessory();
@@ -419,13 +440,13 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
      *
      * @return the same instance, repaired; {@code null} in, {@code null} out
      */
-    public static @org.jetbrains.annotations.Nullable PlayerConfig heal(
-            @org.jetbrains.annotations.Nullable PlayerConfig config) {
+    public static @Nullable PlayerConfig heal(
+            @Nullable PlayerConfig config) {
         return heal(config, 0);
     }
 
-    private static @org.jetbrains.annotations.Nullable PlayerConfig heal(
-            @org.jetbrains.annotations.Nullable PlayerConfig config, int depth) {
+    private static @Nullable PlayerConfig heal(
+            @Nullable PlayerConfig config, int depth) {
         if (config == null) {
             return null;
         }
@@ -551,6 +572,9 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
                     ArmorHiderPlayerConfigApi.DEFAULT_PLAYER_ID, ArmorHiderPlayerConfigApi.DEFAULT_PLAYER_NAME);
         }
 
+        fresh.elytraOpacity.setValue(ElytraOpacity.fromLegacyConfig(old).getValue());
+        fresh.elytraInFlight.setValue(old.elytraInFlight.getValue());
+
         fresh.setHasChangedFromSerializedContent();
         return fresh;
     }
@@ -621,6 +645,8 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         newConfig.hiddenModelBehaviour.setValue(this.hiddenModelBehaviour.getValue());
         newConfig.opacityAffectingHatOrSkull.setValue(this.opacityAffectingHatOrSkull.getValue());
         newConfig.opacityAffectingElytra.setValue(this.opacityAffectingElytra.getValue());
+        newConfig.elytraOpacity.setValue(this.elytraOpacity.getValue());
+        newConfig.elytraInFlight.setValue(this.elytraInFlight.getValue());
         newConfig.affectAccessories.setValue(this.affectAccessories.getValue());
         newConfig.affectHeadAccessory.setValue(this.affectHeadAccessory.getValue());
         newConfig.affectChestAccessory.setValue(this.affectChestAccessory.getValue());

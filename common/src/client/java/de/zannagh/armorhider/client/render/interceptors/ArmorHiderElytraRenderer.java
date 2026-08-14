@@ -2,6 +2,7 @@ package de.zannagh.armorhider.client.render.interceptors;
 
 import de.zannagh.armorhider.api.compat.CompatFlags;
 import de.zannagh.armorhider.api.compat.CompatManager;
+import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.api.AhRenderManagementApi;
 import de.zannagh.armorhider.client.common.IdentityCarrier;
 import de.zannagh.armorhider.client.common.RenderInterceptionResult;
@@ -46,7 +47,8 @@ public class ArmorHiderElytraRenderer extends AbstractArmorHiderRenderer {
         }
         // Flying must short-circuit BEFORE shouldHide so that 0%-opacity players still see the
         // elytra geometry while actually elytra-flying - the wings are the flight indicator.
-        if (carrier.isPlayerFlying()) {
+        var config = ArmorHiderClient.CLIENT_CONFIG_MANAGER.resolveConfig(carrier.armorHider$playerName());
+        if (carrier.isPlayerFlying() && (Boolean) config.elytraInFlight.getValue()) {
             return RenderInterceptionResult.ignore();
         }
         // With ElytraTrims present, ET's own rendering pipeline owns elytra appearance - collapse
