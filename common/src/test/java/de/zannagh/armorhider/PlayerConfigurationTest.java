@@ -4,6 +4,7 @@ import de.zannagh.armorhider.client.api.impl.AhPlayerConfigApiImpl;
 import de.zannagh.armorhider.configuration.ConfigurationItemFactoryRegistry;
 import de.zannagh.armorhider.configuration.EmfHiddenModelMode;
 import de.zannagh.armorhider.configuration.ExclusionItemConfiguration;
+import de.zannagh.armorhider.configuration.items.ElytraOpacity;
 import de.zannagh.armorhider.net.CompressedJsonCodec;
 import de.zannagh.armorhider.configuration.items.ArmorOpacity;
 import de.zannagh.armorhider.net.packets.PlayerConfig;
@@ -782,5 +783,35 @@ class PlayerConfigurationTest {
         assertFalse(config.shouldMigrate(), "precondition: this config must not qualify for migration");
         assertEquals(1.0, config.bootsOpacity.getValue(),
                 "healing must not be gated on the schema version - that is why the reporter's config survived a reinstall");
+    }
+
+    @Test
+    @DisplayName("Migrates elytra settings")
+    void migrateElytraSettings() {
+        var config = new PlayerConfig(UUID.randomUUID(), "testName");
+        config.opacityAffectingElytra.setValue(true);
+        config.chestOpacity.setValue(0.5);
+        config.chestGlint.setValue(false);
+
+        var otherConfig = PlayerConfig.migrate(config);
+
+        assertEquals(0.5, otherConfig.chestOpacity.getValue());
+        assertFalse(otherConfig.chestGlint.getValue());
+        assertEquals(0.5, otherConfig.elytraOpacity.getValue());
+        assertFalse(otherConfig.elytraGlint.getValue());
+        assertTrue(otherConfig.elytraInFlight.getValue());
+    }
+
+    @Test
+    @DisplayName("Migrates elytra opacity")
+    void migrateElytraOpacity(){
+        var config = new PlayerConfig(UUID.randomUUID(), "testName");
+        config.opacityAffectingElytra.setValue(true);
+        config.chestOpacity.setValue(0.5);
+        config.chestGlint.setValue(false);
+
+        var elytraOpacity = ElytraOpacity.fromLegacyConfig(config);
+
+        assertEquals(0.5, elytraOpacity.getValue());
     }
 }

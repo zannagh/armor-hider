@@ -32,6 +32,9 @@ class ConfigPresetTest {
             config.chestGlint.setValue(false);
             config.legsGlint.setValue(true);
             config.bootsGlint.setValue(true);
+            config.elytraOpacity.setValue(0.6);
+            config.elytraGlint.setValue(false);
+            config.elytraInFlight.setValue(false);
             config.opacityAffectingHatOrSkull.setValue(false);
             config.opacityAffectingElytra.setValue(true);
             config.enableCombatDetection.setValue(true);
@@ -52,6 +55,9 @@ class ConfigPresetTest {
             assertTrue(preset.opacityAffectingElytra);
             assertTrue(preset.enableCombatDetection);
             assertTrue(preset.inCombatUseDefaultModel);
+            assertEquals(0.6, preset.elytraOpacity);
+            assertFalse(preset.elytraGlint);
+            assertFalse(preset.elytraInFlight);
         }
     }
 
@@ -74,6 +80,9 @@ class ConfigPresetTest {
             preset.bootsGlint = true;
             preset.opacityAffectingHatOrSkull = false;
             preset.opacityAffectingElytra = false;
+            preset.elytraOpacity = 0.6;
+            preset.elytraGlint = false;
+            preset.elytraInFlight = false;
 
             var config = new PlayerConfig(UUID.randomUUID(), "test");
             preset.applyTo(config);
@@ -89,6 +98,9 @@ class ConfigPresetTest {
             assertTrue(config.bootsGlint.getValue());
             assertFalse(config.opacityAffectingHatOrSkull.getValue());
             assertFalse(config.opacityAffectingElytra.getValue());
+            assertEquals(0.6, config.elytraOpacity.getValue());
+            assertFalse(config.elytraGlint.getValue());
+            assertFalse(config.elytraInFlight.getValue());
         }
 
         @Test
