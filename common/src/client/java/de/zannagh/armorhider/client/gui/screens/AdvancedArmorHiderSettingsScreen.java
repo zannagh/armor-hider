@@ -2,6 +2,7 @@ package de.zannagh.armorhider.client.gui.screens;
 
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.configuration.SettingsLocation;
 import de.zannagh.armorhider.log.DebugLogger;
 import net.minecraft.client.Options;
 import net.minecraft.client.OptionInstance;
@@ -15,7 +16,7 @@ public class AdvancedArmorHiderSettingsScreen extends ArmorHiderConfigurationScr
     private boolean newServerCombatDetection;
     private boolean setForceArmorHiderOff;
     private boolean localSettingsChanged;
-    private boolean setShowSettingsInSkinCustomization = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig().showSettingsInSkinCustomization.getValue();
+    private SettingsLocation setSettingsLocation = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig().settingsScreenLocation.getValue();
     private boolean setDisableLocal = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig().disableArmorHider.getValue();
     private boolean forceServerOffDefaultSetting;
     private boolean combatDetectionDefaultSetting;
@@ -270,18 +271,23 @@ public class AdvancedArmorHiderSettingsScreen extends ArmorHiderConfigurationScr
                 })
         );
 
-        var settingsLocationToggle = factory.buildBooleanOption(
-                Component.translatable("armorhider.options.show_settings_in_skin.title"),
-                Component.translatable("armorhider.options.show_settings_in_skin.tooltip"),
-                Component.translatable("armorhider.options.show_settings_in_skin.tooltip_narration"),
-                ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig().showSettingsInSkinCustomization.getValue(),
-                val -> setSetting(val, v -> {
-                    setShowSettingsInSkinCustomization = v;
-                    localSettingsChanged = true;
+        // Three-way cycle: where the Armor Hider settings entry point lives (Skin Customization screen,
+        // Options screen, or HIDDEN - reachable only via the keybind). A plain cycling Button rather than
+        // a boolean CycleButton so it works uniformly across every version, like the debug button below.
+        var settingsLocationButton = Button.builder(
+                settingsLocationButtonText(setSettingsLocation),
+                btn -> {
+                    setSetting(nextSettingsLocation(setSettingsLocation), v -> {
+                        setSettingsLocation = v;
+                        localSettingsChanged = true;
+                    });
+                    btn.setMessage(settingsLocationButtonText(setSettingsLocation));
+                    btn.setTooltip(Tooltip.create(settingsLocationTooltip(setSettingsLocation)));
                 })
-        );
+                .tooltip(Tooltip.create(settingsLocationTooltip(setSettingsLocation)))
+                .build();
         factory.addSimpleOptionAsWidget(globalToggle);
-        factory.addSimpleOptionAsWidget(settingsLocationToggle);
+        factory.addElementAsWidget(settingsLocationButton);
 
         factory.addTextWidget(Component.translatable("armorhider.options.debug.title"));
 
@@ -303,10 +309,40 @@ public class AdvancedArmorHiderSettingsScreen extends ArmorHiderConfigurationScr
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.setAndSendServerConfig(newServerCombatDetection, setForceArmorHiderOff, visibilityRespectDefaultSetting, setAllowIndividualConfigs);
         }
         if (localSettingsChanged) {
-            ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig().disableArmorHider.setValue(setDisableLocal);
-            ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig().showSettingsInSkinCustomization.setValue(setShowSettingsInSkinCustomization);
+            var localConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig();
+            localConfig.disableArmorHider.setValue(setDisableLocal);
+            localConfig.settingsScreenLocation.setValue(setSettingsLocation);
+            // Keep the deprecated boolean in sync so the pre-1.21 options-embed path that still reads it
+            // matches the three-way selection (true only when the entry point lives in Skin Customization).
+            //noinspection deprecation
+            localConfig.showSettingsInSkinCustomization.setValue(setSettingsLocation == SettingsLocation.SKIN_CUSTOMIZATION);
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.saveCurrent();
         }
+    }
+
+    private static SettingsLocation nextSettingsLocation(SettingsLocation current) {
+        var values = SettingsLocation.values();
+        return values[(current.ordinal() + 1) % values.length];
+    }
+
+    private static Component settingsLocationButtonText(SettingsLocation location) {
+        return Component.translatable("armorhider.options.settings_location.button", settingsLocationLabel(location));
+    }
+
+    private static Component settingsLocationLabel(SettingsLocation location) {
+        return switch (location) {
+            case SKIN_CUSTOMIZATION -> Component.translatable("armorhider.options.settings_location.skin_customization");
+            case OPTIONS_SCREEN -> Component.translatable("armorhider.options.settings_location.options_screen");
+            case HIDDEN -> Component.translatable("armorhider.options.settings_location.hidden");
+        };
+    }
+
+    private static Component settingsLocationTooltip(SettingsLocation location) {
+        return switch (location) {
+            case SKIN_CUSTOMIZATION -> Component.translatable("armorhider.options.settings_location.tooltip.skin_customization");
+            case OPTIONS_SCREEN -> Component.translatable("armorhider.options.settings_location.tooltip.options_screen");
+            case HIDDEN -> Component.translatable("armorhider.options.settings_location.tooltip.hidden");
+        };
     }
 
     private boolean getFallbackDefault(boolean valueToReturn) {

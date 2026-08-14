@@ -7,6 +7,7 @@ import de.zannagh.armorhider.client.gui.screens.ArmorHiderOptionsScreen;
 import de.zannagh.armorhider.client.keybinds.CustomKeyMapping;
 import de.zannagh.armorhider.client.keybinds.OpenSettingsKeyMapping;
 import de.zannagh.armorhider.client.keybinds.ToggleOffKeyMapping;
+import de.zannagh.armorhider.configuration.SettingsLocation;
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 import net.minecraft.client.KeyMapping;
@@ -45,13 +46,14 @@ public final class KeybindSmokeTest implements FabricClientGameTest {
                 })
                 .create()) {
 
-            // The open-settings action honours showSettingsInSkinCustomization, which would route to the
-            // vanilla skin screen instead. Pin it off so the assertions have one expected screen type.
-            boolean priorSkinCustomization = context.computeOnClient(client ->
+            // The open-settings action routes by settingsScreenLocation: SKIN_CUSTOMIZATION would open the
+            // vanilla skin screen instead. Pin it to OPTIONS_SCREEN (which opens the standalone
+            // ArmorHiderOptionsScreen) so the assertions below have one expected screen type.
+            var priorSettingsLocation = context.computeOnClient(client ->
                     ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig()
-                            .showSettingsInSkinCustomization.getValue());
+                            .settingsScreenLocation.getValue());
             context.runOnClient(client -> ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig()
-                    .showSettingsInSkinCustomization.setValue(false));
+                    .settingsScreenLocation.setValue(SettingsLocation.OPTIONS_SCREEN));
 
             try {
                 assertSetDownIsInert(context);
@@ -60,7 +62,7 @@ public final class KeybindSmokeTest implements FabricClientGameTest {
                 assertToggleKeyFlipsSessionOverride(context);
             } finally {
                 context.runOnClient(client -> ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig()
-                        .showSettingsInSkinCustomization.setValue(priorSkinCustomization));
+                        .settingsScreenLocation.setValue(priorSettingsLocation));
             }
 
             ArmorHider.LOGGER.info("[smoke/fcgt] Keybind checks passed");
