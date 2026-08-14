@@ -25,6 +25,7 @@ public final class CommsManager {
             var currentConfig = runtime.getStore().getConfig();
             sendToClient(player, currentConfig);
             sendToClient(player, new PermissionPacket(ServerUtil.getPermissionLevelForPlayer(player, server)));
+            sendToClient(player, new HandshakePacket());
         });
 
         // Register PlayerConfig handler (C2S)
@@ -68,7 +69,7 @@ public final class CommsManager {
             handleServerWideSettingsReceived(payload, serverCtx.player(), serverCtx.server());
         });
         *///?}
-        
+
         // Register combat log event packet (C2S)
         //? if >= 1.20.5 {
         PayloadRegistry.registerC2SHandler(CombatLogEventPacket.TYPE, ctx -> {
@@ -90,7 +91,7 @@ public final class CommsManager {
         });
         *///?}
     }
-    
+
     private static void handleCombatLogEventReceived(CombatLogEventPacket eventPacket, ServerPayloadContext ctx) {
         if (eventPacket == null || ctx == null) {
             return;
@@ -169,6 +170,10 @@ public final class CommsManager {
         PacketSender.sendToPlayer(player, config);
     }
 
+    private static void sendToClient(ServerPlayer player,  HandshakePacket handshakePacket) {
+        PacketSender.sendToPlayer(player, handshakePacket);
+    }
+
     private static void sendToAllClientsButSender(UUID playerId, ServerConfiguration config) {
         ServerRuntime runtime = ArmorHider.getRuntime();
         if (runtime == null) {
@@ -183,7 +188,7 @@ public final class CommsManager {
             }
         });
     }
-    
+
     private static void sendPackageToAllClientsButSender(UUID playerId, CombatLogEventPacket eventPacket) {
         ServerRuntime runtime = ArmorHider.getRuntime();
         if (runtime == null) {

@@ -50,6 +50,19 @@ public final class ArmorHiderService {
         sender.sendNarrowed(player, Channels.SERVER_CONFIGURATION_S2C, state.toJson());
     }
 
+    /**
+     * Announces to a joining client that this server runs Armor Hider (mirrors the mod's
+     * {@code HandshakePacket}). The client treats receipt as proof of mod support and only then starts
+     * sending its own packets, so without this a client would suppress all outgoing traffic on Paper.
+     * The {@code sessionId} is a per-handshake nonce - the client only checks receipt, not its value.
+     */
+    public void sendHandshake(Player player) {
+        JsonObject packet = new JsonObject();
+        packet.addProperty("sessionId", UUID.randomUUID().toString());
+        packet.addProperty("timestamp", System.currentTimeMillis());
+        sender.send(player, Channels.HANDSHAKE_S2C, packet);
+    }
+
     /** Sends the recipient's own permission level. */
     public void sendPermissions(Player player) {
         JsonObject packet = new JsonObject();

@@ -68,6 +68,10 @@ public final class PlayerConnectionListener implements Listener {
         } finally {
             subscribing.remove(id);
         }
+        // Send the handshake first so the client lifts its outgoing-traffic suppression as early as
+        // possible. Unlike config/permissions it is not latched: it is cheap, the client is idempotent,
+        // and it must be re-sent on every (re)connection.
+        service.sendHandshake(player);
         pushConfiguration(player);
         pushPermissions(player);
     }

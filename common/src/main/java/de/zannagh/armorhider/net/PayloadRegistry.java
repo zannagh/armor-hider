@@ -31,6 +31,7 @@ public final class PayloadRegistry {
         registerS2C(ServerConfiguration.TYPE, ServerConfiguration.STREAM_CODEC);
         registerS2C(PermissionPacket.TYPE, PermissionPacket.STREAM_CODEC);
         registerS2C(CombatLogNotificationPacket.TYPE, CombatLogNotificationPacket.STREAM_CODEC);
+        registerS2C(HandshakePacket.TYPE, HandshakePacket.STREAM_CODEC);
     }
 
     public static void init() {

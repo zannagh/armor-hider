@@ -23,6 +23,7 @@ public final class LegacyPacketHandler {
     private static final Identifier PERMISSION_CHANNEL = new Identifier("armorhider", "permissions_s2c_packet");
     private static final Identifier COMBAT_LOG_EVENT_CHANNEL = new Identifier("armorhider", "combatlog_c2s_packet");
     private static final Identifier COMBAT_LOG_NOTIFICATION_CHANNEL = new Identifier("armorhider", "combatlog_s2c_packet");
+    private static final Identifier HANDSHAKE_CHANNEL = new Identifier("armorhider", "handshake_s2c_packet");
 
     private static final Map<Identifier, Function<FriendlyByteBuf, Object>> DECODERS = new HashMap<>();
     private static final Map<Identifier, BiConsumer<Object, FriendlyByteBuf>> ENCODERS = new HashMap<>();
@@ -39,6 +40,7 @@ public final class LegacyPacketHandler {
         // Register decoders for S2C packets
         DECODERS.put(SERVER_CONFIG_CHANNEL, buf -> CompressedJsonCodec.decodeLegacy(buf, ServerConfiguration.class));
         DECODERS.put(PERMISSION_CHANNEL, buf -> CompressedJsonCodec.decodeLegacy(buf, de.zannagh.armorhider.net.packets.PermissionPacket.class));
+        DECODERS.put(HANDSHAKE_CHANNEL, buf -> CompressedJsonCodec.decodeLegacy(buf, HandshakePacket.class));
 
         // Register encoders
         ENCODERS.put(PLAYER_CONFIG_CHANNEL, (obj, buf) -> CompressedJsonCodec.encodeLegacy((PlayerConfig) obj, buf));
@@ -47,6 +49,7 @@ public final class LegacyPacketHandler {
         ENCODERS.put(PERMISSION_CHANNEL, (obj, buf) -> CompressedJsonCodec.encodeLegacy((de.zannagh.armorhider.net.packets.PermissionPacket) obj, buf));
         ENCODERS.put(COMBAT_LOG_EVENT_CHANNEL, (obj, buf) -> CompressedJsonCodec.encodeLegacy((CombatLogEventPacket) obj, buf));
         ENCODERS.put(COMBAT_LOG_NOTIFICATION_CHANNEL, (obj, buf) -> CompressedJsonCodec.encodeLegacy((CombatLogNotificationPacket) obj, buf));
+        ENCODERS.put(HANDSHAKE_CHANNEL, (obj, buf) -> CompressedJsonCodec.encodeLegacy((HandshakePacket) obj, buf));
     }
 
     public static void registerC2SHandler(Identifier channel, java.util.function.Consumer<PayloadRegistry.PayloadHandlerContext<?>> handler) {
@@ -114,6 +117,10 @@ public final class LegacyPacketHandler {
     
     public static Identifier getCombatLogNotificationChannel() {
         return COMBAT_LOG_NOTIFICATION_CHANNEL;
+    }
+
+    public static Identifier getHandshakeChannel() {
+        return HANDSHAKE_CHANNEL;
     }
 
     public static void encode(Identifier channel, Object payload, FriendlyByteBuf buf) {

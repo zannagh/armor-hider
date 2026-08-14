@@ -4,6 +4,7 @@ import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.api.ArmorHiderApi;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.utils.McClientUtils;
+import de.zannagh.armorhider.net.packets.HandshakePacket;
 import net.minecraft.network.chat.Component;
 import de.zannagh.armorhider.combat.DefaultCombatEvent;
 import de.zannagh.armorhider.log.DebugLogger;
@@ -24,11 +25,20 @@ import de.zannagh.armorhider.net.PayloadRegistry;
  */
 public final class ClientCommunicationManager {
 
+    /**
+     * Whether the connected server has proven it runs Armor Hider (by sending a
+     * {@link HandshakePacket}). Written on the netty/client thread from the handshake handler, the
+     * join handler and the disconnect handler; read off-thread by {@link ClientPacketSender}'s waiter,
+     * hence {@code volatile}. Reset to {@code false} on every disconnect.
+     */
+    public static volatile boolean SERVER_SUPPORTS_MOD;
+
     public static void initClient() {
         //? if >= 1.20.5 {
         PayloadRegistry.registerS2CHandler(ServerConfiguration.TYPE, ctx -> ClientCommunicationManager.handleServerConfigReceived(ctx.payload()));
         PayloadRegistry.registerS2CHandler(PermissionPacket.TYPE, ctx -> ClientCommunicationManager.handlePermissionPacketReceived(ctx.payload()));
         PayloadRegistry.registerS2CHandler(CombatLogNotificationPacket.TYPE, ctx -> ClientCommunicationManager.handleCombatLogNotificationReceived(ctx.payload()));
+        PayloadRegistry.registerS2CHandler(HandshakePacket.TYPE, ctx -> ClientCommunicationManager.handleHandshakePacketReceived(ctx.payload()));
         //?}
 
         //? if < 1.20.5 {
@@ -52,10 +62,20 @@ public final class ClientCommunicationManager {
             }
             handleCombatLogNotificationReceived(payload);
         });
+
+        LegacyPacketHandler.registerS2CHandler(LegacyPacketHandler.getHandshakeChannel(), ctx -> {
+            if (!(ctx.payload() instanceof HandshakePacket payload)) {
+                return;
+            }
+            handleHandshakePacketReceived(payload);
+        });
         *///?}
 
         ClientConnectionEvents.registerJoin((handler, client) -> {
-            assert client.player != null;
+            if (client.player == null) {
+                return;
+            }
+            ClientPacketSender.reset();
             var playerName = PlayerNameUtil.getPlayerName(client.player);
             if (playerName == null || playerName.isBlank()) {
                 //? if >= 1.21.9
@@ -86,6 +106,7 @@ public final class ClientCommunicationManager {
             }
 
             if (!McClientUtils.isClientConnectedToServer()) {
+                SERVER_SUPPORTS_MOD = true;
                 ArmorHiderClient.permissionLevel = 4; // local -> admin
             }
 
@@ -113,7 +134,14 @@ public final class ClientCommunicationManager {
             // Drop the transient keybind override so the next connection starts from the persisted baseline.
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.clearSessionDisableOverride();
             ArmorHiderClient.permissionLevel = 0;
+            SERVER_SUPPORTS_MOD = false;
+            ClientPacketSender.reset();
         });
+    }
+
+    private static void handleHandshakePacketReceived(de.zannagh.armorhider.net.packets.HandshakePacket payload) {
+        ArmorHider.LOGGER.info("Received handshake packet from session: {}", payload.sessionId);
+        SERVER_SUPPORTS_MOD = true;
     }
 
     private static void handleServerConfigReceived(ServerConfiguration ctx) {

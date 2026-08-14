@@ -41,6 +41,13 @@ public final class Channels {
     public static final List<String> COMBAT_LOG_S2C = aliases("combatlog_s2c_packet");
 
     /**
+     * Clientbound: the {@code HandshakePacket} sent on join. The client suppresses all outgoing
+     * traffic until it receives this, so the plugin - being a "dumb" relay that would otherwise never
+     * announce the mod - must send it, or clients would lock themselves out of a working server.
+     */
+    public static final List<String> HANDSHAKE_S2C = aliases("handshake_s2c_packet");
+
+    /**
      * The only inbound channels whose namespace reveals the client's era.
      *
      * <p>{@code settings_c2s_packet} and {@code server_wide_settings} switched namespace at 1.21.11,
@@ -62,7 +69,8 @@ public final class Channels {
             COMBAT_LOG_C2S,
             SERVER_CONFIGURATION_S2C,
             PERMISSIONS_S2C,
-            COMBAT_LOG_S2C);
+            COMBAT_LOG_S2C,
+            HANDSHAKE_S2C);
 
     private Channels() {
     }

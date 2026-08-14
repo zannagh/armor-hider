@@ -146,6 +146,8 @@ class PaperSchemaContractTest {
                         .toString(),
                 de.zannagh.armorhider.paper.net.Channels.COMBAT_LOG_S2C,
                 "CombatLogNotificationPacket");
+        assertChannel(de.zannagh.armorhider.net.packets.HandshakePacket.PACKET_IDENTIFIER.toString(),
+                de.zannagh.armorhider.paper.net.Channels.HANDSHAKE_S2C, "HandshakePacket");
     }
 
     private static void assertChannel(String identifier, java.util.List<String> aliases,

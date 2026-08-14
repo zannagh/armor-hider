@@ -4,6 +4,7 @@ package de.zannagh.armorhider.smoke;
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.api.ArmorHiderApi;
 import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.client.net.ClientCommunicationManager;
 import de.zannagh.armorhider.client.net.ClientPacketSender;
 import de.zannagh.armorhider.net.packets.ServerWideSettings;
 import de.zannagh.armorhider.server.ServerConfiguration;
@@ -35,6 +36,18 @@ public final class PaperHandshakeSmokeTest implements FabricClientGameTest {
 
     /** ~30 s at 20 TPS - the server pushes on join, but Paper startup/chunk load can stall the tick. */
     private static final int EXCHANGE_TIMEOUT_TICKS = 600;
+
+    /**
+     * 200 ticks = 10 s at 20 TPS - the client's outgoing-traffic suppression window
+     * ({@code ClientPacketSender.HANDSHAKE_TIMEOUT_MILLIS}). The handshake must arrive inside it,
+     * otherwise the client would give up and drop all C2S traffic. {@code connect(...)} already blocks
+     * until the player has joined, so the server-side join push (which sends the handshake) has fired
+     * by the time this budget starts - this asserts the round-trip beats the suppression deadline.
+     */
+    private static final int HANDSHAKE_WINDOW_TICKS = 200;
+
+    /** ~5 s at 20 TPS for the disconnect handler to clear SERVER_SUPPORTS_MOD after the connection drops. */
+    private static final int DISCONNECT_RESET_TICKS = 100;
 
     /**
      * Permission level the Paper side seeds for the smoke player (OP). The client default is 0 and
@@ -87,11 +100,13 @@ public final class PaperHandshakeSmokeTest implements FabricClientGameTest {
         ArmorHider.LOGGER.info("[smoke/fcgt] Paper handshake smoke starting against {}:{}", HOST, port);
         TestServerConnect.connect(context, HOST, port);
         try {
+            assertServerHandshake(context);
             awaitExchange(context);
             assertServerWideSettings(context);
             assertPermissionPacket(context);
             assertCombatLogReachesServer(context);
             assertPermissionResend(context);
+            assertHandshakeResetsOnReconnect(context, port);
             // The S2C assertions above can be satisfied within a tick or two of joining, but the
             // client's own PlayerConfig (the C2S direction) is sent from its join handler and then
             // has to reach the plugin and be stored. Disconnecting immediately raced that: the
@@ -284,6 +299,56 @@ public final class PaperHandshakeSmokeTest implements FabricClientGameTest {
         }
         ArmorHider.LOGGER.info("[smoke/fcgt] PermissionPacket re-send after C2S arrived - dialect"
                 + " narrowing does not drop small payloads");
+    }
+
+    /**
+     * Asserts the server's {@code HandshakePacket} arrives within the client's 10 s suppression
+     * window. Until {@link ClientCommunicationManager#SERVER_SUPPORTS_MOD} flips, the client queues
+     * and (after the window) drops all outgoing traffic, so a Paper server that never sent the
+     * handshake would look "connected but inert". This proves Paper sends it and that 10 s is enough.
+     */
+    private void assertServerHandshake(ClientGameTestContext context) {
+        try {
+            context.waitFor(client -> ClientCommunicationManager.SERVER_SUPPORTS_MOD, HANDSHAKE_WINDOW_TICKS);
+        } catch (AssertionError | RuntimeException e) {
+            throw new IllegalStateException(
+                    "[smoke/fcgt] SERVER_SUPPORTS_MOD never became true within " + HANDSHAKE_WINDOW_TICKS
+                            + " ticks (10 s) of joining. The Paper plugin did not deliver a HandshakePacket in"
+                            + " time, so the client would suppress all C2S traffic and the mod would appear inert."
+                            + " Check that PlayerConnectionListener.onJoin calls sendHandshake and that"
+                            + " Channels.HANDSHAKE_S2C is force-subscribed.", e);
+        }
+        ArmorHider.LOGGER.info("[smoke/fcgt] handshake received within the 10 s window - C2S traffic unlocked");
+    }
+
+    /**
+     * Asserts the handshake state is per-connection: it must reset to {@code false} on disconnect (so a
+     * later vanilla server can't inherit a stale "supported"), and be re-established within the 10 s
+     * window on reconnect. Exercises {@code ClientCommunicationManager}'s disconnect handler and
+     * {@code ClientPacketSender.reset()} together with a full re-handshake.
+     */
+    private void assertHandshakeResetsOnReconnect(ClientGameTestContext context, int port) {
+        TestServerConnect.disconnect(context);
+        try {
+            context.waitFor(client -> !ClientCommunicationManager.SERVER_SUPPORTS_MOD, DISCONNECT_RESET_TICKS);
+        } catch (AssertionError | RuntimeException e) {
+            throw new IllegalStateException(
+                    "[smoke/fcgt] SERVER_SUPPORTS_MOD stayed true after disconnecting. The disconnect handler"
+                            + " must clear it (and call ClientPacketSender.reset()), otherwise a client that next"
+                            + " joins a vanilla server would keep sending custom payloads and risk being kicked.", e);
+        }
+        ArmorHider.LOGGER.info("[smoke/fcgt] SERVER_SUPPORTS_MOD reset to false on disconnect");
+
+        TestServerConnect.connect(context, HOST, port);
+        try {
+            context.waitFor(client -> ClientCommunicationManager.SERVER_SUPPORTS_MOD, HANDSHAKE_WINDOW_TICKS);
+        } catch (AssertionError | RuntimeException e) {
+            throw new IllegalStateException(
+                    "[smoke/fcgt] After reconnecting, the handshake did not re-arrive within "
+                            + HANDSHAKE_WINDOW_TICKS + " ticks. The reset left the gate stuck, or the server did"
+                            + " not re-push the handshake on the second join.", e);
+        }
+        ArmorHider.LOGGER.info("[smoke/fcgt] re-handshake succeeded within the 10 s window on reconnect");
     }
 
     private static boolean isInCombat() {
