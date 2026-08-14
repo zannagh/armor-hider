@@ -53,6 +53,7 @@ public class ConfigurationItemFactoryRegistry {
         registerFactoriesForClass(IndividualConfigurations.class);
         registerFactoriesForClass(ServerMappedIndividualConfigurations.class);
         registerFactoriesForClass(UseGlobalOverrideForAllPlayers.class);
+        registerFactoriesForClass(SettingsScreenLocation.class);
 
         initialized = true;
     }

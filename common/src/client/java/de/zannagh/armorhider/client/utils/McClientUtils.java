@@ -2,6 +2,7 @@ package de.zannagh.armorhider.client.utils;
 
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.gui.screens.ArmorHiderOptionsScreen;
+import de.zannagh.armorhider.configuration.SettingsLocation;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
 import net.minecraft.client.gui.screens.Screen;
@@ -48,7 +49,7 @@ public final class McClientUtils {
 
     public static Screen getPreferredSettingsScreen(Screen parent, Options options) {
         //? if >= 1.21.9 {
-        return ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig().showSettingsInSkinCustomization.getValue()
+        return ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig().settingsScreenLocation.getValue() == SettingsLocation.SKIN_CUSTOMIZATION
                 ? new SkinCustomizationScreen(parent, options)
                 : new ArmorHiderOptionsScreen(parent, options);
         //?}

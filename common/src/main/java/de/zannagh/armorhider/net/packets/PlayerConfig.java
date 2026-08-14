@@ -41,7 +41,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
     public int configVersion;
 
     /** The current config schema version. */
-    public static final int CURRENT_CONFIG_VERSION = 14;
+    public static final int CURRENT_CONFIG_VERSION = 15;
 
     /**
      * Maximum nesting depth for {@link #globalPlayerOverride}. The override is itself a {@link PlayerConfig},
@@ -292,9 +292,14 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
 
     /**
      * @since AH 0.10.4-pre.1, schema 2
+     * @deprecated since AH 0.12.14, schema 15
      */
+    @Deprecated
     @SerializedName(value = "showSettingsInSkinCustomization")
     public @NonNull ShowSettingsInSkinCustomization showSettingsInSkinCustomization;
+
+    @SerializedName(value = "settingsScreenLocation")
+    public @NonNull SettingsScreenLocation settingsScreenLocation;
 
     /**
      * Gets the configuration item {@link InCombatUseDefaultArmorSkin} that determines whether the player should use the default armor skin in combat instead of one provided by resource packs.
@@ -421,6 +426,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         useGlobalOverrideForAllPlayers = new UseGlobalOverrideForAllPlayers();
         // globalPlayerOverride is intentionally left null here (lazy) to avoid infinite ctor recursion.
         exclusionItems = ExclusionItemConfiguration.defaults();
+        settingsScreenLocation = new SettingsScreenLocation();
     }
 
     public @NonNull ExclusionItemConfiguration getExclusionItems() {
@@ -585,6 +591,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         fresh.elytraOpacity.setValue(ElytraOpacity.fromLegacyConfig(old).getValue());
         fresh.elytraInFlight.setValue(old.elytraInFlight.getValue());
         fresh.elytraGlint.setValue(old.opacityAffectingElytra.getValue() ? old.chestGlint.getValue() : true);
+        fresh.settingsScreenLocation.migrate(old);
 
         fresh.setHasChangedFromSerializedContent();
         return fresh;
@@ -674,6 +681,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         newConfig.legsGlint.setValue(this.legsGlint.getValue());
         newConfig.bootsGlint.setValue(this.bootsGlint.getValue());
         newConfig.exclusionItems = this.getExclusionItems().deepCopy();
+        newConfig.settingsScreenLocation.setValue(settingsScreenLocation.getValue());
         return newConfig;
     }
 }

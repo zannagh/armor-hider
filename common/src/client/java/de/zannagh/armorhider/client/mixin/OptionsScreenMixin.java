@@ -4,6 +4,7 @@ import de.zannagh.armorhider.client.ArmorHiderClient;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import de.zannagh.armorhider.client.utils.McClientUtils;
+import de.zannagh.armorhider.configuration.SettingsLocation;
 import net.minecraft.client.Options;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.options.OptionsScreen;
@@ -25,7 +26,7 @@ public abstract class OptionsScreenMixin extends Screen {
     protected OptionsScreenMixin(Component title) {
         super(title);
     }
-    
+
     //? if < 1.21 {
     /*
     @WrapOperation(
@@ -36,7 +37,8 @@ public abstract class OptionsScreenMixin extends Screen {
             )
     )
     private <T extends LayoutElement> T interceptSpacer(GridLayout.RowHelper instance, T layoutElement, int i, Operation<T> original){
-        if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig().showSettingsInSkinCustomization.getValue()) {
+        if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig().showSettingsInSkinCustomization.getValue()
+        || ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig().settingsScreenLocation.getValue() != SettingsLocation.OPTIONS_SCREEN) {
             return original.call(instance, layoutElement, i);
         }
         if (layoutElement instanceof SpacerElement) {
@@ -52,7 +54,7 @@ public abstract class OptionsScreenMixin extends Screen {
             )
     )
     private GridLayout.RowHelper interceptSpacer(GridLayout instance, int i, Operation<GridLayout.RowHelper> original) {
-        if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig().showSettingsInSkinCustomization.getValue()) {
+        if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig().settingsScreenLocation.getValue() != SettingsLocation.OPTIONS_SCREEN) {
             return original.call(instance, i);
         }
         var returnValue = original.call(instance, i);
