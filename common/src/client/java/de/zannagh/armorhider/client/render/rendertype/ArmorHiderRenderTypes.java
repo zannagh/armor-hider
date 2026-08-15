@@ -241,7 +241,7 @@ public final class ArmorHiderRenderTypes {
         shaderPackActiveOverride = value;
     }
 
-    private static boolean armorShouldWriteDepth() {
+    public static boolean armorShouldWriteDepth() {
         Boolean override = shaderPackActiveOverride;
         return override != null ? override : isShaderPackActive();
     }
@@ -426,9 +426,14 @@ public final class ArmorHiderRenderTypes {
                             .createRenderSetup()));
 
     private static RenderType translucentArmorDepth(Identifier texture) {
-        RenderType renderType = TRANSLUCENT_ARMOR_DEPTH.apply(texture);
-        DEFERRED_TYPES.add(renderType);
-        return renderType;
+        // Deliberately NOT added to DEFERRED_TYPES: under a shaderpack we want the faded armor to render
+        // as an ordinary translucent entity (depth-write, in the normal entity pass), which Iris
+        // composites correctly over the solid body. Deferring it to the after-terrain phase is what made
+        // the body read see-through under shaders. Water occlusion is instead handled by the depth write
+        // (the pad still occludes water behind it), at the cost of the pad blending over terrain rather
+        // than water at its protruding edges - unnoticeable under shaders and far better than a
+        // see-through torso.
+        return TRANSLUCENT_ARMOR_DEPTH.apply(texture);
     }
     //?}
 
@@ -603,14 +608,30 @@ public final class ArmorHiderRenderTypes {
 
     // --- Public API ---
 
+    // Diagnostic: how many times translucentArmor returned the depth-writing vs the no-depth type.
+    private static final java.util.concurrent.atomic.AtomicLong ARMOR_DEPTH_PATH =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong ARMOR_NODEPTH_PATH =
+            new java.util.concurrent.atomic.AtomicLong();
+
+    public static long armorDepthPathCount() {
+        return ARMOR_DEPTH_PATH.get();
+    }
+
+    public static long armorNoDepthPathCount() {
+        return ARMOR_NODEPTH_PATH.get();
+    }
+
     public static RenderType translucentArmor(Identifier texture) {
         // Under an active shaderpack, hand back the depth-writing armor type so the body under faded
         // armor stops reading see-through at grazing angles. Safe only where the deferral covers water.
         //? if >= 26.2-1.pre && < 26.3-0.snapshot.2 {
         if (armorShouldWriteDepth()) {
+            ARMOR_DEPTH_PATH.incrementAndGet();
             return translucentArmorDepth(texture);
         }
         //?}
+        ARMOR_NODEPTH_PATH.incrementAndGet();
         RenderType renderType = TRANSLUCENT_ARMOR.apply(texture);
         DEFERRED_TYPES.add(renderType);
         return renderType;

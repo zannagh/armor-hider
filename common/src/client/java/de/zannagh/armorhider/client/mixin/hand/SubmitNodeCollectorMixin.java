@@ -51,7 +51,11 @@ public class SubmitNodeCollectorMixin {
     // translucent types; return true when it was handled here (caller must not submit it again).
     @Unique
     private boolean armorHider$deferAfterTerrain(SubmitNode submit) {
+        // Under an active shaderpack the faded armor uses the depth-writing armor type and must render
+        // as an ordinary (non-deferred) translucent entity - deferring it to the after-terrain phase is
+        // what made the body read see-through under shaders. Skip deferral entirely in that mode.
         if (ArmorHiderRenderTypes.isDeferralEnabled()
+                && !ArmorHiderRenderTypes.armorShouldWriteDepth()
                 && submit instanceof ModelFeatureRenderer.Submit<?> modelSubmit
                 && ArmorHiderRenderTypes.isDeferredType(modelSubmit.renderType())) {
             this.afterTerrain.submit(submit);

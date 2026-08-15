@@ -147,28 +147,43 @@ public final class WaterTransparencySmokeTest implements FabricClientGameTest {
             ArmorHider.LOGGER.info("[smoke/fcgt] AFTER (redirect on) screenshot: {}", fixedShot);
 
             // Depth-write-under-shaders path: under an active Iris shaderpack the faded armor switches to
-            // a depth-WRITING armor type so the body stops reading see-through at grazing angles. Force
-            // the shaderpack-active override (no real Iris on this box) and confirm the piece still
-            // defers over water - it's draw order (after terrain), not the missing depth write, that
-            // keeps the pads visible, so depth-write + deferral must still leave the pads over the water.
+            // a depth-WRITING armor type rendered as an ordinary (non-deferred) translucent entity, so
+            // the body stops reading see-through at grazing angles under shaders. Force the
+            // shaderpack-active override (no real Iris on this box) and confirm this path is NOT deferred
+            // (its depth write, not draw order, is what keeps the pad over water here) and still renders
+            // the pad - eyeball the shot for the pad; assert the deferral stays quiet.
             //? if < 26.3-0.snapshot.2 {
-            long depthBefore = context.computeOnClient(client -> ArmorHiderRenderTypes.deferredSubmitCount());
             context.runOnClient(client -> {
                 ArmorHiderRenderTypes.setShaderPackActiveOverride(Boolean.TRUE);
                 snapPose(client);
             });
+            // Let the override settle first so the measurement window is steady-state (frames rendered
+            // during the switch still carry the old deferred type and would pollute the delta).
+            context.waitTicks(8);
+            long depthBefore = context.computeOnClient(client -> ArmorHiderRenderTypes.deferredSubmitCount());
+            long depthPathBefore = context.computeOnClient(client -> ArmorHiderRenderTypes.armorDepthPathCount());
+            long noDepthPathBefore = context.computeOnClient(client -> ArmorHiderRenderTypes.armorNoDepthPathCount());
             context.waitTicks(6);
             Path depthShot = context.takeScreenshot("armorhider_4_water_depthwrite_shaders");
             long depthAfter = context.computeOnClient(client -> ArmorHiderRenderTypes.deferredSubmitCount());
+            long depthPathAfter = context.computeOnClient(client -> ArmorHiderRenderTypes.armorDepthPathCount());
+            long noDepthPathAfter = context.computeOnClient(client -> ArmorHiderRenderTypes.armorNoDepthPathCount());
             context.runOnClient(client -> ArmorHiderRenderTypes.setShaderPackActiveOverride(null));
-            if (depthAfter - depthBefore <= 0) {
+            long deferDelta = depthAfter - depthBefore;
+            long depthPathDelta = depthPathAfter - depthPathBefore;
+            long noDepthPathDelta = noDepthPathAfter - noDepthPathBefore;
+            ArmorHider.LOGGER.info("[smoke/fcgt] depth-write window: deferDelta={} depthPath={} noDepthPath={} shot {}",
+                    deferDelta, depthPathDelta, noDepthPathDelta, depthShot);
+            if (depthPathDelta <= 0) {
                 throw new IllegalStateException(
-                        "[smoke/fcgt] depth-write armor (shaders path) did not defer over water (delta "
-                                + (depthAfter - depthBefore) + ") - the depth-writing armor type is not"
-                                + " being routed through the after-terrain phase");
+                        "[smoke/fcgt] shader override on but the depth-write armor path never ran (depthPath "
+                                + depthPathDelta + ") - the under-shaders depth-write swap is not wired");
             }
-            ArmorHider.LOGGER.info("[smoke/fcgt] depth-write (shaders) deferral delta {} shot {}",
-                    depthAfter - depthBefore, depthShot);
+            if (deferDelta != 0) {
+                throw new IllegalStateException(
+                        "[smoke/fcgt] depth-write armor (shaders path) was still deferred (delta " + deferDelta
+                                + ") - under shaders it must render as an ordinary translucent entity");
+            }
             //?}
 
             // Control - same pose, redirect on, but background swapped to solid stone. Pre-fix this
