@@ -211,6 +211,41 @@ public final class ArmorHiderRenderTypes {
         return deferralEnabled;
     }
 
+    // Whether an Iris shaderpack is currently active. Installed by IrisCompat at init when Iris is
+    // present (a plain BooleanSupplier so this render-path check never hard-references the Iris API -
+    // class-loading IrisCompat when Iris is absent would NoClassDefFoundError). Default: no shaderpack.
+    // Used to write depth on translucent armor ONLY under shaders: shaders composite depth-less
+    // translucent geometry badly at grazing angles (the body under faded armor reads see-through),
+    // while in vanilla the no-depth-write is what stops faded armor occluding water behind it. Where
+    // the after-terrain deferral exists (>= 26.2-1.pre) that occlusion is already handled by draw
+    // order, so writing depth under shaders is safe there.
+    private static volatile java.util.function.BooleanSupplier shaderPackActiveCheck = () -> false;
+
+    public static void setShaderPackActiveCheck(java.util.function.BooleanSupplier check) {
+        shaderPackActiveCheck = check != null ? check : () -> false;
+    }
+
+    public static boolean isShaderPackActive() {
+        try {
+            return shaderPackActiveCheck.getAsBoolean();
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
+    // Test hook: force the "shaderpack active" state so the depth-write armor path can be exercised
+    // headlessly (no real Iris on the test box). Null clears the override.
+    private static volatile Boolean shaderPackActiveOverride = null;
+
+    public static void setShaderPackActiveOverride(Boolean value) {
+        shaderPackActiveOverride = value;
+    }
+
+    private static boolean armorShouldWriteDepth() {
+        Boolean override = shaderPackActiveOverride;
+        return override != null ? override : isShaderPackActive();
+    }
+
     // --- Pipelines (>= 1.21.5) ---
 
     //? if >= 26.2-1.pre {
@@ -345,6 +380,55 @@ public final class ArmorHiderRenderTypes {
                 ENTITY_TRANSLUCENT_NO_DEPTH,
                 ITEM_ENTITY_TRANSLUCENT_CULL_NO_DEPTH
         };
+    }
+
+    // Depth-writing translucent armor pipelines to also register with Iris (empty on eras that don't
+    // use the under-shaders depth-write path). See armorShouldWriteDepth() / shaderPackActiveCheck.
+    public static RenderPipeline[] shaderDepthPipelines() {
+        //? if >= 26.2-1.pre && < 26.3-0.snapshot.2 {
+        return new RenderPipeline[] { ARMOR_TRANSLUCENT_DEPTH };
+        //?} else {
+        /*return new RenderPipeline[0];
+        *///?}
+    }
+    //?}
+
+    // --- Depth-writing translucent armor for shaderpacks (fixes the body reading see-through under
+    // Iris at grazing angles). Only where the after-terrain deferral already handles water occlusion by
+    // draw order (>= 26.2-1.pre) is writing depth on faded armor safe; older eras rely on no-depth. ---
+    //? if >= 26.2-1.pre && < 26.3-0.snapshot.2 {
+    private static RenderPipeline clonePipelineKeepDepth(RenderPipeline src, Identifier location) {
+        // Same as clonePipelineNoDepthWrite but keeps the source depth state (i.e. depth writing on).
+        var snippet = new RenderPipeline.Snippet(
+                Optional.of(src.getVertexShader()), Optional.of(src.getFragmentShader()),
+                Optional.of(src.getShaderDefines()), Optional.of(src.getBindGroupLayouts()),
+                src.getColorTargetStates(), src.getColorTargetStates().length,
+                Optional.of(src.getDepthStencilState()), Optional.of(src.getPolygonMode()),
+                Optional.of(src.isCull()), src.getVertexFormatBindings(),
+                Optional.of(src.getPrimitiveTopology()));
+        return RenderPipeline.builder(snippet).withLocation(location).build();
+    }
+
+    private static final RenderPipeline ARMOR_TRANSLUCENT_DEPTH = clonePipelineKeepDepth(
+            RenderPipelines.ARMOR_TRANSLUCENT,
+            Identifier.fromNamespaceAndPath("armor_hider", "pipeline/armor_translucent_depth"));
+
+    private static final Function<Identifier, RenderType> TRANSLUCENT_ARMOR_DEPTH = memoize(
+            texture -> RenderType.create("armor_hider_armor_translucent_depth",
+                    RenderSetup.builder(ARMOR_TRANSLUCENT_DEPTH)
+                            .withTexture("Sampler0", texture)
+                            .useLightmap()
+                            .useOverlay()
+                            .setLayeringTransform(LayeringTransform.VIEW_OFFSET_Z_LAYERING)
+                            .affectsCrumbling()
+                            .sortOnUpload()
+                            .setOutline(RenderSetup.OutlineProperty.AFFECTS_OUTLINE)
+                            .createRenderSetup()));
+
+    private static RenderType translucentArmorDepth(Identifier texture) {
+        RenderType renderType = TRANSLUCENT_ARMOR_DEPTH.apply(texture);
+        DEFERRED_TYPES.add(renderType);
+        return renderType;
     }
     //?}
 
@@ -520,6 +604,13 @@ public final class ArmorHiderRenderTypes {
     // --- Public API ---
 
     public static RenderType translucentArmor(Identifier texture) {
+        // Under an active shaderpack, hand back the depth-writing armor type so the body under faded
+        // armor stops reading see-through at grazing angles. Safe only where the deferral covers water.
+        //? if >= 26.2-1.pre && < 26.3-0.snapshot.2 {
+        if (armorShouldWriteDepth()) {
+            return translucentArmorDepth(texture);
+        }
+        //?}
         RenderType renderType = TRANSLUCENT_ARMOR.apply(texture);
         DEFERRED_TYPES.add(renderType);
         return renderType;

@@ -26,6 +26,19 @@ public class IrisCompat implements CompatInitializer {
         for (var pipeline : ArmorHiderRenderTypes.pipelines()) {
             api.assignPipeline(pipeline, IrisProgram.ENTITIES_TRANSLUCENT);
         }
+        // Also register the depth-writing armor pipeline(s) used under an active shaderpack, and wire
+        // the shaderpack-active check so translucent armor switches to the depth-writing type only
+        // while a pack is loaded (fixes the body reading see-through under shaders at grazing angles).
+        for (var pipeline : ArmorHiderRenderTypes.shaderDepthPipelines()) {
+            api.assignPipeline(pipeline, IrisProgram.ENTITIES_TRANSLUCENT);
+        }
+        ArmorHiderRenderTypes.setShaderPackActiveCheck(() -> {
+            try {
+                return IrisApi.getInstance().isShaderPackInUse();
+            } catch (Throwable t) {
+                return false;
+            }
+        });
         ArmorHider.LOGGER.debug("Registered custom pipelines with Iris");
         //?} else {
         /*ArmorHider.LOGGER.debug("Iris pipeline registration skipped: pinned Iris predates the 26.3 renderpearl API");
