@@ -52,6 +52,17 @@ public record RenderScopeContext(
     }
 
     /**
+     * Whether the piece is genuinely being made translucent (opacity below ~100%), as opposed to
+     * {@link #needsModification()} which is also true when only the glint is toggled off at full
+     * opacity. Render-type swaps onto the depth-write-disabled translucent pipeline must gate on this,
+     * so a solid piece with its glint merely off stays solid (and does not read as see-through under
+     * shaders). See {@link SlotModification#needsTranslucency()}.
+     */
+    public boolean needsTranslucency() {
+        return modification.needsTranslucency();
+    }
+
+    /**
      * Whether the resolved modification is empty (no config applies to this slot for this player).
      * When {@code true}, rendering can be delegated to the vanilla renderer without any changes.
      */

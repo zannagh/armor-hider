@@ -128,6 +128,28 @@ public class HumanoidArmorLayerMixin
         }
         return originalType;
     }
+
+    // Issue #324: this era renders the enchantment glint as a separate additive pass in renderGlint,
+    // via RenderType.armorEntityGlint() - EQUAL depth, no depth write. The armorCutoutNoCull swap
+    // above made the base a translucent, depth-write-disabled type, so the glint's EQUAL test fails
+    // against depth the base never wrote and the glint vanishes on faded armor. Swap it for a co-draw
+    // glint type sharing the base's LEQUAL depth test. No-ops when nothing is being faded.
+    @WrapOperation(
+            method = "renderGlint",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/renderer/rendertype/RenderType;armorEntityGlint()Lnet/minecraft/client/renderer/rendertype/RenderType;"
+            )
+    )
+    private RenderType modifyArmorGlint(Operation<RenderType> original) {
+        RenderType originalType = original.call();
+        var ctx = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE);
+        if (ctx.isEmpty()) {
+            return originalType;
+        }
+        return ctx.renderModificationApi().getTranslucentArmorGlintRenderType(originalType) instanceof RenderType rt
+                ? rt : originalType;
+    }
     *///?}
 
     //? if >= 1.21 && < 1.21.2 {

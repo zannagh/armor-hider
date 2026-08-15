@@ -43,30 +43,42 @@ public class RenderModifications implements AhRenderModificationApi {
     }
 
     // --- Render type modifications ---
+    // These swap a piece onto the depth-write-disabled translucent pipeline, so they gate on
+    // needsTranslucency() (opacity < ~100%), NOT needsModification(): a fully-opaque piece with only
+    // its glint toggled off must stay on the normal depth-writing armor type, or it reads as
+    // see-through under shaders (Iris) against bright light/water. Glint suppression is handled
+    // separately by getHasFoil(), which keeps gating on needsModification().
 
     public RenderType getSkullRenderLayer(Identifier texture, RenderType originalLayer) {
-        if (slotModification.isEmpty() || !slotModification.needsModification()) {
+        if (slotModification.isEmpty() || !slotModification.needsTranslucency()) {
             return originalLayer;
         }
         return getTranslucentEntityRenderType(texture);
     }
 
     public RenderType getTranslucentArmorRenderType(Identifier texture, RenderType originalLayer) {
-        if (slotModification.isEmpty() || !slotModification.needsModification()) {
+        if (slotModification.isEmpty() || !slotModification.needsTranslucency()) {
             return originalLayer;
         }
         return getTranslucentArmorRenderType(texture);
     }
 
+    public RenderType getTranslucentArmorGlintRenderType(RenderType originalLayer) {
+        if (slotModification.isEmpty() || !slotModification.needsTranslucency()) {
+            return originalLayer;
+        }
+        return ArmorHiderRenderTypes.translucentArmorGlint(originalLayer);
+    }
+
     public RenderType getTrimRenderLayer(boolean decal, RenderType originalLayer) {
-        if (slotModification.isEmpty() || !slotModification.needsModification()) {
+        if (slotModification.isEmpty() || !slotModification.needsTranslucency()) {
             return originalLayer;
         }
         return getTranslucentArmorTrimRenderType(decal);
     }
 
     public RenderType getTranslucentItemRenderType(RenderType originalLayer) {
-        if (slotModification.isEmpty() || !slotModification.needsModification()) {
+        if (slotModification.isEmpty() || !slotModification.needsTranslucency()) {
             return originalLayer;
         }
         //? if <= 26.1.2
@@ -119,6 +131,14 @@ public class RenderModifications implements AhRenderModificationApi {
     public Object getTranslucentArmorRenderType(Object textureIdentifier, Object originalRenderType) {
         if (textureIdentifier instanceof Identifier texture && originalRenderType instanceof RenderType original) {
             return getTranslucentArmorRenderType(texture, original);
+        }
+        return originalRenderType;
+    }
+
+    @Override
+    public Object getTranslucentArmorGlintRenderType(Object originalRenderType) {
+        if (originalRenderType instanceof RenderType original) {
+            return getTranslucentArmorGlintRenderType(original);
         }
         return originalRenderType;
     }

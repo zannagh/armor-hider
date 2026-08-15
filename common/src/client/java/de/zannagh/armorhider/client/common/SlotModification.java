@@ -35,6 +35,22 @@ public record SlotModification(
      */
     public EquipmentSlot slot() { return slot; }
 
+    /**
+     * Whether this piece is actually being made translucent (its opacity is below ~100%), as opposed
+     * to {@link #needsModification()} which is also true when only the glint is toggled off at full
+     * opacity. Only genuine translucency should route a piece onto the depth-write-disabled translucent
+     * render pipeline: a fully-opaque piece with its glint merely disabled must stay on the normal,
+     * depth-writing armor type, or it reads as see-through under shaders (Iris) against bright light or
+     * water even though the user set 100% opacity. Glint suppression itself is handled separately via
+     * {@link #shouldDisableGlint()} / {@code getHasFoil}, so decoupling the two here does not bring the
+     * glint back.
+     *
+     * @return {@code true} when {@code transparency < ~1} (the piece is genuinely faded).
+     */
+    public boolean needsTranslucency() {
+        return transparency < 1 - ArmorOpacity.TRANSPARENCY_STEP / 2;
+    }
+
     public static boolean shouldUseVanilla(PlayerConfig config){
         var manager = ArmorHiderClient.CLIENT_CONFIG_MANAGER;
 

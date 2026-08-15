@@ -148,6 +148,17 @@ public interface AhRenderModificationApi {
     Object getTranslucentArmorRenderType(Object textureIdentifier, Object originalRenderType);
 
     /**
+     * Swap the enchantment-glint pass for a translucent equivalent that fades with (and draws under
+     * the same depth rules as) a faded armor piece (issue #324). Returns the original when no
+     * modification is active or the current MC era needs no swap.
+     *
+     * @param originalRenderType the upstream glint {@code RenderType}.
+     */
+    default Object getTranslucentArmorGlintRenderType(Object originalRenderType) {
+        return originalRenderType;
+    }
+
+    /**
      * Swap the armor-trim render type for a translucent equivalent.
      *
      * @param decal whether the trim is a decal (overlay) layer.

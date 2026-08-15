@@ -340,6 +340,11 @@ if (branch == "fabric") {
         // the entrypoint there or fabric-loader would fail to find the commented-out class.
         if (sc.current.parsed >= "26.2-1.pre") {
             add("water-transparency" to "de.zannagh.armorhider.smoke.WaterTransparencySmokeTest")
+            // GlintTransparencySmokeTest (issue #324) shares the same FCGT-API + render-architecture
+            // floor as the water smoke; its class is stonecutter-gated to the same range.
+            add("glint-transparency" to "de.zannagh.armorhider.smoke.GlintTransparencySmokeTest")
+            // OpaqueGlintOffSmokeTest (Iris shader bleed regression) shares the same floor.
+            add("opaque-glint-off" to "de.zannagh.armorhider.smoke.OpaqueGlintOffSmokeTest")
             // Female Gender Mod breast-armor render + physics smoke. Needs the FGM jar present
             // (pulled in on the gender smoke row) and the after-terrain render architecture, so it
             // shares WaterTransparency's floor. Class is stonecutter-gated to the same range.

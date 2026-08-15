@@ -6,11 +6,14 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.blaze3d.vertex.VertexMultiConsumer;
 import de.zannagh.armorhider.client.api.AhRenderManagementApi;
 import de.zannagh.armorhider.client.common.RenderScope;
 import de.zannagh.armorhider.client.render.VanillaArmorTextureManager;
 import net.minecraft.client.model.Model;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.entity.layers.EquipmentLayerRenderer;
 import net.minecraft.resources.Identifier;
 import org.spongepowered.asm.mixin.Mixin;
@@ -60,6 +63,32 @@ public class EquipmentLayerRendererLegacyMixin {
         var originalType = original.call(resolved);
         return ctx.renderModificationApi().getTranslucentArmorRenderType(resolved, originalType) instanceof RenderType rt
                 ? rt : originalType;
+    }
+
+    // Issue #324: vanilla pairs RenderType.armorEntityGlint() (additive, EQUAL depth, no depth write)
+    // with the base cutout buffer inside ItemRenderer.getArmorFoilBuffer. The armorCutoutNoCull swap
+    // above made our base a translucent, depth-write-disabled type, so the glint's EQUAL test fails
+    // against depth our base never wrote and the glint vanishes on faded armor. Wrap the
+    // getArmorFoilBuffer call at THIS site (armor path only) and rebuild the multi-consumer with a
+    // co-draw glint type sharing the base's LEQUAL depth test. No-ops when nothing is being faded.
+    @WrapOperation(
+            method = RENDER_LAYERS_DETAIL,
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/ItemRenderer;getArmorFoilBuffer(Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/renderer/rendertype/RenderType;Z)Lcom/mojang/blaze3d/vertex/VertexConsumer;")
+    )
+    private VertexConsumer armorHider$modifyArmorGlint(MultiBufferSource bufferSource, RenderType baseType, boolean hasFoil, Operation<VertexConsumer> original) {
+        if (!hasFoil) {
+            return original.call(bufferSource, baseType, hasFoil);
+        }
+        var ctx = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE, RenderScope.ELYTRA);
+        if (ctx.isEmpty()) {
+            return original.call(bufferSource, baseType, hasFoil);
+        }
+        RenderType vanillaGlint = RenderType.armorEntityGlint();
+        if (ctx.renderModificationApi().getTranslucentArmorGlintRenderType(vanillaGlint) instanceof RenderType coDraw
+                && coDraw != vanillaGlint) {
+            return VertexMultiConsumer.create(bufferSource.getBuffer(coDraw), bufferSource.getBuffer(baseType));
+        }
+        return original.call(bufferSource, baseType, hasFoil);
     }
 
     @WrapOperation(
