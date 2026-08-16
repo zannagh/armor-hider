@@ -32,14 +32,12 @@ public abstract class IntConfigurationItem extends ConfigurationItemBase<Integer
     }
 
     /**
-     * Rejects non-finite values (NaN / ±Infinity) outright and clamps everything else into
-     * {@code [getMinValue(), getMaxValue()]}. NaN in particular has to be caught here: it round-trips
-     * through the config item happily but makes {@code Gson#toJson} throw {@link IllegalArgumentException},
-     * which escapes the IOException-only catch in the save path and can leave a settings screen unclosable.
+     * Clamps {@code candidate} into {@code [getMinValue(), getMaxValue()]} and falls back to the default
+     * when {@code null}.
      */
     @Override
     protected Integer sanitize(Integer candidate) {
-        if (candidate == null || !Double.isFinite(candidate)) {
+        if (candidate == null) {
             return getDefaultValue();
         }
         // Math.clamp is Java 21+; 1.20.1 builds on Java 17.
