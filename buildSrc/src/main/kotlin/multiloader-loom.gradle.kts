@@ -472,7 +472,114 @@ if (branch == "fabric") {
                 // show. Harmless off macOS / when the backend isn't in use.
                 environmentVariable("SDL_WINDOW_ACTIVATE_WHEN_SHOWN", "0")
                 environmentVariable("SDL_WINDOW_ACTIVATE_WHEN_RAISED", "0")
+
+                // ── E2E line coverage (opt-in: -Psmoke.coverage) ─────────────────────────────
+                // The FCGT client is a real, mod-loaded Minecraft JVM, so it exercises code the Tier-1
+                // unit tests never can - the render pipeline (RenderModifications, AhRenderManagementApi,
+                // the feature-phase interceptors) and the mod's client/config/net logic.
+                //
+                // On-the-fly JaCoCo (-javaagent) CANNOT see these: Fabric's KnotClassLoader loads the mod
+                // (and Minecraft) classes through a path the agent's ClassFileLoadHook never covers, so the
+                // recorded .exec contains 3500+ library classes but ZERO de.zannagh.armorhider ones
+                // (verified empirically). The reliable route is OFFLINE instrumentation: the class files on
+                // disk are pre-instrumented, so Knot loads already-probed bytecode and no runtime transform
+                // is needed. The runtime then only needs the JaCoCo RT jar on the classpath and a destfile.
+                // See offlineInstrumentForCoverage below. The mixin package is deliberately NOT instrumented
+                // (Mixin reads raw class bytes to apply them - probes would corrupt that - and @Inject
+                // handlers execute on the vanilla target, so they are not attributable anyway).
+                if (project.hasProperty("smoke.coverage")) {
+                    val execFile = project.rootProject.file("build/jacoco/e2e-client.exec")
+                    jvmArguments.add("-Djacoco-agent.destfile=${execFile.absolutePath}")
+                    // append=true so per-scenario launches of one run accumulate; CI wipes build/jacoco first.
+                    jvmArguments.add("-Djacoco-agent.append=true")
+                }
             }
+        }
+        // ── JaCoCo OFFLINE instrumentation for E2E coverage (opt-in: -Psmoke.coverage) ──────────
+        if (project.hasProperty("smoke.coverage")) {
+            val jacocoVersion = (findProperty("jacoco.version")?.toString()) ?: "0.8.14"
+            // Offline-instrumented classes carry a hard dependency on the JaCoCo runtime, so the RT jar
+            // must be on the game JVM classpath. runtimeOnly puts it on the mod runtime classpath; Knot
+            // delegates the non-mod org.jacoco.agent.rt.* package to its parent loader, which has it.
+            dependencies.add("runtimeOnly", "org.jacoco:org.jacoco.agent:$jacocoVersion:runtime")
+            // Standalone JaCoCo CLI (nodeps) + its runtime deps, used to instrument class files offline.
+            val jacocoCli = configurations.create("ahJacocoCli") {
+                isCanBeResolved = true
+                isCanBeConsumed = false
+                isVisible = false
+            }
+            dependencies.add("ahJacocoCli", "org.jacoco:org.jacoco.cli:$jacocoVersion:nodeps")
+            dependencies.add("ahJacocoCli", "org.jacoco:org.jacoco.core:$jacocoVersion")
+            dependencies.add("ahJacocoCli", "org.jacoco:org.jacoco.report:$jacocoVersion")
+
+            val ssc = project.extensions.getByType(org.gradle.api.tasks.SourceSetContainer::class.java)
+            val classOutputs: List<java.io.File> = listOf("main", "client")
+                .mapNotNull { ssc.findByName(it) }
+                .flatMap { it.output.classesDirs.files.toList() }
+            val backupRoot = project.rootProject.file("build/jacoco/classes-orig")
+            val pristineRoot = project.rootProject.file("build/jacoco/classes-pristine")
+            val cliCfg = jacocoCli
+
+            // Instrument the client+main class outputs IN PLACE so Knot loads probed bytecode (on-the-fly
+            // can't reach Knot-loaded classes). Idempotent across the two forked compat rows of one variant:
+            // a pristine copy is kept and restored before each instrument pass, so re-running never double-
+            // instruments. Originals are also mirrored to classes-orig for e2eCoverage to analyse the clean
+            // bytecode. Strictly opt-in (-Psmoke.coverage), so a normal build/jar is never instrumented.
+            val instrumentTask = tasks.register("offlineInstrumentForCoverage") {
+                group = "verification"
+                description = "JaCoCo offline-instrument the FCGT client classes in place (-Psmoke.coverage)"
+                dependsOn("classes", "clientClasses")
+                outputs.upToDateWhen { false }
+                doLast {
+                    backupRoot.deleteRecursively(); backupRoot.mkdirs()
+                    pristineRoot.mkdirs()
+                    classOutputs.forEachIndexed { idx, dir ->
+                        if (!dir.isDirectory) {
+                            return@forEachIndexed
+                        }
+                        val pristine = java.io.File(pristineRoot, "$idx-${dir.name}")
+                        if (pristine.isDirectory) {
+                            // A previous row already instrumented this dir - restore clean bytes first.
+                            dir.deleteRecursively()
+                            pristine.copyRecursively(dir, overwrite = true)
+                        } else {
+                            dir.copyRecursively(pristine, overwrite = true)
+                        }
+                        // Mirror the clean bytes for the report.
+                        pristine.copyRecursively(java.io.File(backupRoot, "$idx-${dir.name}"), overwrite = true)
+
+                        val instrDir = java.io.File(dir.parentFile, "${dir.name}-ahInstr")
+                        instrDir.deleteRecursively()
+                        // Run the JaCoCo CLI out-of-process (Gradle 9 removed Project.javaexec, and the CLI
+                        // needs no Gradle wiring). java from the build JVM; the CLI runs on any recent JDK.
+                        val javaBin = java.io.File(System.getProperty("java.home"), "bin/java").absolutePath
+                        val cliClasspath = cliCfg.files.joinToString(java.io.File.pathSeparator) { it.absolutePath }
+                        val process = ProcessBuilder(
+                            javaBin, "-cp", cliClasspath, "org.jacoco.cli.internal.Main",
+                            "instrument", dir.absolutePath, "--dest", instrDir.absolutePath
+                        ).redirectErrorStream(true).start()
+                        val cliOut = process.inputStream.bufferedReader().readText()
+                        val code = process.waitFor()
+                        if (code != 0) {
+                            throw org.gradle.api.GradleException(
+                                "JaCoCo offline instrumentation failed (exit $code):\n$cliOut")
+                        }
+                        // Copy probed classes back over the originals, EXCEPT the mixin package (keep raw
+                        // bytes there so Mixin can still apply them and @Inject handlers are not miscounted).
+                        instrDir.walkTopDown().filter { it.isFile }.forEach { src ->
+                            // Normalize separators once so the mixin-package exclusion holds on Windows too.
+                            val rel = src.relativeTo(instrDir).path.replace('\\', '/')
+                            if (!rel.contains("/mixin/") && !rel.startsWith("mixin/")) {
+                                val dest = java.io.File(dir, rel)
+                                dest.parentFile?.mkdirs()
+                                src.copyTo(dest, overwrite = true)
+                            }
+                        }
+                        instrDir.deleteRecursively()
+                    }
+                }
+            }
+            tasks.named("runClientGametest") { dependsOn(instrumentTask) }
         }
         // Resolve the FCGT module artifact via a dedicated configuration so we can copy the
         // resolved (already named-mapped) jar into run/mods. fabric-api's umbrella jar

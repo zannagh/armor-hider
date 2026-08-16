@@ -1,7 +1,9 @@
-# Coverage is measured over Tier-1-reachable code only: mixins and the client/server-spawning tiers
-# are already excluded in the JaCoCo report itself (see CONTRIBUTING.md > Testing), so the numbers
-# Codecov sees are intentionally a subset of the whole mod. Keep the checks INFORMATIONAL so a dip
-# reports on the PR without blocking merge - coverage here is a signal, not a gate (for now).
+# Two coverage streams reach Codecov:
+#  - the default/`unit` stream: Tier-1 JaCoCo over Tier-1-reachable code (mixins excluded in the report).
+#  - the `e2e` flag: Tier-3 coverage from an offline-instrumented FCGT client run (see the smoke workflow's
+#    coverage job), crediting the render pipeline + client/config/net code that only executes in a live
+#    client. Mixins stay excluded there too (Mixin transplants @Inject handlers onto the vanilla target).
+# Checks are INFORMATIONAL so a dip reports on the PR without blocking merge - coverage is a signal here.
 coverage:
   status:
     project:
@@ -10,6 +12,15 @@ coverage:
     patch:
       default:
         informational: true
+
+# The e2e flag is produced only by the nightly/on-demand coverage job, not on every PR. carryforward makes
+# Codecov reuse the last e2e report for PRs that don't upload one, so the flag doesn't read as 0 on them.
+flags:
+  e2e:
+    carryforward: true
+    paths:
+      - common/src
+      - fabric/src
 
 comment:
   layout: "reach, diff, flags, files"

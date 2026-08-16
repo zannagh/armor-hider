@@ -45,8 +45,9 @@ Each in-game FCGT scenario is also surfaced as its own IDE-runnable node by `Fcg
 
 ### Coverage & build scans
 
-Tier-1 tests are wired to [JaCoCo](https://www.jacoco.org/) (the spawning tiers fork separate JVMs,
-so they are not measured). Running the unit tests emits both an XML and an HTML report:
+Two coverage streams are collected. The **Tier-1 (unit)** stream is on-the-fly JaCoCo over the unit
+tests; the **Tier-3 (E2E)** stream is offline-instrumented coverage from a real FCGT client run (see
+*E2E coverage* below). Running the unit tests emits both an XML and an HTML report:
 
 - **IDE:** run a test class/`common`/`paper` with *Run with Coverage* for inline gutter highlighting.
 - **Per-module report files:** after `./gradlew test` (or `:paper:test` / `:common:<active>:test`) open
@@ -56,9 +57,22 @@ so they are not measured). Running the unit tests emits both an XML and an HTML 
   `build/reports/jacoco/aggregate/html/index.html` (and `jacocoAggregate.xml`). Only the *active*
   common variant is included - every stonecutter variant carries an identical class copy, so
   aggregating all of them would inflate the denominator.
-- **Mixins are excluded** from all coverage (`**/mixin/**`): they only execute inside a live
-  client/server (Tier 2/3), never in the JVM unit tests, so counting them would just depress the
-  number. This is a temporary carve-out - they are meant to be covered later.
+- **Mixins are excluded** from all coverage (`**/mixin/**`). In the unit stream they never execute
+  (Tier 1 launches no client). In the E2E stream they *do* execute, but Mixin transplants `@Inject`
+  handler bytecode onto the vanilla **target** class, so the handler never runs on our mixin class and
+  JaCoCo cannot attribute it - counting the package would only show a misleading 0%. The plain
+  render/logic classes the handlers delegate to (e.g. `client/render/**`) *are* credited by E2E.
+- **E2E coverage (Tier 3):** a real FCGT client can't be measured on-the-fly - Fabric's `KnotClassLoader`
+  loads the mod classes through a path JaCoCo's agent never sees (an on-the-fly `.exec` contains 3500+
+  library classes and *zero* `de.zannagh.armorhider` ones). So the E2E path uses **offline
+  instrumentation**: `-Psmoke.coverage` makes `runClientGametest` pre-instrument the client classes in
+  place (mixins skipped), run with the JaCoCo runtime on the classpath, and dump
+  `build/jacoco/e2e-client.exec`; `./gradlew e2eCoverage` then reports it (over the clean backup classes)
+  to `build/reports/jacoco/e2e/`. A single scenario already credits ~40-50% of the mod's lines (booting a
+  client exercises most init/config/render code); the full batch covers the render pipeline, config, net
+  and GUI. Needs JaCoCo >= 0.8.14 (26.x is Java 25 bytecode) - pinned via `jacoco.version` in
+  `gradle.properties`. Uploaded to Codecov under the `e2e` flag by the nightly/on-demand `coverage` job in
+  `smoke.yml` (offline instrumentation adds overhead, so it stays off the PR gate).
 - **CI:** the PR build runs `aggregatedCoverage`, posts the merged coverage % as a PR comment
   (`madrapps/jacoco-report`, which shows *changed-lines* coverage), and uploads every report as a
   `coverage-*` artifact. Report dirs live under `build/` and are never committed.
@@ -78,6 +92,13 @@ local builds too.
 ## CI/CD
 
 - **Build workflow** (`build.yml`): Runs on pull requests to validate compilation and tests
+- **Smoke gate** (`smoke.yml`): Headless FCGT gate on PRs into `main`. Boots a real client under
+  Xvfb + Mesa software GL, which only the self-hosted `fcgt` runner provides - the `detect` job checks
+  whether one is online and, if not (or on a fork PR), the gate self-skips and the required
+  `smoke-result` check still passes. When a runner is present it runs the full FCGT scenario batch on
+  fabric-26.2 in both compat modes plus a parallel boot sweep of the other current versions (~6 min,
+  under the 7-min cap). The exhaustive loader/version matrix and the `e2e` coverage upload run nightly.
+  Set **`smoke-result`** (not `smoke`) as the required check in branch protection.
 - **Publish workflow** (`publish.yml`): Runs on pushes to `main` and manual releases
   - Automatic prereleases on `main` pushes (skips `ci:`/`docs:`/`build:`/`chore:` commits)
   - Manual releases via GitHub Releases with version validation
