@@ -493,12 +493,17 @@ if (branch == "fabric") {
         // dependency, not a Gradle-transitive one, so copying only the FCGT module leaves it missing and the
         // client aborts at boot ("requires fabric-resource-loader-v1, which is missing"). Older nodes only
         // booted because a prior -Psmoke run happened to leave the full fabric-api umbrella (which bundles
-        // it) in run/mods. Provision it explicitly so FCGT boots on a clean run/mods on every version.
+        // it) in run/mods. Provision it explicitly so FCGT boots on a clean run/mods where it's needed.
         // Fabric-loader deduplicates it against any umbrella-bundled copy, so this is safe where one exists.
-        dependencies.add(
-            "fcgtRuntimeMod",
-            fabricApiExt.module("fabric-resource-loader-v1", fabricApiSemver)
-        )
+        // fabricApiExt.module resolves the submodule version from the pinned fabric-api's module list, so on
+        // older fabric-api lines (1.21.4..1.21.11) that predate the resource-loader-v1 module it throws
+        // "Failed to find module version" - those run FCGT 5.x, which doesn't need it, so just skip there.
+        runCatching {
+            dependencies.add(
+                "fcgtRuntimeMod",
+                fabricApiExt.module("fabric-resource-loader-v1", fabricApiSemver)
+            )
+        }
         val copyFcgtToMods = tasks.register<Copy>("copyFcgtToMods") {
             group = "verification"
             description = "Drop the FCGT module jar into run/mods/ so its mixin plugin loads at runtime"
