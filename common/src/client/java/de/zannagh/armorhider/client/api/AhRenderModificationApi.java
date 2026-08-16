@@ -148,9 +148,10 @@ public interface AhRenderModificationApi {
     Object getTranslucentArmorRenderType(Object textureIdentifier, Object originalRenderType);
 
     /**
-     * Swap the enchantment-glint pass for a translucent equivalent that fades with (and draws under
-     * the same depth rules as) a faded armor piece (issue #324). Returns the original when no
-     * modification is active or the current MC era needs no swap.
+     * Retained no-op kept for API compatibility. The mod no longer re-issues the enchantment glint on a
+     * translucent co-draw type: on a faded (depth-write-disabled) armor base the vanilla glint's EQUAL
+     * depth test simply fails and the glint vanishes with the piece, which is the intended behaviour
+     * (the co-draw painted the whole model and broke under shaders). Always returns the original.
      *
      * @param originalRenderType the upstream glint {@code RenderType}.
      */

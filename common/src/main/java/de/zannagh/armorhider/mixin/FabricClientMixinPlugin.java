@@ -9,6 +9,8 @@ public abstract class FabricClientMixinPlugin extends ArmorHiderMixinPlugin {
             "GameRendererMixin",
             "DevSkinMixin",
             "TitleScreenSmokeMixin",
+            // Gated >= 26.1.2 && < 26.3 in source; keeps the FCGT window from stealing macOS focus.
+            "WindowFocusMixin",
             // All versions - Stonecutter guards per version range
             "EntityRenderDispatcherMixin",
             "LivingEntityMixin",

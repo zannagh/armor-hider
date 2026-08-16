@@ -33,9 +33,7 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 //?}
 //? if < 1.21.9 {
 /*import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.blaze3d.vertex.VertexMultiConsumer;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.entity.ItemRenderer;
 *///?}
 
 //? if >= 1.21.11 {
@@ -211,10 +209,15 @@ public class EquipmentRenderMixin {
     }
 
     // Enchanted armor renders through RenderTypes.armorCutoutNoCullGlint (not armorCutoutNoCull), which
-    // the base wrap never sees. On 26.3 that glint type is a single combined armor+glint draw; swapping
-    // it to the glint-less translucentArmor faded the piece but dropped the glint (issue #324). Swap it
-    // instead to a translucent, depth-disabled clone of the combined glint type so the faded piece
-    // keeps a (colour-faded) glint. Only genuine translucency takes this path (needsTranslucency).
+    // the base wrap never sees, so a faded enchanted piece must be intercepted here or it never fades.
+    // On 26.3 that glint type is a single combined armor+glint draw whose fragment shader clamps the
+    // output alpha up to the Glint Strength setting (color.a = max(color.a, GlintAlpha)) and adds the
+    // glint additively - so a translucent clone can neither fade the piece (it stays ~opaque) nor fade
+    // the glint, and it has no OIT pipeline set (breaks under "Improved Transparency"). We therefore
+    // drop the glint on a faded piece and route it to the plain translucent armor type, which fades
+    // correctly and carries OIT. The glint intentionally vanishes on faded armor (the on/off toggle
+    // still removes it at full opacity via modifyGlint/getHasFoil). Only genuine translucency takes
+    // this path (needsTranslucency); a full-opacity enchanted piece keeps its vanilla fused glint.
     //? if >= 26.3-0.snapshot.2 {
     /*@WrapOperation(
             method = RENDER_LAYERS_DETAIL,
@@ -228,75 +231,16 @@ public class EquipmentRenderMixin {
         if (ctx.isEmpty() || !ctx.needsTranslucency()) {
             return original.call(texture);
         }
-        Identifier resolved = VanillaArmorTextureManager.resolveArmorTexture(ctx.modification(), texture);
-        RenderType glint = ArmorHiderRenderTypes.translucentArmorGlint(resolved);
-        if (glint != null) {
-            return glint;
-        }
-        // Glint swap toggled off (test only): fall back to the pre-fix glint-less translucent type -
-        // the faded piece loses its glint, reproducing the reported bug for a before/after capture.
         return armorHider$swapArmorRenderType(texture, original);
     }
     *///?}
 
-    // Issue #324: on 1.21.9..<26.3 the enchantment glint is a SEPARATE additive submit
-    // (RenderTypes.armorEntityGlint), depth-tested EQUAL against the depth the base armor wrote. Our
-    // translucent base disables depth writes, so the glint's EQUAL test fails and the glint vanishes on
-    // faded armor. Swap it for a glint type that shares the translucent base's depth state (and defers
-    // with it) so the glint draws wherever the faded armor draws. No-ops when nothing is being faded.
-    //? if >= 1.21.9 && < 26.3-0.snapshot.2 {
-    @WrapOperation(
-            method = RENDER_LAYERS_DETAIL,
-            at = @At(
-                    value = "INVOKE",
-                    //? if >= 1.21.11
-                    target = "Lnet/minecraft/client/renderer/rendertype/RenderTypes;armorEntityGlint()Lnet/minecraft/client/renderer/rendertype/RenderType;"
-                    //? if < 1.21.11
-                    //target = "Lnet/minecraft/client/renderer/rendertype/RenderType;armorEntityGlint()Lnet/minecraft/client/renderer/rendertype/RenderType;"
-            )
-    )
-    private RenderType armorHider$modifyArmorGlint(Operation<RenderType> original) {
-        var ctx = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE, RenderScope.ELYTRA);
-        var originalType = original.call();
-        if (ctx.isEmpty()) {
-            return originalType;
-        }
-        return ctx.renderModificationApi().getTranslucentArmorGlintRenderType(originalType) instanceof RenderType rt
-                ? rt : originalType;
-    }
-    //?}
-
-    // Issue #324 (foil-buffer era, 1.21.4..1.21.8): vanilla pairs RenderType.armorEntityGlint()
-    // (additive, EQUAL depth, no depth write) with the base cutout buffer inside
-    // ItemRenderer.getArmorFoilBuffer. The armorCutoutNoCull swap above already made our base a
-    // translucent, depth-write-disabled type, so the glint's EQUAL test fails against depth our base
-    // never wrote and the glint vanishes on faded armor. Wrap the getArmorFoilBuffer call at THIS site
-    // (the armor render path only - not the global ItemRenderer helper) and rebuild the multi-consumer
-    // with a co-draw glint type that shares the base's LEQUAL depth test. No-ops when nothing is faded.
-    //? if < 1.21.9 {
-    /*@WrapOperation(
-            method = RENDER_LAYERS_DETAIL,
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/client/renderer/entity/ItemRenderer;getArmorFoilBuffer(Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/client/renderer/rendertype/RenderType;Z)Lcom/mojang/blaze3d/vertex/VertexConsumer;"
-            )
-    )
-    private VertexConsumer armorHider$modifyArmorGlint(MultiBufferSource bufferSource, RenderType baseType, boolean hasFoil, Operation<VertexConsumer> original) {
-        if (!hasFoil) {
-            return original.call(bufferSource, baseType, hasFoil);
-        }
-        var ctx = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE, RenderScope.ELYTRA);
-        if (ctx.isEmpty()) {
-            return original.call(bufferSource, baseType, hasFoil);
-        }
-        RenderType vanillaGlint = RenderType.armorEntityGlint();
-        if (ctx.renderModificationApi().getTranslucentArmorGlintRenderType(vanillaGlint) instanceof RenderType coDraw
-                && coDraw != vanillaGlint) {
-            return VertexMultiConsumer.create(bufferSource.getBuffer(coDraw), bufferSource.getBuffer(baseType));
-        }
-        return original.call(bufferSource, baseType, hasFoil);
-    }
-    *///?}
+    // No enchantment-glint swap on 1.21.4..<26.3 (separate armorEntityGlint submit on 1.21.9+, paired
+    // foil buffer on 1.21.4..1.21.8): on a faded (translucent, depth-write-disabled) base the vanilla
+    // glint's EQUAL depth test fails and the glint vanishes on the faded piece - the intended behaviour.
+    // The co-draw glint that re-issued it painted the whole model (chest glint spilling over the whole
+    // arms), mismatched modded/texture-pack armor outlines and broke under shaders, so it was removed.
+    // The glint on/off toggle still applies via modifyGlint/getHasFoil at full opacity.
 
     @Unique
     private RenderType armorHider$swapArmorRenderType(Identifier texture, Operation<RenderType> original) {

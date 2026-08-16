@@ -78,20 +78,6 @@ public class RenderModifications implements AhRenderModificationApi {
         return getTranslucentArmorRenderType(texture);
     }
 
-    public RenderType getTranslucentArmorGlintRenderType(RenderType originalLayer) {
-        if (slotModification.isEmpty() || !slotModification.needsTranslucency()) {
-            return originalLayer;
-        }
-        // Under a shaderpack the base armor is rendered as an opaque, depth-writing dither cutout (see
-        // getTranslucentArmorRenderType), so the vanilla glint's EQUAL depth test against the armor's
-        // depth passes as-is. Keep the vanilla glint: the no-depth translucent-glint swap only exists
-        // for the no-shaders translucent base, and it isn't registered with Iris (would render weird).
-        if (ArmorHiderRenderTypes.armorShouldWriteDepth() && slotModification.config().irisPartialTransparencyMode.getValue() != de.zannagh.armorhider.configuration.IrisPartialTransparencyMode.NONE) {
-            return originalLayer;
-        }
-        return ArmorHiderRenderTypes.translucentArmorGlint(originalLayer);
-    }
-
     public RenderType getTrimRenderLayer(boolean decal, RenderType originalLayer) {
         if (slotModification.isEmpty() || !slotModification.needsTranslucency()) {
             return originalLayer;
@@ -153,14 +139,6 @@ public class RenderModifications implements AhRenderModificationApi {
     public Object getTranslucentArmorRenderType(Object textureIdentifier, Object originalRenderType) {
         if (textureIdentifier instanceof Identifier texture && originalRenderType instanceof RenderType original) {
             return getTranslucentArmorRenderType(texture, original);
-        }
-        return originalRenderType;
-    }
-
-    @Override
-    public Object getTranslucentArmorGlintRenderType(Object originalRenderType) {
-        if (originalRenderType instanceof RenderType original) {
-            return getTranslucentArmorGlintRenderType(original);
         }
         return originalRenderType;
     }
