@@ -42,6 +42,26 @@ jobs:
           xvfb-run -a -s "-screen 0 1280x1024x24" \
             ./gradlew :smoke:smokeTest -Dsmoke.only=fabric-26.2 -Dsmoke.compat=none --no-daemon --console=plain
 
+      # In-game FCGT coverage for Codecov's `fcgt` flag. Runs one FCGT test (elytra-trims, which drives
+      # the elytra renderer + ET compat) under the JaCoCo agent (-PfcgtCoverage), then builds the report.
+      # A real ET-transparency regression reds this step (the test asserts); the upload itself is
+      # non-blocking. -Psmoke -Pcompat=elytratrims fetches ElytraTrims into run/mods for the launch.
+      - name: FCGT coverage (fabric-26.2, elytra-trims)
+        run: |
+          xvfb-run -a -s "-screen 0 1280x1024x24" \
+            ./gradlew :fabric:fabric-26.2:runClientGametest -Psmoke -Pcompat=elytratrims \
+              -Psmoke.fcgt.only=elytra-trims -PfcgtCoverage --no-daemon --console=plain
+          ./gradlew fcgtCoverageReport --no-daemon --console=plain
+      - name: Upload FCGT coverage to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: build/reports/jacoco/fcgt/fcgt.xml
+          flags: fcgt
+          disable_search: true
+          fail_ci_if_error: false
+
   # Full matrix (all loaders/versions + Paper/Folia), parallelised. Meant to hang off schedule (nightly).
   full-matrix:
     name: Nightly full matrix

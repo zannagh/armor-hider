@@ -36,7 +36,7 @@ public class ArmorHiderCapeRenderer extends AbstractArmorHiderRenderer {
         if (mod.isEmpty()) {
             return RenderInterceptionResult.ignore();
         }
-        if (mod.shouldHide() && new ItemInfo(chest).isElytra() && carrier.isPlayerFlying()) {
+        if (mod.shouldHide() && new ItemInfo(chest).isElytra() && carrier.ah$isPlayerFlying()) {
             DebugLogger.log("CapeRendering: Player is flying with hidden elytra, suppressing cape rendering temporarily.");
             cancel(ci);
             return new RenderInterceptionResult(true, true, getTargetScope(), carrier, mod);

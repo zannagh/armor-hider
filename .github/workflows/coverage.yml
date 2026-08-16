@@ -41,6 +41,8 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: build/reports/jacoco/aggregate/jacocoAggregate.xml
+          # Tier-1 unit flag (see build.yml); the `fcgt` flag is uploaded from the smoke workflow.
+          flags: unit
           disable_search: true
           fail_ci_if_error: false
 

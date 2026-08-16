@@ -172,6 +172,47 @@ run {
     }
 }
 
+// Coverage from the in-game FCGT run, for Codecov's `fcgt` flag. The Tier-1 `aggregatedCoverage` above
+// only sees the `main` source set in the unit-test JVM, so client render code (render interceptors, the
+// elytra renderer, compat mixins) shows as untracked - none of it runs there. The FCGT client launch,
+// instrumented via `-PfcgtCoverage` (see multiloader-loom), drops a jacoco exec; this turns it into an
+// XML over the active fabric variant's `main` + `client` classes (mixins INCLUDED - the FCGT run is the
+// only place they execute, which is the whole reason for a separate flag). Only registered on the active
+// fabric variant; skipped unless the exec actually exists (i.e. an FCGT run with -PfcgtCoverage ran).
+run {
+    val current = stonecutter.current?.project
+    if (current != null && current.contains("fabric")) {
+        val commonProject = project(":common:$current")
+        val fabricProject = project(":fabric:$current")
+        evaluationDependsOn(commonProject.path)
+        val execFile = fabricProject.layout.buildDirectory.file("jacoco/fcgt.exec")
+        tasks.register<JacocoReport>("fcgtCoverageReport") {
+            group = "verification"
+            description = "Coverage from the in-game FCGT run (client launch with -PfcgtCoverage); " +
+                "covers the client render code (interceptors, elytra renderer, …) the Tier-1 report can't reach."
+            onlyIf { execFile.get().asFile.exists() }
+            executionData(execFile)
+            val sourceSets = commonProject.extensions.getByType(SourceSetContainer::class.java)
+            listOf("main", "client").forEach { name ->
+                sourceSets.findByName(name)?.let { ss ->
+                    sourceDirectories.from(ss.allSource.srcDirs)
+                    // Mixins excluded like aggregatedCoverage: their methods execute relocated into the
+                    // target class, so JaCoCo attributes them there and the mixin class always reads 0%
+                    // (a known JaCoCo+Mixin limitation) - counting them would just depress the flag.
+                    classDirectories.from(ss.output.classesDirs.asFileTree.matching { exclude("**/mixin/**") })
+                }
+            }
+            doFirst { delete(reports.html.outputLocation) }
+            reports {
+                xml.required.set(true)
+                html.required.set(true)
+                xml.outputLocation.set(layout.buildDirectory.file("reports/jacoco/fcgt/fcgt.xml"))
+                html.outputLocation.set(layout.buildDirectory.dir("reports/jacoco/fcgt/html"))
+            }
+        }
+    }
+}
+
 tasks.register("projectCleanup") {
     group = "build"
     description = "Delete build/run artifacts (run, logs, staging, build, out, bin) and stale stonecutter " +

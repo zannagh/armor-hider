@@ -170,6 +170,36 @@ public final class ArmorHiderRenderTypes {
         return ARMOR_GLINT_SWAPS.get();
     }
 
+    // Diagnostic counters for the ElytraTrims 4.x compat (ETElytraTrimSubmitMixin, >= 1.21.9). ET draws
+    // its custom elytra decorators through one shared submit helper we wrap. SEEN = our wrap fired at all
+    // (ET drew a trim through the helper) - proves the wrap is bound and ET is decorating. FADE = we
+    // scaled the trim's alpha to match a faded wing (the real "transparency works" path, only where ET
+    // draws translucent, i.e. >= 1.21.11). On < 1.21.11 ET draws cutout, which can't be faded, so the
+    // elytra is left untouched at partial opacity (only 0% full-hides, handled by ArmorHiderElytraRenderer
+    // cancelling the whole wing before ET even draws) - there SEEN climbs but FADE does not. The wrap is
+    // @Pseudo/require=0 and no-ops silently if ET's helper drifts, so - per this repo's convention - the
+    // ElytraTrims smoke asserts these while a trimmed elytra is worn.
+    private static final java.util.concurrent.atomic.AtomicLong ELYTRA_TRIM_SEEN =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong ELYTRA_TRIM_FADES =
+            new java.util.concurrent.atomic.AtomicLong();
+
+    public static void recordElytraTrimSeen() {
+        ELYTRA_TRIM_SEEN.incrementAndGet();
+    }
+
+    public static void recordElytraTrimFade() {
+        ELYTRA_TRIM_FADES.incrementAndGet();
+    }
+
+    public static long elytraTrimSeenCount() {
+        return ELYTRA_TRIM_SEEN.get();
+    }
+
+    public static long elytraTrimFadeCount() {
+        return ELYTRA_TRIM_FADES.get();
+    }
+
     // Test-only diagnostic switch, mirroring deferralEnabled. Flipped off, the glint pass keeps the
     // vanilla armorEntityGlint type (the pre-fix behaviour where the glint's EQUAL depth test fails
     // against our no-depth-write base and the glint vanishes on faded armor). The glint smoke toggles

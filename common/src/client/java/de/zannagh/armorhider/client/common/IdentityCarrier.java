@@ -15,11 +15,11 @@ import org.jspecify.annotations.NonNull;
 public interface IdentityCarrier {
     @Nullable String armorHider$playerName();
 
-    @Nullable ItemStack customHeadItem();
+    @Nullable ItemStack ah$getCustomHeadItem();
 
-    boolean isPlayerFlying();
+    boolean ah$isPlayerFlying();
 
-    default boolean isPlayerBlocking() { return false; }
+    default boolean ah$isPlayerBlocking() { return false; }
 
     default boolean armorHider$isPlayerInvisible() { return false; }
 
@@ -43,7 +43,7 @@ public interface IdentityCarrier {
      * Creates a rendering modification for the given equipment slot and item without setting the render context.
      * Returns {@code null} when no modification is needed.
      */
-    default SlotModification getModification(@NotNull EquipmentSlot slot, @Nullable ItemStack item) {
+    default SlotModification ah$getModification(@NotNull EquipmentSlot slot, @Nullable ItemStack item) {
         var mods = armorHider$getPlayerModifications();
         if (mods == null) {
             return SlotModification.empty();

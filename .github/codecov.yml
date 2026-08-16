@@ -15,6 +15,18 @@ comment:
   layout: "reach, diff, flags, files"
   require_changes: false
 
+# Two coverage sources, composed per-file by Codecov:
+#   unit - Tier-1 JVM unit tests (aggregatedCoverage), uploaded by build.yml / coverage.yml.
+#   fcgt - the in-game fabric-client-gametest run (fcgtCoverageReport), uploaded by smoke.yml. Reaches
+#          client render code (render interceptors, the elytra renderer, …) the unit JVM never loads.
+# Both carryforward so a run that produced only one flag (e.g. a PR that didn't run the smoke matrix)
+# keeps the other flag's last-known coverage from main instead of dropping it to zero.
+flags:
+  unit:
+    carryforward: true
+  fcgt:
+    carryforward: true
+
 # Belt-and-braces: these never reach the JaCoCo XML anyway, but make the intent explicit for Codecov.
 ignore:
   - "**/mixin/**"

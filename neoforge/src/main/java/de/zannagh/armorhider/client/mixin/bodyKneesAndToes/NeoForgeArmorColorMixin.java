@@ -55,7 +55,7 @@ public class NeoForgeArmorColorMixin {
     //private void wrapArmorModelPartAdd(ModelPartFeatureRenderer.Storage storage, RenderType renderType, SubmitNodeStorage.ModelPartSubmit submit, Operation<Void> original) {
     //? if 1.21.9 || 1.21.10
     //private void wrapArmorModelPartAdd(ModelPartFeatureRenderer.Storage storage, RenderType renderType, SubmitNodeStorage.ModelPartSubmit submit, Operation<Void> original) {
-        if (shouldApplyArmorTransparency()) {
+        if (ah$shouldApplyArmorTransparency()) {
 
             float alpha = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE, RenderScope.ELYTRA).renderModificationApi().getTransparencyAlpha();
 
@@ -99,7 +99,7 @@ public class NeoForgeArmorColorMixin {
     //private <S> void wrapArmorModelAdd(ModelFeatureRenderer.Storage storage, RenderType renderType, SubmitNodeStorage.ModelSubmit<S> submit, Operation<Void> original) {
     //? if 1.21.9 || 1.21.10
     //private <S> void wrapArmorModelAdd(ModelFeatureRenderer.Storage storage, RenderType renderType, SubmitNodeStorage.ModelSubmit<S> submit, Operation<Void> original) {
-        if (shouldApplyArmorTransparency()) {
+        if (ah$shouldApplyArmorTransparency()) {
 
             float alpha = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE, RenderScope.ELYTRA).renderModificationApi().getTransparencyAlpha();
 
@@ -143,7 +143,7 @@ public class NeoForgeArmorColorMixin {
             original.call(phase, submit);
             return;
         }
-        if (shouldApplyArmorTransparency()) {
+        if (ah$shouldApplyArmorTransparency()) {
             float alpha = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE, RenderScope.ELYTRA).renderModificationApi().getTransparencyAlpha();
 
             int origColor = modelSubmit.tintedColor();
@@ -169,7 +169,7 @@ public class NeoForgeArmorColorMixin {
     }
     //?}
 
-    private static boolean shouldApplyArmorTransparency() {
+    private static boolean ah$shouldApplyArmorTransparency() {
         if (!AhRenderManagementApi.hasScopeModification(RenderScope.ARMOR_PIECE)
                 && !AhRenderManagementApi.hasScopeModification(RenderScope.ELYTRA)) {
             return false;

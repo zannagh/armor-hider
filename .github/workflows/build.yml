@@ -102,6 +102,9 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: build/reports/jacoco/aggregate/jacocoAggregate.xml
+          # Tag as the Tier-1 unit flag so it composes with the `fcgt` flag (in-game FCGT coverage,
+          # uploaded by smoke.yml). Codecov carries forward whichever flag a given run didn't produce.
+          flags: unit
           disable_search: true
           fail_ci_if_error: false
 

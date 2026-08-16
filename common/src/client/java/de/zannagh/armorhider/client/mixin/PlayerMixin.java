@@ -122,14 +122,14 @@ public abstract class PlayerMixin
     }
 
     @Override
-    public @Nullable ItemStack customHeadItem() {
+    public @Nullable ItemStack ah$getCustomHeadItem() {
         Player player = (Player) (Object) this;
         ItemStack head = player.getItemBySlot(EquipmentSlot.HEAD);
         return head.isEmpty() ? null : head;
     }
 
     @Override
-    public boolean isPlayerFlying() {
+    public boolean ah$isPlayerFlying() {
         Player player = (Player) (Object) this;
         return player.isFallFlying() || player.getAbilities().flying;
     }
@@ -141,7 +141,7 @@ public abstract class PlayerMixin
     }
 
     @Override
-    public boolean isPlayerBlocking() {
+    public boolean ah$isPlayerBlocking() {
         Player player = (Player) (Object) this;
         return player.isBlocking();
     }

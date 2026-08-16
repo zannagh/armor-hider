@@ -413,7 +413,7 @@ public class GenderArmorLayerMixin {
             HumanoidRenderState state, @Coerce Object box, CallbackInfo ci) {
         if (!(state instanceof IdentityCarrier carrier)) return;
         ItemStack chestItem = (state instanceof AvatarRenderState avatar) ? avatar.chestEquipment : null;
-        var mod = carrier.getModification(EquipmentSlot.CHEST, chestItem);
+        var mod = carrier.ah$getModification(EquipmentSlot.CHEST, chestItem);
         if (mod.shouldHide() || mod.shouldDisableGlint()) {
             ci.cancel();
         }

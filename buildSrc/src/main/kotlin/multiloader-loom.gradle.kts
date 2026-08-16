@@ -354,6 +354,14 @@ if (branch == "fabric") {
             // -Psmoke.fcgt.only=iris-translucency on a dev machine with the run/ Iris shaderpack.
             add("iris-translucency" to "de.zannagh.armorhider.smoke.IrisTranslucencySmokeTest")
         }
+        // ElytraTrims transparency smoke. Its class (and the ETElytraTrimSubmitMixin it exercises) is
+        // stonecutter-gated to `>= 1.21.9 && < 26.3-0.snapshot.2`, so register the entrypoint on exactly
+        // that range or fabric-loader would try to resolve a commented-out class. Self-detects ET, so
+        // it's harmless without the jar; run it in isolation with
+        // `-Psmoke.fcgt.only=elytra-trims -Pcompat=elytratrims`.
+        if (sc.current.parsed >= "1.21.9" && sc.current.parsed < "26.3-0.snapshot.2") {
+            add("elytra-trims" to "de.zannagh.armorhider.smoke.ElytraTrimsSmokeTest")
+        }
         // First Person Model compat smoke. Guard must stay identical to the test class's own
         // `//? if fcgt && firstperson {` gate, or fabric-loader tries to resolve a commented-out class.
         if (hasProperty("firstperson.version")) {
@@ -463,6 +471,25 @@ if (branch == "fabric") {
                 // FCGT names this property in that very error message. Required for any gametest
                 // that joins a server - the codec injection is load-bearing and cannot be dropped.
                 jvmArguments.add("-Dfabric.client.gametest.disableNetworkSynchronizer=true")
+
+                // Opt-in JaCoCo coverage of the FCGT run (`-PfcgtCoverage`). The in-game tests exercise
+                // client render code (render interceptors, compat mixins, …) that the Tier-1 unit JVM
+                // never touches, so instrument this launch and emit an exec that fcgtCoverageReport
+                // (root project) turns into an XML for Codecov's `fcgt` flag. Scoped to our own package
+                // so we don't instrument (and slow) all of Minecraft. Off by default - it only matters
+                // in the smoke/coverage CI job, and would otherwise add agent overhead to every dev run.
+                if (project.hasProperty("fcgtCoverage")) {
+                    // The `jacocoAgent` config resolves to the wrapper jar (no Premain-Class); the
+                    // runnable agent is the `runtime`-classifier artifact, so resolve that explicitly.
+                    val jacocoVersion = extensions
+                        .getByType(org.gradle.testing.jacoco.plugins.JacocoPluginExtension::class.java).toolVersion
+                    val agentJar = configurations
+                        .detachedConfiguration(dependencies.create("org.jacoco:org.jacoco.agent:$jacocoVersion:runtime"))
+                        .singleFile
+                    val execFile = layout.buildDirectory.file("jacoco/fcgt.exec").get().asFile
+                    jvmArguments.add("-javaagent:${agentJar.absolutePath}=destfile=${execFile.absolutePath}"
+                            + ",append=false,includes=de.zannagh.armorhider.*")
+                }
             }
         }
         // Resolve the FCGT module artifact via a dedicated configuration so we can copy the
