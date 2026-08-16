@@ -1,24 +1,15 @@
 package de.zannagh.armorhider.configuration.abstractions;
 
 /**
- * A configuration item specifically designed for handling double-precision numeric values.
- * This class extends the {@link ConfigurationItemBase} with the type parameter {@code Double},
- * allowing it to store, retrieve, and manage double values with type safety.<br/><br/>
+ * A configuration item specifically designed for handling integer numeric values.
+ * This class extends {@link ConfigurationItemBase} with the type parameter {@code Integer},
+ * allowing it to store, retrieve, and manage integer values with type safety.
  *
- * This is an abstract class that requires the implementation of the {@code getDefaultValue} method
- * in its subclasses to define a default value for the configuration item.<br/><br/>
+ * Subclasses must implement {@link #getDefaultValue()} and may override {@link #getMinValue()} and
+ * {@link #getMaxValue()} to constrain the allowed range.
  *
- * The primary use case of this class is to represent numeric configuration data
- * such as opacity levels, thresholds, or any other application-specific double values.<br/><br/>
- *
- * Constructors:
- * - {@link IntConfigurationItem#IntConfigurationItem(Integer)}: Initializes the configuration item
- *   with a specific value.
- * - {@link IntConfigurationItem#IntConfigurationItem()}: Initializes the configuration item
- *   with a default value, as defined by the {@code getDefaultValue} method.<br/><br/>
- *
- * Subclasses should implement the {@code getDefaultValue} method to return a meaningful default
- * value for the specific use case of the configuration item.
+ * Values are sanitized via {@link #sanitize(Integer)} by clamping into the configured range and
+ * falling back to the default when {@code null}.
  */
 public abstract class IntConfigurationItem extends ConfigurationItemBase<Integer> {
 
@@ -41,14 +32,12 @@ public abstract class IntConfigurationItem extends ConfigurationItemBase<Integer
     }
 
     /**
-     * Rejects non-finite values (NaN / ±Infinity) outright and clamps everything else into
-     * {@code [getMinValue(), getMaxValue()]}. NaN in particular has to be caught here: it round-trips
-     * through the config item happily but makes {@code Gson#toJson} throw {@link IllegalArgumentException},
-     * which escapes the IOException-only catch in the save path and can leave a settings screen unclosable.
+     * Clamps {@code candidate} into {@code [getMinValue(), getMaxValue()]} and falls back to the default
+     * when {@code null}.
      */
     @Override
     protected Integer sanitize(Integer candidate) {
-        if (candidate == null || !Double.isFinite(candidate)) {
+        if (candidate == null) {
             return getDefaultValue();
         }
         // Math.clamp is Java 21+; 1.20.1 builds on Java 17.
