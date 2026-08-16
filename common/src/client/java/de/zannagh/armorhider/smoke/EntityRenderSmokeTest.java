@@ -2,9 +2,12 @@
 package de.zannagh.armorhider.smoke;
 
 import de.zannagh.armorhider.ArmorHider;
+import de.zannagh.armorhider.api.compat.CompatFlags;
+import de.zannagh.armorhider.api.compat.CompatManager;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.api.impl.AhRenderStateImpl;
 import de.zannagh.armorhider.client.common.RenderScope;
+import de.zannagh.armorhider.client.render.AhArmProbe;
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 import net.minecraft.client.CameraType;
@@ -43,6 +46,7 @@ public final class EntityRenderSmokeTest implements FabricClientGameTest {
         ArmorHider.LOGGER.info("[smoke/fcgt] Entry render smoke starting");
         // Hold here until the title screen is ready to take input.
         context.waitForScreen(TitleScreen.class);
+        AhArmProbe.enable();
 
         // Default `worldBuilder().create()` generates a survival world with normal terrain,
         // which spends 2+ minutes on spawn-chunk generation before the render window opens.
@@ -79,14 +83,22 @@ public final class EntityRenderSmokeTest implements FabricClientGameTest {
                         .resolveConfig(ArmorHiderClient.getCurrentPlayerName());
                 // 50% helmet opacity → ARMOR_PIECE must enter with a real modification (asserted below).
                 config.helmetOpacity.setValue(0.5);
-                // 0% chest opacity → elytra is fully hidden, driving the cancel-at-HEAD path.
-                config.chestOpacity.setValue(0.0);
+                // Elytra has its own slider. Capture it fully visible first (important for EMF/FA
+                // custom wing models), then hide and restore it below.
+                config.elytraOpacity.setValue(1.0);
             });
 
-            // 20 ticks ≈ 1 s @ 20 TPS - enough for the render pipeline to draw several frames
-            // covering every layer mixin. We're only checking "doesn't crash"; correctness
-            // verification would need screenshot diffing (out of scope, see scripts/README.md).
-            context.waitTicks(20);
+            context.waitTicks(10);
+            context.takeScreenshot("armorhider_elytra_visible_100");
+            context.runOnClient(client -> ArmorHiderClient.CLIENT_CONFIG_MANAGER
+                    .resolveConfig(ArmorHiderClient.getCurrentPlayerName())
+                    .elytraOpacity.setValue(0.0));
+            context.waitTicks(10);
+            context.runOnClient(client -> ArmorHiderClient.CLIENT_CONFIG_MANAGER
+                    .resolveConfig(ArmorHiderClient.getCurrentPlayerName())
+                    .elytraOpacity.setValue(0.5));
+            context.waitTicks(10);
+            context.takeScreenshot("armorhider_elytra_restored_50");
 
             // The render hooks fail *silently* when injection targets drift between MC
             // versions (see NeoForge 1.21.4–1.21.8 pipeline regression) - assert the
@@ -99,6 +111,22 @@ public final class EntityRenderSmokeTest implements FabricClientGameTest {
                                     + " - the render interception pipeline is dead on this version");
                 }
                 ArmorHider.LOGGER.info("[smoke/fcgt] ARMOR_PIECE modified scope entries: {}", entries);
+
+                long elytraEntries = AhRenderStateImpl.modifiedScopeEnterCount(RenderScope.ELYTRA);
+                // Armored Elytra replaces the vanilla wings submit even for this synthetic setup;
+                // its dedicated smoke owns that path. This assertion targets vanilla/EMF wings.
+                if (elytraEntries == 0
+                        && !CompatManager.requiresCompatTo(CompatFlags.ARMORED_ELYTRA)) {
+                    throw new IllegalStateException(
+                            "[smoke/fcgt] ELYTRA scope never resumed after being restored");
+                }
+                ArmorHider.LOGGER.info("[smoke/fcgt] ELYTRA modified scope entries: {}", elytraEntries);
+
+                if (CompatManager.requiresCompatTo(CompatFlags.ENTITY_MODEL_FEATURES)
+                        && AhArmProbe.equipmentFallbackCount() == 0) {
+                    throw new IllegalStateException(
+                            "[smoke/fcgt] EMF armor/elytra never fell back to vanilla geometry");
+                }
 
                 // No scope may be left active for a bulk clear to sweep up: that means it was entered
                 // on a render path cancelled before its exit hook ran (e.g. elytra hidden at 0%), and

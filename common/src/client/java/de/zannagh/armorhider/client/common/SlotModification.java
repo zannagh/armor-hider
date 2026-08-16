@@ -54,10 +54,10 @@ public record SlotModification(
     public static boolean shouldUseVanilla(PlayerConfig config){
         var manager = ArmorHiderClient.CLIENT_CONFIG_MANAGER;
 
-        // Server-wide force-off is the final guard - it overrides everything for every player, including the
-        // local one (the server always has the last say).
-        var serverConfig = manager.getServerConfig();
-        if (serverConfig != null && serverConfig.serverWideSettings.forceArmorHiderOff.getValue()) {
+        // This is a viewer-local master switch, so it applies to every player being rendered.
+        // Otherwise the session key only restores the local player's vanilla armor and leaves
+        // remote armor/elytra on Armor Hider's translucent or hidden render paths.
+        if (manager.isArmorHiderGloballyDisabled()) {
             return true;
         }
 
@@ -70,14 +70,7 @@ public record SlotModification(
         boolean isLocalPlayer = config == manager.getLocalPlayerConfig()
                 || config.playerName.getValue().equals(ArmorHiderClient.getCurrentPlayerName());
 
-        // "Disable Armor Hider" master switch. For the local player this reads the effective state - the
-        // transient keybind override if one is active, otherwise the persisted setting - so the toggle key
-        // takes effect without touching disk. For everyone else the flag on their own resolved config applies.
-        // When set it trumps the opacity sliders and renders vanilla.
-        boolean disableArmorHider = isLocalPlayer
-                ? manager.isLocalArmorHiderDisabledEffective()
-                : config.disableArmorHider.getValue();
-        if (disableArmorHider || config.playerName.getValue().isBlank()) {
+        if (config.disableArmorHider.getValue() || config.playerName.getValue().isBlank()) {
             return true;
         }
 

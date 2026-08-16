@@ -9,10 +9,19 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import de.zannagh.armorhider.client.api.AhRenderManagementApi;
 import de.zannagh.armorhider.client.api.AhRenderInterceptionRegistryApi;
 import de.zannagh.armorhider.client.common.RenderScope;
+import de.zannagh.armorhider.client.common.VanillaRootAccessor;
+import de.zannagh.armorhider.client.render.AhArmProbe;
+import de.zannagh.armorhider.client.render.RenderModifications;
 import de.zannagh.armorhider.client.render.VanillaArmorTextureManager;
 import de.zannagh.armorhider.client.render.rendertype.ArmorHiderRenderTypes;
 import de.zannagh.armorhider.log.DebugLogger;
 import net.minecraft.client.model.Model;
+//? if >= 1.21.11 {
+import net.minecraft.client.model.HumanoidModel;
+import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.client.model.object.equipment.ElytraModel;
+import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
+//?}
 import net.minecraft.client.renderer.entity.layers.EquipmentLayerRenderer;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.resources.model.EquipmentClientInfo;
@@ -56,6 +65,60 @@ public class EquipmentRenderMixin {
 
     @Unique
     private static final ThreadLocal<EquipmentClientInfo.LayerType> armorHider$combatLayerType = new ThreadLocal<>();
+
+    //? if >= 1.21.11 {
+    /**
+     * EMF/Fresh Animations models are rendered later than this equipment submission in 1.21.11+.
+     * Keep the vanilla fallback with the queued draw instead of consulting the already-exited render
+     * scope from EMFModelPart.render. The original model still supplies the live pose.
+     */
+    @Unique
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static <S> Model<? super S> armorHider$vanillaEquipmentModel(
+            Model<? super S> original, boolean useVanilla) {
+        if (!useVanilla || !((Object) original.root() instanceof VanillaRootAccessor accessor)) {
+            return original;
+        }
+        ModelPart vanillaRoot = accessor.armorHider$getVanillaRoot();
+        if (vanillaRoot == null) {
+            return original;
+        }
+        if (AhArmProbe.isEnabled()) {
+            AhArmProbe.recordEquipmentFallback();
+        }
+
+        // Preserve the concrete vanilla model types. EMF's deferred renderer checks for
+        // HumanoidModel before replaying the animated player pose onto armor; a plain Model wrapper
+        // skips that step and leaves armor pieces in stale/default poses. ElytraModel likewise owns
+        // the live wing rotations used by the queued draw.
+        if (original instanceof HumanoidModel<?> humanoid) {
+            return (Model<? super S>) new HumanoidModel<HumanoidRenderState>(
+                    vanillaRoot, original::renderType) {
+                @Override
+                public void setupAnim(HumanoidRenderState state) {
+                    ((Model) humanoid).setupAnim(state);
+                    RenderModifications.synchronisePoses(humanoid.root(), vanillaRoot);
+                }
+            };
+        }
+        if (original instanceof ElytraModel elytra) {
+            return (Model<? super S>) new ElytraModel(vanillaRoot) {
+                @Override
+                public void setupAnim(HumanoidRenderState state) {
+                    elytra.setupAnim(state);
+                    RenderModifications.synchronisePoses(elytra.root(), vanillaRoot);
+                }
+            };
+        }
+        return new Model<S>(vanillaRoot, original::renderType) {
+            @Override
+            public void setupAnim(S state) {
+                original.setupAnim(state);
+                RenderModifications.synchronisePoses(original.root(), vanillaRoot);
+            }
+        };
+    }
+    //?}
 
     //? if >= 1.21.9
     @Unique private static final String RENDER_LAYERS_ENTRY = "renderLayers(Lnet/minecraft/client/resources/model/EquipmentClientInfo$LayerType;Lnet/minecraft/resources/ResourceKey;Lnet/minecraft/client/model/Model;Ljava/lang/Object;Lnet/minecraft/world/item/ItemStack;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;II)V";
@@ -318,8 +381,10 @@ public class EquipmentRenderMixin {
                 DebugLogger.log("[CombatSingleLayer] Allowed first layer submit | renderType={}", renderType);
             }
         }
-        var modifiedColor = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE, RenderScope.ELYTRA).renderModificationApi().applyArmorTransparency(color);
-        original.call(collector, model, state, poseStack, renderType, light, overlay, modifiedColor, uvMapping, param9);
+        var ctx = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE, RenderScope.ELYTRA);
+        var modifiedColor = ctx.renderModificationApi().applyArmorTransparency(color);
+        var submittedModel = armorHider$vanillaEquipmentModel(model, ctx.modification().needsTranslucency());
+        original.call(collector, submittedModel, state, poseStack, renderType, light, overlay, modifiedColor, uvMapping, param9);
     }
     *///? } else {
     private <S> void modifyArmorColor(OrderedSubmitNodeCollector collector, Model<? super S> model, S state, PoseStack poseStack, RenderType renderType, int light, int overlay, int color, TextureAtlasSprite sprite, int param9, ModelFeatureRenderer.CrumblingOverlay crumblingOverlay, Operation<Void> original) {
@@ -336,8 +401,10 @@ public class EquipmentRenderMixin {
                 DebugLogger.log("[CombatSingleLayer] Allowed first layer submit | renderType={}", renderType);
             }
         }
-        var modifiedColor = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE, RenderScope.ELYTRA).renderModificationApi().applyArmorTransparency(color);
-        original.call(collector, model, state, poseStack, renderType, light, overlay, modifiedColor, sprite, param9, crumblingOverlay);
+        var ctx = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE, RenderScope.ELYTRA);
+        var modifiedColor = ctx.renderModificationApi().applyArmorTransparency(color);
+        var submittedModel = armorHider$vanillaEquipmentModel(model, ctx.modification().needsTranslucency());
+        original.call(collector, submittedModel, state, poseStack, renderType, light, overlay, modifiedColor, sprite, param9, crumblingOverlay);
     }
     //? }
     //?}
