@@ -11,6 +11,12 @@ repositories {
     mavenCentral()
 }
 
+// 26.x variants compile to Java 25 bytecode (class file major 69); only JaCoCo >= 0.8.14 can read it, so
+// pin the aggregate/e2e report tooling rather than rely on the Gradle-bundled default.
+jacoco {
+    toolVersion = providers.gradleProperty("jacoco.version").getOrElse("0.8.14")
+}
+
 stonecutter active "fabric-26.2" /* [SC] DO NOT EDIT */
 
 stonecutter parameters {
@@ -168,6 +174,55 @@ run {
             html.required.set(true)
             html.outputLocation.set(layout.buildDirectory.dir("reports/jacoco/aggregate/html"))
             xml.outputLocation.set(layout.buildDirectory.file("reports/jacoco/aggregate/jacocoAggregate.xml"))
+        }
+    }
+}
+
+// E2E (Tier-3) coverage from the FCGT smoke run. The FCGT client JVM writes build/jacoco/e2e-client.exec
+// when launched with -Psmoke.coverage (see the clientGametest run config in multiloader-loom); this task
+// turns it into a JaCoCo report over the fabric FCGT variant's main+client source sets. Unlike the unit
+// report it does NOT exclude the render package - the whole point is to credit the render pipeline and the
+// mod's client/config/net logic that only executes inside a live client. The mixin package is included
+// too but stays best-effort: Mixin transplants @Inject handler bytecode onto the vanilla target class, so
+// pure inject handlers are not reliably attributed - the plain classes they delegate to are. Consumed by
+// the smoke CI job and uploaded to Codecov under the `e2e` flag, separate from the `unit` aggregate.
+// Only wire this up when e2eCoverage is actually on the command line: registering it forces evaluation of
+// the fabric loom variant (for its source sets), which every other build - aggregatedCoverage, publish -
+// has no reason to pay.
+val wantsE2eCoverage = gradle.startParameter.taskNames.any { it.substringAfterLast(':') == "e2eCoverage" }
+run {
+    val coverageVariant = (findProperty("smoke.coverage.variant")?.toString()) ?: "fabric-26.2"
+    val e2eProject = if (wantsE2eCoverage) findProject(":fabric:$coverageVariant") else null
+    if (e2eProject != null) {
+        evaluationDependsOn(e2eProject.path)
+        tasks.register<JacocoReport>("e2eCoverage") {
+            group = "verification"
+            description = "Tier-3 (FCGT E2E) coverage from build/jacoco/e2e-client.exec over $coverageVariant."
+            val execFile = layout.buildDirectory.file("jacoco/e2e-client.exec")
+            // Tolerate a missing .exec (coverage run not yet performed) rather than fail configuration.
+            executionData(files(execFile).filter { it.exists() })
+            val ssc = e2eProject.extensions.getByType(SourceSetContainer::class.java)
+            listOf("main", "client").forEach { name ->
+                ssc.findByName(name)?.let { ss -> sourceDirectories.from(ss.allSource.srcDirs) }
+            }
+            // Analyse the CLEAN classes that offlineInstrumentForCoverage backed up (the source-set
+            // outputs are probed in place during a coverage run and JaCoCo cannot analyse instrumented
+            // bytecode). Exclude the mixin package (never instrumented - would report 0% and mislead) and
+            // the smoke test scaffolding itself.
+            val backupRoot = layout.buildDirectory.dir("jacoco/classes-orig")
+            classDirectories.from(
+                fileTree(backupRoot).matching {
+                    exclude("**/mixin/**")
+                    exclude("**/smoke/**")
+                }
+            )
+            doFirst { delete(reports.html.outputLocation) }
+            reports {
+                xml.required.set(true)
+                html.required.set(true)
+                html.outputLocation.set(layout.buildDirectory.dir("reports/jacoco/e2e/html"))
+                xml.outputLocation.set(layout.buildDirectory.file("reports/jacoco/e2e/e2eCoverage.xml"))
+            }
         }
     }
 }

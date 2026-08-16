@@ -66,6 +66,7 @@ class FcgtScenarioTest {
         cmd.add("-Psmoke.delay.ms=" + System.getProperty("smoke.delay.ms", "15000"));
         cmd.add("--console=plain");
         cmd.add("--no-daemon");
+        cmd.add("--build-cache");
 
         // FCGT calls System.exit when the (single, filtered) gametest returns, so the real exit code
         // is meaningful - wait for the natural exit.

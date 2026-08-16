@@ -10,6 +10,12 @@ repositories {
     }
 }
 
+// 26.x variants compile to Java 25 bytecode (class file major 69); only JaCoCo >= 0.8.14 can read it, so
+// pin the tooling rather than rely on the Gradle-bundled default.
+jacoco {
+    toolVersion = providers.gradleProperty("jacoco.version").getOrElse("0.8.14")
+}
+
 val sc = project.stonecutterBuild
 val loader = sc.branch.id
 sc.constants["fabric"] = sc.current.project.contains("fabric")

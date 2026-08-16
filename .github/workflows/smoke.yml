@@ -1,22 +1,26 @@
-# Tiered headless smoke on the self-hosted `fcgt` runner (Xvfb + Mesa llvmpipe software GL).
+# Headless smoke gate for PRs into main, plus a nightly full matrix and E2E-coverage job.
 #
-# HARD-DISABLED for now, on purpose. This lands the wiring so it's ready, but nothing runs until you
-# opt in - both jobs are gated on the repo variable SMOKE_CI_ENABLED, and the only trigger is manual
-# (workflow_dispatch). To turn it on later:
-#   1. Set repo variable SMOKE_CI_ENABLED = true (Settings > Secrets and variables > Actions > Variables).
-#   2. Uncomment the pull_request trigger (fast lane) and/or the schedule trigger (nightly full matrix).
-# The full matrix currently still has genuine reds (emf-fa on 26.2, the batched-FCGT render rows), so
-# keep it non-blocking until those are addressed.
+# These tests boot a REAL Minecraft client (FCGT) under Xvfb + Mesa llvmpipe software GL, which only the
+# self-hosted `fcgt` runner provides - a stock GitHub-hosted runner has no software GL and cannot run them.
+# So the gate is self-guarding: the `detect` job asks whether an `fcgt` runner is actually online; if not
+# (or on a fork PR with no RUNNER_TOKEN), the smoke job is skipped and the required `smoke-result` check
+# still passes. When a runner IS available, `smoke-result` fails iff the smoke job failed - a real merge gate.
+#
+# Budget: the PR gate runs the full FCGT scenario batch on fabric-26.2 in BOTH compat modes (~3m50) plus a
+# parallel boot-breadth sweep of the other current versions (~1m30) - comfortably under the 7-minute cap.
+# The exhaustive loader/version matrix and the E2E-coverage upload run nightly (or via workflow_dispatch),
+# not on every PR.
 name: Smoke (headless)
 
 on:
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
   workflow_dispatch:
-  # Enable later for the ~2-min PR gate (boots fabric-26.2 only):
-  # pull_request:
-  #   paths-ignore: ['**.md', 'docs/**']
-  # Enable later for the nightly full matrix:
-  # schedule:
-  #   - cron: '0 3 * * *'
+  schedule:
+    - cron: '0 3 * * *'
 
 permissions:
   contents: read
@@ -26,27 +30,99 @@ env:
   LIBGL_ALWAYS_SOFTWARE: "1"
   MESA_GL_VERSION_OVERRIDE: "4.5"
 
+concurrency:
+  group: smoke-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  # ~2-minute PR gate: just the active variant, single compat. Meant to hang off pull_request.
-  fast-lane:
-    name: PR fast-lane (fabric-26.2)
-    if: ${{ vars.SMOKE_CI_ENABLED == 'true' }}
+  # Is a self-hosted `fcgt` runner online? determine-runner degrades to default-runs-on when the runner
+  # is absent or RUNNER_TOKEN is missing (e.g. fork PRs), so `runner` simply won't contain `fcgt` then.
+  detect:
+    name: Detect FCGT runner
+    runs-on: ubuntu-latest
+    outputs:
+      has_fcgt: ${{ steps.flag.outputs.has_fcgt }}
+    steps:
+      - name: Look for an fcgt runner
+        id: pick
+        uses: zannagh/versionizer/determine-runner@v1
+        with:
+          runner-token: ${{ secrets.RUNNER_TOKEN }}
+          required-labels: 'self-hosted,fcgt'
+          default-runs-on: 'ubuntu-latest'
+      - name: Derive flag
+        id: flag
+        run: |
+          if printf '%s' '${{ steps.pick.outputs.runner }}' | grep -q 'fcgt'; then
+            echo "has_fcgt=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_fcgt=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::No self-hosted 'fcgt' runner online - headless smoke will be skipped (not a merge blocker)."
+          fi
+
+  # The PR gate itself. Only runs when a real fcgt runner exists.
+  smoke:
+    name: PR smoke gate (fabric-26.2)
+    needs: detect
+    if: needs.detect.outputs.has_fcgt == 'true'
     runs-on: [self-hosted, fcgt]
+    timeout-minutes: 12
     steps:
       - name: Checkout
         uses: actions/checkout@v7
       - name: Setup Gradle Environment
         uses: zannagh/versionizer/setup-gradle-env@v1
-      - name: Fast smoke (fabric-26.2, single compat)
+
+      # Full FCGT scenario batch on the active version, bare (compat=none) AND full-stack (compat=all).
+      # One launch per compat set; each runs entity-render + individual-config + keybind + combat +
+      # water/glint/gender/elytra + emf-fa. emf-fa self-skips its EMF-custom-model assertions under
+      # software GL (capability probe), so it never falsely reds here.
+      - name: Core scenarios (fabric-26.2, both compat)
         run: |
           xvfb-run -a -s "-screen 0 1280x1024x24" \
-            ./gradlew :smoke:smokeTest -Dsmoke.only=fabric-26.2 -Dsmoke.compat=none --no-daemon --console=plain
+            ./gradlew :smoke:smokeTest -Dsmoke.only=fabric-26.2 -Dsmoke.phase=entity-render \
+              --build-cache --no-daemon --console=plain
 
-  # Full matrix (all loaders/versions + Paper/Folia), parallelised. Meant to hang off schedule (nightly).
+      # Cross-version / cross-loader boot breadth. compat=none (the full compat stack is Fabric-only), run
+      # across variants in parallel so the wall-clock is one wave, not a sum.
+      - name: Boot breadth (current versions)
+        run: |
+          xvfb-run -a -s "-screen 0 1280x1024x24" \
+            ./gradlew :smoke:smokeTest -Dsmoke.phase=boot \
+              -Dsmoke.only=fabric-1.21.11,neoforge-26.2,neoforge-1.21.11 \
+              -Dsmoke.compat=none -Dsmoke.parallel=4 \
+              --build-cache --no-daemon --console=plain
+
+  # Required status check. Passes when smoke succeeded OR was skipped for lack of a runner; fails only when
+  # smoke actually ran and failed. Set THIS job as the required check in branch protection, not `smoke`.
+  smoke-result:
+    name: Smoke gate result
+    needs: [detect, smoke]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Evaluate
+        run: |
+          echo "has_fcgt=${{ needs.detect.outputs.has_fcgt }} smoke=${{ needs.smoke.result }}"
+          if [ "${{ needs.smoke.result }}" = "failure" ]; then
+            echo "::error::Headless smoke failed - see the 'PR smoke gate' job."
+            exit 1
+          fi
+          if [ "${{ needs.detect.outputs.has_fcgt }}" != "true" ]; then
+            echo "No fcgt runner available; smoke skipped. Passing gate."
+            exit 0
+          fi
+          echo "Smoke passed (${{ needs.smoke.result }})."
+          exit 0
+
+  # Exhaustive loader/version matrix (all Fabric+NeoForge variants, Paper/Folia), parallelised. Nightly and
+  # on-demand only - too broad and slow for a per-PR gate.
   full-matrix:
     name: Nightly full matrix
-    if: ${{ vars.SMOKE_CI_ENABLED == 'true' }}
+    if: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && needs.detect.outputs.has_fcgt == 'true' }}
+    needs: detect
     runs-on: [self-hosted, fcgt]
+    timeout-minutes: 90
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -56,3 +132,39 @@ jobs:
         run: |
           xvfb-run -a -s "-screen 0 1280x1024x24" \
             ./gradlew :smoke:smokeTest -Dsmoke.parallel=4 --no-daemon --console=plain
+
+  # E2E line coverage from an offline-instrumented FCGT run (fabric-26.2, full-stack), uploaded to Codecov
+  # under the `e2e` flag so render/config/net lines exercised only in a live client are credited alongside
+  # the Tier-1 unit coverage. Nightly/on-demand: instrumentation adds overhead we keep off the PR gate.
+  coverage:
+    name: E2E coverage (fabric-26.2)
+    if: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && needs.detect.outputs.has_fcgt == 'true' }}
+    needs: detect
+    runs-on: [self-hosted, fcgt]
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Setup Gradle Environment
+        uses: zannagh/versionizer/setup-gradle-env@v1
+      # Single instrumented launch (all scenarios, compat=all) writes build/jacoco/e2e-client.exec. The
+      # offline JaCoCo runtime dumps on JVM shutdown regardless of exit code, so even if one scenario reds
+      # the exec still holds everything up to it - hence the report/upload steps run with if: always().
+      - name: Instrumented FCGT run
+        run: |
+          rm -rf build/jacoco
+          xvfb-run -a -s "-screen 0 1280x1024x24" \
+            ./gradlew :fabric:fabric-26.2:runClientGametest -Psmoke -Pcompat=all -Psmoke.coverage \
+              --no-daemon --console=plain
+      - name: E2E JaCoCo report
+        if: always()
+        run: ./gradlew e2eCoverage --no-daemon --console=plain
+      - name: Upload E2E coverage to Codecov
+        if: always()
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: build/reports/jacoco/e2e/e2eCoverage.xml
+          flags: e2e
+          disable_search: true
+          fail_ci_if_error: false

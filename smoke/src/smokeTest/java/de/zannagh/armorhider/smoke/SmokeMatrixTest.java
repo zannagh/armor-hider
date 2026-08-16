@@ -195,7 +195,11 @@ class SmokeMatrixTest {
         cmd.add("-Pcompat=" + compat);
         cmd.add("-Psmoke.delay.ms=" + System.getProperty("smoke.delay.ms", "15000"));
         cmd.add("--console=plain");
+        // --no-daemon is load-bearing: the game JVM is a child of this forked ./gradlew, so the
+        // watchdog can reap the whole tree on timeout. A daemon would reparent the game JVM and orphan
+        // it. --build-cache lets a variant's compile outputs be reused across its two compat rows.
         cmd.add("--no-daemon");
+        cmd.add("--build-cache");
 
         Lock variantLock = VARIANT_LOCKS.computeIfAbsent(variant, v -> new ReentrantLock());
         variantLock.lock();
