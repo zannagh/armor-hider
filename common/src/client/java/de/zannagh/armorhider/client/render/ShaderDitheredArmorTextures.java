@@ -11,6 +11,7 @@ import com.mojang.blaze3d.platform.NativeImage;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.server.packs.resources.Resource;
+import net.minecraft.server.packs.resources.ResourceManager;
 
 import java.io.InputStream;
 import java.util.List;
@@ -72,6 +73,9 @@ public final class ShaderDitheredArmorTextures {
         if (base == null) {
             return null;
         }
+        // Drop cached dither textures when the resource stack changes (resource-pack swap / F3+T), so a
+        // stale base texture isn't reused and the generated DynamicTextures don't accumulate forever.
+        invalidateCacheIfNeeded();
         int bucket = Math.round(opacity * BUCKETS);
         if (bucket <= 0) {
             bucket = 1;
@@ -119,6 +123,27 @@ public final class ShaderDitheredArmorTextures {
     }
 
     //? if >= 26.2-1.pre && < 26.3-0.snapshot.2 {
+    // The resource stack in effect when the current cache entries were built. A resource reload swaps
+    // the ResourceManager instance, so an identity change signals that cached textures are stale.
+    private static ResourceManager lastResourceManager;
+
+    private static void invalidateCacheIfNeeded() {
+        ResourceManager current = Minecraft.getInstance().getResourceManager();
+        if (current == lastResourceManager) {
+            return;
+        }
+        if (lastResourceManager != null && !REGISTERED.isEmpty()) {
+            var textureManager = Minecraft.getInstance().getTextureManager();
+            for (Identifier id : REGISTERED) {
+                textureManager.release(id);
+            }
+            ArmorHider.LOGGER.debug("[armor-hider] resource reload - released {} cached dither textures",
+                    REGISTERED.size());
+        }
+        REGISTERED.clear();
+        lastResourceManager = current;
+    }
+
     private static NativeImage readBaseTexture(Identifier base) throws Exception {
         List<Resource> stack = Minecraft.getInstance().getResourceManager().getResourceStack(base);
         if (stack.isEmpty()) {
