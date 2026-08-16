@@ -13,11 +13,12 @@
 name: Smoke (headless)
 
 on:
+  # No paths-ignore: smoke-result is meant to be a REQUIRED status check, and a workflow skipped by
+  # paths-ignore never reports its checks - a docs-only PR would then wait forever on a missing required
+  # check. Trigger on every PR to main; the detect->skip path keeps it cheap when no runner is available,
+  # and the whole thing is ~1-2 min of ubuntu time plus a short self-hosted run when a runner exists.
   pull_request:
     branches: [main]
-    paths-ignore:
-      - '**.md'
-      - 'docs/**'
   workflow_dispatch:
   schedule:
     - cron: '0 3 * * *'

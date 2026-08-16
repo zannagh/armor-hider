@@ -567,8 +567,9 @@ if (branch == "fabric") {
                         // Copy probed classes back over the originals, EXCEPT the mixin package (keep raw
                         // bytes there so Mixin can still apply them and @Inject handlers are not miscounted).
                         instrDir.walkTopDown().filter { it.isFile }.forEach { src ->
-                            val rel = src.relativeTo(instrDir).path
-                            if (!rel.replace('\\', '/').contains("/mixin/") && !rel.startsWith("mixin/")) {
+                            // Normalize separators once so the mixin-package exclusion holds on Windows too.
+                            val rel = src.relativeTo(instrDir).path.replace('\\', '/')
+                            if (!rel.contains("/mixin/") && !rel.startsWith("mixin/")) {
                                 val dest = java.io.File(dir, rel)
                                 dest.parentFile?.mkdirs()
                                 src.copyTo(dest, overwrite = true)
