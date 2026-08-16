@@ -378,6 +378,18 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
     @SerializedName(value = "globalPlayerOverride")
     public @Nullable PlayerConfig globalPlayerOverride;
 
+    @SerializedName(value = "irisDitheringScale")
+    public @NonNull IrisDitheringScale irisDitheringScale;
+
+    @SerializedName(value = "irisDitherPhases")
+    public @NonNull IrisDitherPhases irisDitheringPhases;
+
+    @SerializedName(value = "irisDitherResCap")
+    public @NonNull IrisDitherResCap irisDitheringResCap;
+
+    @SerializedName(value = "irisPartialTransparencyMode")
+    public @NonNull IrisTransparencyMode irisPartialTransparencyMode;
+
     public @NonNull PlayerUuid playerId;
 
     public @NonNull PlayerName playerName;
@@ -427,6 +439,11 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         // globalPlayerOverride is intentionally left null here (lazy) to avoid infinite ctor recursion.
         exclusionItems = ExclusionItemConfiguration.defaults();
         settingsScreenLocation = new SettingsScreenLocation();
+
+        irisDitheringScale = new IrisDitheringScale();
+        irisDitheringPhases = new IrisDitherPhases();
+        irisDitheringResCap = new IrisDitherResCap();
+        irisPartialTransparencyMode = new IrisTransparencyMode();
     }
 
     public @NonNull ExclusionItemConfiguration getExclusionItems() {
@@ -593,6 +610,11 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         fresh.elytraGlint.setValue(old.opacityAffectingElytra.getValue() ? old.chestGlint.getValue() : true);
         fresh.settingsScreenLocation.migrate(old);
 
+        fresh.irisDitheringPhases.setValue(old.irisDitheringPhases.getValue());
+        fresh.irisDitheringScale.setValue(old.irisDitheringScale.getValue());
+        fresh.irisDitheringResCap.setValue(old.irisDitheringResCap.getValue());
+        fresh.irisPartialTransparencyMode.setValue(old.irisPartialTransparencyMode.getValue());
+
         fresh.setHasChangedFromSerializedContent();
         return fresh;
     }
@@ -682,6 +704,10 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         newConfig.bootsGlint.setValue(this.bootsGlint.getValue());
         newConfig.exclusionItems = this.getExclusionItems().deepCopy();
         newConfig.settingsScreenLocation.setValue(settingsScreenLocation.getValue());
+        newConfig.irisDitheringPhases.setValue(this.irisDitheringPhases.getValue());
+        newConfig.irisDitheringScale.setValue(this.irisDitheringScale.getValue());
+        newConfig.irisDitheringResCap.setValue(this.irisDitheringResCap.getValue());
+        newConfig.irisPartialTransparencyMode.setValue(this.irisPartialTransparencyMode.getValue());
         return newConfig;
     }
 }

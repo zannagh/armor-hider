@@ -132,6 +132,17 @@ public final class ClientCommunicationManager {
             if (currentConfig.disableArmorHider.getValue()) {
                 McClientUtils.showChatMessage(Component.translatable("armorhider.notice.disabled_on_join"));
             }
+            //? if >= 26.2-1.pre && < 26.3-0.snapshot.2 {
+            // On the version family where partial-opacity armor can't be a true translucency under a
+            // shaderpack (see ShaderDitheredArmorTextures), the mod substitutes a dithered opaque render.
+            // If a shaderpack is loaded and dithering is enabled, tell the viewer once per join so the
+            // stipple look doesn't read as a bug and they know where to change it.
+            else if (de.zannagh.armorhider.client.render.rendertype.ArmorHiderRenderTypes.isShaderPackActive()
+                    && currentConfig.irisPartialTransparencyMode.getValue()
+                        != de.zannagh.armorhider.configuration.IrisPartialTransparencyMode.NONE) {
+                McClientUtils.showChatMessage(Component.translatable("armorhider.notice.dithering_on_join"));
+            }
+            //?}
         });
         ArmorHider.LOGGER.info("Registered client-side packet handlers.");
 

@@ -350,6 +350,9 @@ if (branch == "fabric") {
             // shares WaterTransparency's floor. Class is stonecutter-gated to the same range.
             add("gender-breast-armor" to "de.zannagh.armorhider.smoke.GenderBreastArmorSmokeTest")
             add("armored-elytra-gender" to "de.zannagh.armorhider.smoke.ArmoredElytraGenderSmokeTest")
+            // Iris translucent-body repro (#342 follow-up). Real-GPU only; run in isolation with
+            // -Psmoke.fcgt.only=iris-translucency on a dev machine with the run/ Iris shaderpack.
+            add("iris-translucency" to "de.zannagh.armorhider.smoke.IrisTranslucencySmokeTest")
         }
         // First Person Model compat smoke. Guard must stay identical to the test class's own
         // `//? if fcgt && firstperson {` gate, or fabric-loader tries to resolve a commented-out class.

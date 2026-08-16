@@ -54,6 +54,10 @@ public class ConfigurationItemFactoryRegistry {
         registerFactoriesForClass(ServerMappedIndividualConfigurations.class);
         registerFactoriesForClass(UseGlobalOverrideForAllPlayers.class);
         registerFactoriesForClass(SettingsScreenLocation.class);
+        registerFactoriesForClass(IrisTransparencyMode.class);
+        registerFactoriesForClass(IrisDitheringScale.class);
+        registerFactoriesForClass(IrisDitherPhases.class);
+        registerFactoriesForClass(IrisDitherResCap.class);
 
         initialized = true;
     }

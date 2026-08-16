@@ -28,6 +28,9 @@ public class GameRendererMixin {
     @Inject(method = "renderLevel", at = @At("HEAD"))
     private void enterLevelRender(CallbackInfo ci) {
         AhRenderManagementApi.setInLevelRender();
+        // Advance the temporal-dither phase once per frame so faded armor's screen-door pattern rotates
+        // and the shaderpack's TAA can average it toward a smooth fade (see ShaderDitheredArmorTextures).
+        de.zannagh.armorhider.client.render.ShaderDitheredArmorTextures.advanceFrame();
     }
 
     @Inject(method = "renderLevel", at = @At("RETURN"))
