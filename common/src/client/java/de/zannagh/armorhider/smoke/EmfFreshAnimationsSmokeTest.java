@@ -121,6 +121,8 @@ public final class EmfFreshAnimationsSmokeTest implements FabricClientGameTest {
                 config.chestOpacity.setValue(HIDDEN);
                 config.legsOpacity.setValue(HIDDEN);
                 config.bootsOpacity.setValue(HIDDEN);
+                ArmorHiderClient.CLIENT_CONFIG_MANAGER
+                        .notifyConfigListeners(ArmorHiderClient.getCurrentPlayerName());
             });
 
             // Assert each hidden-model mode drives the render path it should. The synthetic pack is a
@@ -174,6 +176,8 @@ public final class EmfFreshAnimationsSmokeTest implements FabricClientGameTest {
             var config = ArmorHiderClient.CLIENT_CONFIG_MANAGER
                     .resolveConfig(ArmorHiderClient.getCurrentPlayerName());
             config.hiddenModelBehaviour.setValue(mode);
+            ArmorHiderClient.CLIENT_CONFIG_MANAGER
+                    .notifyConfigListeners(ArmorHiderClient.getCurrentPlayerName());
         });
         // EMF re-evaluates its vanilla-model condition per frame and the reload/redraw can lag - badly
         // under software GL (headless CI on Mesa llvmpipe), where a fixed short wait read a STALE path
@@ -238,7 +242,8 @@ public final class EmfFreshAnimationsSmokeTest implements FabricClientGameTest {
         boolean found = false;
         for (String id : repo.getAvailableIds()) {
             String lower = id.toLowerCase(java.util.Locale.ROOT);
-            if ((lower.contains("fresh") || lower.contains(SYNTH_PACK_DIR)) && !selected.contains(id)) {
+            if ((lower.contains("fresh") || lower.contains("fa+player") || lower.contains(SYNTH_PACK_DIR))
+                    && !selected.contains(id)) {
                 selected.add(id);
                 found = true;
                 ArmorHider.LOGGER.info("[smoke/fcgt] enabling resource pack: {}", id);

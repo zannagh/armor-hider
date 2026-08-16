@@ -10,6 +10,7 @@ import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.rendertype.OutputTarget;
 import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.rendertype.LayeringTransform;
 import net.minecraft.resources.Identifier;
 //? } elif >= 1.21.5 {
@@ -351,59 +352,6 @@ public final class ArmorHiderRenderTypes {
         };
     }
 
-    // Depth-writing translucent armor pipelines to also register with Iris (empty on eras that don't
-    // use the under-shaders depth-write path). See armorShouldWriteDepth() / shaderPackActiveCheck.
-    public static RenderPipeline[] shaderDepthPipelines() {
-        //? if >= 26.2-1.pre && < 26.3-0.snapshot.2 {
-        return new RenderPipeline[] { ARMOR_TRANSLUCENT_DEPTH };
-        //?} else {
-        /*return new RenderPipeline[0];
-        *///?}
-    }
-    //?}
-
-    // --- Depth-writing translucent armor for shaderpacks (fixes the body reading see-through under
-    // Iris at grazing angles). Only where the after-terrain deferral already handles water occlusion by
-    // draw order (>= 26.2-1.pre) is writing depth on faded armor safe; older eras rely on no-depth. ---
-    //? if >= 26.2-1.pre && < 26.3-0.snapshot.2 {
-    private static RenderPipeline clonePipelineKeepDepth(RenderPipeline src, Identifier location) {
-        // Same as clonePipelineNoDepthWrite but keeps the source depth state (i.e. depth writing on).
-        var snippet = new RenderPipeline.Snippet(
-                Optional.of(src.getVertexShader()), Optional.of(src.getFragmentShader()),
-                Optional.of(src.getShaderDefines()), Optional.of(src.getBindGroupLayouts()),
-                src.getColorTargetStates(), src.getColorTargetStates().length,
-                Optional.of(src.getDepthStencilState()), Optional.of(src.getPolygonMode()),
-                Optional.of(src.isCull()), src.getVertexFormatBindings(),
-                Optional.of(src.getPrimitiveTopology()));
-        return RenderPipeline.builder(snippet).withLocation(location).build();
-    }
-
-    private static final RenderPipeline ARMOR_TRANSLUCENT_DEPTH = clonePipelineKeepDepth(
-            RenderPipelines.ARMOR_TRANSLUCENT,
-            Identifier.fromNamespaceAndPath("armor_hider", "pipeline/armor_translucent_depth"));
-
-    private static final Function<Identifier, RenderType> TRANSLUCENT_ARMOR_DEPTH = memoize(
-            texture -> RenderType.create("armor_hider_armor_translucent_depth",
-                    RenderSetup.builder(ARMOR_TRANSLUCENT_DEPTH)
-                            .withTexture("Sampler0", texture)
-                            .useLightmap()
-                            .useOverlay()
-                            .setLayeringTransform(LayeringTransform.VIEW_OFFSET_Z_LAYERING)
-                            .affectsCrumbling()
-                            .sortOnUpload()
-                            .setOutline(RenderSetup.OutlineProperty.AFFECTS_OUTLINE)
-                            .createRenderSetup()));
-
-    private static RenderType translucentArmorDepth(Identifier texture) {
-        // Deliberately NOT added to DEFERRED_TYPES: under a shaderpack we want the faded armor to render
-        // as an ordinary translucent entity (depth-write, in the normal entity pass), which Iris
-        // composites correctly over the solid body. Deferring it to the after-terrain phase is what made
-        // the body read see-through under shaders. Water occlusion is instead handled by the depth write
-        // (the pad still occludes water behind it), at the cost of the pad blending over terrain rather
-        // than water at its protruding edges - unnoticeable under shaders and far better than a
-        // see-through torso.
-        return TRANSLUCENT_ARMOR_DEPTH.apply(texture);
-    }
     //?}
 
     // --- Render types ---
@@ -628,7 +576,13 @@ public final class ArmorHiderRenderTypes {
         //? if >= 26.2-1.pre && < 26.3-0.snapshot.2 {
         if (armorShouldWriteDepth()) {
             ARMOR_DEPTH_PATH.incrementAndGet();
-            return translucentArmorDepth(texture);
+            // Use Minecraft's own depth-writing armor pipeline rather than a clone of it: Iris'
+            // public assignPipeline API only registers custom pipelines for the main pass, so a
+            // cloned pipeline is missing from the shadow override map and renders armor and elytra
+            // wings broken/invisible under a shaderpack. Deliberately NOT added to DEFERRED_TYPES,
+            // for the same reason the clone never was: under a shaderpack the faded piece must draw
+            // as an ordinary translucent entity, and the depth write handles water occlusion.
+            return RenderTypes.armorTranslucent(texture);
         }
         //?}
         ARMOR_NODEPTH_PATH.incrementAndGet();

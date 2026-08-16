@@ -3,10 +3,13 @@ package de.zannagh.armorhider.smoke;
 
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.client.common.IdentityCarrier;
+import de.zannagh.armorhider.client.common.SlotModification;
 import de.zannagh.armorhider.client.gui.screens.ArmorHiderOptionsScreen;
 import de.zannagh.armorhider.client.keybinds.CustomKeyMapping;
 import de.zannagh.armorhider.client.keybinds.OpenSettingsKeyMapping;
 import de.zannagh.armorhider.client.keybinds.ToggleOffKeyMapping;
+import de.zannagh.armorhider.net.packets.PlayerConfig;
 import de.zannagh.armorhider.configuration.SettingsLocation;
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
@@ -16,6 +19,8 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.client.gui.screens.worldselection.WorldCreationUiState;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.UUID;
 
 /**
  * Regression smoke for the mod's key mappings (settings-screen re-open loop).
@@ -141,24 +146,47 @@ public final class KeybindSmokeTest implements FabricClientGameTest {
         ArmorHider.LOGGER.info("[smoke/fcgt] closing with the key held does not re-open");
     }
 
-    /** The toggle keybind still works through the press path. */
+    /** The session master toggle affects remote renders too. */
     private static void assertToggleKeyFlipsSessionOverride(ClientGameTestContext context) {
-        boolean before = context.computeOnClient(client ->
-                ArmorHiderClient.CLIENT_CONFIG_MANAGER.hasSessionDisableOverride());
-
         final KeyMapping toggle = resolveMapping(context, ToggleOffKeyMapping.class);
-        context.getInput().pressKey(toggle);
-        context.waitTicks(5);
-
-        boolean after = context.computeOnClient(client ->
-                ArmorHiderClient.CLIENT_CONFIG_MANAGER.hasSessionDisableOverride());
-        if (after == before) {
-            throw new IllegalStateException(
-                    "[smoke/fcgt] the toggle keybind did not flip the session disable override");
+        var remote = PlayerConfig.defaults(UUID.randomUUID(), "ArmorHiderRemoteSmoke");
+        var local = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig();
+        boolean prior = local.disableArmorHider.getValue();
+        double priorChestOpacity = local.chestOpacity.getValue();
+        try {
+            context.runOnClient(client -> {
+                local.disableArmorHider.setValue(false);
+                local.chestOpacity.setValue(0.0);
+                ArmorHiderClient.CLIENT_CONFIG_MANAGER.clearSessionDisableOverride();
+                ArmorHiderClient.CLIENT_CONFIG_MANAGER.notifyConfigListeners(null);
+                var cached = ((IdentityCarrier) client.player).armorHider$getPlayerModifications().chest();
+                if (!cached.shouldHide()) {
+                    throw new IllegalStateException("[smoke/fcgt] failed to prime the hidden modification cache");
+                }
+            });
+            context.getInput().pressKey(toggle);
+            context.waitTicks(5);
+            context.runOnClient(client -> {
+                if (!ArmorHiderClient.CLIENT_CONFIG_MANAGER.hasSessionDisableOverride()
+                        || !SlotModification.shouldUseVanilla(remote)) {
+                    throw new IllegalStateException(
+                            "[smoke/fcgt] session disable did not restore remote armor/elytra");
+                }
+                var rebuilt = ((IdentityCarrier) client.player).armorHider$getPlayerModifications().chest();
+                if (!rebuilt.isEmpty()) {
+                    throw new IllegalStateException(
+                            "[smoke/fcgt] toggle left a cached 0%-opacity armor/elytra modification active");
+                }
+            });
+        } finally {
+            context.runOnClient(client -> {
+                local.disableArmorHider.setValue(prior);
+                local.chestOpacity.setValue(priorChestOpacity);
+                ArmorHiderClient.CLIENT_CONFIG_MANAGER.clearSessionDisableOverride();
+                ArmorHiderClient.CLIENT_CONFIG_MANAGER.notifyConfigListeners(null);
+            });
         }
-
-        context.runOnClient(client -> ArmorHiderClient.CLIENT_CONFIG_MANAGER.clearSessionDisableOverride());
-        ArmorHider.LOGGER.info("[smoke/fcgt] toggle keybind flips the session override");
+        ArmorHider.LOGGER.info("[smoke/fcgt] toggle keybind restores remote armor/elytra");
     }
 
     private static KeyMapping resolveMapping(ClientGameTestContext context,

@@ -26,12 +26,9 @@ public class IrisCompat implements CompatInitializer {
         for (var pipeline : ArmorHiderRenderTypes.pipelines()) {
             api.assignPipeline(pipeline, IrisProgram.ENTITIES_TRANSLUCENT);
         }
-        // Also register the depth-writing armor pipeline(s) used under an active shaderpack, and wire
-        // the shaderpack-active check so translucent armor switches to the depth-writing type only
-        // while a pack is loaded (fixes the body reading see-through under shaders at grazing angles).
-        for (var pipeline : ArmorHiderRenderTypes.shaderDepthPipelines()) {
-            api.assignPipeline(pipeline, IrisProgram.ENTITIES_TRANSLUCENT);
-        }
+        // Wire the shaderpack-active check so translucent armor uses Minecraft's own depth-writing
+        // armor pipeline while a pack is loaded. Unlike a custom clone, vanilla's pipeline is already
+        // present in Iris' main and shadow override maps.
         ArmorHiderRenderTypes.setShaderPackActiveCheck(() -> {
             try {
                 return IrisApi.getInstance().isShaderPackInUse();

@@ -294,7 +294,8 @@ public class RenderModifications implements AhRenderModificationApi {
     *///? }
 
     private static final String[] humanoidModelPartNames = {
-            "head", "hat", "body", "right_arm", "left_arm", "right_leg", "left_leg"
+            "head", "hat", "body", "right_arm", "left_arm", "right_leg", "left_leg",
+            "left_wing", "right_wing"
     };
 
     /**
