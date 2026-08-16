@@ -110,16 +110,25 @@ jobs:
     steps:
       - name: Evaluate
         run: |
-          echo "has_fcgt=${{ needs.detect.outputs.has_fcgt }} smoke=${{ needs.smoke.result }}"
-          if [ "${{ needs.smoke.result }}" = "failure" ]; then
-            echo "::error::Headless smoke failed - see the 'PR smoke gate' job."
+          echo "detect=${{ needs.detect.result }} has_fcgt=${{ needs.detect.outputs.has_fcgt }} smoke=${{ needs.smoke.result }}"
+          # If we couldn't even determine runner availability, don't silently pass - block and let a re-run
+          # resolve it.
+          if [ "${{ needs.detect.result }}" != "success" ]; then
+            echo "::error::Runner-detection job did not succeed (${{ needs.detect.result }}); cannot determine smoke status."
             exit 1
           fi
+          # No self-hosted runner (fork PR, runner offline): smoke legitimately did not run - pass.
           if [ "${{ needs.detect.outputs.has_fcgt }}" != "true" ]; then
             echo "No fcgt runner available; smoke skipped. Passing gate."
             exit 0
           fi
-          echo "Smoke passed (${{ needs.smoke.result }})."
+          # A runner WAS available, so smoke must have run to a clean success. Anything else - failure,
+          # cancelled, timed_out, skipped - blocks; a cancelled/timed-out run is not a pass.
+          if [ "${{ needs.smoke.result }}" != "success" ]; then
+            echo "::error::Headless smoke did not succeed (result=${{ needs.smoke.result }}) - see the 'PR smoke gate' job."
+            exit 1
+          fi
+          echo "Smoke passed."
           exit 0
 
   # Exhaustive loader/version matrix (all Fabric+NeoForge variants, Paper/Folia), parallelised. Nightly and

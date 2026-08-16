@@ -199,8 +199,11 @@ run {
             group = "verification"
             description = "Tier-3 (FCGT E2E) coverage from build/jacoco/e2e-client.exec over $coverageVariant."
             val execFile = layout.buildDirectory.file("jacoco/e2e-client.exec")
-            // Tolerate a missing .exec (coverage run not yet performed) rather than fail configuration.
-            executionData(files(execFile).filter { it.exists() })
+            // Wire the exec lazily and gate on its existence at EXECUTION time (not configuration time),
+            // so a single-invocation flow that produces the .exec during the same build still reports it;
+            // a run where coverage was never generated is skipped rather than failing.
+            executionData(files(execFile))
+            onlyIf { execFile.get().asFile.exists() }
             val ssc = e2eProject.extensions.getByType(SourceSetContainer::class.java)
             listOf("main", "client").forEach { name ->
                 ssc.findByName(name)?.let { ss -> sourceDirectories.from(ss.allSource.srcDirs) }
