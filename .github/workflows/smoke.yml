@@ -86,12 +86,17 @@ jobs:
 
       # Cross-version / cross-loader boot breadth. compat=none (the full compat stack is Fabric-only), run
       # across variants in parallel so the wall-clock is one wave, not a sum.
+      #
+      # neoforge-26.2 is deliberately EXCLUDED: NeoForge 26.2.0.32-beta crashes in its own CommonModLoader
+      # init with `NoSuchFieldError: NeoForgeMod.NAMETAG_DISTANCE` (a field the beta renamed) - a NeoForge
+      # bug, not ours (the mod never references it, and it fails identically on main). The nightly full
+      # matrix still attempts it; re-add here once a NeoForge 26.2 build that boots cleanly is pinned.
       - name: Boot breadth (current versions)
         run: |
           xvfb-run -a -s "-screen 0 1280x1024x24" \
             ./gradlew :smoke:smokeTest --tests 'de.zannagh.armorhider.smoke.SmokeMatrixTest' \
               -Dsmoke.phase=boot \
-              -Dsmoke.only=fabric-1.21.11,neoforge-26.2,neoforge-1.21.11 \
+              -Dsmoke.only=fabric-1.21.11,neoforge-1.21.11 \
               -Dsmoke.compat=none -Dsmoke.parallel=4 \
               --build-cache --no-daemon --console=plain
 
