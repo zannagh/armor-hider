@@ -72,14 +72,12 @@ public final class ShaderDitheredArmorTextures {
         if (base == null) {
             return null;
         }
-        int bucket = Math.round(opacity * BUCKETS);
-        if (bucket <= 0) {
-            bucket = 1;
-        }
-        if (bucket >= BUCKETS) {
+        if (opacity >= 1.0F) {
             // Fully (or near-fully) opaque: no dither needed, caller should use the plain opaque type.
             return null;
         }
+        int bucket = (int) Math.floor(opacity * BUCKETS);
+        bucket = Math.max(1, Math.min(bucket, BUCKETS - 1));
         // Mode gates everything: NONE means the whole dithering fix is off, so bail out and let the
         // caller keep the (pre-fix) translucent path. DITHERING is a single static pattern (phase 0);
         // only TEMPORAL_DITHERING cycles the phase per frame so TAA can average the frames.
