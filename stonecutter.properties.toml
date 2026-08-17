@@ -384,7 +384,7 @@ etf.version = "J8nN7dGg"
 immersivearmors.version = "1zKCa66X" # 1.8.1+26.1.2 neoforge
 
 ["neoforge-26.2"]
-"neoforge.version" = "26.2.0.32-beta"
+"neoforge.version" = "26.2.0.56-beta"
 "neoforge.minecraft_version_range" = "[26.2]"
 geckolib.version = "Y5jWG02T"
 elytratrims.version = "kHpKqNuJ"

@@ -113,10 +113,20 @@ public final class EntityRenderSmokeTest implements FabricClientGameTest {
                 ArmorHider.LOGGER.info("[smoke/fcgt] ARMOR_PIECE modified scope entries: {}", entries);
 
                 long elytraEntries = AhRenderStateImpl.modifiedScopeEnterCount(RenderScope.ELYTRA);
-                // Armored Elytra replaces the vanilla wings submit even for this synthetic setup;
-                // its dedicated smoke owns that path. This assertion targets vanilla/EMF wings.
-                if (elytraEntries == 0
-                        && !CompatManager.requiresCompatTo(CompatFlags.ARMORED_ELYTRA)) {
+                // The elytra scope is only entered when *we* drive the wings render. Two compat mods
+                // legitimately take that over, so a zero count with either present is correct behaviour,
+                // not a dead pipeline:
+                //   - Armored Elytra replaces the vanilla wings submit outright (its own smoke owns it);
+                //   - ElytraTrims drives the elytra's appearance through its own render pipeline, so
+                //     ArmorHiderElytraRenderer deliberately does NOT enter the scope for a non-hidden
+                //     elytra (entering it would leak our modification into ET's submissions and
+                //     reintroduce the trim regressions the ET branch was added to fix).
+                // This assertion therefore targets the vanilla/EMF wings path only. Verified on a real
+                // GPU: with ElytraTrims active the scope is never entered on 1.21.8+, exactly as the ET
+                // branch intends, while the compat=none rows enter it on every version.
+                boolean elytraOwnedByCompat = CompatManager.requiresCompatTo(CompatFlags.ARMORED_ELYTRA)
+                        || CompatManager.requiresCompatTo(CompatFlags.ELYTRA_TRIMS);
+                if (elytraEntries == 0 && !elytraOwnedByCompat) {
                     throw new IllegalStateException(
                             "[smoke/fcgt] ELYTRA scope never resumed after being restored");
                 }

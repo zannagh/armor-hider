@@ -30,8 +30,13 @@ public class ServerConfigFileProvider implements ConfigurationProvider<ServerCon
                 save(configuration);
                 ArmorHider.LOGGER.info("Setup new server config due to missing file.");
             }
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
+            // RuntimeException covers a corrupt/hand-edited file: ServerConfiguration.deserialize throws
+            // com.google.gson.JsonSyntaxException, which is unchecked and would otherwise propagate out
+            // of the constructor and crash config load. Recover to a fresh default and rewrite it, matching
+            // the paper-side ServerConfigStorage.load().
             ArmorHider.LOGGER.error("Server config load failed", e);
+            configuration = new ServerConfiguration();
             configuration.setHasChangedFromSerializedContent();
         }
         if (configuration.hasChangedFromSerializedContent()) {
