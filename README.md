@@ -1,10 +1,15 @@
 # Armor Hider
-  
+
 [![Latest](https://img.shields.io/github/v/release/zannagh/armor-hider?logo=github&label=Latest%20Release&color=green)](https://github.com/zannagh/armor-hider/releases)
 [![LatestPre](https://img.shields.io/github/v/release/zannagh/armor-hider?include_prereleases&label=Latest%20(Pre)Release&logo=github)](https://github.com/zannagh/armor-hider/releases)
+[![Discord](https://img.shields.io/badge/Discord-Join-5865F2?logo=discord&logoColor=white)](https://discord.gg/AMwbYqdmQb)
+
 [![Modrinth Downloads](https://img.shields.io/modrinth/dt/zannaghs-armor-hider?logo=modrinth&label=Modrinth)](https://modrinth.com/mod/zannaghs-armor-hider)
 [![Curseforge Downloads](https://img.shields.io/curseforge/dt/1475841?logo=curseforge&style=flat&label=CurseForge)](https://www.curseforge.com/minecraft/mc-mods/armor-hider)
-[![Discord](https://img.shields.io/badge/Discord-Join-5865F2?logo=discord&logoColor=white)](https://discord.gg/AMwbYqdmQb)
+
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/zannagh/armor-hider/publish.yml?label=Main)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/zannagh/armor-hider/smoke.yml?branch=main&label=Nightly)
+![Codecov](https://img.shields.io/codecov/c/github/zannagh/armor-hider?logo=codecov&label=Test%20Coverage)
 
 <p align="center">
 A no-dependency mod to the transparency or fully hide armor and equipment with multiplayer support, without any dependencies - supporting a wide range of game versions and available for Fabric, Quilt and NeoForge with a custom built UI that makes it feel like as if it would have been shipped with the game.
