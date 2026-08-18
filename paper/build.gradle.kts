@@ -4,6 +4,12 @@ plugins {
     id("com.gradleup.shadow") version "9.2.2"
 }
 
+// Keep the JaCoCo tooling in lockstep with the loader modules (see gradle.properties): the merged
+// aggregate report spans this module and the active common variant, so they must use one tool version.
+jacoco {
+    toolVersion = providers.gradleProperty("jacoco.version").getOrElse("0.8.14")
+}
+
 // The Paper plugin talks nothing but the wire protocol, so a single jar covers every
 // supported game version. Versioning still has to mirror multiloader-common.gradle.kts,
 // because the publish pipeline greps for `armor-hider-<loader>-<semVer>+<display_version>.jar`.

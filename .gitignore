@@ -29,6 +29,7 @@ logs/
 bin/
 .classpath
 .project
+.serena
 
 # macos
 

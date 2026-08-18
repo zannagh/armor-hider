@@ -263,6 +263,9 @@ public interface ArmorHiderPlayerConfigApi {
     default boolean toggleSessionDisableOverride() {
         boolean next = !isLocalArmorHiderDisabledEffective();
         SessionState.disableOverride = next;
+        // PlayerModificationInfo is cached per rendered player. This is a global viewer-side change,
+        // so invalidate every player's cache rather than leaving 0%-opacity armor/elytra hidden.
+        notifyConfigListeners(null);
         return next;
     }
 

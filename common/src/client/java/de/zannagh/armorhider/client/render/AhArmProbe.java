@@ -20,6 +20,8 @@ public final class AhArmProbe {
 
     private static volatile boolean enabled = false;
     private static volatile String lastPath = PATH_NONE;
+    private static final java.util.concurrent.atomic.AtomicLong equipmentFallbacks =
+            new java.util.concurrent.atomic.AtomicLong();
 
     private AhArmProbe() {
     }
@@ -27,6 +29,7 @@ public final class AhArmProbe {
     public static void enable() {
         enabled = true;
         lastPath = PATH_NONE;
+        equipmentFallbacks.set(0);
     }
 
     public static void disable() {
@@ -47,6 +50,14 @@ public final class AhArmProbe {
 
     public static void recordSeamComposite() {
         lastPath = PATH_SEAM_COMPOSITE;
+    }
+
+    public static void recordEquipmentFallback() {
+        equipmentFallbacks.incrementAndGet();
+    }
+
+    public static long equipmentFallbackCount() {
+        return equipmentFallbacks.get();
     }
 
     public static String lastPath() {
