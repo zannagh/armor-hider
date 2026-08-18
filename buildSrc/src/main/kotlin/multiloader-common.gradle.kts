@@ -8,6 +8,13 @@ repositories {
     maven("https://api.modrinth.com/maven") {
         content { includeGroup("maven.modrinth") }
     }
+    // Cursemaven (https://cursemaven.com) - keyless CurseForge artifact proxy. Resolves CF-hosted mod
+    // jars by `curse.maven:<slug>-<projectId>:<fileId>` (the slug is cosmetic; only the numeric ids
+    // matter). Used for mods not (yet) on Modrinth - e.g. the eunomia mod jar while it awaits Modrinth
+    // approval. Group-scoped so it never intercepts a Modrinth/Mojang/GitHub artifact.
+    maven("https://cursemaven.com") {
+        content { includeGroup("curse.maven") }
+    }
     // eunomia (de.zannagh.eunomia:eunomia-core) - the MC-free, game-version-agnostic API surface
     // armor-hider compiles against; the eunomia mod supplies the live transport at runtime. Consumed
     // compileOnly (see multiloader-loom / multiloader-loader), so this is a compile-time-only source.

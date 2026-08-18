@@ -32,11 +32,13 @@ side="BOTH"
 
 # eunomia supplies the config/networking framework armor-hider compiles against (eunomia-core) and
 # installs the live client/server transports at runtime. Ordered AFTER so eunomia's init runs first.
-# Flip type to "optional" for a non-breaking stub while the eunomia mod is not yet distributed.
+# Published on CurseForge (project 1654849; Modrinth pending). Floor is 0.2.5: armor-hider relies on
+# eunomia's built-in send gate (0.2.3), the Gson-init-race fix (0.2.4's installDefaultGson), and 0.2.5's
+# stable 26.2 / 26.3-snap.8 builds.
 [[dependencies."armor_hider"]]
 modId="eunomia"
 type="required"
-versionRange="[0.2.0,)"
+versionRange="[0.2.5,)"
 ordering="AFTER"
 side="BOTH"
 

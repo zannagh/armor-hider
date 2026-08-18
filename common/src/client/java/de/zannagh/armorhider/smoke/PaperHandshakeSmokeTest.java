@@ -4,7 +4,6 @@ package de.zannagh.armorhider.smoke;
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.api.ArmorHiderApi;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.net.ClientSendGate;
 import de.zannagh.armorhider.net.AhPackets;
 import de.zannagh.armorhider.net.packets.ServerWideSettings;
 import de.zannagh.armorhider.server.ServerConfiguration;
@@ -280,7 +279,7 @@ public final class PaperHandshakeSmokeTest implements FabricClientGameTest {
         context.runOnClient(client -> {
             // 0 is unreachable by any client code path, so a later 4 can only come off the wire.
             ArmorHiderClient.permissionLevel = 0;
-            ClientSendGate.send(AhPackets.PLAYER_CONFIG, ArmorHiderClient.CLIENT_CONFIG_MANAGER
+            CommunicationManager.sendToServer(AhPackets.PLAYER_CONFIG, ArmorHiderClient.CLIENT_CONFIG_MANAGER
                     .resolveConfig(ArmorHiderClient.getCurrentPlayerName())
                     .forNetwork());
         });

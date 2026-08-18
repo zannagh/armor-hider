@@ -33,6 +33,12 @@ repositories {
     maven("https://api.modrinth.com/maven") {
         content { includeGroup("maven.modrinth") }
     }
+    // Cursemaven (https://cursemaven.com) - keyless CurseForge proxy for CF-hosted mod jars declared as
+    // `curse.maven:<slug>-<projectId>:<fileId>`. Backs the eunomia runtime mod jar (project 1654849) the
+    // FCGT smoke run drops into run/mods. Group-scoped so it only handles `curse.maven` coordinates.
+    maven("https://cursemaven.com") {
+        content { includeGroup("curse.maven") }
+    }
 }
 
 // ── Stonecutter constants ──
@@ -230,7 +236,10 @@ if (branch == "fabric") {
     // This deliberately REPLACES any dev-profile identity rather than adding to it: MC's arg
     // parser cannot take `--username` twice.
     val paperSmokePort = findProperty("smoke.paper.port")?.toString()
-    val paperSmokeUsername = "ArmorHiderSmoke"
+    // Defaults to ArmorHiderSmoke (the single-client handshake row); overridable so a multi-client row
+    // (e.g. the two-client config-propagation E2E) can fork the same variant twice under distinct
+    // identities. The offline UUID is derived from the name, matching Paper's offline-mode hashing.
+    val paperSmokeUsername = findProperty("smoke.paper.username")?.toString() ?: "ArmorHiderSmoke"
     val paperSmokeUuid = java.util.UUID
         .nameUUIDFromBytes("OfflinePlayer:$paperSmokeUsername".toByteArray(Charsets.UTF_8))
         .toString()
@@ -286,6 +295,14 @@ if (branch == "fabric") {
             // PaperHandshakeSmokeTest skips itself when this is absent, so normal runs are unaffected.
             if (paperSmokePort != null) {
                 jvmArguments.add("-Darmorhider.smoke.paper.port=${paperSmokePort}")
+            }
+            // Two-client config-propagation E2E (TwoClientConfigPropagationSmokeTest): the PaperE2E row
+            // forks the same variant twice, once as the sender and once as the reader, forwarding the
+            // role, the peer's name and the marker opacity. Absent on every normal run - the test no-ops.
+            listOf("role", "peer", "marker").forEach { key ->
+                findProperty("smoke.twoclient.$key")?.toString()?.let {
+                    jvmArguments.add("-Darmorhider.smoke.twoclient.$key=$it")
+                }
             }
             if (runProfile != null) {
                 programArguments.add("--username")
@@ -349,6 +366,9 @@ if (branch == "fabric") {
         // Paper end-to-end handshake smoke. Gated only on `fcgt` like the class itself: it no-ops
         // unless -Psmoke.paper.port is supplied, so registering it everywhere is harmless.
         add("paper-handshake" to "de.zannagh.armorhider.smoke.PaperHandshakeSmokeTest")
+        // Two-client config-propagation E2E: one client changes its config, a second observes it via the
+        // server. Role-dispatched by -Darmorhider.smoke.twoclient.role; no-ops unless a Paper port is set.
+        add("two-client-propagation" to "de.zannagh.armorhider.smoke.TwoClientConfigPropagationSmokeTest")
         // WaterTransparencySmokeTest drives the after-terrain feature phase (the fix), which only
         // exists >= 26.2-1.pre - its class is stonecutter-gated to the same floor, so only register
         // the entrypoint there or fabric-loader would fail to find the commented-out class.
@@ -642,30 +662,65 @@ if (branch == "fabric") {
         // networking transports + codec injection + capability handshake at game runtime and is a
         // REQUIRED dependency (fabric.mod.json). So every FCGT client launch must have the eunomia
         // fabric mod jar in run/mods, or armor-hider fails its dependency, MC boots vanilla and the
-        // gametest exits ZERO having run nothing (a false green - blueprint risk R4). We copy the
-        // pre-built eunomia fabric jar for this variant's MC version. Resolve order: -Peunomia.fabric.jar
-        // override, else the sibling eunomia repo's build output. Fail fast if it is absent.
-        val eunomiaRepo = (findProperty("eunomia.repo")?.toString())
-            ?: "${System.getProperty("user.home")}/projects/eunomia/java"
-        val eunomiaFabricJar = (findProperty("eunomia.fabric.jar")?.toString())
-            ?: "$eunomiaRepo/fabric/versions/fabric-$mcVersion/build/libs/eunomia-fabric-${property("eunomia.version")}+$mcVersion.jar"
-        val copyEunomiaToMods = tasks.register<Copy>("copyEunomiaToMods") {
-            group = "verification"
-            description = "Drop the eunomia fabric mod jar into run/mods/ (armor-hider's required runtime dependency)."
-            from(eunomiaFabricJar)
-            into(project.layout.projectDirectory.dir("run/mods"))
-            // fetchFcgtCompatJars wipes run/mods first; land after it, same as the FCGT copy.
-            mustRunAfter("fetchFcgtCompatJars")
-            outputs.upToDateWhen { false }
-            doFirst {
-                if (!file(eunomiaFabricJar).exists()) {
-                    throw GradleException(
-                        "eunomia fabric mod jar not found at:\n  $eunomiaFabricJar\n" +
-                            "armor-hider requires the eunomia mod at runtime. Build it " +
-                            "(cd ${eunomiaRepo} && ./gradlew \"Set active project to fabric-$mcVersion\" build) " +
-                            "or pass -Peunomia.fabric.jar=<path>."
-                    )
+        // gametest exits ZERO having run nothing (a false green - blueprint risk R4).
+        //
+        // The jar is pulled from CurseForge (project 1654849) via Cursemaven by default, resolved for this
+        // variant's MC version from the pinned file id `eunomia.cf.file`. Pass -Peunomia.fabric.jar=<path>
+        // to smoke-test a locally-built eunomia instead (e.g. an unreleased change). The CF configuration is
+        // non-transitive, so only eunomia's own jar lands - never its CF-declared deps.
+        //
+        // Clear any previously-copied eunomia jar before copying the current one. Without this, a filename
+        // change - an eunomia version bump changes the CurseForge file id (and thus the jar name), or a run
+        // switches between the CF jar and a -Peunomia.fabric.jar override - leaves TWO eunomia mods in
+        // run/mods. fabric-loader then loads both, the codec-injection mixins apply twice and the handshake
+        // S2C payloads fail to decode (the client disconnects at join). fetchFcgtCompatJars wipes run/mods on
+        // -Psmoke runs, but the FCGT/E2E path does not run it, so this copy must clean up after itself.
+        fun deleteStaleEunomiaJars() {
+            delete(fileTree(project.layout.projectDirectory.dir("run/mods")) { include("eunomia*.jar") })
+        }
+        val eunomiaOverrideJar = findProperty("eunomia.fabric.jar")?.toString()
+        val copyEunomiaToMods = if (eunomiaOverrideJar != null) {
+            tasks.register<Copy>("copyEunomiaToMods") {
+                group = "verification"
+                description = "Drop the local eunomia fabric mod jar into run/mods/ (armor-hider's required runtime dependency)."
+                from(eunomiaOverrideJar)
+                into(project.layout.projectDirectory.dir("run/mods"))
+                mustRunAfter("fetchFcgtCompatJars")
+                outputs.upToDateWhen { false }
+                doFirst {
+                    if (!file(eunomiaOverrideJar).exists()) {
+                        throw GradleException(
+                            "eunomia fabric mod jar (-Peunomia.fabric.jar) not found at:\n  $eunomiaOverrideJar"
+                        )
+                    }
+                    deleteStaleEunomiaJars()
                 }
+            }
+        } else {
+            val cfProject = findProperty("eunomia.cf.project")?.toString()
+                ?: error("eunomia.cf.project is not set; cannot resolve the eunomia mod jar from CurseForge")
+            val cfFile = findProperty("eunomia.cf.file")?.toString()
+                ?: error(
+                    "eunomia.cf.file is not set for ${sc.current.project}; pin the CurseForge fabric file id " +
+                        "(https://www.curseforge.com/minecraft/mc-mods/eunomia/files/all) in that variant's " +
+                        "section of stonecutter.properties.toml, or pass -Peunomia.fabric.jar=<path>."
+                )
+            val eunomiaRuntimeMod = configurations.create("eunomiaRuntimeMod") {
+                isCanBeResolved = true
+                isCanBeConsumed = false
+                isVisible = false
+                isTransitive = false
+            }
+            dependencies.add("eunomiaRuntimeMod", "curse.maven:eunomia-$cfProject:$cfFile")
+            tasks.register<Copy>("copyEunomiaToMods") {
+                group = "verification"
+                description = "Drop the eunomia fabric mod jar (CurseForge $cfProject/$cfFile) into run/mods/."
+                from(eunomiaRuntimeMod)
+                into(project.layout.projectDirectory.dir("run/mods"))
+                // fetchFcgtCompatJars wipes run/mods first; land after it, same as the FCGT copy.
+                mustRunAfter("fetchFcgtCompatJars")
+                outputs.upToDateWhen { false }
+                doFirst { deleteStaleEunomiaJars() }
             }
         }
 

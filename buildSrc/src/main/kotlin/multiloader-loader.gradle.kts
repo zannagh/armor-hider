@@ -48,12 +48,26 @@ val activeLoader: String? = when {
     sc.current.project.contains("neoforge") -> "neoforge"
     else -> null
 }
+// CurseForge pins - a keyless Cursemaven fallback for compat mods not (yet) on Modrinth. Per-variant
+// `<key>.cf.project` + `<key>.cf.file` -> "<projectId>:<fileId>"; FetchCompatJars uses a pin only for a
+// selected key with no Modrinth hash. The variant sections are already loader-specific, so `<key>.cf.file`
+// is the fabric-or-neoforge file for this exact variant. Empty today (every compat mod resolves from
+// Modrinth); this lets a CF-only compat mod be added by pinning those two properties in its section.
+val curseForgeModPins: Map<String, String> = modHashes.keys
+    .plus(compatKeys)
+    .distinct()
+    .mapNotNull { key ->
+        val proj = findProperty("$key.cf.project")?.toString()?.takeIf { it.isNotBlank() } ?: return@mapNotNull null
+        val file = findProperty("$key.cf.file")?.toString()?.takeIf { it.isNotBlank() } ?: return@mapNotNull null
+        key to "$proj:$file"
+    }.toMap()
 
 val fetchCompatJars = tasks.register<FetchCompatJars>("fetchCompatJars") {
     group = "verification"
-    description = "Fetch Modrinth compat jars (controlled by -Pcompat) into run/mods/ for smoke runs"
+    description = "Fetch Modrinth + CurseForge compat jars (controlled by -Pcompat) into run/mods/ for smoke runs"
     modsDir.set(project.layout.projectDirectory.dir("run/mods"))
     versionHashes.set(modHashes)
+    curseForgePins.set(curseForgeModPins)
     include.set(selectedKeys)
     activeMcVersion?.let { mcGameVersion.set(it) }
     activeLoader?.let { loader.set(it) }
@@ -67,6 +81,7 @@ val fetchFcgtCompatJars = tasks.register<FetchCompatJars>("fetchFcgtCompatJars")
     description = "Like fetchCompatJars but always includes fabric-api (required for FCGT runtime activation)"
     modsDir.set(project.layout.projectDirectory.dir("run/mods"))
     versionHashes.set(modHashes)
+    curseForgePins.set(curseForgeModPins)
     if (modHashes.containsKey("fabricapi")) {
         include.set(selectedKeys + "fabricapi")
     } else {

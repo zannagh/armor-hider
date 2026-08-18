@@ -82,6 +82,17 @@ abstract class FetchCompatJars : DefaultTask() {
     @get:Optional
     abstract val followDependencies: Property<Boolean>
 
+    /**
+     * Map of compat-key → CurseForge pin {@code "<projectId>:<fileId>"}. A keyless fallback for mods not
+     * (yet) on Modrinth: the exact file is pulled from the Cursemaven proxy. Unlike the Modrinth path there
+     * is no auto-resolution or {@code required}-dependency following - the CurseForge read API those would
+     * need is key-gated - so each entry pins one exact per-loader, per-MC file. A key present in both
+     * {@link #versionHashes} and here resolves from Modrinth (the richer source); the pin is the fallback.
+     */
+    @get:Input
+    @get:Optional
+    abstract val curseForgePins: MapProperty<String, String>
+
     private val http: HttpClient by lazy {
         HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(20)).build()
     }
@@ -103,7 +114,9 @@ abstract class FetchCompatJars : DefaultTask() {
         target.listFiles()?.forEach { it.delete() }
         projectResolutionMemo.clear()
 
-        val keys = versionHashes.get().keys.toMutableSet()
+        val cfPins = curseForgePins.getOrElse(emptyMap())
+        // A key is fetchable if it has a Modrinth version hash, a CurseForge pin, or both.
+        val keys = (versionHashes.get().keys + cfPins.keys).toMutableSet()
         keys.retainAll(include.get())
         if (keys.isEmpty()) {
             logger.lifecycle("[fetchCompatJars] No compat mods selected; mods dir left empty")
@@ -112,13 +125,51 @@ abstract class FetchCompatJars : DefaultTask() {
 
         val seenHashes = mutableSetOf<String>()
         keys.forEach { key ->
-            val hash = versionHashes.get()[key] ?: return@forEach
+            val hash = versionHashes.get()[key]
             try {
-                fetchVersion(hash, target, seenHashes, key)
+                if (hash != null) {
+                    // Modrinth is preferred when available: its open API lets the version and its required
+                    // deps auto-resolve. CurseForge (keyless Cursemaven) is exact-pin-only, so it is the fallback.
+                    fetchVersion(hash, target, seenHashes, key)
+                } else {
+                    fetchCurseForge(cfPins.getValue(key), target, key)
+                }
             } catch (e: Exception) {
-                logger.warn("[fetchCompatJars] {} ({}): {}", key, hash, e.message)
+                logger.warn("[fetchCompatJars] {}: {}", key, e.message)
             }
         }
+    }
+
+    /**
+     * Fetch a single CurseForge file via the keyless Cursemaven proxy. {@code pin} is
+     * {@code "<projectId>:<fileId>"}. The Cursemaven descriptor path segment is cosmetic (only the numeric
+     * ids are resolved), so the compat {@code label} fills it. No dependency following - see
+     * {@link #curseForgePins}.
+     */
+    private fun fetchCurseForge(pin: String, target: File, label: String) {
+        val parts = pin.split(":")
+        if (parts.size != 2 || parts.any { it.isBlank() }) {
+            logger.warn("[fetchCompatJars] {} has a malformed CurseForge pin '{}' (want '<projectId>:<fileId>')", label, pin)
+            return
+        }
+        val (projectId, fileId) = parts
+        val artifact = "$label-$projectId"
+        val url = "https://cursemaven.com/curse/maven/$artifact/$fileId/$artifact-$fileId.jar"
+        val filename = "$artifact-$fileId.jar"
+        val out = target.toPath().resolve(filename)
+        logger.lifecycle("[fetchCompatJars] {} → {} (CurseForge {}/{})", label, filename, projectId, fileId)
+        val resp = http.send(
+            HttpRequest.newBuilder(URI.create(url))
+                .header("User-Agent", "armor-hider-buildscript")
+                .GET().build(),
+            HttpResponse.BodyHandlers.ofInputStream()
+        )
+        if (resp.statusCode() != 200) {
+            resp.body().close()
+            logger.warn("[fetchCompatJars] {} CurseForge fetch failed (HTTP {}): {}", label, resp.statusCode(), url)
+            return
+        }
+        resp.body().use { Files.copy(it, out, StandardCopyOption.REPLACE_EXISTING) }
     }
 
     /** Recursively fetch a Modrinth version + its `required` deps that pin a version_id. */

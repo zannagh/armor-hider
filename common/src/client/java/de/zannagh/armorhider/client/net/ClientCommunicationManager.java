@@ -20,7 +20,10 @@ import net.minecraft.client.multiplayer.ServerData;
  * <p>
  * The historical "server supports the mod" signal is now eunomia's capability handshake: whether the
  * server runs Armor Hider is {@code CommunicationManager.serverCapabilities().isPresent()}. Outgoing
- * C2S traffic is gated through {@link ClientSendGate} accordingly.
+ * C2S traffic is gated by eunomia's own send path: {@link CommunicationManager#sendToServer} defaults
+ * to {@link de.zannagh.eunomia.networking.SendOptions#AFTER_SUCCESSFUL_HANDSHAKE}, so a packet is held
+ * until the probe resolves and dropped if the server does not run eunomia - the gating Armor Hider's
+ * bespoke {@code ClientSendGate} used to provide before it was folded into eunomia.
  */
 public final class ClientCommunicationManager {
 
@@ -32,17 +35,16 @@ public final class ClientCommunicationManager {
         CommunicationManager.onClientReceive(AhPackets.COMBAT_NOTIFICATION,
                 (payload, ctx) -> handleCombatLogNotificationReceived(payload));
 
-        // Consume eunomia's server-capability probe results, and gate our C2S sends on them.
+        // Consume eunomia's server-capability probe results. Outgoing C2S traffic now flows through
+        // eunomia's own send path: CommunicationManager.sendToServer defaults to AFTER_SUCCESSFUL_HANDSHAKE,
+        // which queues a packet until the capability probe resolves and drops it if the server does not run
+        // eunomia - exactly the gating Armor Hider's bespoke ClientSendGate used to provide.
         CommunicationManager.enableClientHandshake();
-        ClientSendGate.install();
 
         ClientConnectionEvents.registerJoin((handler, client) -> {
             if (client.player == null) {
                 return;
             }
-            // Re-gate outgoing traffic for the new connection. eunomia's own client wiring re-probes
-            // the server (HELLO on join); this only clears our queued sends from any prior connection.
-            ClientSendGate.reset();
             var playerName = PlayerNameUtil.getPlayerName(client.player);
             if (playerName == null || playerName.isBlank()) {
                 //? if >= 1.21.9
@@ -76,12 +78,13 @@ public final class ClientCommunicationManager {
                 ArmorHiderClient.permissionLevel = 4; // local -> admin
             }
 
-            // A send failure must never abort the join. ClientSendGate already swallows the
-            // "server doesn't know this channel" case, but the encoder can still reject an oversized
-            // payload and the connection can drop between the check and the write - neither is worth
-            // taking the client down for, since the config is client-authoritative anyway.
+            // Push our local config to the server. eunomia's sendToServer holds it until the capability
+            // probe resolves, then delivers it if the server runs the mod and drops it otherwise, so this
+            // is safe to fire on join. A send failure must never abort the join: the encoder can reject an
+            // oversized payload and the connection can drop between here and the write, and neither is worth
+            // taking the client down for since the config is client-authoritative.
             try {
-                ClientSendGate.send(AhPackets.PLAYER_CONFIG, currentConfig.forNetwork());
+                CommunicationManager.sendToServer(AhPackets.PLAYER_CONFIG, currentConfig.forNetwork());
             } catch (Exception e) {
                 ArmorHider.LOGGER.warn("Could not send the local config to the server on join.", e);
             }
@@ -111,7 +114,8 @@ public final class ClientCommunicationManager {
             // Drop the transient keybind override so the next connection starts from the persisted baseline.
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.clearSessionDisableOverride();
             ArmorHiderClient.permissionLevel = 0;
-            ClientSendGate.reset();
+            // eunomia's own disconnect wiring (onClientDisconnect) resets its capability probe and send
+            // gate, so there is nothing connection-scoped left for Armor Hider to clear here.
         });
     }
 
