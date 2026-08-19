@@ -6,6 +6,8 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.blaze3d.vertex.PoseStack;
+import de.zannagh.armorhider.api.compat.CompatFlags;
+import de.zannagh.armorhider.api.compat.CompatManager;
 import de.zannagh.armorhider.client.api.AhRenderManagementApi;
 import de.zannagh.armorhider.client.api.AhRenderInterceptionRegistryApi;
 import de.zannagh.armorhider.client.common.RenderScope;
@@ -102,6 +104,14 @@ public class EquipmentRenderMixin {
             };
         }
         if (original instanceof ElytraModel elytra) {
+            // #338 regression. EMF/FA has their own ElytraModel with another mesh.
+            // If EMF is present, we return the original without pose synchronization,
+            // in order to not dislocate the Elytra from the player model.
+            // This matches 0.12.17 behavior.
+            if (CompatManager.requiresCompatTo(CompatFlags.ENTITY_MODEL_FEATURES)) {
+                return original;
+            }
+
             return (Model<? super S>) new ElytraModel(vanillaRoot) {
                 @Override
                 public void setupAnim(HumanoidRenderState state) {
