@@ -6,6 +6,8 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.blaze3d.vertex.PoseStack;
+import de.zannagh.armorhider.api.compat.CompatFlags;
+import de.zannagh.armorhider.api.compat.CompatManager;
 import de.zannagh.armorhider.client.api.AhRenderManagementApi;
 import de.zannagh.armorhider.client.api.AhRenderInterceptionRegistryApi;
 import de.zannagh.armorhider.client.common.RenderScope;
@@ -13,7 +15,6 @@ import de.zannagh.armorhider.client.common.VanillaRootAccessor;
 import de.zannagh.armorhider.client.render.AhArmProbe;
 import de.zannagh.armorhider.client.render.RenderModifications;
 import de.zannagh.armorhider.client.render.VanillaArmorTextureManager;
-import de.zannagh.armorhider.client.render.rendertype.ArmorHiderRenderTypes;
 import de.zannagh.armorhider.log.DebugLogger;
 import net.minecraft.client.model.Model;
 //? if >= 1.21.11 {
@@ -30,6 +31,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.equipment.EquipmentAsset;
+import org.jspecify.annotations.NonNull;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -66,6 +68,13 @@ public class EquipmentRenderMixin {
     @Unique
     private static final ThreadLocal<EquipmentClientInfo.LayerType> armorHider$combatLayerType = new ThreadLocal<>();
 
+    @Unique
+    private static void armorHider$recordEquipmentFallbackIfEnabled(){
+        if (AhArmProbe.isEnabled()) {
+            AhArmProbe.recordEquipmentFallback();
+        }
+    }
+
     //? if >= 1.21.11 {
     /**
      * EMF/Fresh Animations models are rendered later than this equipment submission in 1.21.11+.
@@ -83,36 +92,43 @@ public class EquipmentRenderMixin {
         if (vanillaRoot == null) {
             return original;
         }
-        if (AhArmProbe.isEnabled()) {
-            AhArmProbe.recordEquipmentFallback();
-        }
 
         // Preserve the concrete vanilla model types. EMF's deferred renderer checks for
         // HumanoidModel before replaying the animated player pose onto armor; a plain Model wrapper
         // skips that step and leaves armor pieces in stale/default poses. ElytraModel likewise owns
         // the live wing rotations used by the queued draw.
         if (original instanceof HumanoidModel<?> humanoid) {
-            return (Model<? super S>) new HumanoidModel<HumanoidRenderState>(
+            armorHider$recordEquipmentFallbackIfEnabled();
+            return (Model<? super S>) new HumanoidModel<>(
                     vanillaRoot, original::renderType) {
                 @Override
-                public void setupAnim(HumanoidRenderState state) {
+                public void setupAnim(@NonNull HumanoidRenderState state) {
                     ((Model) humanoid).setupAnim(state);
                     RenderModifications.synchronisePoses(humanoid.root(), vanillaRoot);
                 }
             };
         }
         if (original instanceof ElytraModel elytra) {
+            // #338 regression. EMF/FA has their own ElytraModel with another mesh.
+            // If EMF is present, we return the original without pose synchronization,
+            // in order to not dislocate the Elytra from the player model.
+            // This matches 0.12.17 behavior.
+            if (CompatManager.requiresCompatTo(CompatFlags.ENTITY_MODEL_FEATURES)) {
+                return original;
+            }
+            armorHider$recordEquipmentFallbackIfEnabled();
             return (Model<? super S>) new ElytraModel(vanillaRoot) {
                 @Override
-                public void setupAnim(HumanoidRenderState state) {
+                public void setupAnim(@NonNull HumanoidRenderState state) {
                     elytra.setupAnim(state);
                     RenderModifications.synchronisePoses(elytra.root(), vanillaRoot);
                 }
             };
         }
-        return new Model<S>(vanillaRoot, original::renderType) {
+        armorHider$recordEquipmentFallbackIfEnabled();
+        return new Model<>(vanillaRoot, original::renderType) {
             @Override
-            public void setupAnim(S state) {
+            public void setupAnim(@NonNull S state) {
                 original.setupAnim(state);
                 RenderModifications.synchronisePoses(original.root(), vanillaRoot);
             }
