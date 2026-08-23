@@ -4,7 +4,7 @@ archives_base_name = "armor-hider"
 loader_version = "0.18.4"
 # eunomia-core compile-time API version. Version-agnostic (no MC suffix), so one value covers every
 # variant. Consumed compileOnly; the eunomia mod supplies the runtime. Matches eunomia's release tag.
-eunomia.version = "0.2.5"
+eunomia.version = "0.3.4"
 # eunomia mod jar on CurseForge (project id; Modrinth pending approval). The per-MC fabric file id is
 # pinned per fabric variant below as `eunomia.cf.file`. The FCGT smoke run resolves that file via the
 # keyless Cursemaven proxy (`curse.maven:eunomia-<project>:<file>`) and drops it into run/mods as
@@ -176,7 +176,7 @@ gender.version = "T31mEfNe"
 accessories.version = "wmLc2Y7f" # 1.2.19-beta+1.21.4 (Trinkets has no 1.21.4 build)
 fabricapi.version = "p96k10UR"
 fabricapi.semver = "0.119.4+1.21.4"
-eunomia.cf.file = "8678404" # [Fabric] mc-1.21.4 - 0.2.5
+eunomia.cf.file = "8714577" # [Fabric] mc-1.21.4 - 0.3.4
 
 ["fabric-1.21.8"]
 "fabric.minecraft_version" = "1.21.8"
@@ -192,7 +192,7 @@ gender.version = "Z3yx6MPE" # 4.3
 accessories.version = "MP4v9WZU" # 1.3.8-beta+1.21.8 (Trinkets has no 1.21.8 build)
 fabricapi.version = "g58ofrov"
 fabricapi.semver = "0.136.1+1.21.8"
-eunomia.cf.file = "8678405" # [Fabric] mc-1.21.5-8 - 0.2.5
+eunomia.cf.file = "8714578" # [Fabric] mc-1.21.5-8 - 0.3.4
 
 ["fabric-1.21.10"]
 "fabric.minecraft_version" = "1.21.10"
@@ -208,7 +208,7 @@ gender.version = "wV4whY0G" # 5.0.0-Beta.2
 firstperson.version = "8kR5GIsh" # 2.7.2
 fabricapi.version = "tV4Gc0Zo"
 fabricapi.semver = "0.138.4+1.21.10"
-eunomia.cf.file = "8678407" # [Fabric] mc-1.21.9-10 - 0.2.5
+eunomia.cf.file = "8714580" # [Fabric] mc-1.21.9-10 - 0.3.4
 
 ["fabric-1.21.11"]
 "fabric.minecraft_version" = "1.21.11"
@@ -226,7 +226,7 @@ gender.version = "W7WJBV1r" # 5.0.0-Beta.3
 firstperson.version = "EqDE0uC5" # 2.7.2
 fabricapi.version = "5zJNhXV2"
 fabricapi.semver = "0.141.4+1.21.11"
-eunomia.cf.file = "8678397" # [Fabric] mc-1.21.11 - 0.2.5
+eunomia.cf.file = "8714573" # [Fabric] mc-1.21.11 - 0.3.4
 
 ["fabric-26.1.2"]
 "fabric.minecraft_version" = "26.1.2"
@@ -243,7 +243,7 @@ firstperson.version = "PBg45FeB" # 2.7.2 (mc26.1 jar, covers 26.1/26.1.1/26.1.2)
 loader_version = "0.19.3"
 fabricapi.version = "WC1KT7Yg"
 fabricapi.semver = "0.153.0+26.1.2"
-eunomia.cf.file = "8678408" # [Fabric] mc-26.1.0-2 - 0.2.5
+eunomia.cf.file = "8714584" # [Fabric] mc-26.1.0-2 - 0.3.4
 immersivearmors.version = "De0vtARW" # 1.8.1+26.1.2 fabric
 
 ["fabric-26.2"]
@@ -266,7 +266,7 @@ fabricapi.version = "M8Kbv865"
 # of individual API modules off fabric maven (e.g. fabric-client-gametest-api-v1 for the
 # Phase 2 entity-render smoke test). Mirrors `fabricapi.version`'s Modrinth hash.
 fabricapi.semver = "0.153.0+26.2"
-eunomia.cf.file = "8678390" # [Fabric] 26.2 - 0.2.5
+eunomia.cf.file = "8714565" # [Fabric] 26.2 - 0.3.4
 immersivearmors.version = "8gIhM6R2" # 1.8.1+26.2 fabric
 armoredelytra.version = "IbMR9Ie6" # 1.14.1+26.2 fabric (dorkix); loaded on the compat=all FCGT row so the ArmoredElytraGenderSmokeTest exercises the mod-present branch
 
@@ -287,7 +287,7 @@ fabricapi.version = "1jpphFGE"
 # of individual API modules off fabric maven (e.g. fabric-client-gametest-api-v1 for the
 # Phase 2 entity-render smoke test). Mirrors `fabricapi.version`'s Modrinth hash.
 fabricapi.semver = "0.157.1+26.3"
-eunomia.cf.file = "8678392" # [Fabric] 26.3-snap.8 - 0.2.5
+eunomia.cf.file = "8714567" # [Fabric] 26.3-snap.9 - 0.3.4
 
 # ── NeoForge ──────────────────────────────────────────────────────────────────
 
