@@ -133,6 +133,21 @@ class AhSharedRuleStoreTest {
     }
 
     @Test
+    @DisplayName("the received state is copied - mutating an override afterwards cannot reach the render path")
+    void storedEntriesAreIndependentOfTheCallersObjects() {
+        SharedRuleOverride mutable = new SharedRuleOverride(SharedRuleTarget.HEAD, true, 0.0, false);
+        AhSharedRuleStore.put("Alice", ALICE, List.of(mutable));
+
+        mutable.opacity = 1.0;
+        mutable.disableGlint = true;
+
+        SharedRuleOverride stored = AhSharedRuleStore.get("Alice", AhRuleTarget.HEAD);
+        assertNotNull(stored);
+        assertEquals(0.0, stored.opacity);
+        assertFalse(stored.disableGlint);
+    }
+
+    @Test
     @DisplayName("a blank name is refused rather than stored under a key nothing can look up")
     void blankNamesAreRefused() {
         assertFalse(AhSharedRuleStore.put("", ALICE, hide(SharedRuleTarget.HEAD)));

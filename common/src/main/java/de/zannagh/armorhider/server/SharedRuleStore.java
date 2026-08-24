@@ -46,7 +46,7 @@ public final class SharedRuleStore {
         if (overrides != null) {
             for (SharedRuleOverride override : overrides) {
                 if (override != null && override.isMeaningful()) {
-                    sanitized.add(override.sanitized());
+                    sanitized.add(override.sanitizedCopy());
                 }
             }
         }

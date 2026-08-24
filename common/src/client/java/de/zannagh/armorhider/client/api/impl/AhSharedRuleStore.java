@@ -78,7 +78,7 @@ public final class AhSharedRuleStore {
                     // it is the right failure mode: the rest of that player's state still applies.
                     continue;
                 }
-                parsed.put(target, override.sanitized());
+                parsed.put(target, override.sanitizedCopy());
             }
         }
 

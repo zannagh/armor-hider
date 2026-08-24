@@ -35,8 +35,18 @@ import org.bukkit.scoreboard.Team;
  */
 public final class DisplayNames {
 
-    /** Legacy colour/format codes: a section sign plus one code character. */
-    private static final String LEGACY_CODE = "(?i)§[0-9A-FK-OR]";
+    /**
+     * Legacy colour/format codes: a section sign plus one code character.
+     * <p>
+     * {@code 0-9A-F} are the colours, {@code K-O} the styles and {@code R} the reset. {@code X} is the
+     * odd one out and must not be dropped from this class: a hex colour serialises as
+     * {@code §x§1§2§3§4§5§6}, so without it the six digit pairs would strip and leave a literal
+     * {@code §x} in the key - which is precisely the mismatch this whole class exists to avoid, and it
+     * would only show up on servers using hex team colours. Bukkit's own {@code ChatColor.stripColor}
+     * has the same gap; it is not usable here anyway, because {@code paper-api} is {@code compileOnly}
+     * and therefore absent from the test runtime.
+     */
+    private static final String LEGACY_CODE = "(?i)§[0-9A-FK-ORX]";
 
     private DisplayNames() {
     }

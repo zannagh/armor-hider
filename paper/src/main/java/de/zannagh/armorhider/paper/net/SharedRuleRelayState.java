@@ -51,7 +51,12 @@ public final class SharedRuleRelayState {
      *         source.
      */
     public JsonObject put(UUID playerId, String playerName, JsonArray overrides, long timestamp) {
-        JsonArray sanitized = overrides == null ? new JsonArray() : overrides;
+        // Deep-copied on ingest so the store owns its state outright. A JsonArray is mutable and the
+        // caller's belongs to the decoded inbound payload; keeping the reference would mean any later
+        // mutation of it silently rewrote what is stored, which would corrupt both the dedup comparison
+        // below and every snapshot handed to a joining client. Mirrors the List.copyOf in the mod's
+        // SharedRuleStore. The arrays are at most six small objects, so the copy is free in practice.
+        JsonArray sanitized = overrides == null ? new JsonArray() : overrides.deepCopy();
 
         if (sanitized.isEmpty()) {
             if (byPlayer.remove(playerId) == null) {
@@ -102,7 +107,9 @@ public final class SharedRuleRelayState {
         JsonObject packet = new JsonObject();
         packet.addProperty(PLAYER_NAME, playerName);
         packet.addProperty(PLAYER_ID, playerId.toString());
-        packet.add(OVERRIDES, overrides);
+        // Copied on the way out as well, so the stored array is never reachable from a notification the
+        // caller holds - snapshotExcept in particular hands one out per online player.
+        packet.add(OVERRIDES, overrides.deepCopy());
         packet.addProperty(TIMESTAMP, timestamp);
         return packet;
     }

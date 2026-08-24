@@ -65,6 +65,39 @@ class SharedRuleRelayStateTest {
     }
 
     @Test
+    @DisplayName("the stored state is independent of the caller's array - mutating the input cannot reach it")
+    void storedStateIsIndependentOfTheCallersArray() {
+        SharedRuleRelayState state = new SharedRuleRelayState();
+        JsonArray inbound = overrides("HEAD", 0.0);
+
+        state.put(ALICE, "Alice", inbound, 1L);
+        // A JsonArray is mutable and this one belongs to the decoded inbound payload. If the store kept
+        // the reference, this would rewrite what every later joiner is told - and silently defeat the
+        // dedup below, since the "previous" state would mutate along with the new one.
+        inbound.remove(0);
+        inbound.add("garbage");
+
+        List<JsonObject> snapshot = state.snapshotExcept(BOB);
+        assertEquals(1, snapshot.size());
+        JsonArray stored = snapshot.get(0).getAsJsonArray(SharedRuleRelayState.OVERRIDES);
+        assertEquals(1, stored.size());
+        assertEquals("HEAD", stored.get(0).getAsJsonObject().get("target").getAsString());
+    }
+
+    @Test
+    @DisplayName("a relayed notification cannot be used to edit the stored state")
+    void relayedNotificationDoesNotAliasTheStore() {
+        SharedRuleRelayState state = new SharedRuleRelayState();
+        JsonObject relayed = state.put(ALICE, "Alice", overrides("HEAD", 0.0), 1L);
+
+        relayed.getAsJsonArray(SharedRuleRelayState.OVERRIDES).remove(0);
+
+        JsonArray stillStored = state.snapshotExcept(BOB).get(0)
+                .getAsJsonArray(SharedRuleRelayState.OVERRIDES);
+        assertEquals(1, stillStored.size());
+    }
+
+    @Test
     @DisplayName("an identical re-announcement is not relayed again")
     void identicalStateIsNotRelayed() {
         SharedRuleRelayState state = new SharedRuleRelayState();

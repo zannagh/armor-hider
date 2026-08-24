@@ -51,14 +51,20 @@ public final class SharedRuleOverride {
     }
 
     /**
-     * @return a copy with the opacity clamped into {@code [0, 1]}. Applied on receipt: the value comes
-     *         off the network and the render path multiplies colours with it.
+     * @return a fresh instance with the opacity clamped into {@code [0, 1]}. Applied on receipt: the
+     *         value comes off the network and the render path multiplies colours with it.
+     *         <p>
+     *         <b>Always</b> a new object, never {@code this}, even when nothing needed clamping. The
+     *         callers are the two stores, and their whole contract is that they own what they hold: a
+     *         {@code SharedRuleOverride} is a mutable public-field carrier deserialised straight out of
+     *         an inbound payload, so handing the same instance back would let anything still holding
+     *         that payload rewrite stored state and silently break the change detection both stores
+     *         rely on. The allocation is one small object per announced piece of equipment, on a path
+     *         that only runs when a shared state actually changed.
      */
-    public SharedRuleOverride sanitized() {
-        double clamped = Math.max(0.0, Math.min(1.0, opacity));
-        return clamped == opacity
-                ? this
-                : new SharedRuleOverride(target, affectsOpacity, clamped, disableGlint);
+    public SharedRuleOverride sanitizedCopy() {
+        return new SharedRuleOverride(target, affectsOpacity,
+                Math.max(0.0, Math.min(1.0, opacity)), disableGlint);
     }
 
     // Equality drives the send-on-change diff in the client broadcaster: an identical snapshot must

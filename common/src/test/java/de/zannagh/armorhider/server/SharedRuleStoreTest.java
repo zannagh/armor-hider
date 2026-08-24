@@ -146,6 +146,25 @@ class SharedRuleStoreTest {
     }
 
     @Test
+    @DisplayName("the stored entries are copies - mutating an override after the fact cannot reach a client")
+    void storedEntriesAreIndependentOfTheCallersObjects() {
+        SharedRuleStore store = new SharedRuleStore();
+        SharedRuleOverride mutable = new SharedRuleOverride(SharedRuleTarget.HEAD, true, 0.0, false);
+
+        store.put(ALICE, "Alice", List.of(mutable), 1L);
+        // A SharedRuleOverride is a mutable public-field carrier deserialised straight out of the
+        // inbound payload. Storing the caller's instance would let anything still holding that payload
+        // rewrite the state every later joiner is told about.
+        mutable.opacity = 1.0;
+        mutable.target = SharedRuleTarget.FEET;
+
+        var snapshot = store.snapshotExcept(BOB);
+        assertEquals(1, snapshot.size());
+        assertEquals(SharedRuleTarget.HEAD, snapshot.get(0).overrides.get(0).target);
+        assertEquals(0.0, snapshot.get(0).overrides.get(0).opacity);
+    }
+
+    @Test
     @DisplayName("a snapshot skips the recipient's own state")
     void snapshotExcludesTheRecipient() {
         SharedRuleStore store = new SharedRuleStore();

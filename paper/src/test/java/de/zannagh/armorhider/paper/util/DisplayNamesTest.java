@@ -46,6 +46,16 @@ class DisplayNamesTest {
     }
 
     @Test
+    @DisplayName("a hex colour is stripped whole, introducer included")
+    void hexColoursAreStrippedWhole() {
+        // A hex team colour serialises as §x followed by the six digits as individual codes. Stripping
+        // only the digits would leave a literal "§x" in the key and break the lookup on exactly the
+        // servers that use hex colours.
+        assertEquals("[VIP] Zannagh", DisplayNames.decorate("Zannagh", "§x§1§2§3§4§5§6[VIP] ", ""));
+        assertEquals("Zannagh", DisplayNames.decorate("Zannagh", "§X§A§B§C§D§E§F", ""));
+    }
+
+    @Test
     @DisplayName("a lone section sign is left alone rather than eating the next character")
     void loneSectionSignSurvives() {
         // "§z" is not a formatting code, so it is literal text on the client too.
