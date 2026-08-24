@@ -126,9 +126,16 @@ final class GradleFork {
         }
     }
 
-    /** The gradle wrapper invocation for this platform. */
+    /**
+     * The gradle wrapper invocation for this platform, as an ABSOLUTE path.
+     * <p>
+     * {@link ProcessBuilder} resolves a relative program name against the JVM's OWN working directory
+     * and {@code PATH} - never against {@link ProcessBuilder#directory(File)}. The {@code smokeTest}
+     * worker runs from {@code smoke/}, so a bare {@code gradlew.bat} is not found and every row dies
+     * with {@code CreateProcess error=2} before it launches anything. Resolve against the repo root.
+     */
     static String gradleScript() {
-        return isWindows() ? "gradlew.bat" : "./gradlew";
+        return repoRoot().resolve(isWindows() ? "gradlew.bat" : "gradlew").toAbsolutePath().toString();
     }
 
     /** Repository root, forwarded by the Gradle test task, or discovered by walking upwards. */
