@@ -50,7 +50,8 @@ class FcgtScenarioTest {
             "water-transparency",
             "gender-breast-armor",
             "armored-elytra-gender",
-            "emf-fa"
+            "emf-fa",
+            "fabric-armor-renderer"
     })
     void scenario(String fcgtId) throws Exception {
         Path repoRoot = GradleFork.repoRoot();
