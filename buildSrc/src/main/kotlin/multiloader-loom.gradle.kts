@@ -332,6 +332,10 @@ if (branch == "fabric") {
         add("individual-config" to "de.zannagh.armorhider.smoke.IndividualConfigSmokeTest")
         add("keybind" to "de.zannagh.armorhider.smoke.KeybindSmokeTest")
         add("combat-detection" to "de.zannagh.armorhider.smoke.CombatDetectionSmokeTest")
+        // Public ArmorHiderRenderApi end-to-end smoke. Asserts on SlotModification + the translucent
+        // armor path rather than on a version-specific render architecture, so it is `//? if fcgt`
+        // only and registers on every fcgt variant.
+        add("render-api" to "de.zannagh.armorhider.smoke.RenderApiSmokeTest")
         // Paper end-to-end handshake smoke. Gated only on `fcgt` like the class itself: it no-ops
         // unless -Psmoke.paper.port is supplied, so registering it everywhere is harmless.
         add("paper-handshake" to "de.zannagh.armorhider.smoke.PaperHandshakeSmokeTest")

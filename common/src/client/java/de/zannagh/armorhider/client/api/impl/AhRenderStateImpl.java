@@ -285,6 +285,8 @@ public final class AhRenderStateImpl {
         }
         // SlotModification.of already yields an empty (non-hiding) modification when Armor Hider is
         // disabled / force-off for this player, so those guards are respected without repeating them.
-        return SlotModification.of(config, slot).shouldHide();
+        // addItemInformation(EMPTY) is what applies ArmorHiderRenderApi rules - it is the single
+        // evaluation point, and this query has no specific stack to offer, hence the empty one.
+        return SlotModification.of(config, slot).addItemInformation(ItemStack.EMPTY).shouldHide();
     }
 }
