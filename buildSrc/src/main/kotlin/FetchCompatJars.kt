@@ -186,9 +186,13 @@ abstract class FetchCompatJars : DefaultTask() {
                 )
                 if (projectId != null) {
                     val resolved = modrinth.latestForProject(projectId, "$label/auto-correct")
-                    if (resolved != null && resolved != hash && seen.add(resolved)) {
-                        // Replace the bad pin with the auto-resolved one. The project is claimed by
-                        // that call, not this one - nothing was downloaded here.
+                    if (resolved != null && resolved != hash) {
+                        // Replace the bad pin with the auto-resolved one. Deliberately NOT
+                        // pre-adding `resolved` to `seen` as a recursion guard: fetchVersion opens
+                        // with `if (!seen.add(hash)) return`, so pre-adding made it return on entry
+                        // and the replacement was never downloaded - the stale pin was dropped with
+                        // nothing put back. Let that same check do the dedup; the resolved version
+                        // targets `mc` by construction, so it cannot re-enter this branch.
                         fetchVersion(resolved, target, seen, claimedProjects, pendingDeps, label)
                         return
                     }
@@ -205,7 +209,7 @@ abstract class FetchCompatJars : DefaultTask() {
         // than written alongside the first - see the class doc for what duplicate copies do to
         // fabric-loader's remapper. Phase ordering makes the survivor the explicit pin.
         val project = json.get("project_id")?.takeIf { !it.isJsonNull }?.asString
-        if (project != null && !claimedProjects.add(project)) {
+        if (project != null && project in claimedProjects) {
             logger.lifecycle(
                 "[fetchCompatJars] {} → skipped (project {} already provided by an earlier selection)",
                 label, project
@@ -219,6 +223,12 @@ abstract class FetchCompatJars : DefaultTask() {
         val out = target.toPath().resolve(filename)
         logger.lifecycle("[fetchCompatJars] {} → {}", label, filename)
         modrinth.download(url, out)
+        // Claim only once the jar is actually on disk. Claiming before the download would let a
+        // failed fetch suppress every later fallback for that project - the run would end up with
+        // no copy at all, which is worse than the duplicate this dedup exists to prevent.
+        if (project != null) {
+            claimedProjects.add(project)
+        }
 
         // Queue required deps for phase 2 instead of recursing: depth-first recursion would let
         // one pin's dep chain claim projects before the remaining pins are even looked at.
