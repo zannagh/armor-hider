@@ -246,12 +246,12 @@ public record SlotModification(
         if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.shouldApplyCombatDetectionTo(config)) {
             base = CombatManager.transformTransparencyBasedOnCombat(playerName, base);
         }
-        boolean baseGlint = glintDisabledFor(config, slot);
+        boolean baseDisableGlint = glintDisabledFor(config, slot);
 
         var ruled = AhRenderRuleRegistryImpl.evaluate(
                 AhRuleTarget.of(slot), playerName, slot, resolvedItemInfo.getStack(), false, config, base);
         return rebuild(ruled.changed() ? ruled.opacity() : base,
-                baseGlint || (ruled.changed() && ruled.disableGlint()),
+                baseDisableGlint || (ruled.changed() && ruled.disableGlint()),
                 resolvedItemInfo);
     }
 

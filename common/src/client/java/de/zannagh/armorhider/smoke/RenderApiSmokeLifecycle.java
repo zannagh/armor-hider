@@ -33,27 +33,40 @@ final class RenderApiSmokeLifecycle {
      * <p>
      * The setup is the whole trick. Registering a rule does <em>not</em> dirty the cache: {@code
      * PlayerMixin} only sets {@code modsDirty} from the config-change listener and {@code
-     * onEquipItem}. So a naive version of this assertion probes a cache that still holds the
-     * pre-rule config base, there is no baked value for the flip to release, and it passes whether or
-     * not the ratchet exists - measured, not assumed: an earlier version of this test stayed green
-     * with the latch reintroduced. Equipping AFTER registering forces a rebuild while the rule
-     * matches, and the explicit baked-value precondition below fails loudly if that setup ever stops
-     * working, rather than letting the assertion go quietly vacuous again.
+     * onEquipItem}. So a naive version of this assertion probes a cache that still holds whatever a
+     * previous scenario baked, there is no rule-derived value for the flip to release, and it passes
+     * whether or not the ratchet exists - measured, not assumed: an earlier version of this test
+     * stayed green with the latch reintroduced.
+     * <p>
+     * Equipping is NOT enough to force the rebuild. {@code client.player.setItemSlot(...)} writes the
+     * slot directly; it does not run {@code Player#onEquipItem}, which is driven by the equipment
+     * change detection rather than by a direct client-side write. So the equip leaves {@code
+     * modsDirty} false and the stale record stands - that is exactly how this assertion failed in CI,
+     * reading a previous scenario's 0.7856 where it expected the rule's 0. The config-change listener
+     * is the other invalidation path and is callable outright, so drive the rebuild with that.
+     * <p>
+     * No ticks between the rebuild and either read: {@code armorHider$getPlayerModifications()}
+     * rebuilds on demand when dirty, so the bake happens inside the same client call that reads it,
+     * and a server equipment re-sync cannot slip in and rebuild the cache for us. The explicit
+     * baked-value precondition below fails loudly if that setup ever stops working, rather than
+     * letting the assertion go quietly vacuous again.
      */
     static void assertPredicateFollowsChangingCondition(ClientGameTestContext context) {
         AtomicBoolean hiding = new AtomicBoolean(true);
         AhRenderRule rule = context.computeOnClient(client ->
                 ArmorHiderRenderApi.hideArmorWhen(EquipmentSlot.CHEST, player -> hiding.get()));
         try {
-            // Equip AFTER registering: onEquipItem is what dirties the cache, so this is what makes
-            // the rebuild run with the rule matching and bake its opacity in.
-            context.runOnClient(client -> {
+            // Equip so the render-path lookup below has a stack to fold in, then dirty the cache
+            // explicitly and read it back in the same client call - the getter rebuilds on demand, so
+            // this is the rebuild that runs with the rule matching and bakes its opacity in. A null
+            // player name notifies every listener regardless of which player it is keyed to.
+            double baked = context.computeOnClient(client -> {
                 if (client.player != null) {
                     client.player.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.DIAMOND_CHESTPLATE));
                 }
+                ArmorHiderClient.CLIENT_CONFIG_MANAGER.notifyConfigListeners(null);
+                return cachedChestRecord(client).transparency();
             });
-            context.waitTicks(5);
-            double baked = context.computeOnClient(client -> cachedChestRecord(client).transparency());
             if (baked > 0.01) {
                 throw new IllegalStateException(
                         "[smoke/fcgt] the cached chest record reads " + baked + ", expected ~0 - the rebuild"
@@ -154,11 +167,11 @@ final class RenderApiSmokeLifecycle {
      * boots come out hidden it can only be leakage from the shared builder.
      */
     static void assertBuilderIsReusable(ClientGameTestContext context) {
-        var rules = context.computeOnClient(client -> {
+        // Both handles are released through unregisterAll(OWNER) below, so neither is kept here.
+        context.runOnClient(client -> {
             var builder = ArmorHiderRenderApi.rule(EquipmentSlot.FEET).owner(OWNER);
-            AhRenderRule neverHides = builder.hide().when(player -> false);
-            AhRenderRule glintOnly = builder.disableGlint().when(player -> true);
-            return new AhRenderRule[]{neverHides, glintOnly};
+            builder.hide().when(player -> false);
+            builder.disableGlint().when(player -> true);
         });
         try {
             var boots = context.computeOnClient(client -> {
