@@ -110,55 +110,28 @@ extra["commonProject"] = commonProject
 dependencies {
     compileOnly("org.jspecify:jspecify:1.0.0")
     compileOnly("net.luckperms:api:5.4")
-    if (hasProperty("geckolib.version")) {
-        add("compileOnly", "maven.modrinth:geckolib:${findProperty("geckolib.version")}")
-    }
-    if (hasProperty("iris.version")) {
-        add("compileOnly", "maven.modrinth:iris:${findProperty("iris.version")}")
-    }
-    if (hasProperty("emf.version")) {
-        add("compileOnly", "maven.modrinth:entity-model-features:${findProperty("emf.version")}")
-    }
-    if (hasProperty("etf.version")) {
-        add("compileOnly", "maven.modrinth:entitytexturefeatures:${findProperty("etf.version")}")
-    }
-    if (hasProperty("mekanism.version")) {
-        add("compileOnly", "maven.modrinth:mekanism:${findProperty("mekanism.version")}")
-    }
-    if (hasProperty("waveycapes.version")) {
-        add("compileOnly", "maven.modrinth:wavey-capes:${findProperty("waveycapes.version")}")
-    }
-    if (hasProperty("deeperdarker.version")) {
-        add("compileOnly", "maven.modrinth:deeperdarker:${findProperty("deeperdarker.version")}")
-    }
-    if (hasProperty("uranus.version")) {
-        add("compileOnly", "maven.modrinth:uranus:${findProperty("uranus.version")}")
-    }
-    if (hasProperty("figura.version")) {
-        add("compileOnly", "maven.modrinth:figura:${findProperty("figura.version")}")
-    }
-    if (hasProperty("gender.version")) {
-        add("compileOnly", "maven.modrinth:female-gender:${findProperty("gender.version")}")
-    }
-    // Accessory providers (issue #246). Fabric: trinkets + accessories; NeoForge: curios (added on the
-    // neoforge project). Compat is @Pseudo/@Coerce so these are compileOnly parity deps + smoke-fetch sources.
-    if (hasProperty("trinkets.version")) {
-        add("compileOnly", "maven.modrinth:trinkets:${findProperty("trinkets.version")}")
-    }
-    if (hasProperty("accessories.version")) {
-        add("compileOnly", "maven.modrinth:accessories:${findProperty("accessories.version")}")
-    }
-    if (hasProperty("curios.version")) {
-        add("compileOnly", "maven.modrinth:curios:${findProperty("curios.version")}")
-    }
-    // First Person Model is Fabric-only, but the loader project compiles common's sources too, so the
-    // unremapped jar has to be here as well. That is usable only because FirstPersonCompat never touches an
-    // FPM member whose signature names a Minecraft type - FPM's own types (LogicHandler and friends) are
-    // fine, since those resolve identically either way; it is the MC types that differ between namespaces.
-    if (hasProperty("firstperson.version")) {
-        add("compileOnly", "maven.modrinth:first-person-model:${findProperty("firstperson.version")}")
-    }
 }
+
+addCompileOnlyDependency("geckolib.version", "maven.modrinth:geckolib")
+addCompileOnlyDependency("iris.version", "maven.modrinth:iris")
+addCompileOnlyDependency("emf.version", "maven.modrinth:entity-model-features")
+addCompileOnlyDependency("etf.version", "maven.modrinth:entitytexturefeatures")
+addCompileOnlyDependency("mekanism.version", "maven.modrinth:mekanism")
+addCompileOnlyDependency("waveycapes.version", "maven.modrinth:wavey-capes")
+addCompileOnlyDependency("deeperdarker.version", "maven.modrinth:deeperdarker")
+addCompileOnlyDependency("uranus.version", "maven.modrinth:uranus")
+addCompileOnlyDependency("figura.version", "maven.modrinth:figura")
+addCompileOnlyDependency("gender.version", "maven.modrinth:female-gender")
+// Accessory providers (issue #246). Fabric: trinkets + accessories; NeoForge: curios (added on the
+// neoforge project). Compat is @Pseudo/@Coerce so these are compileOnly parity deps + smoke-fetch sources.
+addCompileOnlyDependency("trinkets.version", "maven.modrinth:trinkets")
+addCompileOnlyDependency("accessories.version", "maven.modrinth:accessories")
+addCompileOnlyDependency("curios.version", "maven.modrinth:curios")
+// First Person Model is Fabric-only, but the loader project compiles common's sources too, so the
+// unremapped jar has to be here as well. That is usable only because FirstPersonCompat never touches an
+// FPM member whose signature names a Minecraft type - FPM's own types (LogicHandler and friends) are
+// fine, since those resolve identically either way; it is the MC types that differ between namespaces.
+addCompileOnlyDependency("firstperson.version", "maven.modrinth:first-person-model")
 
 // Include common's sources in the loader's source sets for IntelliJ
 sourceSets.main {
