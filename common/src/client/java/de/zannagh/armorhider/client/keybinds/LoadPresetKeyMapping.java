@@ -37,6 +37,13 @@ public class LoadPresetKeyMapping extends CustomKeyMapping {
         if (instance == null) {
             return;
         }
+        // A mapping can outlive the switch to API-only mode (flag set after Options.load), and this
+        // hold-modifier reads its key state directly rather than going through the click drain, so it
+        // needs its own guard - CustomKeyMapping#armorHider$tickAll stripping the array is not enough.
+        if (ArmorHider.isApiOnly()) {
+            instance.activatedWhileHeld = -1;
+            return;
+        }
         // isDown() is the right state to read for a hold-modifier, and it is safe to read: vanilla
         // clears it via releaseAll() when a screen opens and restores it via setAll() when one
         // closes. Resetting here (rather than from a setDown override) keeps the latch honest on

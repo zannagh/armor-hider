@@ -9,6 +9,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import de.zannagh.armorhider.net.packets.PermissionPacket;
 import de.zannagh.armorhider.net.packets.CombatLogNotificationPacket;
 import de.zannagh.armorhider.net.packets.HandshakePacket;
+import de.zannagh.armorhider.net.packets.SharedRuleNotificationPacket;
 import de.zannagh.armorhider.server.ServerConfiguration;
 import io.netty.buffer.Unpooled;
 import net.minecraft.network.FriendlyByteBuf;
@@ -57,6 +58,13 @@ public final class PacketSender {
         Identifier channel = LegacyPacketHandler.getHandshakeChannel();
         FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
         CompressedJsonCodec.encodeLegacy(handshake, buf);
+        player.connection.send(new ClientboundCustomPayloadPacket(channel, buf));
+    }
+
+    public static void sendToPlayer(ServerPlayer player, SharedRuleNotificationPacket sharedRules) {
+        Identifier channel = LegacyPacketHandler.getSharedRuleNotificationChannel();
+        FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
+        CompressedJsonCodec.encodeLegacy(sharedRules, buf);
         player.connection.send(new ClientboundCustomPayloadPacket(channel, buf));
     }
     *///?}

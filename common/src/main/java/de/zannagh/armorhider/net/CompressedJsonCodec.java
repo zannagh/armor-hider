@@ -61,10 +61,12 @@ public class CompressedJsonCodec {
             }
 
             byte[] compressed = byteStream.toByteArray();
-            // PlayerConfig is our only sizeable C2S payload, so it is the one held to the serverbound limit.
-            // Refusing here beats letting a vanilla server kick the client on join. Backstop only: the
-            // payload should no longer be able to get this big now that forNetwork() drops the exclusion map.
+            // Every C2S payload is held to the tighter serverbound limit. Refusing here beats letting a
+            // vanilla server kick the client on join. Backstop only for both: PlayerConfig should no
+            // longer be able to get this big now that forNetwork() drops the exclusion map, and a
+            // SharedRuleStatePacket is at most six small entries.
             int limit = value instanceof de.zannagh.armorhider.net.packets.PlayerConfig
+                    || value instanceof de.zannagh.armorhider.net.packets.SharedRuleStatePacket
                     ? MAX_SERVERBOUND_PAYLOAD_BYTES
                     : MAX_PAYLOAD_BYTES;
             if (compressed.length > limit) {

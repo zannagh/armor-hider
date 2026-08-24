@@ -148,6 +148,43 @@ class PaperSchemaContractTest {
                 "CombatLogNotificationPacket");
         assertChannel(de.zannagh.armorhider.net.packets.HandshakePacket.PACKET_IDENTIFIER.toString(),
                 de.zannagh.armorhider.paper.net.Channels.HANDSHAKE_S2C, "HandshakePacket");
+        assertChannel(
+                de.zannagh.armorhider.net.packets.SharedRuleStatePacket.PACKET_IDENTIFIER.toString(),
+                de.zannagh.armorhider.paper.net.Channels.SHARED_RULES_C2S, "SharedRuleStatePacket");
+        assertChannel(
+                de.zannagh.armorhider.net.packets.SharedRuleNotificationPacket.PACKET_IDENTIFIER
+                        .toString(),
+                de.zannagh.armorhider.paper.net.Channels.SHARED_RULES_S2C,
+                "SharedRuleNotificationPacket");
+    }
+
+    /**
+     * The three envelope keys the plugin writes onto a shared-rule notification. Everything else -
+     * the {@code overrides} array itself - is relayed opaquely, so only these can drift.
+     */
+    @Test
+    @DisplayName("the plugin writes the shared-rule envelope keys the mod deserialises")
+    void sharedRuleEnvelopeKeysMatch() {
+        Set<String> notificationFields = serializedNames(
+                de.zannagh.armorhider.net.packets.SharedRuleNotificationPacket.class);
+
+        for (String key : java.util.List.of(
+                de.zannagh.armorhider.paper.net.SharedRuleRelayState.PLAYER_NAME,
+                de.zannagh.armorhider.paper.net.SharedRuleRelayState.PLAYER_ID,
+                de.zannagh.armorhider.paper.net.SharedRuleRelayState.OVERRIDES,
+                de.zannagh.armorhider.paper.net.SharedRuleRelayState.TIMESTAMP)) {
+            assertTrue(notificationFields.contains(key),
+                    () -> "The Paper plugin writes \"" + key + "\" onto every shared-rule"
+                            + " notification, but SharedRuleNotificationPacket no longer deserialises"
+                            + " it. Clients would silently drop the field.");
+        }
+
+        assertTrue(serializedNames(de.zannagh.armorhider.net.packets.SharedRuleStatePacket.class)
+                        .contains(de.zannagh.armorhider.paper.net.SharedRuleRelayState.OVERRIDES),
+                "The Paper plugin reads the inbound overrides array out of \""
+                        + de.zannagh.armorhider.paper.net.SharedRuleRelayState.OVERRIDES
+                        + "\", which SharedRuleStatePacket no longer serialises - it would relay an"
+                        + " empty state for every sender.");
     }
 
     private static void assertChannel(String identifier, java.util.List<String> aliases,

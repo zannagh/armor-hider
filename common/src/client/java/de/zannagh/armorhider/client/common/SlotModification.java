@@ -161,6 +161,23 @@ public record SlotModification(
     }
 
     /**
+     * The opacity a rule sees as its base: the user's configured value for the slot (or for the elytra),
+     * with combat detection already folded in. This is exactly what {@code AhHideContext.opacity()}
+     * reports and what a matching rule replaces.
+     * <p>
+     * Public because the shared-rule broadcaster has to derive the same base off the render path, when
+     * it evaluates the local player's shared rules on the client tick. Deriving it twice by hand is how
+     * the two would drift apart.
+     */
+    public static double preRuleOpacityFor(PlayerConfig config, String playerName, EquipmentSlot slot, boolean isElytra) {
+        double base = isElytra ? config.elytraOpacity.getValue() : baseTransparencyFor(config, slot);
+        if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.shouldApplyCombatDetectionTo(config)) {
+            base = CombatManager.transformTransparencyBasedOnCombat(playerName, base);
+        }
+        return base;
+    }
+
+    /**
      * The user's configured opacity for a slot, before combat detection and before any rule.
      * Combat detection is applied by the caller before shouldHide is derived, because an in-combat
      * piece configured to 0% must stop being hidden, not merely become opaque.
@@ -242,10 +259,7 @@ public record SlotModification(
         // ratchet, just triggered by unregister instead of by the predicate flipping. The base is
         // the same switch of(...) already does, and evaluate() still short-circuits before running any
         // predicate or allocating when nothing is registered.
-        double base = baseTransparencyFor(config, slot);
-        if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.shouldApplyCombatDetectionTo(config)) {
-            base = CombatManager.transformTransparencyBasedOnCombat(playerName, base);
-        }
+        double base = preRuleOpacityFor(config, playerName, slot, false);
         boolean baseDisableGlint = glintDisabledFor(config, slot);
 
         var ruled = AhRenderRuleRegistryImpl.evaluate(
@@ -271,10 +285,7 @@ public record SlotModification(
      * scope is left untouched and the wings render vanilla.
      */
     private SlotModification elytraModification(ItemInfo elytraInfo) {
-        double elytraTransparency = config.elytraOpacity.getValue();
-        if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.shouldApplyCombatDetectionTo(config)) {
-            elytraTransparency = CombatManager.transformTransparencyBasedOnCombat(playerName, elytraTransparency);
-        }
+        double elytraTransparency = preRuleOpacityFor(config, playerName, slot, true);
         boolean disableGlint = !config.elytraGlint.getValue();
         // Elytra rules are keyed separately from chest-armor rules: the wings live in the chest slot
         // but follow their own opacity/glint config, so ArmorHiderRenderApi targets them explicitly.

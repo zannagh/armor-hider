@@ -16,7 +16,7 @@ Hider state, plug in custom render behaviour, or hook combat detection from thir
 | `ArmorHiderRenderApi` | Predicate-driven rules that hide, fade or de-glint armor / elytra / off-hand items per player and slot. | **Start here.** Third-party mods that just want their own hide condition, with no mixin and no `AhRenderer`. |
 | `AhRenderRule` | Opaque handle returned by every `ArmorHiderRenderApi` registration. | Keep it to `unregister()` the rule later. |
 | `AhHideContext` | What Armor Hider knows about the piece being rendered (player name, lazily resolved `Player`, slot, stack, elytra flag, config, pre-rule opacity). | Passed to the `*Matching(...)` rule variants. |
-| `AhRenderRuleBuilder` / `AhRenderRuleCondition` | Staged builder for full control: target, priority, owner, effect, condition. | Anyone needing a priority or an owner - the convenience methods have neither. |
+| `AhRenderRuleBuilder` / `AhRenderRuleCondition` | Staged builder for full control: target, priority, owner, sharing, effect, condition. | Anyone needing a priority, an owner or `shared()` - the convenience methods have none of them. |
 
 All API interfaces are marked `@ApiStatus.NonExtendable` - only Armor Hider itself implements
 them, and they expose only static entry points. The mutator side of `AhRenderManagementApi`
@@ -50,13 +50,52 @@ ArmorHiderRenderApi.hideArmorWhenMatching(EquipmentSlot.CHEST, ctx ->
         ctx.stack().is(Items.NETHERITE_CHESTPLATE) && ctx.playerName().startsWith("[AFK]"));
 ```
 
+### Let the other players see it too: `shared()`
+
+A plain rule is **viewer-side**: it applies to every player *this* client renders. `shared()` declares
+the other kind of rule — a statement about *me* — and Armor Hider then broadcasts what it resolves to
+for the local player, so everybody else sees the same thing.
+
+```java
+// Everyone sees my helmet come off while I sleep, not just me.
+ArmorHiderRenderApi.rule(EquipmentSlot.HEAD)
+        .owner(MY_MOD_ID)
+        .shared()
+        .hide()
+        .when(Player::isSleeping);
+```
+
+Predicates are arbitrary code and cannot be serialised, so the **outcome** is what travels: the owning
+client evaluates its shared rules against itself once per client tick and sends the resulting opacity
+and glint per target whenever it changes. That means:
+
+- The condition is evaluated against the **local player** for this purpose, with the local player's own
+  stack, config and pre-rule opacity in the `AhHideContext`. A shared rule's predicate therefore runs
+  once more per tick than an unshared one.
+- Sharing is **additive**: the rule still evaluates locally exactly as before.
+- Other clients see a change one server round-trip later, and repeated changes are coalesced (at most
+  one packet per 250 ms) — this is not the tool for a per-frame flicker.
+- Nothing is sent to a server that does not run Armor Hider (or the Paper plugin): the outgoing packet
+  gate suppresses it and the rule stays local-only. Only the *owning* client needs the mod that
+  registered the rule; every other client needs Armor Hider.
+- A receiving client applies the outcome through its own rule pipeline, so all the limits below still
+  hold there — it is skipped wherever *that viewer's* Armor Hider renders vanilla, and a local rule with
+  a stronger priority still wins. A remote outcome participates at `defaultPriority()`.
+- A glint-only rule broadcasts the glint alone. It never carries the sender's own opacity, so it cannot
+  drag the sender's configured transparency onto anybody else's screen.
+- The server relays the **authenticated** name and id, never what the sender claimed, so a client
+  cannot hide somebody else's armor by announcing state under their name. It is keyed by display name
+  like every other player lookup here, with the same caveat.
+- State is cleared for a player when they stop matching, when they leave, and when they rejoin — a
+  previous session's claim never lingers.
+
 ### Take full control: priority and owners
 
-Priority and owner tagging live only on the builder, reached via `rule(slot)` or `elytraRule()`.
+Priority, owner tagging and `shared()` live only on the builder, reached via `rule(slot)` or `elytraRule()`.
 Target, effect and condition are all compile-enforced — a rule missing any of them does not compile.
 A builder is safe to hold and reuse for any number of rules: each effect setter returns a fresh
 immutable condition snapshot, so no registration can inherit a previous one's effect. Note that
-`priority(...)` and `owner(...)` must come before the effect — the effect hands off to
+`priority(...)`, `owner(...)` and `shared()` must come before the effect — the effect hands off to
 `AhRenderRuleCondition` and there is no way back.
 
 ```java
@@ -110,8 +149,8 @@ in the log instead of reporting once and then misbehaving silently.
   elytra — use `hideArmorWhen(EquipmentSlot.CHEST, ...)` to catch it.
 - Player lookup is keyed by display name, so two players sharing one display name resolve to
   whichever was iterated last. This matches how Armor Hider identifies players everywhere else.
-- With no rules registered no predicate runs and nothing is allocated — evaluation short-circuits
-  on one volatile read and an array index per slot.
+- With no rules registered and nothing shared by anyone, no predicate runs and nothing is allocated —
+  evaluation short-circuits on two volatile reads and an array index per slot.
 - Rules are re-derived from the user's configured opacity on every evaluation, never layered onto a
   previous result, so a predicate that stops matching reverts immediately rather than latching.
 
@@ -148,6 +187,30 @@ AhRenderInterceptionRegistryApi.register(
 AhRenderInterceptionRegistryApi.getRenderer(RenderScope.ARMOR_PIECE)
     .registerRenderTypeFactory(new MyTranslucentArmorFactory());
 ```
+
+### Use Armor Hider as a library, without its UI
+
+A mod that drives Armor Hider entirely through this API usually does not want Armor Hider showing up
+as a mod of its own next to it. One call takes the whole front end away:
+
+```java
+// From a Fabric ModInitializer/ClientModInitializer, or a NeoForge mod constructor.
+ArmorHider.useAsApiOnly();
+```
+
+Gone: the three keybinds (toggle, open settings, load preset — they also stop appearing in the vanilla
+Controls screen) and every entry point into the settings screens (the Options-screen button, the Skin
+Customization panel, the ModMenu config factory, the keybind).
+
+Kept: all networking (handshake, config sync, combat-log relay, the shared-rule transport above), the
+whole render pipeline and API, and the end user's own Armor Hider configuration — it still loads,
+persists, syncs and drives rendering, only the UI to change it is gone. A fresh install sits at vanilla
+defaults, so nothing hides unless your rules say so, while an existing user's saved settings keep
+working.
+
+Call it as early as you can: mod initialisers run before `Options` is loaded, which is when the
+keybinds would be installed. A later call still works — the mappings are stripped on the next client
+tick — it just means they existed briefly. The switch is one-way and idempotent.
 
 ## Conventions
 

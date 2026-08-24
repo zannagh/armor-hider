@@ -1,11 +1,13 @@
 package de.zannagh.armorhider.paper;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import de.zannagh.armorhider.paper.config.ServerConfigStorage;
 import de.zannagh.armorhider.paper.config.ServerConfigurationState;
 import de.zannagh.armorhider.paper.config.ServerWideSettingsDefaults;
 import de.zannagh.armorhider.paper.net.Channels;
 import de.zannagh.armorhider.paper.net.PacketSender;
+import de.zannagh.armorhider.paper.net.SharedRuleRelayState;
 import de.zannagh.armorhider.paper.perm.PermissionResolver;
 import de.zannagh.armorhider.paper.util.Schedulers;
 import org.bukkit.Bukkit;
@@ -30,6 +32,8 @@ public final class ArmorHiderService {
     private final PacketSender sender;
     private final PermissionResolver permissions;
     private final Schedulers schedulers;
+    /** Live, never-persisted shared render-rule state. Lasts exactly as long as the server does. */
+    private final SharedRuleRelayState sharedRules = new SharedRuleRelayState();
 
     public ArmorHiderService(Logger logger,
                              ServerConfigurationState state,
@@ -154,6 +158,61 @@ public final class ArmorHiderService {
 
         sender.broadcastExcept(Bukkit.getOnlinePlayers(), from.getUniqueId(),
                 Channels.COMBAT_LOG_S2C, notification);
+    }
+
+    /**
+     * Relays one player's shared render-rule outcome to everyone else.
+     *
+     * <p>The sender's own {@code playerName} and {@code playerId} are discarded and replaced with the
+     * authenticated ones - otherwise any client could hide another player's armor server-wide by
+     * announcing state under their name. The {@code overrides} array itself is relayed opaquely, like
+     * every other schema this plugin moves around.</p>
+     *
+     * <p>Unlike the mod, which can read the entity's team-decorated display name, the plugin keys on
+     * the profile name. On a server that decorates names through scoreboard teams the receiving
+     * clients look the state up under the decorated name and will not find it - the same display-name
+     * keying the rest of Armor Hider relies on.</p>
+     */
+    public void handleSharedRuleState(Player from, JsonObject payload) {
+        logger.info("Server received shared render rule packet from " + from.getUniqueId());
+        JsonArray overrides = payload.has(SharedRuleRelayState.OVERRIDES)
+                && payload.get(SharedRuleRelayState.OVERRIDES).isJsonArray()
+                ? payload.getAsJsonArray(SharedRuleRelayState.OVERRIDES)
+                : new JsonArray();
+        long timestamp = payload.has(SharedRuleRelayState.TIMESTAMP)
+                && payload.get(SharedRuleRelayState.TIMESTAMP).isJsonPrimitive()
+                ? payload.get(SharedRuleRelayState.TIMESTAMP).getAsLong()
+                : System.currentTimeMillis();
+
+        JsonObject notification = sharedRules.put(from.getUniqueId(), from.getName(), overrides, timestamp);
+        if (notification == null) {
+            return;
+        }
+        sender.broadcastExcept(Bukkit.getOnlinePlayers(), from.getUniqueId(),
+                Channels.SHARED_RULES_S2C, notification);
+    }
+
+    /**
+     * Join-time shared-rule bookkeeping, in both directions: the joiner's entry from a previous
+     * session is dropped and the drop announced, then the joiner is told about everyone else, since
+     * those announcements happened before they were connected.
+     *
+     * <p>Must run before the handshake. The client suppresses all outgoing traffic until it receives
+     * one, so clearing first makes it impossible for the joiner's own fresh announcement to be wiped
+     * by this.</p>
+     */
+    public void syncSharedRulesOnJoin(Player player) {
+        sharedRules.retainOnline(Bukkit.getOnlinePlayers().stream().map(Player::getUniqueId).toList());
+
+        JsonObject cleared = sharedRules.remove(player.getUniqueId(), player.getName(), System.currentTimeMillis());
+        if (cleared != null) {
+            sender.broadcastExcept(Bukkit.getOnlinePlayers(), player.getUniqueId(),
+                    Channels.SHARED_RULES_S2C, cleared);
+        }
+
+        for (JsonObject notification : sharedRules.snapshotExcept(player.getUniqueId())) {
+            sender.send(player, Channels.SHARED_RULES_S2C, notification);
+        }
     }
 
     /** Persists the current state. Called on shutdown, on the calling thread. */

@@ -21,9 +21,11 @@ class ChannelsTest {
             Channels.PLAYER_CONFIG_C2S,
             Channels.SERVER_WIDE_SETTINGS_C2S,
             Channels.COMBAT_LOG_C2S,
+            Channels.SHARED_RULES_C2S,
             Channels.SERVER_CONFIGURATION_S2C,
             Channels.PERMISSIONS_S2C,
             Channels.COMBAT_LOG_S2C,
+            Channels.SHARED_RULES_S2C,
             Channels.HANDSHAKE_S2C);
 
     @Test
@@ -58,6 +60,12 @@ class ChannelsTest {
             assertFalse(Channels.DIALECT_BEARING_C2S.contains(combatChannel),
                     () -> "combat-log channel " + combatChannel + " must not be treated as dialect evidence");
         }
+        // Shared rules are the same case: introduced after the namespace switch, so the namespace they
+        // arrive on says nothing about which dialect the client speaks.
+        for (String sharedChannel : Channels.SHARED_RULES_C2S) {
+            assertFalse(Channels.DIALECT_BEARING_C2S.contains(sharedChannel),
+                    () -> "shared-rules channel " + sharedChannel + " must not be treated as dialect evidence");
+        }
         assertEquals(Channels.PLAYER_CONFIG_C2S.size() + Channels.SERVER_WIDE_SETTINGS_C2S.size(),
                 Channels.DIALECT_BEARING_C2S.size());
     }
@@ -69,7 +77,7 @@ class ChannelsTest {
             assertTrue(Channels.ALL.containsAll(payload), () -> "ALL is missing " + payload);
         }
         assertEquals(Channels.ALL.stream().distinct().count(), Channels.ALL.size(), "ALL must be distinct");
-        // 7 payloads x 2 aliases each, all distinct.
-        assertEquals(14, Channels.ALL.size());
+        // 9 payloads x 2 aliases each, all distinct.
+        assertEquals(18, Channels.ALL.size());
     }
 }

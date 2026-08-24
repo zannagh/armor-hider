@@ -32,6 +32,7 @@ public final class AhRenderRuleConditionImpl implements AhRenderRuleCondition {
     private final AhRuleTarget target;
     private final int priority;
     private final @Nullable Object owner;
+    private final boolean shared;
     private final boolean affectsOpacity;
     private final double opacity;
     private final boolean disableGlint;
@@ -39,12 +40,14 @@ public final class AhRenderRuleConditionImpl implements AhRenderRuleCondition {
     public AhRenderRuleConditionImpl(AhRuleTarget target,
                                      int priority,
                                      @Nullable Object owner,
+                                     boolean shared,
                                      boolean affectsOpacity,
                                      double opacity,
                                      boolean disableGlint) {
         this.target = target;
         this.priority = priority;
         this.owner = owner;
+        this.shared = shared;
         this.affectsOpacity = affectsOpacity;
         this.opacity = opacity;
         this.disableGlint = disableGlint;
@@ -55,7 +58,7 @@ public final class AhRenderRuleConditionImpl implements AhRenderRuleCondition {
         if (disableGlint) {
             return this;
         }
-        return new AhRenderRuleConditionImpl(target, priority, owner, affectsOpacity, opacity, true);
+        return new AhRenderRuleConditionImpl(target, priority, owner, shared, affectsOpacity, opacity, true);
     }
 
     @Override
@@ -71,6 +74,6 @@ public final class AhRenderRuleConditionImpl implements AhRenderRuleCondition {
     public @NonNull AhRenderRule whenMatching(@NonNull Predicate<AhHideContext> condition) {
         Objects.requireNonNull(condition, "condition");
         return AhRenderRuleRegistryImpl.register(
-                target, priority, affectsOpacity, opacity, disableGlint, condition, owner);
+                target, priority, affectsOpacity, opacity, disableGlint, condition, owner, shared);
     }
 }

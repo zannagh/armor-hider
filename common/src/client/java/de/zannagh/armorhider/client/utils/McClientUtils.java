@@ -1,5 +1,6 @@
 package de.zannagh.armorhider.client.utils;
 
+import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.gui.screens.ArmorHiderOptionsScreen;
 import de.zannagh.armorhider.configuration.SettingsLocation;
@@ -58,6 +59,14 @@ public final class McClientUtils {
     }
 
     public static void openPreferredSettingsScreen(Screen parent, Options options) {
+        // Backstop for every door into the settings UI. The individual entry points (the options
+        // button, the skin-customization panel, ModMenu, the keybind) are suppressed at their own
+        // sites in API-only mode; guarding the one place that actually opens a screen means a future
+        // entry point cannot reintroduce the UI by forgetting the check.
+        if (ArmorHider.isApiOnly()) {
+            ArmorHider.LOGGER.debug("Suppressing the settings screen: Armor Hider runs in API-only mode.");
+            return;
+        }
         var minecraft = Minecraft.getInstance();
         minecraft.setScreenAndShow(getPreferredSettingsScreen(parent, options));
     }
