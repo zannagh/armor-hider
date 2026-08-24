@@ -2,6 +2,7 @@ plugins {
     id("java")
     id("java-library")
     id("jacoco")
+    id("maven-publish")
 }
 
 repositories {
@@ -45,6 +46,23 @@ java {
 
 tasks.jar {
     includeLicense(base.archivesName.get())
+}
+
+// Local-only publishing so third-party mods can develop against Armor Hider's API before a Modrinth
+// release exists: `./gradlew publishToMavenLocal` drops the variant into ~/.m2/repository under
+// <maven_group>:<archives_base_name>-<loader>:<semVer>+<display_version>. Deliberately no remote
+// repository and no credentials - CI ships to Modrinth/CurseForge, not to a Maven host.
+//
+// On the loom (fabric/common) variants the `java` component's outgoing artifact is loom's `remapJar`,
+// not the dev-namespace `jar`, so the published artifact is the same remapped jar that ships to
+// Modrinth. NeoForge builds are already in official Mojang names, so its plain `jar` is correct.
+publishing {
+    publications {
+        register<MavenPublication>("mavenJava") {
+            artifactId = base.archivesName.get()
+            from(components["java"])
+        }
+    }
 }
 
 tasks.test {

@@ -6,10 +6,12 @@ import de.zannagh.armorhider.client.api.AhRenderInterceptionRegistryApi;
 import de.zannagh.armorhider.client.api.AhRenderModificationApi;
 import de.zannagh.armorhider.client.api.AhRenderTypeFactory;
 import de.zannagh.armorhider.client.api.impl.AhPlayerConfigApiImpl;
+import de.zannagh.armorhider.client.api.impl.AhPlayerLookupCache;
 import de.zannagh.armorhider.client.api.impl.AhRendererRegistryImpl;
 import de.zannagh.armorhider.client.common.RenderScope;
 import de.zannagh.armorhider.client.api.AhClientCompatManager;
 import de.zannagh.armorhider.client.net.ClientCommunicationManager;
+import de.zannagh.armorhider.client.net.ClientConnectionEvents;
 import de.zannagh.armorhider.client.render.rendertype.RenderTypeFactory;
 import de.zannagh.armorhider.client.suppressions.InvisibilitySuppressor;
 import de.zannagh.armorhider.configuration.PresetManager;
@@ -37,6 +39,12 @@ public class ArmorHiderClient {
     public static void init() {
         ArmorHider.LOGGER.info("Armor Hider client initializing...");
         ClientCommunicationManager.initClient();
+
+        // The name -> Player snapshot used by ArmorHiderRenderApi's Predicate<Player> rules lives on
+        // the render thread, which outlives every ClientLevel. Its entries are weak, so nothing is
+        // pinned either way, but clearing eagerly on disconnect releases the last roster immediately
+        // instead of waiting for a GC. No-op when no rule ever asked for a player.
+        ClientConnectionEvents.registerDisconnect(client -> AhPlayerLookupCache.invalidate());
 
         initRenderTypes();
 
