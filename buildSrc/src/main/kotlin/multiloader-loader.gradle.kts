@@ -13,6 +13,10 @@ val compatKeys = listOf(
     "gender", "geckolib", "waveycapes", "mekanism", "figura",
     "elytratrims", "iris", "emf", "etf", "modmenu", "deeperdarker", "uranus", "firstperson",
     "immersivearmors", "armoredelytra",
+    // Nycto (MoriyaShiine) - registers its vampire/hunter armor through Fabric API's ArmorRenderer, the
+    // reproduction case for the fabric-rendering-v1 armor compat (issue #348). Fabric-only, and only
+    // fetched on the variants that pin nycto.version.
+    "nycto",
     // Fresh Animations (issue #217). Not a mod - a resource pack fetched into run/resourcepacks/
     // by fetchFaResourcePack, not run/mods/. Requires emf + etf to actually animate.
     "fa",

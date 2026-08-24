@@ -342,6 +342,12 @@ if (branch == "fabric") {
         // actually present at runtime. Registered everywhere fcgt is on - run it in isolation with
         // `-Psmoke.fcgt.only=emf-fa -Pcompat=emf,etf,fa`.
         add("emf-fa" to "de.zannagh.armorhider.smoke.EmfFreshAnimationsSmokeTest")
+        // Fabric API ArmorRenderer compat repro (issue #348). `//? if fcgt` only - it searches the item
+        // registry for whatever item has a custom ArmorRenderer registered and self-skips when the run
+        // has none, so it is safe to register on every fcgt variant. Nycto supplies one on the rows that
+        // pin nycto.version; run it in isolation with
+        // `-Psmoke.fcgt.only=fabric-armor-renderer -Pcompat=fabricapi,nycto`.
+        add("fabric-armor-renderer" to "de.zannagh.armorhider.smoke.FabricArmorRendererSmokeTest")
     }
 
     // `runClientGametest` runs EVERY registered entrypoint in ONE client launch, so an unrelated
