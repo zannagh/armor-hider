@@ -1,5 +1,3 @@
-import dev.kikugie.stonecutter.build.StonecutterBuildExtension
-
 val isDeobf = extra.has("loom.deobf") && extra.get("loom.deobf") as Boolean
 val sc = project.stonecutterBuild
 val branch = sc.branch.id
@@ -7,16 +5,16 @@ val mcVersion = sc.current.project.substringAfter('-')
 
 // ── Base setup ──
 if (branch == "common") {
-    apply(plugin = "multiloader-common")
+    plugins.apply("multiloader-common")
 } else {
-    apply(plugin = "multiloader-loader")
+    plugins.apply("multiloader-loader")
 }
 
 // ── Loom ──
 if (isDeobf) {
     extra.set("fabric.loom.disableObfuscation", "true")
 }
-apply(plugin = "fabric-loom")
+plugins.apply("fabric-loom")
 
 val loom = the<net.fabricmc.loom.api.LoomGradleExtensionAPI>()
 
@@ -417,7 +415,7 @@ if (branch == "fabric") {
         inputs.properties(expandProps)
         filesMatching(listOf("fabric.mod.json", "**/*.mixins.json"), ExpandPropertiesAction(expandProps))
         val awNamespace = if (isDeobf) "official" else "named"
-        from(rootProject.file("common/accesswideners"), Action<org.gradle.api.file.CopySpec> {
+        from(rootProject.file("common/accesswideners"), Action {
             include("armorhider.${expandProps["accesswidener"]}.accesswideners")
             filter { it.replace("classTweaker v1 named", "classTweaker v1 $awNamespace") }
         })
@@ -474,8 +472,8 @@ if (branch == "fabric") {
                 // GLFW forces its own Regular activation policy). 26.3 uses SDL, which reads these hint
                 // env vars before creating the window; "0" tells it not to activate/raise-to-front on
                 // show. Harmless off macOS / when the backend isn't in use.
-                environmentVariable("SDL_WINDOW_ACTIVATE_WHEN_SHOWN", "0")
-                environmentVariable("SDL_WINDOW_ACTIVATE_WHEN_RAISED", "0")
+                environmentVars.put("SDL_WINDOW_ACTIVATE_WHEN_SHOWN", "0")
+                environmentVars.put("SDL_WINDOW_ACTIVATE_WHEN_RAISED", "0")
 
                 // ── E2E line coverage (opt-in: -Psmoke.coverage) ─────────────────────────────
                 // The FCGT client is a real, mod-loaded Minecraft JVM, so it exercises code the Tier-1
@@ -510,14 +508,13 @@ if (branch == "fabric") {
             val jacocoCli = configurations.create("ahJacocoCli") {
                 isCanBeResolved = true
                 isCanBeConsumed = false
-                isVisible = false
             }
             dependencies.add("ahJacocoCli", "org.jacoco:org.jacoco.cli:$jacocoVersion:nodeps")
             dependencies.add("ahJacocoCli", "org.jacoco:org.jacoco.core:$jacocoVersion")
             dependencies.add("ahJacocoCli", "org.jacoco:org.jacoco.report:$jacocoVersion")
 
-            val ssc = project.extensions.getByType(org.gradle.api.tasks.SourceSetContainer::class.java)
-            val classOutputs: List<java.io.File> = listOf("main", "client")
+            val ssc = project.extensions.getByType(SourceSetContainer::class.java)
+            val classOutputs: List<File> = listOf("main", "client")
                 .mapNotNull { ssc.findByName(it) }
                 .flatMap { it.output.classesDirs.files.toList() }
             val backupRoot = project.rootProject.file("build/jacoco/classes-orig")
@@ -541,7 +538,7 @@ if (branch == "fabric") {
                         if (!dir.isDirectory) {
                             return@forEachIndexed
                         }
-                        val pristine = java.io.File(pristineRoot, "$idx-${dir.name}")
+                        val pristine = File(pristineRoot, "$idx-${dir.name}")
                         if (pristine.isDirectory) {
                             // A previous row already instrumented this dir - restore clean bytes first.
                             dir.deleteRecursively()
@@ -550,14 +547,14 @@ if (branch == "fabric") {
                             dir.copyRecursively(pristine, overwrite = true)
                         }
                         // Mirror the clean bytes for the report.
-                        pristine.copyRecursively(java.io.File(backupRoot, "$idx-${dir.name}"), overwrite = true)
+                        pristine.copyRecursively(File(backupRoot, "$idx-${dir.name}"), overwrite = true)
 
-                        val instrDir = java.io.File(dir.parentFile, "${dir.name}-ahInstr")
+                        val instrDir = File(dir.parentFile, "${dir.name}-ahInstr")
                         instrDir.deleteRecursively()
                         // Run the JaCoCo CLI out-of-process (Gradle 9 removed Project.javaexec, and the CLI
                         // needs no Gradle wiring). java from the build JVM; the CLI runs on any recent JDK.
-                        val javaBin = java.io.File(System.getProperty("java.home"), "bin/java").absolutePath
-                        val cliClasspath = cliCfg.files.joinToString(java.io.File.pathSeparator) { it.absolutePath }
+                        val javaBin = File(System.getProperty("java.home"), "bin/java").absolutePath
+                        val cliClasspath = cliCfg.files.joinToString(File.pathSeparator) { it.absolutePath }
                         val process = ProcessBuilder(
                             javaBin, "-cp", cliClasspath, "org.jacoco.cli.internal.Main",
                             "instrument", dir.absolutePath, "--dest", instrDir.absolutePath
@@ -565,7 +562,7 @@ if (branch == "fabric") {
                         val cliOut = process.inputStream.bufferedReader().readText()
                         val code = process.waitFor()
                         if (code != 0) {
-                            throw org.gradle.api.GradleException(
+                            throw GradleException(
                                 "JaCoCo offline instrumentation failed (exit $code):\n$cliOut")
                         }
                         // Copy probed classes back over the originals, EXCEPT the mixin package (keep raw
@@ -574,7 +571,7 @@ if (branch == "fabric") {
                             // Normalize separators once so the mixin-package exclusion holds on Windows too.
                             val rel = src.relativeTo(instrDir).path.replace('\\', '/')
                             if (!rel.contains("/mixin/") && !rel.startsWith("mixin/")) {
-                                val dest = java.io.File(dir, rel)
+                                val dest = File(dir, rel)
                                 dest.parentFile?.mkdirs()
                                 src.copyTo(dest, overwrite = true)
                             }
@@ -592,7 +589,6 @@ if (branch == "fabric") {
         val fcgtRuntimeMod = configurations.create("fcgtRuntimeMod") {
             isCanBeResolved = true
             isCanBeConsumed = false
-            isVisible = false
         }
         val fabricApiExt = project.extensions.getByType(net.fabricmc.loom.api.fabricapi.FabricApiExtension::class.java)
         val fabricApiSemver = findProperty("fabricapi.semver")!!.toString()

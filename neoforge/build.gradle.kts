@@ -53,12 +53,13 @@ neoForge {
             // Halt the game JVM if the gradle/IDE launcher dies, so an interrupted run never orphans
             // a multi-GB Minecraft JVM. Dev-only; production jars never see this property. See DevRunWatchdog.
             jvmArgument("-Darmorhider.devRun.watchdog=true")
-            if (project.hasProperty("smoke")) {
+
+            if (findProperty("smoke") != null) {
                 taskBefore(tasks.named("fetchCompatJars"))
                 // Cap the smoke client heap (tiny synthetic worlds) - see multiloader-loom.gradle.kts.
                 jvmArgument("-Xmx2g")
                 jvmArgument("-Darmorhider.smoke.exit=true")
-                val delayMs = project.findProperty("smoke.delay.ms")?.toString() ?: "15000"
+                val delayMs = findProperty("smoke.delay.ms")?.toString() ?: "15000"
                 jvmArgument("-Darmorhider.smoke.delay.ms=${delayMs}")
             }
             if (devProfile != null) {
