@@ -52,6 +52,27 @@ public class CompressedJsonCodec {
      */
     public static final int MAX_DECOMPRESSED_BYTES = 64 * 1024 * 1024;
 
+    /**
+     * Whether {@code value} is one of the payloads that travel <em>client to server</em>, and is
+     * therefore held to {@link #MAX_SERVERBOUND_PAYLOAD_BYTES} rather than the far roomier clientbound
+     * ceiling. Refusing to encode here beats letting a vanilla server kick the client for an oversized
+     * unknown payload.
+     * <p>
+     * Spelled out as an explicit list rather than derived from {@link PayloadRegistry}: this method is
+     * compiled on every version, and below 1.20.5 the registry is a stub with no payload tables at all.
+     * {@code CompressedJsonCodecTest} pins the list against the registry on the versions that have one,
+     * so a new C2S payload cannot be added without this being updated too.
+     * <p>
+     * In practice this is a backstop for all four: {@code PlayerConfig} is the only one that has ever
+     * come close, and no longer can now that {@code forNetwork()} drops the exclusion map.
+     */
+    public static boolean isServerboundPayload(Object value) {
+        return value instanceof de.zannagh.armorhider.net.packets.PlayerConfig
+                || value instanceof de.zannagh.armorhider.net.packets.ServerWideSettings
+                || value instanceof de.zannagh.armorhider.net.packets.CombatLogEventPacket
+                || value instanceof de.zannagh.armorhider.net.packets.SharedRuleStatePacket;
+    }
+
     private static <T> void encode(ByteBuf byteBuf, T value) {
         try {
             ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
@@ -61,14 +82,7 @@ public class CompressedJsonCodec {
             }
 
             byte[] compressed = byteStream.toByteArray();
-            // Every C2S payload is held to the tighter serverbound limit. Refusing here beats letting a
-            // vanilla server kick the client on join. Backstop only for both: PlayerConfig should no
-            // longer be able to get this big now that forNetwork() drops the exclusion map, and a
-            // SharedRuleStatePacket is at most six small entries.
-            int limit = value instanceof de.zannagh.armorhider.net.packets.PlayerConfig
-                    || value instanceof de.zannagh.armorhider.net.packets.SharedRuleStatePacket
-                    ? MAX_SERVERBOUND_PAYLOAD_BYTES
-                    : MAX_PAYLOAD_BYTES;
+            int limit = isServerboundPayload(value) ? MAX_SERVERBOUND_PAYLOAD_BYTES : MAX_PAYLOAD_BYTES;
             if (compressed.length > limit) {
                 throw new IllegalStateException("Refusing to encode an oversized armor-hider payload: "
                         + compressed.length + " bytes exceeds the " + limit + " byte limit");
