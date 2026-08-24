@@ -68,7 +68,11 @@ public final class PlayerConnectionListener implements Listener {
         } finally {
             subscribing.remove(id);
         }
-        // Send the handshake first so the client lifts its outgoing-traffic suppression as early as
+        // Shared render rules go first, before the handshake lifts the client's outgoing-traffic
+        // suppression: the joiner's stale entry from a previous session has to be cleared before their
+        // own fresh announcement can arrive, or the clear would wipe it.
+        service.syncSharedRulesOnJoin(player);
+        // Send the handshake next so the client lifts its outgoing-traffic suppression as early as
         // possible. Unlike config/permissions it is not latched: it is cheap, the client is idempotent,
         // and it must be re-sent on every (re)connection.
         service.sendHandshake(player);

@@ -28,10 +28,12 @@ public final class PayloadRegistry {
         registerC2S(PlayerConfig.TYPE, PlayerConfig.STREAM_CODEC);
         registerC2S(ServerWideSettings.TYPE, ServerWideSettings.STREAM_CODEC);
         registerC2S(CombatLogEventPacket.TYPE, CombatLogEventPacket.STREAM_CODEC);
+        registerC2S(SharedRuleStatePacket.TYPE, SharedRuleStatePacket.STREAM_CODEC);
         registerS2C(ServerConfiguration.TYPE, ServerConfiguration.STREAM_CODEC);
         registerS2C(PermissionPacket.TYPE, PermissionPacket.STREAM_CODEC);
         registerS2C(CombatLogNotificationPacket.TYPE, CombatLogNotificationPacket.STREAM_CODEC);
         registerS2C(HandshakePacket.TYPE, HandshakePacket.STREAM_CODEC);
+        registerS2C(SharedRuleNotificationPacket.TYPE, SharedRuleNotificationPacket.STREAM_CODEC);
     }
 
     public static void init() {

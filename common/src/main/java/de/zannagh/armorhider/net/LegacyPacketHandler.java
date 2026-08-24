@@ -24,6 +24,8 @@ public final class LegacyPacketHandler {
     private static final Identifier COMBAT_LOG_EVENT_CHANNEL = new Identifier("armorhider", "combatlog_c2s_packet");
     private static final Identifier COMBAT_LOG_NOTIFICATION_CHANNEL = new Identifier("armorhider", "combatlog_s2c_packet");
     private static final Identifier HANDSHAKE_CHANNEL = new Identifier("armorhider", "handshake_s2c_packet");
+    private static final Identifier SHARED_RULE_STATE_CHANNEL = new Identifier("armorhider", "shared_rules_c2s_packet");
+    private static final Identifier SHARED_RULE_NOTIFICATION_CHANNEL = new Identifier("armorhider", "shared_rules_s2c_packet");
 
     private static final Map<Identifier, Function<FriendlyByteBuf, Object>> DECODERS = new HashMap<>();
     private static final Map<Identifier, BiConsumer<Object, FriendlyByteBuf>> ENCODERS = new HashMap<>();
@@ -36,6 +38,8 @@ public final class LegacyPacketHandler {
         DECODERS.put(SERVER_WIDE_SETTINGS_CHANNEL, buf -> CompressedJsonCodec.decodeLegacy(buf, ServerWideSettings.class));
         DECODERS.put(COMBAT_LOG_EVENT_CHANNEL, buf -> CompressedJsonCodec.decodeLegacy(buf, CombatLogEventPacket.class));
         DECODERS.put(COMBAT_LOG_NOTIFICATION_CHANNEL, buf -> CompressedJsonCodec.decodeLegacy(buf, CombatLogNotificationPacket.class));
+        DECODERS.put(SHARED_RULE_STATE_CHANNEL, buf -> CompressedJsonCodec.decodeLegacy(buf, SharedRuleStatePacket.class));
+        DECODERS.put(SHARED_RULE_NOTIFICATION_CHANNEL, buf -> CompressedJsonCodec.decodeLegacy(buf, SharedRuleNotificationPacket.class));
 
         // Register decoders for S2C packets
         DECODERS.put(SERVER_CONFIG_CHANNEL, buf -> CompressedJsonCodec.decodeLegacy(buf, ServerConfiguration.class));
@@ -50,6 +54,8 @@ public final class LegacyPacketHandler {
         ENCODERS.put(COMBAT_LOG_EVENT_CHANNEL, (obj, buf) -> CompressedJsonCodec.encodeLegacy((CombatLogEventPacket) obj, buf));
         ENCODERS.put(COMBAT_LOG_NOTIFICATION_CHANNEL, (obj, buf) -> CompressedJsonCodec.encodeLegacy((CombatLogNotificationPacket) obj, buf));
         ENCODERS.put(HANDSHAKE_CHANNEL, (obj, buf) -> CompressedJsonCodec.encodeLegacy((HandshakePacket) obj, buf));
+        ENCODERS.put(SHARED_RULE_STATE_CHANNEL, (obj, buf) -> CompressedJsonCodec.encodeLegacy((SharedRuleStatePacket) obj, buf));
+        ENCODERS.put(SHARED_RULE_NOTIFICATION_CHANNEL, (obj, buf) -> CompressedJsonCodec.encodeLegacy((SharedRuleNotificationPacket) obj, buf));
     }
 
     public static void registerC2SHandler(Identifier channel, java.util.function.Consumer<PayloadRegistry.PayloadHandlerContext<?>> handler) {
@@ -121,6 +127,14 @@ public final class LegacyPacketHandler {
 
     public static Identifier getHandshakeChannel() {
         return HANDSHAKE_CHANNEL;
+    }
+
+    public static Identifier getSharedRuleStateChannel() {
+        return SHARED_RULE_STATE_CHANNEL;
+    }
+
+    public static Identifier getSharedRuleNotificationChannel() {
+        return SHARED_RULE_NOTIFICATION_CHANNEL;
     }
 
     public static void encode(Identifier channel, Object payload, FriendlyByteBuf buf) {

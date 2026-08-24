@@ -31,6 +31,12 @@ public final class Channels {
     /** Serverbound: a {@code CombatLogEventPacket}. */
     public static final List<String> COMBAT_LOG_C2S = aliases("combatlog_c2s_packet");
 
+    /**
+     * Serverbound: a {@code SharedRuleStatePacket} - what a client's shared render rules currently
+     * resolve to for its own equipment.
+     */
+    public static final List<String> SHARED_RULES_C2S = aliases("shared_rules_c2s_packet");
+
     /** Clientbound: the full {@code ServerConfiguration} snapshot. */
     public static final List<String> SERVER_CONFIGURATION_S2C = aliases("settings_s2c_packet");
 
@@ -39,6 +45,9 @@ public final class Channels {
 
     /** Clientbound: a relayed {@code CombatLogNotificationPacket}. */
     public static final List<String> COMBAT_LOG_S2C = aliases("combatlog_s2c_packet");
+
+    /** Clientbound: a relayed {@code SharedRuleNotificationPacket}. */
+    public static final List<String> SHARED_RULES_S2C = aliases("shared_rules_s2c_packet");
 
     /**
      * Clientbound: the {@code HandshakePacket} sent on join. The client suppresses all outgoing
@@ -57,6 +66,10 @@ public final class Channels {
      * made a 1.21.4-1.21.10 client look like a 1.21.11+ client the moment it sent a combat event,
      * after which its {@code ServerConfiguration} broadcasts were aimed at a channel it had never
      * registered and were dropped silently. See {@code ClientDialectsTest}.</p>
+     *
+     * <p>{@code shared_rules_c2s_packet} is the same case as combat-log: it was introduced after the
+     * namespace switch and hardcodes {@link #CURRENT_NAMESPACE} on every version >= 1.20.5 (the legacy
+     * one below that), so it says nothing about the client's era either.</p>
      */
     public static final List<String> DIALECT_BEARING_C2S = concat(
             PLAYER_CONFIG_C2S,
@@ -67,9 +80,11 @@ public final class Channels {
             PLAYER_CONFIG_C2S,
             SERVER_WIDE_SETTINGS_C2S,
             COMBAT_LOG_C2S,
+            SHARED_RULES_C2S,
             SERVER_CONFIGURATION_S2C,
             PERMISSIONS_S2C,
             COMBAT_LOG_S2C,
+            SHARED_RULES_S2C,
             HANDSHAKE_S2C);
 
     private Channels() {

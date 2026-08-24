@@ -32,6 +32,8 @@ public final class AhRenderRuleImpl implements AhRenderRule {
     private final boolean disableGlint;
     private final Predicate<AhHideContext> condition;
     private final @Nullable Object owner;
+    /** Whether this rule's outcome for the local player is broadcast to the other clients. */
+    private final boolean shared;
 
     /**
      * Re-log interval. A rule that throws on only <em>some</em> evaluations never reaches
@@ -52,7 +54,8 @@ public final class AhRenderRuleImpl implements AhRenderRule {
                             double opacity,
                             boolean disableGlint,
                             Predicate<AhHideContext> condition,
-                            @Nullable Object owner) {
+                            @Nullable Object owner,
+                            boolean shared) {
         this.target = target;
         this.priority = priority;
         this.affectsOpacity = affectsOpacity;
@@ -60,6 +63,7 @@ public final class AhRenderRuleImpl implements AhRenderRule {
         this.disableGlint = disableGlint;
         this.condition = condition;
         this.owner = owner;
+        this.shared = shared;
     }
 
     public AhRuleTarget target() {
@@ -89,6 +93,11 @@ public final class AhRenderRuleImpl implements AhRenderRule {
 
     public @Nullable Object owner() {
         return owner;
+    }
+
+    /** @see de.zannagh.armorhider.client.api.AhRenderRuleBuilder#shared() */
+    public boolean shared() {
+        return shared;
     }
 
     @Override

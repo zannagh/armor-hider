@@ -66,6 +66,10 @@ public final class ArmorHiderMessageListener implements PluginMessageListener {
         }
         if (Channels.COMBAT_LOG_C2S.contains(channel)) {
             service.handleCombatLogEvent(player, payload);
+            return;
+        }
+        if (Channels.SHARED_RULES_C2S.contains(channel)) {
+            service.handleSharedRuleState(player, payload);
         }
     }
 }

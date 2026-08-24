@@ -19,6 +19,7 @@ import de.zannagh.armorhider.net.CompressedJsonCodec;
 import de.zannagh.armorhider.net.packets.CombatLogEventPacket;
 import de.zannagh.armorhider.net.packets.PlayerConfig;
 import de.zannagh.armorhider.net.packets.ServerWideSettings;
+import de.zannagh.armorhider.net.packets.SharedRuleStatePacket;
 import io.netty.buffer.Unpooled;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.game.ServerboundCustomPayloadPacket;
@@ -169,6 +170,10 @@ public final class ClientPacketSender {
 
     public static void sendToServer(CombatLogEventPacket combatLogPacket) {
         gate(() -> sendLegacy(LegacyPacketHandler.getCombatLogEventChannel(), combatLogPacket));
+    }
+
+    public static void sendToServer(SharedRuleStatePacket sharedRules) {
+        gate(() -> sendLegacy(LegacyPacketHandler.getSharedRuleStateChannel(), sharedRules));
     }
 
     private static <T> void sendLegacy(Identifier channel, T payload) {

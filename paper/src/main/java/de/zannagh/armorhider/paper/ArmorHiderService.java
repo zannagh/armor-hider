@@ -1,12 +1,15 @@
 package de.zannagh.armorhider.paper;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import de.zannagh.armorhider.paper.config.ServerConfigStorage;
 import de.zannagh.armorhider.paper.config.ServerConfigurationState;
 import de.zannagh.armorhider.paper.config.ServerWideSettingsDefaults;
 import de.zannagh.armorhider.paper.net.Channels;
 import de.zannagh.armorhider.paper.net.PacketSender;
+import de.zannagh.armorhider.paper.net.SharedRuleRelayState;
 import de.zannagh.armorhider.paper.perm.PermissionResolver;
+import de.zannagh.armorhider.paper.util.DisplayNames;
 import de.zannagh.armorhider.paper.util.Schedulers;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -30,6 +33,8 @@ public final class ArmorHiderService {
     private final PacketSender sender;
     private final PermissionResolver permissions;
     private final Schedulers schedulers;
+    /** Live, never-persisted shared render-rule state. Lasts exactly as long as the server does. */
+    private final SharedRuleRelayState sharedRules = new SharedRuleRelayState();
 
     public ArmorHiderService(Logger logger,
                              ServerConfigurationState state,
@@ -147,13 +152,84 @@ public final class ArmorHiderService {
             notification.addProperty("playerName", payload.get("playerName").getAsString());
         }
         notification.addProperty("originator", from.getUniqueId().toString());
-        long timestamp = payload.has("timestamp") && payload.get("timestamp").isJsonPrimitive()
-                ? payload.get("timestamp").getAsLong()
-                : System.currentTimeMillis();
+        long timestamp = readTimestamp(payload, "timestamp");
         notification.addProperty("timestamp", timestamp);
 
         sender.broadcastExcept(Bukkit.getOnlinePlayers(), from.getUniqueId(),
                 Channels.COMBAT_LOG_S2C, notification);
+    }
+
+    /**
+     * Relays one player's shared render-rule outcome to everyone else.
+     *
+     * <p>The sender's own {@code playerName} and {@code playerId} are discarded and replaced with the
+     * authenticated ones - otherwise any client could hide another player's armor server-wide by
+     * announcing state under their name. The {@code overrides} array itself is relayed opaquely, like
+     * every other schema this plugin moves around.</p>
+     *
+     * <p>The envelope name is the one Armor Hider identifies players by - the main-scoreboard team
+     * decoration around the profile name, see {@link DisplayNames} - because that is the key the
+     * receiving clients look the state up under.</p>
+     */
+    public void handleSharedRuleState(Player from, JsonObject payload) {
+        // FINE, not INFO, unlike the other three inbound handlers: those fire on a config change, an
+        // admin action and a damage event, while this one fires whenever any client's shared predicate
+        // flips - up to several times a second per player. At INFO it would be the noisiest line on a
+        // busy server and nothing reads it.
+        logger.fine(() -> "Server received shared render rule packet from " + from.getUniqueId());
+        JsonArray overrides = payload.has(SharedRuleRelayState.OVERRIDES)
+                && payload.get(SharedRuleRelayState.OVERRIDES).isJsonArray()
+                ? payload.getAsJsonArray(SharedRuleRelayState.OVERRIDES)
+                : new JsonArray();
+        long timestamp = readTimestamp(payload, SharedRuleRelayState.TIMESTAMP);
+
+        JsonObject notification = sharedRules.put(from.getUniqueId(), DisplayNames.of(from), overrides, timestamp);
+        if (notification == null) {
+            return;
+        }
+        sender.broadcastExcept(Bukkit.getOnlinePlayers(), from.getUniqueId(),
+                Channels.SHARED_RULES_S2C, notification);
+    }
+
+    /**
+     * Join-time shared-rule bookkeeping, in both directions: the joiner's entry from a previous
+     * session is dropped and the drop announced, then the joiner is told about everyone else, since
+     * those announcements happened before they were connected.
+     *
+     * <p>Must run before the handshake. The client suppresses all outgoing traffic until it receives
+     * one, so clearing first makes it impossible for the joiner's own fresh announcement to be wiped
+     * by this.</p>
+     */
+    public void syncSharedRulesOnJoin(Player player) {
+        sharedRules.retainOnline(Bukkit.getOnlinePlayers().stream().map(Player::getUniqueId).toList());
+
+        JsonObject cleared = sharedRules.remove(player.getUniqueId(), DisplayNames.of(player), System.currentTimeMillis());
+        if (cleared != null) {
+            sender.broadcastExcept(Bukkit.getOnlinePlayers(), player.getUniqueId(),
+                    Channels.SHARED_RULES_S2C, cleared);
+        }
+
+        for (JsonObject notification : sharedRules.snapshotExcept(player.getUniqueId())) {
+            sender.send(player, Channels.SHARED_RULES_S2C, notification);
+        }
+    }
+
+    /**
+     * Reads a millisecond timestamp out of an inbound payload, falling back to "now".
+     *
+     * <p>{@code isJsonPrimitive()} is not enough to make {@code getAsLong()} safe: a primitive can be
+     * a string or a boolean, and {@code getAsLong()} then throws. The throw is caught upstream in
+     * {@link ArmorHiderMessageListener}, so it never reaches the sender's connection - but it drops the
+     * whole packet, which means one junk field would discard an otherwise perfectly valid state update.
+     * Only a numeric primitive is trusted; anything else quietly becomes the arrival time, which is
+     * what an absent field already does.</p>
+     */
+    private static long readTimestamp(JsonObject payload, String key) {
+        if (payload.has(key) && payload.get(key).isJsonPrimitive()
+                && payload.get(key).getAsJsonPrimitive().isNumber()) {
+            return payload.get(key).getAsLong();
+        }
+        return System.currentTimeMillis();
     }
 
     /** Persists the current state. Called on shutdown, on the calling thread. */

@@ -7,6 +7,8 @@ import de.zannagh.armorhider.client.api.AhRenderRule;
 import de.zannagh.armorhider.client.api.ArmorHiderRenderApi;
 import de.zannagh.armorhider.client.api.impl.AhRenderRuleRegistryImpl;
 import de.zannagh.armorhider.client.common.SlotModification;
+import de.zannagh.armorhider.net.packets.SharedRuleNotificationPacket;
+import de.zannagh.armorhider.net.packets.SharedRuleTarget;
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 import net.fabricmc.fabric.api.client.gametest.v1.context.TestSingleplayerContext;
@@ -55,6 +57,10 @@ import static de.zannagh.armorhider.smoke.RenderApiSmokeSupport.resolve;
  *       builder can safely produce two rules.</li>
  *   <li>two rules on one slot resolve per the documented precedence: the strongest (lowest
  *       numeric) priority decides outright, ties broken by the most-hiding value.</li>
+ *   <li>a {@code shared()} rule actually leaves the client: the client tick evaluates it against the
+ *       local player, and the server decodes it, attributes it to the authenticated sender and stores
+ *       it - and unregistering it retracts the announced state again, which no off-game test can
+ *       prove because the failure mode there is a decision not to send.</li>
  * </ol>
  * Every rule is unregistered in a {@code finally} block: {@code runClientGametest} runs every
  * entrypoint in ONE client launch, so a leaked rule would silently hide armor in a sibling test.
@@ -91,6 +97,7 @@ public final class RenderApiSmokeTest implements FabricClientGameTest {
                 assertElytraIsIndependentOfChestplate(context);
                 assertOffhandHidden(context);
                 assertPriorityPrecedence(context);
+                assertSharedRuleReachesTheServer(context);
                 expectUnrenderedSlotsRejected(context);
                 RenderApiSmokeLifecycle.assertThrowingPredicateRecovers(context);
                 RenderApiSmokeLifecycle.assertRuleResultIsNotRatcheted(context);
@@ -230,6 +237,83 @@ public final class RenderApiSmokeTest implements FabricClientGameTest {
         } finally {
             context.runOnClient(client -> ArmorHiderRenderApi.unregister(rule));
         }
+    }
+
+    /**
+     * A {@code shared()} rule has to leave the client. Everything about sharing that a unit test can
+     * reach - precedence, the store, the dedup - is covered off-game; what only a running game proves
+     * is that the client tick evaluates the rule against the local player, encodes it, and that the
+     * server decodes it, attributes it to the authenticated sender and stores it.
+     * <p>
+     * Singleplayer is enough for that: the integrated server runs the same {@code CommsManager}
+     * handler a dedicated one does, over the same loopback connection. The relay to the other clients
+     * is the one hop this cannot see - it broadcasts to everyone but the sender, and here the sender
+     * is everyone.
+     * <p>
+     * The retraction half is the reason this is not just an "arrives" assertion. Unregistering the
+     * last shared rule leaves the state standing on every <em>other</em> client, so a broadcaster that
+     * goes quiet the moment it has nothing to share leaves the player hidden for the rest of the
+     * session - and every off-game test still passes, because the bug is in the decision not to send.
+     */
+    private static void assertSharedRuleReachesTheServer(ClientGameTestContext context) {
+        AhRenderRule rule = context.computeOnClient(client -> ArmorHiderRenderApi.rule(EquipmentSlot.HEAD)
+                .owner(OWNER)
+                .shared()
+                .hide()
+                .whenMatching(ctx -> true));
+        try {
+            var announced = awaitSharedRuleState(context, true);
+            if (announced == null) {
+                throw new IllegalStateException(
+                        "[smoke/fcgt] a shared() rule never reached the server's shared-rule store -"
+                                + " the other players would keep seeing the piece the rule hides");
+            }
+            var forHead = announced.overrides.stream()
+                    .filter(o -> o.target == SharedRuleTarget.HEAD)
+                    .findFirst()
+                    .orElse(null);
+            if (forHead == null || !forHead.affectsOpacity || forHead.opacity != 0.0) {
+                throw new IllegalStateException(
+                        "[smoke/fcgt] the shared HEAD hide arrived as " + announced.overrides
+                                + ", expected an opacity-0 entry for HEAD");
+            }
+            if (announced.playerName == null || announced.playerName.isBlank()) {
+                throw new IllegalStateException(
+                        "[smoke/fcgt] the server stored the shared state under a blank name, so no client"
+                                + " could ever look it up while rendering that player");
+            }
+        } finally {
+            context.runOnClient(client -> ArmorHiderRenderApi.unregister(rule));
+        }
+
+        if (awaitSharedRuleState(context, false) != null) {
+            throw new IllegalStateException(
+                    "[smoke/fcgt] unregistering the last shared rule did not retract the announced state -"
+                            + " every other client would keep the piece hidden for the rest of the session");
+        }
+    }
+
+    /**
+     * Polls the integrated server's shared-rule store until it reports {@code expectPresent}, or gives
+     * up. Polling rather than a fixed wait because the packet crosses a thread boundary: the client
+     * tick sends, the server thread handles. The store is concurrent, so reading it from here is safe.
+     */
+    private static SharedRuleNotificationPacket awaitSharedRuleState(ClientGameTestContext context,
+                                                                     boolean expectPresent) {
+        SharedRuleNotificationPacket seen = null;
+        for (int attempt = 0; attempt < 20; attempt++) {
+            context.waitTicks(5);
+            var runtime = ArmorHider.getRuntime();
+            if (runtime == null) {
+                continue;
+            }
+            var snapshot = runtime.getSharedRules().snapshotExcept(null);
+            seen = snapshot.isEmpty() ? null : snapshot.get(0);
+            if ((seen != null) == expectPresent) {
+                return seen;
+            }
+        }
+        return seen;
     }
 
     /** hideOffhandWhen targets the off-hand slot. */

@@ -6,6 +6,7 @@ import de.zannagh.armorhider.server.ServerConnectionEvents;
 import de.zannagh.armorhider.server.ServerPayloadContext;
 import de.zannagh.armorhider.server.ServerRuntime;
 import de.zannagh.armorhider.server.ServerConfiguration;
+import de.zannagh.armorhider.util.PlayerNameUtil;
 import de.zannagh.armorhider.util.ServerUtil;
 import net.minecraft.server.level.ServerPlayer;
 
@@ -25,6 +26,10 @@ public final class CommsManager {
             var currentConfig = runtime.getStore().getConfig();
             sendToClient(player, currentConfig);
             sendToClient(player, new PermissionPacket(ServerUtil.getPermissionLevelForPlayer(player, server)));
+            // Shared render-rule state, both directions, strictly BEFORE the handshake: the client
+            // suppresses all outgoing traffic until the handshake arrives, so doing the clearing part
+            // first makes it impossible for the joiner's own fresh announcement to be wiped by it.
+            handleSharedRulesOnJoin(runtime, player, server);
             sendToClient(player, new HandshakePacket());
         });
 
@@ -90,6 +95,116 @@ public final class CommsManager {
             handleCombatLogEventReceived(payload, serverCtx);
         });
         *///?}
+
+        // Register shared render-rule state (C2S)
+        //? if >= 1.20.5 {
+        PayloadRegistry.registerC2SHandler(SharedRuleStatePacket.TYPE, ctx -> {
+            if (!(ctx.context() instanceof ServerPayloadContext serverCtx)) {
+                return;
+            }
+            handleSharedRuleStateReceived(ctx.payload(), serverCtx);
+        });
+        //?}
+        //? if < 1.20.5 {
+        /*LegacyPacketHandler.registerC2SHandler(LegacyPacketHandler.getSharedRuleStateChannel(), ctx -> {
+            if (!(ctx.payload() instanceof SharedRuleStatePacket payload)) {
+                return;
+            }
+            if (!(ctx.context() instanceof ServerPayloadContext serverCtx)) {
+                return;
+            }
+            handleSharedRuleStateReceived(payload, serverCtx);
+        });
+        *///?}
+    }
+
+    /**
+     * Relays one player's shared render-rule outcome to everyone else.
+     *
+     * <p>The sender's own {@code playerName} is discarded and replaced with the server's authoritative
+     * display name, and the id with the authenticated sender UUID. Without that, any client could hide
+     * another player's armor for the whole server by announcing state under their name.</p>
+     */
+    private static void handleSharedRuleStateReceived(SharedRuleStatePacket packet, ServerPayloadContext ctx) {
+        if (packet == null || ctx == null) {
+            return;
+        }
+        ServerRuntime runtime = ArmorHider.getRuntime();
+        if (runtime == null) {
+            ArmorHider.LOGGER.warn("Runtime not initialized, cannot handle shared render rules");
+            return;
+        }
+
+        ServerPlayer sender = ctx.player();
+        String authoritativeName = authoritativeNameOf(sender);
+        long timestamp = packet.timestamp > 0 ? packet.timestamp : System.currentTimeMillis();
+
+        try {
+            var stored = runtime.getSharedRules().put(sender.getUUID(), authoritativeName, packet.overrides, timestamp);
+            if (stored == null) {
+                // Identical to what this player already announced. Dropping it here is what keeps a
+                // per-tick-true predicate from turning into a broadcast per tick if a client ever stops
+                // diffing on its side.
+                return;
+            }
+            // Relays what was stored, not what arrived: clamped, with malformed and no-op entries
+            // already dropped, so every client applies exactly the state the server holds.
+            var notification = new SharedRuleNotificationPacket(
+                    authoritativeName, sender.getUUID(), stored, timestamp);
+            broadcastSharedRules(runtime, sender.getUUID(), notification);
+        } catch (Exception e) {
+            ArmorHider.LOGGER.error("Failed to relay shared render rules for player {}!", authoritativeName, e);
+        }
+    }
+
+    /**
+     * Join-time shared-rule bookkeeping, in both directions.
+     *
+     * <p>The joiner's own entry is dropped and the drop announced: it belongs to their previous session,
+     * possibly to a game they have since restarted without the mod that created it. Then the joiner is
+     * told about everyone else, since those announcements happened before they were connected.</p>
+     */
+    private static void handleSharedRulesOnJoin(ServerRuntime runtime, ServerPlayer player, net.minecraft.server.MinecraftServer server) {
+        try {
+            var sharedRules = runtime.getSharedRules();
+            sharedRules.retainOnline(server.getPlayerList().getPlayers().stream().map(ServerPlayer::getUUID).toList());
+
+            if (sharedRules.remove(player.getUUID())) {
+                broadcastSharedRules(runtime, player.getUUID(), new SharedRuleNotificationPacket(
+                        authoritativeNameOf(player), player.getUUID(), java.util.List.of(), System.currentTimeMillis()));
+            }
+
+            for (var notification : sharedRules.snapshotExcept(player.getUUID())) {
+                PacketSender.sendToPlayer(player, notification);
+            }
+        } catch (Exception e) {
+            ArmorHider.LOGGER.error("Failed to synchronise shared render rules for joining player {}!",
+                    player.getStringUUID(), e);
+        }
+    }
+
+    /**
+     * The name every other client will key this player's shared state under. Goes through
+     * {@link PlayerNameUtil} like every other name resolution in the mod, with the profile name as a
+     * last resort so an entry can never be stored under a blank key.
+     */
+    private static String authoritativeNameOf(ServerPlayer player) {
+        String name = PlayerNameUtil.getPlayerName(player);
+        if (name != null && !name.isBlank()) {
+            return name;
+        }
+        //? if >= 1.21.9
+        return player.getGameProfile().name();
+        //? if < 1.21.9
+        //return player.getGameProfile().getName();
+    }
+
+    private static void broadcastSharedRules(ServerRuntime runtime, UUID senderId, SharedRuleNotificationPacket notification) {
+        for (var player : runtime.getServer().getPlayerList().getPlayers()) {
+            if (!player.getUUID().equals(senderId)) {
+                PacketSender.sendToPlayer(player, notification);
+            }
+        }
     }
 
     private static void handleCombatLogEventReceived(CombatLogEventPacket eventPacket, ServerPayloadContext ctx) {

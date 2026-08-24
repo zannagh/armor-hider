@@ -1,5 +1,6 @@
 package de.zannagh.armorhider.client.api.impl;
 
+import de.zannagh.armorhider.net.packets.SharedRuleTarget;
 import net.minecraft.world.entity.EquipmentSlot;
 import org.jetbrains.annotations.ApiStatus;
 import org.jspecify.annotations.Nullable;
@@ -32,6 +33,42 @@ public enum AhRuleTarget {
      * against it would be accepted, hand back a valid handle, and then never do anything. Returning
      * {@code null} turns that silent no-op into an immediate registration-time throw.
      */
+    /**
+     * @return the equipment slot this target is worn in. {@link #ELYTRA} reports {@code CHEST}, which
+     *         is where the wings actually live - the distinction between the two is in which config
+     *         values apply, not in where the item sits.
+     */
+    public EquipmentSlot slot() {
+        return switch (this) {
+            case HEAD -> EquipmentSlot.HEAD;
+            case CHEST, ELYTRA -> EquipmentSlot.CHEST;
+            case LEGS -> EquipmentSlot.LEGS;
+            case FEET -> EquipmentSlot.FEET;
+            case OFFHAND -> EquipmentSlot.OFFHAND;
+        };
+    }
+
+    /** @return the wire-side twin of this target, for shared rules. Mapped by name, never by ordinal. */
+    public SharedRuleTarget toWire() {
+        // Both enums are exhaustive over the same constant names, so this cannot fail; valueOf makes
+        // adding a target to one enum and forgetting the other a loud failure rather than a silent
+        // mis-mapping.
+        return SharedRuleTarget.valueOf(name());
+    }
+
+    /** @return the client-side twin of a wire target, or {@code null} for one this version does not know. */
+    public static @Nullable AhRuleTarget fromWire(@Nullable SharedRuleTarget target) {
+        if (target == null) {
+            return null;
+        }
+        for (AhRuleTarget candidate : values()) {
+            if (candidate.name().equals(target.name())) {
+                return candidate;
+            }
+        }
+        return null;
+    }
+
     public static @Nullable AhRuleTarget of(@Nullable EquipmentSlot slot) {
         if (slot == null) {
             return null;

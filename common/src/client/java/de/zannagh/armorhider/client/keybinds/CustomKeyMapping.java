@@ -1,5 +1,7 @@
 package de.zannagh.armorhider.client.keybinds;
 
+import de.zannagh.armorhider.ArmorHider;
+import de.zannagh.armorhider.client.common.ArmorHiderOptionsAccess;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 
@@ -35,6 +37,16 @@ public abstract class CustomKeyMapping extends KeyMapping {
      */
     public static void armorHider$tickAll(Minecraft minecraft) {
         if (minecraft == null || minecraft.options == null) {
+            return;
+        }
+        if (ArmorHider.isApiOnly()) {
+            // Normally there is nothing here to remove: the flag is set from a mod initializer, which
+            // runs before Options is constructed, so OptionsMixin never added the mappings. This covers
+            // the late-call case and then costs one volatile read per tick.
+            if (minecraft.options instanceof ArmorHiderOptionsAccess access && access.armorHider$removeKeyMappings()) {
+                ArmorHider.LOGGER.info("Removed Armor Hider key mappings: the mod was switched to API-only "
+                        + "mode after the options had already been loaded.");
+            }
             return;
         }
         for (KeyMapping mapping : minecraft.options.keyMappings) {

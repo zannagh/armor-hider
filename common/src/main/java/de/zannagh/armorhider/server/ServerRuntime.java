@@ -9,6 +9,11 @@ import java.util.UUID;
 public final class ServerRuntime {
     private final ServerConfigStore store;
     private final MinecraftServer server;
+    /**
+     * Live, unpersisted shared render-rule state. Tied to the runtime rather than to the config store
+     * on purpose: it lasts exactly as long as the server does, and never reaches the world file.
+     */
+    private final SharedRuleStore sharedRules = new SharedRuleStore();
 
     public ServerRuntime(MinecraftServer server, Path configPath) {
         this.server = server;
@@ -17,6 +22,10 @@ public final class ServerRuntime {
 
     public ServerConfigStore getStore() {
         return store;
+    }
+
+    public SharedRuleStore getSharedRules() {
+        return sharedRules;
     }
 
     public MinecraftServer getServer() {

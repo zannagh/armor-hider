@@ -3,8 +3,10 @@ package de.zannagh.armorhider.client.net;
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.api.ArmorHiderApi;
 import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.client.api.impl.AhSharedRuleStore;
 import de.zannagh.armorhider.client.utils.McClientUtils;
 import de.zannagh.armorhider.net.packets.HandshakePacket;
+import de.zannagh.armorhider.net.packets.SharedRuleNotificationPacket;
 import net.minecraft.network.chat.Component;
 import de.zannagh.armorhider.combat.DefaultCombatEvent;
 import de.zannagh.armorhider.log.DebugLogger;
@@ -39,6 +41,7 @@ public final class ClientCommunicationManager {
         PayloadRegistry.registerS2CHandler(PermissionPacket.TYPE, ctx -> ClientCommunicationManager.handlePermissionPacketReceived(ctx.payload()));
         PayloadRegistry.registerS2CHandler(CombatLogNotificationPacket.TYPE, ctx -> ClientCommunicationManager.handleCombatLogNotificationReceived(ctx.payload()));
         PayloadRegistry.registerS2CHandler(HandshakePacket.TYPE, ctx -> ClientCommunicationManager.handleHandshakePacketReceived(ctx.payload()));
+        PayloadRegistry.registerS2CHandler(SharedRuleNotificationPacket.TYPE, ctx -> ClientCommunicationManager.handleSharedRuleNotificationReceived(ctx.payload()));
         //?}
 
         //? if < 1.20.5 {
@@ -69,6 +72,13 @@ public final class ClientCommunicationManager {
             }
             handleHandshakePacketReceived(payload);
         });
+
+        LegacyPacketHandler.registerS2CHandler(LegacyPacketHandler.getSharedRuleNotificationChannel(), ctx -> {
+            if (!(ctx.payload() instanceof de.zannagh.armorhider.net.packets.SharedRuleNotificationPacket payload)) {
+                return;
+            }
+            handleSharedRuleNotificationReceived(payload);
+        });
         *///?}
 
         ClientConnectionEvents.registerJoin((handler, client) -> {
@@ -82,6 +92,10 @@ public final class ClientCommunicationManager {
             // handler (or the local-server shortcut below) re-sets it to true when appropriate.
             SERVER_SUPPORTS_MOD = false;
             ClientPacketSender.reset();
+            // Shared render state belongs to one connection. Dropping what the previous server sent and
+            // forgetting what we announced there makes the first tick on the new server re-announce.
+            AhSharedRuleStore.clear();
+            SharedRuleBroadcaster.reset();
             var playerName = PlayerNameUtil.getPlayerName(client.player);
             if (playerName == null || playerName.isBlank()) {
                 //? if >= 1.21.9
@@ -153,7 +167,30 @@ public final class ClientCommunicationManager {
             ArmorHiderClient.permissionLevel = 0;
             SERVER_SUPPORTS_MOD = false;
             ClientPacketSender.reset();
+            AhSharedRuleStore.clear();
+            SharedRuleBroadcaster.reset();
         });
+    }
+
+    /**
+     * Applies another player's shared render-rule outcome. The name and id are the server's, never the
+     * sender's claim, so this cannot be used to hide somebody else's armor.
+     * <p>
+     * An empty override list clears that player's entry - it is how a client says "nothing of mine is
+     * rule-hidden any more".
+     */
+    private static void handleSharedRuleNotificationReceived(SharedRuleNotificationPacket ctx) {
+        if (ctx == null) {
+            return;
+        }
+        if (!AhSharedRuleStore.put(ctx.playerName, ctx.playerId, ctx.overrides)) {
+            return;
+        }
+        DebugLogger.log("Shared render rules updated for {}: {}", ctx.playerName, ctx.overrides);
+        // PlayerModificationInfo is cached per player and only rebuilt on equip or config change, so a
+        // rule outcome arriving over the network has to invalidate it explicitly or it would not show
+        // until the player next changed armor.
+        ArmorHiderClient.CLIENT_CONFIG_MANAGER.notifyConfigListeners(ctx.playerName);
     }
 
     private static void handleHandshakePacketReceived(de.zannagh.armorhider.net.packets.HandshakePacket payload) {
