@@ -1,7 +1,7 @@
 package de.zannagh.armorhider.paper.net;
 
-import de.zannagh.eunomia.networking.PacketType;
-import de.zannagh.eunomia.networking.ServerTransport;
+import de.zannagh.eunomia.networking.packets.PacketType;
+import de.zannagh.eunomia.networking.comms.ServerTransport;
 import de.zannagh.eunomia.networking.serialization.PayloadCodec;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;

@@ -7,7 +7,7 @@ import de.zannagh.armorhider.net.AhPackets;
 import de.zannagh.armorhider.net.packets.CombatLogEventPacket;
 import de.zannagh.armorhider.net.packets.PlayerConfig;
 import de.zannagh.armorhider.util.PlayerNameUtil;
-import de.zannagh.eunomia.networking.CommunicationManager;
+import de.zannagh.eunomia.networking.comms.CommunicationManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.world.damagesource.DamageSource;

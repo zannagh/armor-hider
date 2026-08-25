@@ -7,7 +7,7 @@ import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.net.AhPackets;
 import de.zannagh.armorhider.net.packets.ServerWideSettings;
 import de.zannagh.armorhider.server.ServerConfiguration;
-import de.zannagh.eunomia.networking.CommunicationManager;
+import de.zannagh.eunomia.networking.comms.CommunicationManager;
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 

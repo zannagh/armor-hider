@@ -125,6 +125,14 @@ public interface ArmorHiderPlayerConfigApi {
     void clearServerConfig();
 
     /**
+     * Installs the client-side relay mirror used by the HTTP/WebSocket fallback (per-player config replicated
+     * through the external relay when the joined server does not run the mod). No-op by default; the standard
+     * client implementation wires eunomia's replicated store. Call once at client init.
+     */
+    default void enableRelayMirror() {
+    }
+
+    /**
      * @return a stable key identifying the current server, used as the outer key of the per-player override
      *         map (typically the connection address, falling back to the name, or a single-player sentinel).
      */

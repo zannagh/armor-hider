@@ -28,11 +28,18 @@ repositories {
     mavenLocal {
         content { includeGroup("de.zannagh.eunomia") }
     }
-    val eunomiaGprUser = providers.gradleProperty("gpr.user")
-        .orElse(providers.environmentVariable("GITHUB_ACTOR"))
+    // The TOKEN is the only thing GitHub actually validates on a Packages read - the Basic-auth username
+    // field is ignored, so it is not worth gating on. Requiring a username here used to make a
+    // token-only environment (CI, or a shell with GITHUB_TOKEN but no GITHUB_ACTOR) skip this repo
+    // *silently*, and the resulting "Could not find de.zannagh.eunomia:eunomia-core:<v>" listed every
+    // searched location EXCEPT this one - which reads as a missing artifact rather than missing config.
+    // So: gate on the token alone and send a placeholder username when none was supplied.
     val eunomiaGprToken = providers.gradleProperty("gpr.token")
         .orElse(providers.environmentVariable("GITHUB_TOKEN"))
-    if (eunomiaGprUser.isPresent && eunomiaGprToken.isPresent) {
+    val eunomiaGprUser = providers.gradleProperty("gpr.user")
+        .orElse(providers.environmentVariable("GITHUB_ACTOR"))
+        .orElse("x-access-token")
+    if (eunomiaGprToken.isPresent) {
         maven {
             name = "EunomiaGitHubPackages"
             url = uri("https://maven.pkg.github.com/zannagh/eunomia")
@@ -86,6 +93,21 @@ tasks.test {
     useJUnitPlatform()
     testLogging {
         events("passed", "skipped", "failed")
+    }
+    // Forward the opt-in switches for the HTTP/WebSocket fallback E2E (HttpFallbackE2ETest) from the Gradle
+    // invocation into the forked test JVM. Absent by default, so a normal `./gradlew test` stays hermetic and
+    // the E2E self-skips; set `-Darmorhider.fallback.e2e` to run it against the in-JVM stub relay, and
+    // `-Darmorhider.relay.dotnet=<eunomia/csharp>` to run the same assertions against the real C# relay.
+    // LiveRelayContractTest is NOT opt-in - it self-skips on an unreachable relay - so these two only override
+    // its defaults: `armorhider.relay.live` points it at a relay other than the public instance, and
+    // `armorhider.relay.live.uuid` supplies a real Minecraft account uuid to unlock the Mojang-gated full flow.
+    listOf(
+        "armorhider.fallback.e2e",
+        "armorhider.relay.dotnet",
+        "armorhider.relay.live",
+        "armorhider.relay.live.uuid",
+    ).forEach { key ->
+        System.getProperty(key)?.let { systemProperty(key, it) }
     }
     // only run tests once
     enabled = sc.current.isActive

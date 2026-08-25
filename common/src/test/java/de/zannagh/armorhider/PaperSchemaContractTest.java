@@ -7,7 +7,7 @@ import de.zannagh.armorhider.net.packets.ServerWideSettings;
 import de.zannagh.armorhider.paper.config.ServerConfigurationState;
 import de.zannagh.armorhider.paper.config.ServerWideSettingsDefaults;
 import de.zannagh.armorhider.paper.net.ArmorHiderPaperPackets;
-import de.zannagh.eunomia.networking.PacketType;
+import de.zannagh.eunomia.networking.packets.PacketType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

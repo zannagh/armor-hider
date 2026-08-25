@@ -1,7 +1,7 @@
 package de.zannagh.armorhider.paper.net;
 
 import com.google.gson.JsonObject;
-import de.zannagh.eunomia.networking.PacketType;
+import de.zannagh.eunomia.networking.packets.PacketType;
 
 import java.util.LinkedHashSet;
 import java.util.List;

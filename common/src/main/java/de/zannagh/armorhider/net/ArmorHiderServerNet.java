@@ -9,8 +9,8 @@ import de.zannagh.armorhider.net.packets.ServerWideSettings;
 import de.zannagh.armorhider.server.ServerConnectionEvents;
 import de.zannagh.armorhider.server.ServerRuntime;
 import de.zannagh.armorhider.util.ServerUtil;
-import de.zannagh.eunomia.networking.CommunicationManager;
-import de.zannagh.eunomia.networking.ServerContext;
+import de.zannagh.eunomia.networking.comms.CommunicationManager;
+import de.zannagh.eunomia.networking.packets.ServerContext;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 

@@ -1,12 +1,14 @@
 package de.zannagh.armorhider.net;
 
+import de.zannagh.armorhider.net.packets.AhReplicatedPlayerConfig;
 import de.zannagh.armorhider.net.packets.CombatLogEventPacket;
 import de.zannagh.armorhider.net.packets.CombatLogNotificationPacket;
 import de.zannagh.armorhider.net.packets.PermissionPacket;
 import de.zannagh.armorhider.net.packets.PlayerConfig;
 import de.zannagh.armorhider.net.packets.ServerWideSettings;
 import de.zannagh.armorhider.server.ServerConfiguration;
-import de.zannagh.eunomia.networking.PacketType;
+import de.zannagh.eunomia.networking.packets.KeyedPacket;
+import de.zannagh.eunomia.networking.packets.PacketType;
 
 /**
  * The single, Minecraft-free source of truth for armor-hider's packet channels, expressed as eunomia
@@ -30,6 +32,18 @@ public final class AhPackets {
     /** C2S: a client pushes its own {@link PlayerConfig} (stripped via {@code forNetwork()}). */
     public static final PacketType<PlayerConfig> PLAYER_CONFIG =
             PacketType.serverbound(NAMESPACE, "settings_c2s_packet", PlayerConfig.class);
+
+    /**
+     * Bidirectional, keyed+replicated per-player config for the HTTP/WebSocket relay fallback. When the joined
+     * MC server does not run the mod, eunomia routes this to the external relay, which stores it by the sender's
+     * UUID, relays each update to the other clients and dumps the whole set to newcomers on join - so per-player
+     * config still propagates with no armor-hider server present. Carries {@link AhReplicatedPlayerConfig}, a thin
+     * wrapper over {@link PlayerConfig} (see it for why it is not {@code PlayerConfig} directly). On a normal
+     * armor-hider MC server this channel is simply unhandled and ignored; that path uses {@link #PLAYER_CONFIG} +
+     * {@link #SERVER_CONFIG} as before.
+     */
+    public static final KeyedPacket<AhReplicatedPlayerConfig> PLAYER_CONFIG_REPLICATED =
+            KeyedPacket.keyedBidirectional(NAMESPACE, "player_config_replicated", AhReplicatedPlayerConfig.class);
 
     /** S2C: the server's full config snapshot (server-wide settings + every stored player config). */
     public static final PacketType<ServerConfiguration> SERVER_CONFIG =

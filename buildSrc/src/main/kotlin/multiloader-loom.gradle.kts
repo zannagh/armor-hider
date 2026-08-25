@@ -177,14 +177,28 @@ if (branch == "common") {
         if (hasProperty("eunomia.version")) {
             add("compileOnly", "de.zannagh.eunomia:eunomia-core:${findProperty("eunomia.version")}")
             // eunomia-core is compileOnly for the mod (the eunomia mod supplies it at game runtime), but
-            // the JUnit tests load the config POJOs in a plain JVM and those now implement eunomia's
-            // NetworkHealable / encode via its PayloadCodec, so the class must be on the test runtime
-            // classpath too. Test scope only - never bundled into the shipped mod jar.
-            add("testRuntimeOnly", "de.zannagh.eunomia:eunomia-core:${findProperty("eunomia.version")}")
+            // the JUnit tests load the config POJOs in a plain JVM and those implement eunomia's
+            // NetworkHealable / encode via its PayloadCodec - and the HTTP/WebSocket fallback E2E
+            // (HttpFallbackE2ETest) drives eunomia's ExternalServerClient / ReplicatedClientStore /
+            // ReplicatedPlayerConfigStore directly - so the classes must be on the test COMPILE classpath,
+            // not just runtime. Test scope only - never bundled into the shipped mod jar.
+            add("testImplementation", "de.zannagh.eunomia:eunomia-core:${findProperty("eunomia.version")}")
         }
         add("testImplementation", platform("org.junit:junit-bom:6.0.1"))
         add("testImplementation", "org.junit.jupiter:junit-jupiter")
         add("testRuntimeOnly", "org.junit.platform:junit-platform-launcher")
+        // The fallback E2E's embedded stub relay needs to serve HTTP (/health, PUT /api/packets/*) AND a
+        // WebSocket (/ws) on the SAME port, because eunomia's ExternalServerClient derives the ws URL from
+        // the same base host:port as its REST calls. NanoHTTPD-websocket (NanoWSD) does exactly that in one
+        // tiny, dependency-free server. Test scope only; the real relay is the C# server. Gated at runtime,
+        // so a normal `./gradlew test` never opens a socket - it just needs the class on the test classpath.
+        add("testImplementation", "org.nanohttpd:nanohttpd-websocket:2.3.1")
+        // eunomia-core logs via slf4j-api, which it declares compileOnly (the game/Paper supply a binding at
+        // runtime), so it is not transitive onto the plain-JVM test classpath. The fallback E2E constructs
+        // eunomia's ExternalServerClient (which takes an slf4j Logger), so the API + a simple binding are
+        // needed for the test JVM only.
+        add("testImplementation", "org.slf4j:slf4j-api:2.0.16")
+        add("testRuntimeOnly", "org.slf4j:slf4j-simple:2.0.16")
         // :paper's compiled classes, for PaperSchemaContractTest - the Paper plugin re-declares the
         // parts of the wire schema it has to understand (the serverWideSettings block, the channel
         // names), and nothing else would notice if the mod's side moved. The classes it asserts on

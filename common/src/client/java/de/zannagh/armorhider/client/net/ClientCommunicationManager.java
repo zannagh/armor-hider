@@ -8,11 +8,12 @@ import net.minecraft.network.chat.Component;
 import de.zannagh.armorhider.combat.DefaultCombatEvent;
 import de.zannagh.armorhider.log.DebugLogger;
 import de.zannagh.armorhider.net.AhPackets;
+import de.zannagh.armorhider.net.packets.AhReplicatedPlayerConfig;
 import de.zannagh.armorhider.net.packets.CombatLogNotificationPacket;
 import de.zannagh.armorhider.net.packets.PermissionPacket;
 import de.zannagh.armorhider.server.ServerConfiguration;
 import de.zannagh.armorhider.util.PlayerNameUtil;
-import de.zannagh.eunomia.networking.CommunicationManager;
+import de.zannagh.eunomia.networking.comms.CommunicationManager;
 import net.minecraft.client.multiplayer.ServerData;
 
 /**
@@ -21,7 +22,7 @@ import net.minecraft.client.multiplayer.ServerData;
  * The historical "server supports the mod" signal is now eunomia's capability handshake: whether the
  * server runs Armor Hider is {@code CommunicationManager.serverCapabilities().isPresent()}. Outgoing
  * C2S traffic is gated by eunomia's own send path: {@link CommunicationManager#sendToServer} defaults
- * to {@link de.zannagh.eunomia.networking.SendOptions#AFTER_SUCCESSFUL_HANDSHAKE}, so a packet is held
+ * to {@link de.zannagh.eunomia.networking.comms.SendOptions#AFTER_SUCCESSFUL_HANDSHAKE}, so a packet is held
  * until the probe resolves and dropped if the server does not run eunomia - the gating Armor Hider's
  * bespoke {@code ClientSendGate} used to provide before it was folded into eunomia.
  */
@@ -34,6 +35,11 @@ public final class ClientCommunicationManager {
                 (payload, ctx) -> handlePermissionPacketReceived(payload));
         CommunicationManager.onClientReceive(AhPackets.COMBAT_NOTIFICATION,
                 (payload, ctx) -> handleCombatLogNotificationReceived(payload));
+
+        // Install the relay mirror: on the HTTP/WebSocket fallback (server does not run the mod) eunomia's
+        // relay replicates every player's config into this mirror, which resolveConfig reads via
+        // getServerConfig(). Harmless/empty on a normal armor-hider MC server.
+        ArmorHiderClient.CLIENT_CONFIG_MANAGER.enableRelayMirror();
 
         // Consume eunomia's server-capability probe results. Outgoing C2S traffic now flows through
         // eunomia's own send path: CommunicationManager.sendToServer defaults to AFTER_SUCCESSFUL_HANDSHAKE,
@@ -85,6 +91,14 @@ public final class ClientCommunicationManager {
             // taking the client down for since the config is client-authoritative.
             try {
                 CommunicationManager.sendToServer(AhPackets.PLAYER_CONFIG, currentConfig.forNetwork());
+                // Also publish over the replicated channel so config propagates on the relay fallback (where the
+                // line above is dropped because the server is not the mod). eunomia's gate routes it to the relay
+                // when the fallback is active and drops it otherwise, so it is safe to fire unconditionally here.
+                java.util.UUID localId = currentConfig.playerId.getValue();
+                if (localId != null) {
+                    CommunicationManager.sendToServer(AhPackets.PLAYER_CONFIG_REPLICATED,
+                            AhReplicatedPlayerConfig.forNetwork(localId, currentConfig));
+                }
             } catch (Exception e) {
                 ArmorHider.LOGGER.warn("Could not send the local config to the server on join.", e);
             }

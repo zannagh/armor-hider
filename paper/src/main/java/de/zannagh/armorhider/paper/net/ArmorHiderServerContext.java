@@ -1,7 +1,7 @@
 package de.zannagh.armorhider.paper.net;
 
-import de.zannagh.eunomia.networking.PacketType;
-import de.zannagh.eunomia.networking.ServerContext;
+import de.zannagh.eunomia.networking.packets.PacketType;
+import de.zannagh.eunomia.networking.packets.ServerContext;
 import org.bukkit.entity.Player;
 
 import java.util.UUID;

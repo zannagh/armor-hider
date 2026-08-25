@@ -2,7 +2,7 @@ package de.zannagh.armorhider.paper;
 
 import de.zannagh.armorhider.paper.net.ArmorHiderServerContext;
 import de.zannagh.armorhider.paper.net.PaperServerTransport;
-import de.zannagh.eunomia.networking.CommunicationManager;
+import de.zannagh.eunomia.networking.comms.CommunicationManager;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 

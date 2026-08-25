@@ -4,7 +4,10 @@ on:
   release:
     types: [published]
   push:
-    branches: [main]
+    # main          -> automatic GitHub prerelease only (no platform publish).
+    # experimental  -> automatic GitHub prerelease PLUS publish to Modrinth/CurseForge/Hangar as a
+    #                  "beta" prerelease. The only push trigger that reaches the publish-* jobs.
+    branches: [main, experimental]
   workflow_dispatch:
     inputs:
       force_release:
@@ -58,6 +61,7 @@ jobs:
       runner: ${{ steps.prep.outputs.runner }}
       should_release: ${{ steps.prep.outputs.should_release }}
       is_manual_release: ${{ steps.prep.outputs.is_manual_release }}
+      is_experimental: ${{ steps.experimental.outputs.value }}
       skip_reason: ${{ steps.prep.outputs.skip_reason }}
       semver: ${{ steps.prep.outputs.semver }}
       prerelease_number: ${{ steps.prep.outputs.prerelease_number }}
@@ -90,6 +94,20 @@ jobs:
           runner-token: ${{ secrets.RUNNER_TOKEN }}
           modrinth-project-id: ${{ env.MODRINTH_PROJECT_ID }}
           repository: ${{ github.repository }}
+
+      # Computed directly from the trigger, not from the versionizer actions (their internals aren't
+      # ours to change): true only for a push landing on refs/heads/experimental. This is the flag
+      # that lets the publish-* jobs run for experimental pushes without touching the existing
+      # is_manual_release-gated manual-release path.
+      - name: Detect experimental push
+        id: experimental
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" == "refs/heads/experimental" ]]; then
+            echo "value=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=false" >> "$GITHUB_OUTPUT"
+          fi
 
   build:
     name: Build
@@ -203,9 +221,12 @@ jobs:
     name: Publish to Modrinth
     needs: [prepare, build]
     runs-on: ubuntu-latest
+    # Runs for a manual release OR a push to experimental. version_ok defaults to 'true' when the
+    # downgrade check didn't run (i.e. not a manual release), so it's a no-op guard on the
+    # experimental path.
     if: |
       needs.prepare.outputs.should_release == 'true' &&
-      needs.prepare.outputs.is_manual_release == 'true' &&
+      (needs.prepare.outputs.is_manual_release == 'true' || needs.prepare.outputs.is_experimental == 'true') &&
       needs.prepare.outputs.version_ok == 'true' &&
       needs.prepare.outputs.version_exists != 'true'
     strategy:
@@ -311,9 +332,10 @@ jobs:
     name: Publish to CurseForge
     needs: [prepare, build]
     runs-on: ubuntu-latest
+    # Runs for a manual release OR a push to experimental (see publish-modrinth).
     if: |
       needs.prepare.outputs.should_release == 'true' &&
-      needs.prepare.outputs.is_manual_release == 'true' &&
+      (needs.prepare.outputs.is_manual_release == 'true' || needs.prepare.outputs.is_experimental == 'true') &&
       needs.prepare.outputs.version_ok == 'true'
     strategy:
       fail-fast: false
@@ -444,9 +466,10 @@ jobs:
     name: Publish to CurseForge (Bukkit Plugins)
     needs: [prepare, build]
     runs-on: ubuntu-latest
+    # Runs for a manual release OR a push to experimental (see publish-modrinth).
     if: |
       needs.prepare.outputs.should_release == 'true' &&
-      needs.prepare.outputs.is_manual_release == 'true' &&
+      (needs.prepare.outputs.is_manual_release == 'true' || needs.prepare.outputs.is_experimental == 'true') &&
       needs.prepare.outputs.version_ok == 'true'
     steps:
       - name: Checkout
@@ -550,9 +573,10 @@ jobs:
     name: Publish to Hangar
     needs: [prepare, build]
     runs-on: ubuntu-latest
+    # Runs for a manual release OR a push to experimental (see publish-modrinth).
     if: |
       needs.prepare.outputs.should_release == 'true' &&
-      needs.prepare.outputs.is_manual_release == 'true' &&
+      (needs.prepare.outputs.is_manual_release == 'true' || needs.prepare.outputs.is_experimental == 'true') &&
       needs.prepare.outputs.version_ok == 'true'
     steps:
       - name: Download Artifacts

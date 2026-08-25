@@ -7,7 +7,7 @@ import de.zannagh.armorhider.paper.config.ServerWideSettingsDefaults;
 import de.zannagh.armorhider.paper.net.ArmorHiderPaperPackets;
 import de.zannagh.armorhider.paper.perm.PermissionResolver;
 import de.zannagh.armorhider.paper.util.Schedulers;
-import de.zannagh.eunomia.networking.CommunicationManager;
+import de.zannagh.eunomia.networking.comms.CommunicationManager;
 import org.bukkit.entity.Player;
 
 import java.util.UUID;
