@@ -45,9 +45,9 @@ Armor Hider features a big selection of customization options to have your playe
 
 Armor Hider has explicit compatibility with major mods focused around visuals, like [Essential](https://github.com/SparkUniverse/Essential-Mod), [Elytra Trims](https://codeberg.org/KikuGie/elytra-trims), [Female Gender Mod](https://github.com/FemaleGenderMod/FemaleGenderMod), [GeckoLib](https://github.com/bernie-g/geckolib), [Accessories](https://modrinth.com/mod/accessories)/[Trinkets](https://modrinth.com/mod/trinkets)/[Curios](https://modrinth.com/mod/curios), [Wavey Capes](https://modrinth.com/mod/wavey-capes), [Iris](https://github.com/IrisShaders/Iris), [EMF](https://github.com/Traben-0/Entity_Model_Features) and many more. 
 
-Armor drawn through [Fabric API's `ArmorRenderer`](https://github.com/FabricMC/fabric-api/blob/26.2/fabric-rendering-v1/src/client/java/net/fabricmc/fabric/api/client/rendering/v1/ArmorRenderer.java) is covered as well, so any Fabric mod that registers a custom armor renderer with it - [Nycto](https://modrinth.com/mod/nycto) among them - is hidden and faded like vanilla armor without needing its own compatibility.
+Armor drawn through [Fabric API's `ArmorRenderer`](https://github.com/FabricMC/fabric-api/blob/26.2/fabric-rendering-v1/src/client/java/net/fabricmc/fabric/api/client/rendering/v1/ArmorRenderer.java) is covered as well, so any Fabric mod that registers a custom armor renderer with it (for example [Nycto](https://modrinth.com/mod/nycto)) is hidden and faded like vanilla armor without needing its own compatibility.
 
-For detailed information on which compatibilities are built-in and what each compatibility does, check out the [Wiki](https://github.com/zannagh/armor-hider/wiki/Compatibilities).
+For detailed information on which compatibilities are built-in and what each compatibility does, check out the [Wiki](https://github.com/zannagh/armor-hider/wiki/Compatibilities). As a developer you can use Armor Hider's API and API-only mode to re-use its capabilities to hide/fade equipment - check out the [docs](https://github.com/zannagh/armor-hider/wiki/Using-The-Render-Api).
 
 *If you're using a mod, datapack or plugin not yet supported, please open an issue on GitHub to let me know or drop a message on the Discord Server.*
 
@@ -71,7 +71,7 @@ Join the [Discord server](https://discord.gg/AMwbYqdmQb) for support, discussion
 
 ## Issues and Feature Requests
 
-As mentioned before, feel free to create an issue on the GitHub repository or reach out on Discord to make me aware of problems or ideas that could make this mod better.
+As mentioned before, feel free to create an issue on the [GitHub repository](https://github.com/zannagh/armor-hider/issues) or reach out on [Discord](https://discord.gg/AMwbYqdmQb) to make me aware of problems or ideas that could make this mod better.
 
 ## Versioning & Releases
 
