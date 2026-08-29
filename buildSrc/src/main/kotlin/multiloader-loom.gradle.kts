@@ -681,7 +681,10 @@ if (branch == "fabric") {
                 description = "Drop the local eunomia fabric mod jar into run/mods/ (armor-hider's required runtime dependency)."
                 from(eunomiaOverrideJar)
                 into(project.layout.projectDirectory.dir("run/mods"))
-                mustRunAfter("fetchFcgtCompatJars")
+                // Both wipe run/mods first: fetchFcgtCompatJars on the runClientGametest (ENTITY_RENDER)
+                // path, fetchCompatJars on the runClient (BOOT) path. Land after whichever is in the graph,
+                // or a wipe deletes the eunomia jar we just dropped and the client fails its required dep.
+                mustRunAfter("fetchFcgtCompatJars", "fetchCompatJars")
                 outputs.upToDateWhen { false }
                 doFirst {
                     if (!file(eunomiaOverrideJar).exists()) {
@@ -713,8 +716,10 @@ if (branch == "fabric") {
                 description = "Drop the eunomia fabric mod jar (CurseForge $cfProject/$cfFile) into run/mods/."
                 from(eunomiaRuntimeMod)
                 into(project.layout.projectDirectory.dir("run/mods"))
-                // fetchFcgtCompatJars wipes run/mods first; land after it, same as the FCGT copy.
-                mustRunAfter("fetchFcgtCompatJars")
+                // Both wipe run/mods first: fetchFcgtCompatJars on the runClientGametest (ENTITY_RENDER)
+                // path, fetchCompatJars on the runClient (BOOT) path. Land after whichever is in the graph,
+                // or a wipe deletes the eunomia jar we just dropped and the client fails its required dep.
+                mustRunAfter("fetchFcgtCompatJars", "fetchCompatJars")
                 outputs.upToDateWhen { false }
                 doFirst { deleteStaleEunomiaJars() }
             }
