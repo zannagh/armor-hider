@@ -30,10 +30,71 @@ public class ArmorHider {
 
     private static volatile ServerRuntime runtime = null;
 
+    /**
+     * Set once by {@link #useAsApiOnly()}, read from the client's UI and keybind paths. Volatile
+     * because it is written from a consuming mod's initializer (the loader's thread) and read from the
+     * client tick and render threads.
+     */
+    private static volatile boolean apiOnly = false;
+
     public static ServerRuntime getRuntime() {
         return runtime;
     }
-    
+
+    /**
+     * Puts Armor Hider into <b>API-only mode</b>: a consuming mod drives it through
+     * {@link de.zannagh.armorhider.api.ArmorHiderApi} and {@code ArmorHiderRenderApi}, and Armor Hider
+     * stops presenting itself as a mod of its own.
+     *
+     * <p>Suppressed:
+     * <ul>
+     *   <li><b>Keybinds</b> - the toggle, open-settings and preset mappings are never added to
+     *       {@code Options.keyMappings}, so they also stop appearing in the vanilla Controls screen.</li>
+     *   <li><b>Settings screens and every entry point into them</b> - the Options-screen button, the
+     *       Skin Customization panel, the ModMenu config factory and the open-settings keybind. The
+     *       screen classes stay compiled and functional; nothing opens them any more.</li>
+     * </ul>
+     *
+     * <p>Deliberately kept:
+     * <ul>
+     *   <li><b>Everything network</b> - the handshake, the player-config sync, combat-log relaying and
+     *       the shared-rule transport behind {@code AhRenderRuleBuilder.shared()}.</li>
+     *   <li><b>The render pipeline and the entire API</b>, rules and interceptors included.</li>
+     *   <li><b>The end user's own configuration</b>: it still loads, persists, syncs and drives
+     *       rendering - only the UI to change it is gone. An existing user's saved settings keep
+     *       working and the broadcast {@code PlayerConfig} stays meaningful; a fresh install sits at
+     *       vanilla defaults, so nothing hides unless the consuming mod's rules say so.</li>
+     * </ul>
+     *
+     * <p>Call this as early as possible. A Fabric {@code ModInitializer}/{@code ClientModInitializer}
+     * and a NeoForge mod constructor all run before {@code Options} is loaded, which is when the
+     * keybinds would be installed. A later call still works - the mappings are stripped again on the
+     * next client tick - it just means they existed briefly.
+     *
+     * <p>The switch is <b>one-way and idempotent</b>. There is deliberately no way back: a mod that has
+     * already taken the UI away from its users cannot meaningfully hand it back mid-session, and a
+     * reversible flag would need every read site to cope with the UI reappearing under it.
+     *
+     * @since 0.13.0
+     */
+    public static void useAsApiOnly() {
+        if (apiOnly) {
+            return;
+        }
+        apiOnly = true;
+        LOGGER.info("Armor Hider switched to API-only mode: config screens and keybinds are suppressed, "
+                + "networking and the render API stay active.");
+    }
+
+    /**
+     * @return whether {@link #useAsApiOnly()} has been called.
+     * @since 0.13.0
+     */
+    public static boolean isApiOnly() {
+        return apiOnly;
+    }
+
+
     public static void init() {
         LOGGER.info("Initializing...");
 

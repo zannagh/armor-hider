@@ -52,6 +52,14 @@ public final class ArmorHiderPaperPackets {
     public static final PacketType<JsonObject> COMBAT_NOTIFICATION =
             PacketType.clientbound(NAMESPACE, "combatlog_s2c_packet", JsonObject.class);
 
+    /** C2S: a client's shared render-rule state announcement. */
+    public static final PacketType<JsonObject> SHARED_RULES =
+            PacketType.serverbound(NAMESPACE, "shared_rules_c2s_packet", JsonObject.class);
+
+    /** S2C: a relayed shared render-rule outcome (authoritative name + authenticated sender id). */
+    public static final PacketType<JsonObject> SHARED_RULES_NOTIFICATION =
+            PacketType.clientbound(NAMESPACE, "shared_rules_s2c_packet", JsonObject.class);
+
     /**
      * Every armor-hider channel, in declaration order. Does <em>not</em> include eunomia's built-in
      * handshake channels - those are registered separately via {@code enableServerHandshake()}.
@@ -62,7 +70,9 @@ public final class ArmorHiderPaperPackets {
             SERVER_WIDE_SETTINGS,
             PERMISSION,
             COMBAT_EVENT,
-            COMBAT_NOTIFICATION);
+            COMBAT_NOTIFICATION,
+            SHARED_RULES,
+            SHARED_RULES_NOTIFICATION);
 
     private ArmorHiderPaperPackets() {
     }

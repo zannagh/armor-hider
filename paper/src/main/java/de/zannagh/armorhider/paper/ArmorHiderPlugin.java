@@ -100,10 +100,13 @@ public final class ArmorHiderPlugin extends JavaPlugin {
                 (payload, context) -> service.handleServerWideSettings(sender(context), payload));
         CommunicationManager.onServerReceive(ArmorHiderPaperPackets.COMBAT_EVENT,
                 (payload, context) -> service.handleCombatLogEvent(sender(context), payload));
+        CommunicationManager.onServerReceive(ArmorHiderPaperPackets.SHARED_RULES,
+                (payload, context) -> service.handleSharedRuleState(sender(context), payload));
 
         CommunicationManager.register(ArmorHiderPaperPackets.SERVER_CONFIG);
         CommunicationManager.register(ArmorHiderPaperPackets.PERMISSION);
         CommunicationManager.register(ArmorHiderPaperPackets.COMBAT_NOTIFICATION);
+        CommunicationManager.register(ArmorHiderPaperPackets.SHARED_RULES_NOTIFICATION);
     }
 
     /**

@@ -64,6 +64,11 @@ public final class PlayerConnectionListener implements Listener {
         } finally {
             subscribing.remove(id);
         }
+        // Shared render rules go first: the joiner's stale entry from a previous session is cleared on
+        // the other clients here, independently of eunomia's capability handshake (which now gates the
+        // joiner's own outgoing re-announcement client-side). Clearing on join means a rejoin can never
+        // leave a stale snapshot standing on the other clients.
+        service.syncSharedRulesOnJoin(player);
         pushConfiguration(player);
         pushPermissions(player);
     }

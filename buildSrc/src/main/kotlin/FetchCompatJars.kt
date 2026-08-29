@@ -1,4 +1,3 @@
-import com.google.gson.JsonParser
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.MapProperty
@@ -10,11 +9,9 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import java.io.File
 import java.net.URI
-import java.net.URLEncoder
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
-import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 import java.time.Duration
@@ -41,6 +38,19 @@ import java.time.Duration
  *    endpoint filtered by {@link #mcGameVersion} + {@link #loader} and picks the latest
  *    `release` (or any version if no releases match). This makes "give me a complete
  *    working modset" actually work without having to pin every transitive dep by hand.
+ *
+ * <h2>One jar per project</h2>
+ * Dedup is by Modrinth <b>project</b>, not by version hash, in two phases: explicit pins are
+ * downloaded first, then deps are followed breadth-first and skipped once their project has a jar.
+ * <p>
+ * Hash dedup let several versions of the SAME mod land side by side - each hash is distinct, so
+ * each sailed through the seen-check. On fabric-1.20.1 `compat=all` that meant three fabric-api
+ * jars at once (0.92.9 pinned, 0.84.0 via Gender's version-pinned dep, 0.92.11 via WaveyCapes'
+ * project-id dep resolving to latest); five of eleven Fabric variants had a duplicate. Loader
+ * remaps every copy, and the nested jars they share collide in tinyremapper's zip FileSystem
+ * cache - one thread closes a FileSystem another is walking and the launch dies with
+ * `Failed to remap mods! / ClosedFileSystemException`. A race, so it reds a nightly only now and
+ * then. Pins-first is the other half: a dep must never displace a deliberately pinned version.
  *
  * Set {@link #mcGameVersion} (e.g. "1.21.8") and {@link #loader} (e.g. "fabric") on the
  * caller side; without them, project-id resolution is skipped and the task falls back to
@@ -97,14 +107,8 @@ abstract class FetchCompatJars : DefaultTask() {
         HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(20)).build()
     }
 
-    /**
-     * Memo for project_id → latest-compatible version_id resolutions per task run. Multiple
-     * compat mods often declare the same required project_id dep (e.g. half the Fabric
-     * ecosystem pulls fabric-language-kotlin) - without memoization we'd re-query Modrinth
-     * once per occurrence, easily landing in rate-limit territory on `compat=all` runs.
-     * Cleared at the start of every {@link #fetch()} invocation.
-     */
-    private val projectResolutionMemo = mutableMapOf<String, String?>()
+    /** Modrinth access for this run. Rebuilt per {@link #fetch()} so its memo never leaks rows. */
+    private lateinit var modrinth: ModrinthClient
 
     @TaskAction
     fun fetch() {
@@ -112,7 +116,7 @@ abstract class FetchCompatJars : DefaultTask() {
         target.mkdirs()
         // Wipe any previously-downloaded compat jars so the set is hermetic per run.
         target.listFiles()?.forEach { it.delete() }
-        projectResolutionMemo.clear()
+        modrinth = ModrinthClient(logger, mcGameVersion.orNull, loader.orNull)
 
         val cfPins = curseForgePins.getOrElse(emptyMap())
         // A key is fetchable if it has a Modrinth version hash, a CurseForge pin, or both.
@@ -124,18 +128,50 @@ abstract class FetchCompatJars : DefaultTask() {
         }
 
         val seenHashes = mutableSetOf<String>()
+        val claimedProjects = mutableSetOf<String>()
+        val pendingDeps = ArrayDeque<PendingDep>()
+
+        // Phase 1 - explicit pins only, deps deferred. Downloading these first is what makes the
+        // pin authoritative: it claims its project before any transitive resolution gets a look in,
+        // so key iteration order can no longer decide which fabric-api the run boots against.
         keys.forEach { key ->
             val hash = versionHashes.get()[key]
             try {
                 if (hash != null) {
                     // Modrinth is preferred when available: its open API lets the version and its required
                     // deps auto-resolve. CurseForge (keyless Cursemaven) is exact-pin-only, so it is the fallback.
-                    fetchVersion(hash, target, seenHashes, key)
+                    fetchVersion(hash, target, seenHashes, claimedProjects, pendingDeps, key)
                 } else {
                     fetchCurseForge(cfPins.getValue(key), target, key)
                 }
             } catch (e: Exception) {
                 logger.warn("[fetchCompatJars] {}: {}", key, e.message)
+            }
+        }
+
+        // Phase 2 - transitive deps, breadth-first. Each fetch may enqueue its own deps onto the
+        // same queue; the project claim-check inside fetchVersion is what terminates it.
+        while (pendingDeps.isNotEmpty()) {
+            val pending = pendingDeps.removeFirst()
+            try {
+                val hash = pending.versionId ?: run {
+                    val projectId = pending.projectId ?: return@run null
+                    // Already satisfied - skip without querying Modrinth at all. Saves a request
+                    // per occurrence on compat=all runs, which is where rate limits bite. Logged
+                    // rather than dropped silently: a run that quietly omits a mod looks identical
+                    // to one that never wanted it.
+                    if (projectId in claimedProjects) {
+                        logger.lifecycle(
+                            "[fetchCompatJars] {} → skipped (project {} already provided by an earlier selection)",
+                            pending.label, projectId
+                        )
+                        return@run null
+                    }
+                    modrinth.latestForProject(projectId, pending.label)
+                } ?: continue
+                fetchVersion(hash, target, seenHashes, claimedProjects, pendingDeps, pending.label)
+            } catch (e: Exception) {
+                logger.warn("[fetchCompatJars] {}: {}", pending.label, e.message)
             }
         }
     }
@@ -172,16 +208,31 @@ abstract class FetchCompatJars : DefaultTask() {
         resp.body().use { Files.copy(it, out, StandardCopyOption.REPLACE_EXISTING) }
     }
 
-    /** Recursively fetch a Modrinth version + its `required` deps that pin a version_id. */
-    private fun fetchVersion(hash: String, target: File, seen: MutableSet<String>, label: String) {
+    /**
+     * A required dep discovered while fetching, queued for phase 2. Exactly one of
+     * {@link #versionId} / {@link #projectId} is set - a version-pinned dep resolves to itself, a
+     * project-id dep still has to be resolved against Modrinth when its turn comes.
+     */
+    private data class PendingDep(
+        val versionId: String?,
+        val projectId: String?,
+        val label: String,
+    )
+
+    /**
+     * Fetch one Modrinth version, unless its project already has a jar in the dir, and queue its
+     * `required` deps for phase 2 rather than recursing into them.
+     */
+    private fun fetchVersion(
+        hash: String,
+        target: File,
+        seen: MutableSet<String>,
+        claimedProjects: MutableSet<String>,
+        pendingDeps: ArrayDeque<PendingDep>,
+        label: String,
+    ) {
         if (!seen.add(hash)) return
-        val body = http.send(
-            HttpRequest.newBuilder(URI.create("https://api.modrinth.com/v2/version/$hash"))
-                .header("User-Agent", "armor-hider-buildscript")
-                .GET().build(),
-            HttpResponse.BodyHandlers.ofString()
-        ).body()
-        val json = JsonParser.parseString(body).asJsonObject
+        val json = modrinth.version(hash)
 
         // If the manually-pinned version doesn't actually target our MC, try to auto-resolve
         // a correct version from the same project. Common with stale pins after MC bumps.
@@ -196,10 +247,15 @@ abstract class FetchCompatJars : DefaultTask() {
                     label, hash, pinnedGameVersions, mc
                 )
                 if (projectId != null) {
-                    val resolved = resolveLatestForProject(projectId, "$label/auto-correct")
-                    if (resolved != null && resolved != hash && seen.add(resolved)) {
-                        // Replace the bad pin with the auto-resolved one.
-                        fetchVersion(resolved, target, seen, label)
+                    val resolved = modrinth.latestForProject(projectId, "$label/auto-correct")
+                    if (resolved != null && resolved != hash) {
+                        // Replace the bad pin with the auto-resolved one. Deliberately NOT
+                        // pre-adding `resolved` to `seen` as a recursion guard: fetchVersion opens
+                        // with `if (!seen.add(hash)) return`, so pre-adding made it return on entry
+                        // and the replacement was never downloaded - the stale pin was dropped with
+                        // nothing put back. Let that same check do the dedup; the resolved version
+                        // targets `mc` by construction, so it cannot re-enter this branch.
+                        fetchVersion(resolved, target, seen, claimedProjects, pendingDeps, label)
                         return
                     }
                 }
@@ -211,17 +267,33 @@ abstract class FetchCompatJars : DefaultTask() {
             }
         }
 
+        // One jar per project. A second version of an already-fetched mod is dropped here rather
+        // than written alongside the first - see the class doc for what duplicate copies do to
+        // fabric-loader's remapper. Phase ordering makes the survivor the explicit pin.
+        val project = json.get("project_id")?.takeIf { !it.isJsonNull }?.asString
+        if (project != null && project in claimedProjects) {
+            logger.lifecycle(
+                "[fetchCompatJars] {} → skipped (project {} already provided by an earlier selection)",
+                label, project
+            )
+            return
+        }
+
         val file = json.getAsJsonArray("files").get(0).asJsonObject
         val url = file.get("url").asString
         val filename = file.get("filename").asString
         val out = target.toPath().resolve(filename)
         logger.lifecycle("[fetchCompatJars] {} → {}", label, filename)
-        http.send(
-            HttpRequest.newBuilder(URI.create(url)).GET().build(),
-            HttpResponse.BodyHandlers.ofInputStream()
-        ).body().use { Files.copy(it, out, StandardCopyOption.REPLACE_EXISTING) }
+        modrinth.download(url, out)
+        // Claim only once the jar is actually on disk. Claiming before the download would let a
+        // failed fetch suppress every later fallback for that project - the run would end up with
+        // no copy at all, which is worse than the duplicate this dedup exists to prevent.
+        if (project != null) {
+            claimedProjects.add(project)
+        }
 
-        // Follow required deps: version-pinned first, project-id auto-resolution second.
+        // Queue required deps for phase 2 instead of recursing: depth-first recursion would let
+        // one pin's dep chain claim projects before the remaining pins are even looked at.
         if (followDependencies.getOrElse(true) == false) return
         json.getAsJsonArray("dependencies")?.forEach { dep ->
             val obj = dep.asJsonObject
@@ -229,66 +301,12 @@ abstract class FetchCompatJars : DefaultTask() {
             if (type != "required") return@forEach
             val versionId = obj.get("version_id")?.takeIf { !it.isJsonNull }?.asString
             if (versionId != null) {
-                fetchVersion(versionId, target, seen, "$label/dep")
+                pendingDeps.addLast(PendingDep(versionId, null, "$label/dep"))
                 return@forEach
             }
             val projectId = obj.get("project_id")?.takeIf { !it.isJsonNull }?.asString ?: return@forEach
-            val resolved = resolveLatestForProject(projectId, label)
-            if (resolved != null) {
-                fetchVersion(resolved, target, seen, "$label/dep:$projectId")
-            }
+            pendingDeps.addLast(PendingDep(null, projectId, "$label/dep:$projectId"))
         }
     }
 
-    /**
-     * Auto-resolve a project-id-only required dep: query Modrinth for the latest version of
-     * {@code projectId} compatible with {@link #mcGameVersion} + {@link #loader}, return its
-     * version_id. Returns {@code null} if no compatible version exists or if the filters
-     * aren't set.
-     */
-    private fun resolveLatestForProject(projectId: String, parentLabel: String): String? {
-        // Same project_id may be required by many compat mods (fabric-language-kotlin is
-        // pulled by 4-5 different mods in our matrix). Memoize so we hit Modrinth at most
-        // once per project per task run.
-        if (projectResolutionMemo.containsKey(projectId)) {
-            return projectResolutionMemo[projectId]
-        }
-        val mc = mcGameVersion.orNull
-        val ldr = loader.orNull
-        if (mc.isNullOrBlank() || ldr.isNullOrBlank()) {
-            logger.warn("[fetchCompatJars] {} required project={} but mcGameVersion/loader unset - skipping auto-resolve",
-                    parentLabel, projectId)
-            projectResolutionMemo[projectId] = null
-            return null
-        }
-        val gv = URLEncoder.encode("""["$mc"]""", StandardCharsets.UTF_8)
-        val ld = URLEncoder.encode("""["$ldr"]""", StandardCharsets.UTF_8)
-        val url = "https://api.modrinth.com/v2/project/$projectId/version?game_versions=$gv&loaders=$ld"
-        val body = try {
-            http.send(
-                HttpRequest.newBuilder(URI.create(url))
-                    .header("User-Agent", "armor-hider-buildscript")
-                    .timeout(Duration.ofSeconds(30))
-                    .GET().build(),
-                HttpResponse.BodyHandlers.ofString()
-            ).body()
-        } catch (e: Exception) {
-            logger.warn("[fetchCompatJars] {} auto-resolve project={} failed: {}", parentLabel, projectId, e.message)
-            projectResolutionMemo[projectId] = null
-            return null
-        }
-        val arr = JsonParser.parseString(body).asJsonArray
-        if (arr.size() == 0) {
-            logger.warn("[fetchCompatJars] {} required project={} but no {} version exists for MC {}",
-                    parentLabel, projectId, ldr, mc)
-            projectResolutionMemo[projectId] = null
-            return null
-        }
-        // Prefer the latest release; fall back to the latest of any type.
-        val release = arr.firstOrNull { it.asJsonObject.get("version_type")?.asString == "release" }?.asJsonObject
-        val pick = (release ?: arr.first().asJsonObject)
-        val id = pick.get("id").asString
-        projectResolutionMemo[projectId] = id
-        return id
-    }
 }

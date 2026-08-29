@@ -6,6 +6,8 @@ import de.zannagh.armorhider.net.packets.CombatLogNotificationPacket;
 import de.zannagh.armorhider.net.packets.PermissionPacket;
 import de.zannagh.armorhider.net.packets.PlayerConfig;
 import de.zannagh.armorhider.net.packets.ServerWideSettings;
+import de.zannagh.armorhider.net.packets.SharedRuleNotificationPacket;
+import de.zannagh.armorhider.net.packets.SharedRuleStatePacket;
 import de.zannagh.armorhider.server.ServerConfiguration;
 import de.zannagh.eunomia.networking.packets.KeyedPacket;
 import de.zannagh.eunomia.networking.packets.PacketType;
@@ -64,4 +66,12 @@ public final class AhPackets {
     /** S2C: the server re-broadcasts a combat-log event as a notification (authenticated originator). */
     public static final PacketType<CombatLogNotificationPacket> COMBAT_NOTIFICATION =
             PacketType.clientbound(NAMESPACE, "combatlog_s2c_packet", CombatLogNotificationPacket.class);
+
+    /** C2S: a client announces what its own shared render rules currently resolve to. */
+    public static final PacketType<SharedRuleStatePacket> SHARED_RULES =
+            PacketType.serverbound(NAMESPACE, "shared_rules_c2s_packet", SharedRuleStatePacket.class);
+
+    /** S2C: the server relays one player's shared render-rule outcome to the other clients. */
+    public static final PacketType<SharedRuleNotificationPacket> SHARED_RULES_NOTIFICATION =
+            PacketType.clientbound(NAMESPACE, "shared_rules_s2c_packet", SharedRuleNotificationPacket.class);
 }

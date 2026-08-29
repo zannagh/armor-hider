@@ -1,5 +1,3 @@
-import dev.kikugie.stonecutter.build.StonecutterBuildExtension
-
 val isDeobf = extra.has("loom.deobf") && extra.get("loom.deobf") as Boolean
 val sc = project.stonecutterBuild
 val branch = sc.branch.id
@@ -7,16 +5,16 @@ val mcVersion = sc.current.project.substringAfter('-')
 
 // ── Base setup ──
 if (branch == "common") {
-    apply(plugin = "multiloader-common")
+    plugins.apply("multiloader-common")
 } else {
-    apply(plugin = "multiloader-loader")
+    plugins.apply("multiloader-loader")
 }
 
 // ── Loom ──
 if (isDeobf) {
     extra.set("fabric.loom.disableObfuscation", "true")
 }
-apply(plugin = "fabric-loom")
+plugins.apply("fabric-loom")
 
 val loom = the<net.fabricmc.loom.api.LoomGradleExtensionAPI>()
 
@@ -103,62 +101,15 @@ if (branch == "common") {
         runConfigs.configureEach { runDirectory.set(layout.projectDirectory.dir("run")) }
     }
 
+    // Remapped (production) vs. deobfuscated builds want different configuration names for the mod
+    // compat deps: modCompileOnly/modClientCompileOnly go through Loom's remapper, the deobf variants
+    // (compileOnly/clientCompileOnly) skip it. Pick once, reuse for every version-gated dep below.
+    val modDep = if (isDeobf) "compileOnly" else "modCompileOnly"
+    val modClientDep = if (isDeobf) "clientCompileOnly" else "modClientCompileOnly"
+
     dependencies {
         if (!isDeobf) {
             add("modCompileOnly", "net.fabricmc:fabric-loader:${property("loader_version")}")
-        }
-        val modDep = if (isDeobf) "compileOnly" else "modCompileOnly"
-        val modClientDep = if (isDeobf) "clientCompileOnly" else "modClientCompileOnly"
-        if (hasProperty("geckolib.version")) {
-            add(modDep, "maven.modrinth:geckolib:${findProperty("geckolib.version")}")
-            add(modClientDep, "maven.modrinth:geckolib:${findProperty("geckolib.version")}")
-        }
-        if (hasProperty("elytratrims.version")) {
-            add(modDep, "maven.modrinth:elytra-trims:${findProperty("elytratrims.version")}")
-        }
-        if (hasProperty("iris.version")) {
-            add(modClientDep, "maven.modrinth:iris:${findProperty("iris.version")}")
-        }
-        if (hasProperty("emf.version")) {
-            add(modClientDep, "maven.modrinth:entity-model-features:${findProperty("emf.version")}")
-        }
-        if (hasProperty("etf.version")) {
-            add(modClientDep, "maven.modrinth:entitytexturefeatures:${findProperty("etf.version")}")
-        }
-        if (hasProperty("mekanism.version")) {
-            add(modClientDep, "maven.modrinth:mekanism:${findProperty("mekanism.version")}")
-        }
-        if (hasProperty("waveycapes.version")) {
-            add(modClientDep, "maven.modrinth:wavey-capes:${findProperty("waveycapes.version")}")
-        }
-        if (hasProperty("deeperdarker.version")) {
-            add(modClientDep, "maven.modrinth:deeperdarker:${findProperty("deeperdarker.version")}")
-        }
-        if (hasProperty("uranus.version")) {
-            add(modClientDep, "maven.modrinth:uranus:${findProperty("uranus.version")}")
-        }
-        if (hasProperty("figura.version")) {
-            add(modClientDep, "maven.modrinth:figura:${findProperty("figura.version")}")
-        }
-        if (hasProperty("modmenu.version")) {
-            add(modClientDep, "maven.modrinth:modmenu:${findProperty("modmenu.version")}")
-        }
-        if (hasProperty("gender.version")) {
-            add(modClientDep, "maven.modrinth:female-gender:${findProperty("gender.version")}")
-        }
-        // Accessory providers (issue #246), Fabric side. Curios is NeoForge-only (added on the neoforge
-        // project). Compat is @Pseudo/@Coerce, so these are compile-only parity deps + smoke-fetch sources.
-        if (hasProperty("trinkets.version")) {
-            add(modClientDep, "maven.modrinth:trinkets:${findProperty("trinkets.version")}")
-        }
-        if (hasProperty("accessories.version")) {
-            add(modClientDep, "maven.modrinth:accessories:${findProperty("accessories.version")}")
-        }
-        // Fabric-only. Declared here for the remapped common compile; the loader project compiles common's
-        // sources too, so multiloader-loader.gradle.kts declares the same coordinate unremapped. That pairing
-        // only works because FirstPersonCompat avoids every FPM member whose signature names a Minecraft type.
-        if (hasProperty("firstperson.version")) {
-            add(modClientDep, "maven.modrinth:first-person-model:${findProperty("firstperson.version")}")
         }
         // Phase 2 smoke: FCGT (fabric-client-gametest-api-v1) compile-time dep on common.
         if (sc.current.project.contains("fabric") && hasProperty("fabricapi.semver")) {
@@ -210,6 +161,30 @@ if (branch == "common") {
         add("testImplementation",
             files(rootProject.layout.projectDirectory.dir("paper/build/classes/java/main")))
     }
+
+    // Version-gated compat deps: each drops out on MC variants that don't pin the property. geckolib
+    // lands on the common (server) config as well as client; everything else is client-only.
+    addDependency(modDep, "geckolib.version", "maven.modrinth:geckolib")
+    addDependency(modClientDep, "geckolib.version", "maven.modrinth:geckolib")
+    addDependency(modDep, "elytratrims.version", "maven.modrinth:elytra-trims")
+    addDependency(modClientDep, "iris.version", "maven.modrinth:iris")
+    addDependency(modClientDep, "emf.version", "maven.modrinth:entity-model-features")
+    addDependency(modClientDep, "etf.version", "maven.modrinth:entitytexturefeatures")
+    addDependency(modClientDep, "mekanism.version", "maven.modrinth:mekanism")
+    addDependency(modClientDep, "waveycapes.version", "maven.modrinth:wavey-capes")
+    addDependency(modClientDep, "deeperdarker.version", "maven.modrinth:deeperdarker")
+    addDependency(modClientDep, "uranus.version", "maven.modrinth:uranus")
+    addDependency(modClientDep, "figura.version", "maven.modrinth:figura")
+    addDependency(modClientDep, "modmenu.version", "maven.modrinth:modmenu")
+    addDependency(modClientDep, "gender.version", "maven.modrinth:female-gender")
+    // Accessory providers (issue #246), Fabric side. Curios is NeoForge-only (added on the neoforge
+    // project). Compat is @Pseudo/@Coerce, so these are compile-only parity deps + smoke-fetch sources.
+    addDependency(modClientDep, "trinkets.version", "maven.modrinth:trinkets")
+    addDependency(modClientDep, "accessories.version", "maven.modrinth:accessories")
+    // Fabric-only. Declared here for the remapped common compile; the loader project compiles common's
+    // sources too, so multiloader-loader.gradle.kts declares the same coordinate unremapped. That pairing
+    // only works because FirstPersonCompat avoids every FPM member whose signature names a Minecraft type.
+    addDependency(modClientDep, "firstperson.version", "maven.modrinth:first-person-model")
 
     val javaVersionStr = findProperty("java.version")?.toString() ?: error("No Java version specified")
     val awVersionStr = findProperty("accesswidener.version")?.toString() ?: error("No access widener version specified")
@@ -344,10 +319,6 @@ if (branch == "fabric") {
         }) {
             add("modCompileOnly", "maven.modrinth:elytra-trims:iLC0LP3D")
         }
-        if (hasProperty("modmenu.version")) {
-            val modMenuDep = if (isDeobf) "compileOnly" else "modCompileOnly"
-            add(modMenuDep, "maven.modrinth:modmenu:${findProperty("modmenu.version")}")
-        }
         // FCGT module - multiloader-loader adds common's src as srcDirs, so the test class
         // compiles here too, AND it must be on the dev runtime classpath because the
         // upstream Modrinth fabric-api jar (the one in run/mods/) does not bundle the
@@ -367,6 +338,9 @@ if (branch == "fabric") {
         }
     }
 
+    // Mod Menu: loader-side compile dep on the base config, remapped or deobf per isDeobf.
+    addDependency(if (isDeobf) "compileOnly" else "modCompileOnly", "modmenu.version", "maven.modrinth:modmenu")
+
     // FCGT (fabric-client-gametest-api-v1) entrypoint registered only on Fabric variants
     // that pin `fabricapi.semver` (currently fabric-26.2). Other variants emit "[]" so the
     // JSON stays valid and fabric-loader simply ignores it.
@@ -377,6 +351,10 @@ if (branch == "fabric") {
         add("individual-config" to "de.zannagh.armorhider.smoke.IndividualConfigSmokeTest")
         add("keybind" to "de.zannagh.armorhider.smoke.KeybindSmokeTest")
         add("combat-detection" to "de.zannagh.armorhider.smoke.CombatDetectionSmokeTest")
+        // Public ArmorHiderRenderApi end-to-end smoke. Asserts on SlotModification + the translucent
+        // armor path rather than on a version-specific render architecture, so it is `//? if fcgt`
+        // only and registers on every fcgt variant.
+        add("render-api" to "de.zannagh.armorhider.smoke.RenderApiSmokeTest")
         // Paper end-to-end handshake smoke. Gated only on `fcgt` like the class itself: it no-ops
         // unless -Psmoke.paper.port is supplied, so registering it everywhere is harmless.
         add("paper-handshake" to "de.zannagh.armorhider.smoke.PaperHandshakeSmokeTest")
@@ -412,6 +390,12 @@ if (branch == "fabric") {
         // actually present at runtime. Registered everywhere fcgt is on - run it in isolation with
         // `-Psmoke.fcgt.only=emf-fa -Pcompat=emf,etf,fa`.
         add("emf-fa" to "de.zannagh.armorhider.smoke.EmfFreshAnimationsSmokeTest")
+        // Fabric API ArmorRenderer compat repro (issue #348). `//? if fcgt` only - it searches the item
+        // registry for whatever item has a custom ArmorRenderer registered and self-skips when the run
+        // has none, so it is safe to register on every fcgt variant. Nycto supplies one on the rows that
+        // pin nycto.version; run it in isolation with
+        // `-Psmoke.fcgt.only=fabric-armor-renderer -Pcompat=fabricapi,nycto`.
+        add("fabric-armor-renderer" to "de.zannagh.armorhider.smoke.FabricArmorRendererSmokeTest")
     }
 
     // `runClientGametest` runs EVERY registered entrypoint in ONE client launch, so an unrelated
@@ -461,7 +445,7 @@ if (branch == "fabric") {
         inputs.properties(expandProps)
         filesMatching(listOf("fabric.mod.json", "**/*.mixins.json"), ExpandPropertiesAction(expandProps))
         val awNamespace = if (isDeobf) "official" else "named"
-        from(rootProject.file("common/accesswideners"), Action<org.gradle.api.file.CopySpec> {
+        from(rootProject.file("common/accesswideners"), Action {
             include("armorhider.${expandProps["accesswidener"]}.accesswideners")
             filter { it.replace("classTweaker v1 named", "classTweaker v1 $awNamespace") }
         })
@@ -518,8 +502,8 @@ if (branch == "fabric") {
                 // GLFW forces its own Regular activation policy). 26.3 uses SDL, which reads these hint
                 // env vars before creating the window; "0" tells it not to activate/raise-to-front on
                 // show. Harmless off macOS / when the backend isn't in use.
-                environmentVariable("SDL_WINDOW_ACTIVATE_WHEN_SHOWN", "0")
-                environmentVariable("SDL_WINDOW_ACTIVATE_WHEN_RAISED", "0")
+                environmentVars.put("SDL_WINDOW_ACTIVATE_WHEN_SHOWN", "0")
+                environmentVars.put("SDL_WINDOW_ACTIVATE_WHEN_RAISED", "0")
 
                 // ── E2E line coverage (opt-in: -Psmoke.coverage) ─────────────────────────────
                 // The FCGT client is a real, mod-loaded Minecraft JVM, so it exercises code the Tier-1
@@ -554,14 +538,13 @@ if (branch == "fabric") {
             val jacocoCli = configurations.create("ahJacocoCli") {
                 isCanBeResolved = true
                 isCanBeConsumed = false
-                isVisible = false
             }
             dependencies.add("ahJacocoCli", "org.jacoco:org.jacoco.cli:$jacocoVersion:nodeps")
             dependencies.add("ahJacocoCli", "org.jacoco:org.jacoco.core:$jacocoVersion")
             dependencies.add("ahJacocoCli", "org.jacoco:org.jacoco.report:$jacocoVersion")
 
-            val ssc = project.extensions.getByType(org.gradle.api.tasks.SourceSetContainer::class.java)
-            val classOutputs: List<java.io.File> = listOf("main", "client")
+            val ssc = project.extensions.getByType(SourceSetContainer::class.java)
+            val classOutputs: List<File> = listOf("main", "client")
                 .mapNotNull { ssc.findByName(it) }
                 .flatMap { it.output.classesDirs.files.toList() }
             val backupRoot = project.rootProject.file("build/jacoco/classes-orig")
@@ -585,7 +568,7 @@ if (branch == "fabric") {
                         if (!dir.isDirectory) {
                             return@forEachIndexed
                         }
-                        val pristine = java.io.File(pristineRoot, "$idx-${dir.name}")
+                        val pristine = File(pristineRoot, "$idx-${dir.name}")
                         if (pristine.isDirectory) {
                             // A previous row already instrumented this dir - restore clean bytes first.
                             dir.deleteRecursively()
@@ -594,14 +577,14 @@ if (branch == "fabric") {
                             dir.copyRecursively(pristine, overwrite = true)
                         }
                         // Mirror the clean bytes for the report.
-                        pristine.copyRecursively(java.io.File(backupRoot, "$idx-${dir.name}"), overwrite = true)
+                        pristine.copyRecursively(File(backupRoot, "$idx-${dir.name}"), overwrite = true)
 
-                        val instrDir = java.io.File(dir.parentFile, "${dir.name}-ahInstr")
+                        val instrDir = File(dir.parentFile, "${dir.name}-ahInstr")
                         instrDir.deleteRecursively()
                         // Run the JaCoCo CLI out-of-process (Gradle 9 removed Project.javaexec, and the CLI
                         // needs no Gradle wiring). java from the build JVM; the CLI runs on any recent JDK.
-                        val javaBin = java.io.File(System.getProperty("java.home"), "bin/java").absolutePath
-                        val cliClasspath = cliCfg.files.joinToString(java.io.File.pathSeparator) { it.absolutePath }
+                        val javaBin = File(System.getProperty("java.home"), "bin/java").absolutePath
+                        val cliClasspath = cliCfg.files.joinToString(File.pathSeparator) { it.absolutePath }
                         val process = ProcessBuilder(
                             javaBin, "-cp", cliClasspath, "org.jacoco.cli.internal.Main",
                             "instrument", dir.absolutePath, "--dest", instrDir.absolutePath
@@ -609,7 +592,7 @@ if (branch == "fabric") {
                         val cliOut = process.inputStream.bufferedReader().readText()
                         val code = process.waitFor()
                         if (code != 0) {
-                            throw org.gradle.api.GradleException(
+                            throw GradleException(
                                 "JaCoCo offline instrumentation failed (exit $code):\n$cliOut")
                         }
                         // Copy probed classes back over the originals, EXCEPT the mixin package (keep raw
@@ -618,7 +601,7 @@ if (branch == "fabric") {
                             // Normalize separators once so the mixin-package exclusion holds on Windows too.
                             val rel = src.relativeTo(instrDir).path.replace('\\', '/')
                             if (!rel.contains("/mixin/") && !rel.startsWith("mixin/")) {
-                                val dest = java.io.File(dir, rel)
+                                val dest = File(dir, rel)
                                 dest.parentFile?.mkdirs()
                                 src.copyTo(dest, overwrite = true)
                             }
@@ -636,7 +619,6 @@ if (branch == "fabric") {
         val fcgtRuntimeMod = configurations.create("fcgtRuntimeMod") {
             isCanBeResolved = true
             isCanBeConsumed = false
-            isVisible = false
         }
         val fabricApiExt = project.extensions.getByType(net.fabricmc.loom.api.fabricapi.FabricApiExtension::class.java)
         val fabricApiSemver = findProperty("fabricapi.semver")!!.toString()

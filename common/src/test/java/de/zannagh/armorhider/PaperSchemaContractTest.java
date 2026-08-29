@@ -147,7 +147,9 @@ class PaperSchemaContractTest {
                 AhPackets.SERVER_WIDE_SETTINGS,
                 AhPackets.PERMISSION,
                 AhPackets.COMBAT_EVENT,
-                AhPackets.COMBAT_NOTIFICATION }) {
+                AhPackets.COMBAT_NOTIFICATION,
+                AhPackets.SHARED_RULES,
+                AhPackets.SHARED_RULES_NOTIFICATION }) {
             fromMod.add(type.channelKey());
         }
 
@@ -157,6 +159,35 @@ class PaperSchemaContractTest {
                         + " paper/src/main/java/de/zannagh/armorhider/paper/net/"
                         + "ArmorHiderPaperPackets.java - the relay can only forward traffic on a"
                         + " channel it registers.");
+    }
+
+    /**
+     * The envelope keys the Paper plugin writes onto a shared-rule notification. Everything else -
+     * the {@code overrides} array itself - is relayed opaquely, so only these can drift.
+     */
+    @Test
+    @DisplayName("the plugin writes the shared-rule envelope keys the mod deserialises")
+    void sharedRuleEnvelopeKeysMatch() {
+        Set<String> notificationFields = serializedNames(
+                de.zannagh.armorhider.net.packets.SharedRuleNotificationPacket.class);
+
+        for (String key : java.util.List.of(
+                de.zannagh.armorhider.paper.net.SharedRuleRelayState.PLAYER_NAME,
+                de.zannagh.armorhider.paper.net.SharedRuleRelayState.PLAYER_ID,
+                de.zannagh.armorhider.paper.net.SharedRuleRelayState.OVERRIDES,
+                de.zannagh.armorhider.paper.net.SharedRuleRelayState.TIMESTAMP)) {
+            assertTrue(notificationFields.contains(key),
+                    () -> "The Paper plugin writes \"" + key + "\" onto every shared-rule"
+                            + " notification, but SharedRuleNotificationPacket no longer deserialises"
+                            + " it. Clients would silently drop the field.");
+        }
+
+        assertTrue(serializedNames(de.zannagh.armorhider.net.packets.SharedRuleStatePacket.class)
+                        .contains(de.zannagh.armorhider.paper.net.SharedRuleRelayState.OVERRIDES),
+                "The Paper plugin reads the inbound overrides array out of \""
+                        + de.zannagh.armorhider.paper.net.SharedRuleRelayState.OVERRIDES
+                        + "\", which SharedRuleStatePacket no longer serialises - it would relay an"
+                        + " empty state for every sender.");
     }
 
     /**

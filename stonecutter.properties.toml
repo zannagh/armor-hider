@@ -193,6 +193,7 @@ accessories.version = "MP4v9WZU" # 1.3.8-beta+1.21.8 (Trinkets has no 1.21.8 bui
 fabricapi.version = "g58ofrov"
 fabricapi.semver = "0.136.1+1.21.8"
 eunomia.cf.file = "8714578" # [Fabric] mc-1.21.5-8 - 0.3.4
+nycto.version = "j6k1kLcP" # 1.21.8-b4 fabric (Fabric API ArmorRenderer repro, issue #348)
 
 ["fabric-1.21.10"]
 "fabric.minecraft_version" = "1.21.10"
@@ -209,6 +210,7 @@ firstperson.version = "8kR5GIsh" # 2.7.2
 fabricapi.version = "tV4Gc0Zo"
 fabricapi.semver = "0.138.4+1.21.10"
 eunomia.cf.file = "8714580" # [Fabric] mc-1.21.9-10 - 0.3.4
+nycto.version = "bk4exkd6" # 1.21.10-b8 fabric (Fabric API ArmorRenderer repro, issue #348)
 
 ["fabric-1.21.11"]
 "fabric.minecraft_version" = "1.21.11"
@@ -227,6 +229,7 @@ firstperson.version = "EqDE0uC5" # 2.7.2
 fabricapi.version = "5zJNhXV2"
 fabricapi.semver = "0.141.4+1.21.11"
 eunomia.cf.file = "8714573" # [Fabric] mc-1.21.11 - 0.3.4
+nycto.version = "ejwBt1f7" # 1.21.11-b7 fabric (Fabric API ArmorRenderer repro, issue #348)
 
 ["fabric-26.1.2"]
 "fabric.minecraft_version" = "26.1.2"
@@ -245,6 +248,7 @@ fabricapi.version = "WC1KT7Yg"
 fabricapi.semver = "0.153.0+26.1.2"
 eunomia.cf.file = "8714584" # [Fabric] mc-26.1.0-2 - 0.3.4
 immersivearmors.version = "De0vtARW" # 1.8.1+26.1.2 fabric
+nycto.version = "Cr12PZBS" # 26.1-b15 fabric (Fabric API ArmorRenderer repro, issue #348)
 
 ["fabric-26.2"]
 "fabric.minecraft_version" = "26.2"
@@ -269,6 +273,7 @@ fabricapi.semver = "0.153.0+26.2"
 eunomia.cf.file = "8714565" # [Fabric] 26.2 - 0.3.4
 immersivearmors.version = "8gIhM6R2" # 1.8.1+26.2 fabric
 armoredelytra.version = "IbMR9Ie6" # 1.14.1+26.2 fabric (dorkix); loaded on the compat=all FCGT row so the ArmoredElytraGenderSmokeTest exercises the mod-present branch
+nycto.version = "Kp0YBDus" # 26.2-b5 fabric (MoriyaShiine); the exact build reported in issue #348 - registers its armor through Fabric API ArmorRenderer
 
 ["fabric-26.3-snapshot-9"]
 "fabric.minecraft_version" = "26.3-alpha.9"

@@ -3,7 +3,9 @@ package de.zannagh.armorhider.client.net;
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.api.ArmorHiderApi;
 import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.client.api.impl.AhSharedRuleStore;
 import de.zannagh.armorhider.client.utils.McClientUtils;
+import de.zannagh.armorhider.net.packets.SharedRuleNotificationPacket;
 import net.minecraft.network.chat.Component;
 import de.zannagh.armorhider.combat.DefaultCombatEvent;
 import de.zannagh.armorhider.log.DebugLogger;
@@ -35,6 +37,8 @@ public final class ClientCommunicationManager {
                 (payload, ctx) -> handlePermissionPacketReceived(payload));
         CommunicationManager.onClientReceive(AhPackets.COMBAT_NOTIFICATION,
                 (payload, ctx) -> handleCombatLogNotificationReceived(payload));
+        CommunicationManager.onClientReceive(AhPackets.SHARED_RULES_NOTIFICATION,
+                (payload, ctx) -> handleSharedRuleNotificationReceived(payload));
 
         // Install the relay mirror: on the HTTP/WebSocket fallback (server does not run the mod) eunomia's
         // relay replicates every player's config into this mirror, which resolveConfig reads via
@@ -51,6 +55,10 @@ public final class ClientCommunicationManager {
             if (client.player == null) {
                 return;
             }
+            // Shared render state belongs to one connection. Dropping what the previous server sent and
+            // forgetting what we announced there makes the first tick on the new server re-announce.
+            AhSharedRuleStore.clear();
+            SharedRuleBroadcaster.reset();
             var playerName = PlayerNameUtil.getPlayerName(client.player);
             if (playerName == null || playerName.isBlank()) {
                 //? if >= 1.21.9
@@ -129,8 +137,32 @@ public final class ClientCommunicationManager {
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.clearSessionDisableOverride();
             ArmorHiderClient.permissionLevel = 0;
             // eunomia's own disconnect wiring (onClientDisconnect) resets its capability probe and send
-            // gate, so there is nothing connection-scoped left for Armor Hider to clear here.
+            // gate. Shared render state is connection-scoped, so drop what the previous server relayed and
+            // forget what we announced there.
+            AhSharedRuleStore.clear();
+            SharedRuleBroadcaster.reset();
         });
+    }
+
+    /**
+     * Applies another player's shared render-rule outcome. The name and id are the server's, never the
+     * sender's claim, so this cannot be used to hide somebody else's armor.
+     * <p>
+     * An empty override list clears that player's entry - it is how a client says "nothing of mine is
+     * rule-hidden any more".
+     */
+    private static void handleSharedRuleNotificationReceived(SharedRuleNotificationPacket ctx) {
+        if (ctx == null) {
+            return;
+        }
+        if (!AhSharedRuleStore.put(ctx.playerName, ctx.playerId, ctx.overrides)) {
+            return;
+        }
+        DebugLogger.log("Shared render rules updated for {}: {}", ctx.playerName, ctx.overrides);
+        // PlayerModificationInfo is cached per player and only rebuilt on equip or config change, so a
+        // rule outcome arriving over the network has to invalidate it explicitly or it would not show
+        // until the player next changed armor.
+        ArmorHiderClient.CLIENT_CONFIG_MANAGER.notifyConfigListeners(ctx.playerName);
     }
 
     private static void handleServerConfigReceived(ServerConfiguration ctx) {
