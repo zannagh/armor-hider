@@ -298,6 +298,7 @@ eunomia.cf.file = "8714567" # [Fabric] 26.3-snap.9 - 0.3.4
 
 ["neoforge-1.21.1"]
 "neoforge.version" = "21.1.244"
+eunomia.cf.file = "8714586" # [NeoForge] mc-1.21.0-1 - 0.3.4
 "neoforge.minecraft_version_range" = "[1.21,1.21.1]"
 geckolib.version = "tPkJmim6" # 4.9.2 (was UvKZBX05 / 4.5.8)
 deeperdarker.version = "TuD0Zvi3" # 1.21.1 neoforge (D&D 1.4.1 → WardenHelmetRenderer)
@@ -320,6 +321,7 @@ curios.version = "yohfFbgD" # 9.5.1+1.21.1 neoforge
 
 ["neoforge-1.21.2"]
 "neoforge.version" = "21.2.1-beta"
+eunomia.cf.file = "8714594" # [NeoForge] mc-1.21.2 - 0.3.4
 "neoforge.minecraft_version_range" = "[1.21.2]"
 geckolib.version = "UvKZBX05"
 elytratrims.version = "7mqA6CJO"
@@ -337,6 +339,7 @@ gender_legacy_api = "true"
 
 ["neoforge-1.21.3"]
 "neoforge.version" = "21.3.97"
+eunomia.cf.file = "8714595" # [NeoForge] mc-1.21.3 - 0.3.4
 "neoforge.minecraft_version_range" = "[1.21.3]"
 geckolib.version = "UvKZBX05"
 elytratrims.version = "7mqA6CJO"
@@ -354,6 +357,7 @@ gender_legacy_api = "true"
 
 ["neoforge-1.21.4"]
 "neoforge.version" = "21.4.157"
+eunomia.cf.file = "8714596" # [NeoForge] mc-1.21.4 - 0.3.4
 "neoforge.minecraft_version_range" = "[1.21.4]"
 geckolib.version = "eQtABRub"
 curios.version = "jtt92CXj" # 10.0.1+1.21.4 neoforge
@@ -364,6 +368,7 @@ waveycapes.version = "vjiRyyU7"
 
 ["neoforge-1.21.8"]
 "neoforge.version" = "21.8.54"
+eunomia.cf.file = "8714598" # [NeoForge] mc-1.21.5-8 - 0.3.4
 "neoforge.minecraft_version_range" = "[1.21.5,1.21.8]"
 geckolib.version = "KPEgpbCC"
 curios.version = "UW476H0a" # 12.0.0+1.21.8 neoforge
@@ -375,6 +380,7 @@ waveycapes.version = "C8nMaFFH"
 
 ["neoforge-1.21.10"]
 "neoforge.version" = "21.10.64"
+eunomia.cf.file = "8714600" # [NeoForge] mc-1.21.9-10 - 0.3.4
 "neoforge.minecraft_version_range" = "[1.21.9,1.21.10]"
 geckolib.version = "xji1VqGU"
 elytratrims.version = "GxM8lsm4"
@@ -385,6 +391,7 @@ waveycapes.version = "U1F8UD8y"
 
 ["neoforge-1.21.11"]
 "neoforge.version" = "21.11.44"
+eunomia.cf.file = "8714588" # [NeoForge] mc-1.21.11 - 0.3.4
 "neoforge.minecraft_version_range" = "[1.21.11]"
 geckolib.version = "FpONDAt3"
 elytratrims.version = "u2w6bgX3"
@@ -395,6 +402,7 @@ waveycapes.version = "aurAWvjX"
 
 ["neoforge-26.1.2"]
 "neoforge.version" = "26.1.2.87"
+eunomia.cf.file = "8714603" # [NeoForge] mc-26.1.0-2 - 0.3.4
 "neoforge.minecraft_version_range" = "[26.1,26.1.2]"
 geckolib.version = "ScUAwGRA"
 elytratrims.version = "wgUBgHvL"
@@ -405,6 +413,7 @@ immersivearmors.version = "1zKCa66X" # 1.8.1+26.1.2 neoforge
 
 ["neoforge-26.2"]
 "neoforge.version" = "26.2.0.56-beta"
+eunomia.cf.file = "8714585" # [NeoForge] 26.2 - 0.3.4
 "neoforge.minecraft_version_range" = "[26.2]"
 geckolib.version = "Y5jWG02T"
 elytratrims.version = "kHpKqNuJ"

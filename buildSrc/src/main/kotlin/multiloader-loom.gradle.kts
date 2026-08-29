@@ -732,6 +732,14 @@ if (branch == "fabric") {
             // Same unconditional guarantee for the eunomia runtime dependency (see above).
             dependsOn(copyEunomiaToMods)
         }
+        // A plain `runClient` boot (the smoke BOOT phase, and any dev client launch) also needs the
+        // eunomia mod in run/mods - armor-hider hard-requires it, so without this the client fails mod
+        // resolution and never boots. Only runClientGametest was wired before, so the BOOT smoke rows
+        // (and dev runClient) had no eunomia. The FCGT jar is NOT needed for a plain boot, so only the
+        // eunomia copy is added here.
+        tasks.named("runClient") {
+            dependsOn(copyEunomiaToMods)
+        }
         if (project.hasProperty("smoke")) {
             // Compat-mod fetching stays smoke-only: it wipes run/mods and pulls the full
             // third-party stack, which is the compat matrix's concern, not FCGT's.
