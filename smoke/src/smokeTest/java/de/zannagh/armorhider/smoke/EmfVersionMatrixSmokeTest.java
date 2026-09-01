@@ -3,6 +3,7 @@ package de.zannagh.armorhider.smoke;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
+import org.junit.jupiter.api.parallel.ResourceLock;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
@@ -28,6 +29,12 @@ import java.util.List;
 // version bump, so this stays OUT of the default suite. Enable it with -Dsmoke.emf.matrix=true
 // (the nightly full-matrix CI job sets it; the PR gate does not).
 @EnabledIfSystemProperty(named = "smoke.emf.matrix", matches = "true")
+// Both parameterized launches fork runClientGametest against the SAME variant run dir and each wipes
+// run/mods on start; under -Dsmoke.parallel they would race. This lock serializes them (and composes
+// with any other test that takes the same run-dir key). Cross-class serialization against
+// SmokeMatrixTest's fabric-26.2 rows is separate - that class guards its own rows with an in-process
+// lock - but the CI nightly step runs this class in its own filtered, non-parallel gradle invocation.
+@ResourceLock("fcgt-run-" + SmokeMatrixTest.FCGT_PER_ID_VARIANT)
 @DisplayName("EMF version matrix (emf-fa, " + SmokeMatrixTest.FCGT_PER_ID_VARIANT + ")")
 class EmfVersionMatrixSmokeTest {
 

@@ -22,6 +22,10 @@ public final class EmfForcedVanillaResolver {
 
     private static volatile boolean resolved = false;
 
+    // Latched off after a resolved accessor throws at invoke time, so a persistent failure costs one
+    // exception rather than one per render call (the caller is on the model-render hot path).
+    private static volatile boolean broken = false;
+
     // EMF 3.3.x: EMFState.state() -> EMFEntityRenderState, then EMFState.isEntityForcedToVanillaModel(state).
     private static Method stateAccessor;
     private static Method forcedWithState;
@@ -37,6 +41,9 @@ public final class EmfForcedVanillaResolver {
         if (!resolved) {
             resolve();
         }
+        if (broken) {
+            return false;
+        }
         try {
             if (stateAccessor != null && forcedWithState != null) {
                 Object state = stateAccessor.invoke(null);
@@ -49,7 +56,9 @@ public final class EmfForcedVanillaResolver {
                 return (Boolean) forcedNoArg.invoke(null);
             }
         } catch (ReflectiveOperationException | LinkageError | RuntimeException e) {
-            // Leave the accessors as resolved → treat as "not forced" so EMF renders its own model.
+            // A resolved accessor that throws at invoke time would otherwise pay this exception cost
+            // every render call - latch it off so later frames short-circuit to a cheap "not forced".
+            broken = true;
         }
         return false;
     }

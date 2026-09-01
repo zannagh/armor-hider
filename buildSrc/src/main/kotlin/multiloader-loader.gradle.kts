@@ -17,6 +17,11 @@ val compatKeys = listOf(
     // reproduction case for the fabric-rendering-v1 armor compat (issue #348). Fabric-only, and only
     // fetched on the variants that pin nycto.version.
     "nycto",
+    // StrawberryLib - nycto's required lib dep. nycto declares it version-less, so the fetch would
+    // otherwise auto-resolve the latest (26.2-r3), which dropped the EatFoodEvent API nycto still calls
+    // -> NoClassDefFoundError at boot. Pinned explicitly (per variant) to the last build that has it so
+    // the transitive resolution is overridden by our pin.
+    "strawberrylib",
     // Fresh Animations (issue #217). Not a mod - a resource pack fetched into run/resourcepacks/
     // by fetchFaResourcePack, not run/mods/. Requires emf + etf to actually animate.
     "fa",
