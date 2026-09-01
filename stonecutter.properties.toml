@@ -244,6 +244,8 @@ elytratrims.version = "tKGLQKLD"
 geckolib.version = "GdrAq4td"
 iris.version = "3uIIps8q"
 emf.version = "xQeW3qQB"
+# emf 3.3 alt for the smoke matrix (EmfVersionMatrixSmokeTest): GYu73iPJ = 3.3-fabric-26.2,
+# paired with etf 7.2 (URB7DuXS) since EMF 3.3 hard-requires ETF 7.2+.
 etf.version = "HLCBKYFD"
 fa.version = "RGIzA5em" # Fresh Animations 1.10.5 (resource pack, issue #217 repro)
 faplayer.version = "Wj7NeGjP" # FA Player Extension 1.1 (issue #217 repro)
@@ -260,6 +262,7 @@ fabricapi.semver = "0.153.0+26.2"
 immersivearmors.version = "8gIhM6R2" # 1.8.1+26.2 fabric
 armoredelytra.version = "IbMR9Ie6" # 1.14.1+26.2 fabric (dorkix); loaded on the compat=all FCGT row so the ArmoredElytraGenderSmokeTest exercises the mod-present branch
 nycto.version = "Kp0YBDus" # 26.2-b5 fabric (MoriyaShiine); the exact build reported in issue #348 - registers its armor through Fabric API ArmorRenderer
+strawberrylib.version = "oMHDHxdk" # 26.2-r2 fabric (MoriyaShiine); nycto's required lib. Pinned because 26.2-r3 removed EatFoodEvent, which nycto 26.2-b5 still calls (else NoClassDefFoundError at boot)
 
 ["fabric-26.3-snapshot-9"]
 "fabric.minecraft_version" = "26.3-alpha.9"
