@@ -244,6 +244,8 @@ elytratrims.version = "tKGLQKLD"
 geckolib.version = "GdrAq4td"
 iris.version = "3uIIps8q"
 emf.version = "xQeW3qQB"
+# emf 3.3 alt for the smoke matrix (EmfVersionMatrixSmokeTest): GYu73iPJ = 3.3-fabric-26.2,
+# paired with etf 7.2 (URB7DuXS) since EMF 3.3 hard-requires ETF 7.2+.
 etf.version = "HLCBKYFD"
 fa.version = "RGIzA5em" # Fresh Animations 1.10.5 (resource pack, issue #217 repro)
 faplayer.version = "Wj7NeGjP" # FA Player Extension 1.1 (issue #217 repro)

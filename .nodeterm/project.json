@@ -1,0 +1,57 @@
+{
+  "version": 1,
+  "rev": 56,
+  "savedAt": "2026-08-24T05:34:35.122Z",
+  "id": "project-xnpd7u",
+  "name": "Armor Hider",
+  "color": "#0a84ff",
+  "viewport": {
+    "x": -119.18358980610333,
+    "y": 460.88699001480694,
+    "zoom": 1
+  },
+  "nodes": [
+    {
+      "id": "term-mt6rlqlg-f47a248d",
+      "kind": "terminal",
+      "position": {
+        "x": 199.18358980610333,
+        "y": 87.11300998519306
+      },
+      "size": {
+        "width": 640,
+        "height": 440
+      },
+      "title": "Fix CI issues and address CoPilot comments on render API",
+      "titleAuto": true,
+      "color": "#d97757",
+      "group": null,
+      "tags": [],
+      "collapsed": false,
+      "cwd": ".",
+      "agentId": "claude",
+      "agentSessionId": "7a461260-30c4-4467-bd6b-74107409e0a1"
+    },
+    {
+      "id": "term-mt6rls63-8774bb8a",
+      "kind": "terminal",
+      "position": {
+        "x": 867.1835898061033,
+        "y": -380.88699001480694
+      },
+      "size": {
+        "width": 640,
+        "height": 440
+      },
+      "title": "Terminal 2",
+      "titleAuto": true,
+      "color": "#32d74b",
+      "group": null,
+      "tags": [],
+      "collapsed": false,
+      "cwd": "."
+    }
+  ],
+  "bridges": [],
+  "ropes": []
+}

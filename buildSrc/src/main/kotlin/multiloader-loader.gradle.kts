@@ -27,7 +27,18 @@ val compatKeys = listOf(
 )
 val availableHashes = compatKeys.mapNotNull { key ->
     findProperty("$key.version")?.toString()?.let { hash -> key to hash }
-}.toMap()
+}.toMap().toMutableMap()
+// Smoke matrix overrides (EmfVersionMatrixSmokeTest): -Psmoke.<key>.version=<modrinth-id> swaps the
+// jar the FCGT run fetches for that compat key WITHOUT touching the pinned <key>.version in
+// stonecutter.properties.toml. Used to test an EMF bump against the otherwise-pinned stack - and since
+// EMF 3.3 hard-requires ETF 7.2+, the matrix overrides emf AND etf together. Flows straight into
+// modHashes -> fetchFcgtCompatJars; run/mods is wiped each launch, so sequential launches with
+// different ids stay hermetic in one run dir.
+compatKeys.forEach { key ->
+    (findProperty("smoke.$key.version")?.toString())?.takeIf { it.isNotBlank() }?.let { override ->
+        availableHashes[key] = override
+    }
+}
 val compatSel = (findProperty("compat")?.toString() ?: "all").trim()
 val selectedKeys: Set<String> = when (compatSel.lowercase()) {
     "all" -> availableHashes.keys
