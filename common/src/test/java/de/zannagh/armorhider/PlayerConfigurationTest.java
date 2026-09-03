@@ -5,7 +5,7 @@ import de.zannagh.armorhider.configuration.ConfigurationItemFactoryRegistry;
 import de.zannagh.armorhider.configuration.EmfHiddenModelMode;
 import de.zannagh.armorhider.configuration.ExclusionItemConfiguration;
 import de.zannagh.armorhider.configuration.items.ElytraOpacity;
-import de.zannagh.armorhider.net.CompressedJsonCodec;
+import de.zannagh.armorhider.net.NetworkLimits;
 import de.zannagh.armorhider.configuration.items.ArmorOpacity;
 import de.zannagh.armorhider.net.packets.PlayerConfig;
 import org.junit.jupiter.api.BeforeAll;
@@ -600,7 +600,7 @@ class PlayerConfigurationTest {
                 "the client-only exclusion map must not be broadcast");
 
         int encodedSize = network.toJson().getBytes(java.nio.charset.StandardCharsets.UTF_8).length;
-        assertTrue(encodedSize < CompressedJsonCodec.MAX_SERVERBOUND_PAYLOAD_BYTES,
+        assertTrue(encodedSize < NetworkLimits.MAX_SERVERBOUND_PAYLOAD_BYTES,
                 "even uncompressed, the network config must sit well under the 32767-byte serverbound limit, got "
                         + encodedSize);
     }

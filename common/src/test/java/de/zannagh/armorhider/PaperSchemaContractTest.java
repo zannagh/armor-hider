@@ -2,9 +2,12 @@ package de.zannagh.armorhider;
 
 import com.google.gson.JsonObject;
 import com.google.gson.annotations.SerializedName;
+import de.zannagh.armorhider.net.AhPackets;
 import de.zannagh.armorhider.net.packets.ServerWideSettings;
 import de.zannagh.armorhider.paper.config.ServerConfigurationState;
 import de.zannagh.armorhider.paper.config.ServerWideSettingsDefaults;
+import de.zannagh.armorhider.paper.net.ArmorHiderPaperPackets;
+import de.zannagh.eunomia.networking.packets.PacketType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -119,47 +122,47 @@ class PaperSchemaContractTest {
                         + " return null on the client.");
     }
 
-    //? if >= 1.20.5 {
     /**
-     * Channel names, for the stonecutter variant under test. The settings family switches namespace
-     * at 1.21.11 while the permission and combat-log families do not, so the plugin registers the
-     * union of both - but each real identifier must still appear in the matching alias list.
+     * The Paper relay and the mod must agree, exactly, on the wire identity of every packet.
+     *
+     * <p>Channel identity now lives in {@link AhPackets} as eunomia {@code PacketType}s (the mod side)
+     * and is re-declared for the Bukkit relay in {@link ArmorHiderPaperPackets} - the plugin cannot
+     * depend on {@code AhPackets} itself, since its payload classes import {@code Identifier} /
+     * {@code StreamCodec} that do not exist on a Bukkit server. This asserts the two channel-key sets
+     * are identical: add, rename or re-namespace a packet on one side and this fails immediately
+     * rather than the relay silently dropping traffic on a channel the client never hears.</p>
+     *
+     * <p>Only armor-hider's own channels are compared. eunomia's built-in capability handshake
+     * ({@code eunomia:hello}/{@code eunomia:hello_ack}) is registered separately on both sides via
+     * {@code enableServerHandshake()} / {@code enableClientHandshake()}, so it is deliberately not
+     * part of {@code AhPackets} or {@code ArmorHiderPaperPackets}.</p>
      */
     @Test
-    @DisplayName("every packet identifier is a channel the plugin registers")
-    void channelsCoverEveryPacketIdentifier() {
-        assertChannel(de.zannagh.armorhider.net.packets.PlayerConfig.PACKET_IDENTIFIER.toString(),
-                de.zannagh.armorhider.paper.net.Channels.PLAYER_CONFIG_C2S, "PlayerConfig");
-        assertChannel(ServerWideSettings.PACKET_IDENTIFIER.toString(),
-                de.zannagh.armorhider.paper.net.Channels.SERVER_WIDE_SETTINGS_C2S,
-                "ServerWideSettings");
-        assertChannel(de.zannagh.armorhider.server.ServerConfiguration.PACKET_IDENTIFIER.toString(),
-                de.zannagh.armorhider.paper.net.Channels.SERVER_CONFIGURATION_S2C,
-                "ServerConfiguration");
-        assertChannel(de.zannagh.armorhider.net.packets.PermissionPacket.PACKET_IDENTIFIER.toString(),
-                de.zannagh.armorhider.paper.net.Channels.PERMISSIONS_S2C, "PermissionPacket");
-        assertChannel(
-                de.zannagh.armorhider.net.packets.CombatLogEventPacket.PACKET_IDENTIFIER.toString(),
-                de.zannagh.armorhider.paper.net.Channels.COMBAT_LOG_C2S, "CombatLogEventPacket");
-        assertChannel(
-                de.zannagh.armorhider.net.packets.CombatLogNotificationPacket.PACKET_IDENTIFIER
-                        .toString(),
-                de.zannagh.armorhider.paper.net.Channels.COMBAT_LOG_S2C,
-                "CombatLogNotificationPacket");
-        assertChannel(de.zannagh.armorhider.net.packets.HandshakePacket.PACKET_IDENTIFIER.toString(),
-                de.zannagh.armorhider.paper.net.Channels.HANDSHAKE_S2C, "HandshakePacket");
-        assertChannel(
-                de.zannagh.armorhider.net.packets.SharedRuleStatePacket.PACKET_IDENTIFIER.toString(),
-                de.zannagh.armorhider.paper.net.Channels.SHARED_RULES_C2S, "SharedRuleStatePacket");
-        assertChannel(
-                de.zannagh.armorhider.net.packets.SharedRuleNotificationPacket.PACKET_IDENTIFIER
-                        .toString(),
-                de.zannagh.armorhider.paper.net.Channels.SHARED_RULES_S2C,
-                "SharedRuleNotificationPacket");
+    @DisplayName("the plugin's channel keys exactly equal the mod's AhPackets channels")
+    void channelKeysMatchTheMod() {
+        Set<String> fromMod = new LinkedHashSet<>();
+        for (PacketType<?> type : new PacketType<?>[] {
+                AhPackets.PLAYER_CONFIG,
+                AhPackets.SERVER_CONFIG,
+                AhPackets.SERVER_WIDE_SETTINGS,
+                AhPackets.PERMISSION,
+                AhPackets.COMBAT_EVENT,
+                AhPackets.COMBAT_NOTIFICATION,
+                AhPackets.SHARED_RULES,
+                AhPackets.SHARED_RULES_NOTIFICATION }) {
+            fromMod.add(type.channelKey());
+        }
+
+        assertEquals(fromMod, ArmorHiderPaperPackets.channelKeys(),
+                "The Paper plugin's ArmorHiderPaperPackets channel keys no longer match the mod's"
+                        + " AhPackets. If you added, renamed or re-namespaced a packet, mirror it in"
+                        + " paper/src/main/java/de/zannagh/armorhider/paper/net/"
+                        + "ArmorHiderPaperPackets.java - the relay can only forward traffic on a"
+                        + " channel it registers.");
     }
 
     /**
-     * The three envelope keys the plugin writes onto a shared-rule notification. Everything else -
+     * The envelope keys the Paper plugin writes onto a shared-rule notification. Everything else -
      * the {@code overrides} array itself - is relayed opaquely, so only these can drift.
      */
     @Test
@@ -186,16 +189,6 @@ class PaperSchemaContractTest {
                         + "\", which SharedRuleStatePacket no longer serialises - it would relay an"
                         + " empty state for every sender.");
     }
-
-    private static void assertChannel(String identifier, java.util.List<String> aliases,
-                                      String payload) {
-        assertTrue(aliases.contains(identifier),
-                () -> payload + " travels on \"" + identifier + "\" on this game version, but the"
-                        + " Paper plugin only registers " + aliases + ". Bukkit drops any plugin"
-                        + " message on an unregistered channel silently, so this would look like the"
-                        + " mod connecting and doing nothing. Update Channels.java.");
-    }
-    //?}
 
     /**
      * The names Gson will actually emit for a config class, in declaration order.

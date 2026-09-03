@@ -5,12 +5,12 @@ import com.google.gson.JsonObject;
 import de.zannagh.armorhider.paper.config.ServerConfigStorage;
 import de.zannagh.armorhider.paper.config.ServerConfigurationState;
 import de.zannagh.armorhider.paper.config.ServerWideSettingsDefaults;
-import de.zannagh.armorhider.paper.net.Channels;
-import de.zannagh.armorhider.paper.net.PacketSender;
+import de.zannagh.armorhider.paper.net.ArmorHiderPaperPackets;
 import de.zannagh.armorhider.paper.net.SharedRuleRelayState;
 import de.zannagh.armorhider.paper.perm.PermissionResolver;
 import de.zannagh.armorhider.paper.util.DisplayNames;
 import de.zannagh.armorhider.paper.util.Schedulers;
+import de.zannagh.eunomia.networking.comms.CommunicationManager;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -22,15 +22,19 @@ import java.util.logging.Logger;
  * The server half of the protocol, mirroring the mod's {@code CommsManager}.
  *
  * <p>The server understands almost nothing of the schema: it stores and relays player configs
- * opaquely and only ever reads {@code playerId}, {@code playerName} and the four server-wide
- * booleans.</p>
+ * opaquely as raw {@link JsonObject}s and only ever reads {@code playerId}, {@code playerName} and the
+ * four server-wide booleans. Sends go through the eunomia {@link CommunicationManager}, which routes
+ * them to the installed {@link de.zannagh.armorhider.paper.net.PaperServerTransport}.</p>
+ *
+ * <p>There is no {@code sendHandshake} here any more: eunomia's built-in
+ * {@code eunomia:hello}/{@code eunomia:hello_ack} capability handshake replaces the armor-hider one,
+ * and {@code enableServerHandshake()} answers a client's probe automatically.</p>
  */
 public final class ArmorHiderService {
 
     private final Logger logger;
     private final ServerConfigurationState state;
     private final ServerConfigStorage storage;
-    private final PacketSender sender;
     private final PermissionResolver permissions;
     private final Schedulers schedulers;
     /** Live, never-persisted shared render-rule state. Lasts exactly as long as the server does. */
@@ -39,40 +43,27 @@ public final class ArmorHiderService {
     public ArmorHiderService(Logger logger,
                              ServerConfigurationState state,
                              ServerConfigStorage storage,
-                             PacketSender sender,
                              PermissionResolver permissions,
                              Schedulers schedulers) {
         this.logger = logger;
         this.state = state;
         this.storage = storage;
-        this.sender = sender;
         this.permissions = permissions;
         this.schedulers = schedulers;
     }
 
     /** Sends the full {@code ServerConfiguration} snapshot to a single client. */
     public void sendServerConfiguration(Player player) {
-        sender.sendNarrowed(player, Channels.SERVER_CONFIGURATION_S2C, state.toJson());
-    }
-
-    /**
-     * Announces to a joining client that this server runs Armor Hider (mirrors the mod's
-     * {@code HandshakePacket}). The client treats receipt as proof of mod support and only then starts
-     * sending its own packets, so without this a client would suppress all outgoing traffic on Paper.
-     * The {@code sessionId} is a per-handshake nonce - the client only checks receipt, not its value.
-     */
-    public void sendHandshake(Player player) {
-        JsonObject packet = new JsonObject();
-        packet.addProperty("sessionId", UUID.randomUUID().toString());
-        packet.addProperty("timestamp", System.currentTimeMillis());
-        sender.send(player, Channels.HANDSHAKE_S2C, packet);
+        CommunicationManager.sendToPlayer(player.getUniqueId(),
+                ArmorHiderPaperPackets.SERVER_CONFIG, state.toJson());
     }
 
     /** Sends the recipient's own permission level. */
     public void sendPermissions(Player player) {
         JsonObject packet = new JsonObject();
         packet.addProperty("permissionLevel", permissions.getPermissionLevel(player));
-        sender.send(player, Channels.PERMISSIONS_S2C, packet);
+        CommunicationManager.sendToPlayer(player.getUniqueId(),
+                ArmorHiderPaperPackets.PERMISSION, packet);
     }
 
     /**
@@ -88,8 +79,8 @@ public final class ArmorHiderService {
             state.put(senderId, config);
             saveAsync();
             JsonObject snapshot = state.toJson();
-            sender.broadcastNarrowedExcept(Bukkit.getOnlinePlayers(), senderId,
-                    Channels.SERVER_CONFIGURATION_S2C, snapshot);
+            CommunicationManager.broadcastExcept(senderId,
+                    ArmorHiderPaperPackets.SERVER_CONFIG, snapshot);
             sendPermissions(from);
         } catch (RuntimeException e) {
             logger.log(Level.SEVERE, "Failed to store player data!", e);
@@ -99,7 +90,7 @@ public final class ArmorHiderService {
     /**
      * Applies an admin's server-wide settings update.
      *
-     * <p>Requires permission level >= 3. Mirrors the mod exactly, including the fact that only
+     * <p>Requires permission level &gt;= 3. Mirrors the mod exactly, including the fact that only
      * {@code enableCombatDetection} and {@code forceArmorHiderOff} take part in change detection
      * and mutation.</p>
      */
@@ -132,8 +123,8 @@ public final class ArmorHiderService {
         updated.addProperty(ServerWideSettingsDefaults.FORCE_ARMOR_HIDER_OFF, forceOff);
         state.setServerWideSettings(updated);
         saveAsync();
-        sender.broadcastNarrowedExcept(Bukkit.getOnlinePlayers(), from.getUniqueId(),
-                Channels.SERVER_CONFIGURATION_S2C, state.toJson());
+        CommunicationManager.broadcastExcept(from.getUniqueId(),
+                ArmorHiderPaperPackets.SERVER_CONFIG, state.toJson());
     }
 
     /**
@@ -155,8 +146,8 @@ public final class ArmorHiderService {
         long timestamp = readTimestamp(payload, "timestamp");
         notification.addProperty("timestamp", timestamp);
 
-        sender.broadcastExcept(Bukkit.getOnlinePlayers(), from.getUniqueId(),
-                Channels.COMBAT_LOG_S2C, notification);
+        CommunicationManager.broadcastExcept(from.getUniqueId(),
+                ArmorHiderPaperPackets.COMBAT_NOTIFICATION, notification);
     }
 
     /**
@@ -187,8 +178,8 @@ public final class ArmorHiderService {
         if (notification == null) {
             return;
         }
-        sender.broadcastExcept(Bukkit.getOnlinePlayers(), from.getUniqueId(),
-                Channels.SHARED_RULES_S2C, notification);
+        CommunicationManager.broadcastExcept(from.getUniqueId(),
+                ArmorHiderPaperPackets.SHARED_RULES_NOTIFICATION, notification);
     }
 
     /**
@@ -205,12 +196,13 @@ public final class ArmorHiderService {
 
         JsonObject cleared = sharedRules.remove(player.getUniqueId(), DisplayNames.of(player), System.currentTimeMillis());
         if (cleared != null) {
-            sender.broadcastExcept(Bukkit.getOnlinePlayers(), player.getUniqueId(),
-                    Channels.SHARED_RULES_S2C, cleared);
+            CommunicationManager.broadcastExcept(player.getUniqueId(),
+                    ArmorHiderPaperPackets.SHARED_RULES_NOTIFICATION, cleared);
         }
 
         for (JsonObject notification : sharedRules.snapshotExcept(player.getUniqueId())) {
-            sender.send(player, Channels.SHARED_RULES_S2C, notification);
+            CommunicationManager.sendToPlayer(player.getUniqueId(),
+                    ArmorHiderPaperPackets.SHARED_RULES_NOTIFICATION, notification);
         }
     }
 

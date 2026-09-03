@@ -6,25 +6,14 @@ import de.zannagh.armorhider.api.ArmorHiderPlayerConfigApi;
 import de.zannagh.armorhider.configuration.*;
 import de.zannagh.armorhider.configuration.items.*;
 import de.zannagh.armorhider.configuration.items.InCombatUseDefaultArmorSkin;
-//? if >= 1.20.5 {
-import de.zannagh.armorhider.net.CompressedJsonCodec;
-import io.netty.buffer.ByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-//?}
+import de.zannagh.eunomia.networking.serialization.NetworkHealable;
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.NonNull;
 
 import java.io.Reader;
 import java.util.UUID;
 
-//? if >= 1.21.11 {
-import net.minecraft.resources.Identifier;
-        //?}
 import org.jspecify.annotations.Nullable;
-//? if >= 1.20.5 && < 1.21.11 {
-/*import net.minecraft.resources.Identifier;
-*///?}
 
 /**
  * Represents the configuration settings for a player with various customizable options.
@@ -35,7 +24,7 @@ import org.jspecify.annotations.Nullable;
  *
  * @since 0.5.0
  */
-public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
+public class PlayerConfig implements ConfigurationSource<PlayerConfig>, NetworkHealable {
 
     @SerializedName(value = "configVersion")
     public int configVersion;
@@ -51,28 +40,14 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
      */
     private static final int MAX_GLOBAL_OVERRIDE_DEPTH = 1;
 
-    //? if >= 1.21.11 {
-    public static final Identifier PACKET_IDENTIFIER = Identifier.fromNamespaceAndPath("de.zannagh.armorhider", "settings_c2s_packet");
-    //?}
-
-    //? if >= 1.20.5 && < 1.21.11 {
-    /*public static final Identifier PACKET_IDENTIFIER = Identifier.fromNamespaceAndPath("armorhider", "settings_c2s_packet");
-    *///?}
-
-    //? if >= 1.20.5 {
-    public static final StreamCodec<ByteBuf, PlayerConfig> STREAM_CODEC = CompressedJsonCodec.create(PlayerConfig.class);
-
-    public static final Type<PlayerConfig> TYPE = new Type<>(PACKET_IDENTIFIER);
-
-    public StreamCodec<ByteBuf, PlayerConfig> getCodec() {
-        return CompressedJsonCodec.create(PlayerConfig.class);
-    }
-
+    /**
+     * Post-decode repair hook invoked by eunomia's {@code PayloadCodec} after this config is
+     * deserialized off the wire, giving network data the same repair pass as data read from disk.
+     */
     @Override
-    public @NonNull Type<? extends CustomPacketPayload> type() {
-        return TYPE;
+    public void heal() {
+        PlayerConfig.heal(this);
     }
-    //?}
 
     /**
      * The opacity that the helmet slot should be rendered at. Also see {@link ArmorOpacity}.<br/><br/>

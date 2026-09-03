@@ -30,6 +30,26 @@ versionRange="${minecraft_version}"
 ordering="NONE"
 side="BOTH"
 
+# eunomia supplies the config/networking framework armor-hider compiles against (eunomia-core) and
+# installs the live client/server transports at runtime. Ordered AFTER so eunomia's init runs first.
+# Published on CurseForge (project 1654849; Modrinth pending). Floor is 0.3.4: armor-hider's per-player
+# config rides eunomia 0.3.0's replicated keyed store (ReplicatedPlayerConfig / ReplicatedPlayerConfigStore
+# / ReplicatedClientStore) and the HTTP/WebSocket external-relay fallback (ClientTransportSelector /
+# ExternalServerClient), and 0.3.2's versioned API surface (ApiVersion / SemanticVersion) plus the reworked
+# relay protocol (RelayProtocol / RelayEndpoints / RelayConnectionState) and send-gate fallback - on top of
+# the earlier send gate (0.2.3) and installDefaultGson (0.2.4). 0.3.4 is the floor rather than a preference
+# because it moves the send gate's per-connection reset out of the HELLO probe and into the connection
+# lifecycle (CommunicationManager.beginClientConnection): before it, armor-hider's join-time PLAYER_CONFIG
+# send - parked behind the gate by the default AFTER_SUCCESSFUL_HANDSHAKE - was discarded by the probe's own
+# reset whenever armor-hider's join listener happened to be registered ahead of eunomia's, which no
+# initializer ordering on our side could make safe.
+[[dependencies."armor_hider"]]
+modId="eunomia"
+type="required"
+versionRange="[0.3.4,)"
+ordering="AFTER"
+side="BOTH"
+
 [[dependencies."armor_hider"]]
 modId="luckperms"
 type="optional"

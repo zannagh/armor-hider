@@ -1,8 +1,7 @@
 package de.zannagh.armorhider.paper;
 
+import de.zannagh.armorhider.paper.net.ArmorHiderPaperPackets;
 import de.zannagh.armorhider.paper.net.ChannelSubscriber;
-import de.zannagh.armorhider.paper.net.Channels;
-import de.zannagh.armorhider.paper.net.ClientDialects;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -15,52 +14,49 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Drives the initial state push.
+ * Drives the initial state push on join.
  *
- * <p>The primary path is {@link PlayerJoinEvent}: the client never sends
- * {@code minecraft:register} (see {@link ChannelSubscriber}), so the plugin force-subscribes the
- * connection itself and then pushes. {@link PlayerRegisterChannelEvent} is kept as a secondary path
- * for any future client that <em>does</em> announce properly - and because
- * {@code CraftPlayer#addChannel} fires that event internally, both paths run for the same join.
- * The per-player latches below make the push idempotent, so nothing is ever sent twice.</p>
+ * <p>The primary path is {@link PlayerJoinEvent}: the client never sends {@code minecraft:register}
+ * (see {@link ChannelSubscriber}), so the plugin force-subscribes the connection itself and then
+ * pushes the {@code ServerConfiguration} snapshot and the recipient's permission level.
+ * {@link PlayerRegisterChannelEvent} is kept as a secondary path for any future client that
+ * <em>does</em> announce properly - and because {@code CraftPlayer#addChannel} fires that event
+ * internally, both paths run for the same join. The per-player latches below make the push
+ * idempotent, so nothing is ever sent twice.</p>
+ *
+ * <p>There is no handshake push here any more: eunomia's built-in {@code eunomia:hello} handshake
+ * handler (installed by {@code enableServerHandshake()}) answers the client's probe automatically
+ * once the transport is wired, so the client detects the server's capabilities on its own.</p>
  */
 public final class PlayerConnectionListener implements Listener {
 
     private final ArmorHiderService service;
     private final ChannelSubscriber subscriber;
-    private final ClientDialects dialects;
     private final Set<UUID> configurationSent = ConcurrentHashMap.newKeySet();
     private final Set<UUID> permissionsSent = ConcurrentHashMap.newKeySet();
     /**
      * Players currently inside {@link ChannelSubscriber#subscribe(Player)}.
      *
      * <p>{@code CraftPlayer#addChannel} fires {@link PlayerRegisterChannelEvent} synchronously, once
-     * per channel, so without this guard the push happens <em>from inside</em> the subscribe loop —
-     * at which point only the aliases added so far are listening. The legacy alias is registered
-     * first, so the snapshot went out on {@code armorhider:*} only, the idempotence latch then
-     * suppressed the resend, and every client speaking the {@code de.zannagh.armorhider:*} dialect
-     * (1.21.11+) received nothing at all — silently, since {@code sendPluginMessage} just skips
-     * unlistened channels. Deferring to the explicit push in {@link #onJoin} makes the send happen
-     * once, with the full alias set already subscribed.</p>
+     * per channel, so without this guard the push would happen <em>from inside</em> the subscribe
+     * loop - at which point only the channels added so far are listening, and the idempotence latch
+     * would then suppress the resend. Deferring to the explicit push in {@link #onJoin} makes the
+     * send happen once, with the full channel set already subscribed.</p>
      */
     private final Set<UUID> subscribing = ConcurrentHashMap.newKeySet();
 
-    public PlayerConnectionListener(ArmorHiderService service, ChannelSubscriber subscriber,
-                                    ClientDialects dialects) {
+    public PlayerConnectionListener(ArmorHiderService service, ChannelSubscriber subscriber) {
         this.service = service;
         this.subscriber = subscriber;
-        this.dialects = dialects;
     }
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         UUID id = player.getUniqueId();
-        // The channel set lives on the connection, so a reconnect starts from scratch. The dialect
-        // goes with it: the same player may reconnect from a different client version.
+        // The channel set lives on the connection, so a reconnect starts from scratch.
         configurationSent.remove(id);
         permissionsSent.remove(id);
-        dialects.forget(id);
 
         subscribing.add(id);
         try {
@@ -68,14 +64,11 @@ public final class PlayerConnectionListener implements Listener {
         } finally {
             subscribing.remove(id);
         }
-        // Shared render rules go first, before the handshake lifts the client's outgoing-traffic
-        // suppression: the joiner's stale entry from a previous session has to be cleared before their
-        // own fresh announcement can arrive, or the clear would wipe it.
+        // Shared render rules go first: the joiner's stale entry from a previous session is cleared on
+        // the other clients here, independently of eunomia's capability handshake (which now gates the
+        // joiner's own outgoing re-announcement client-side). Clearing on join means a rejoin can never
+        // leave a stale snapshot standing on the other clients.
         service.syncSharedRulesOnJoin(player);
-        // Send the handshake next so the client lifts its outgoing-traffic suppression as early as
-        // possible. Unlike config/permissions it is not latched: it is cheap, the client is idempotent,
-        // and it must be re-sent on every (re)connection.
-        service.sendHandshake(player);
         pushConfiguration(player);
         pushPermissions(player);
     }
@@ -87,10 +80,10 @@ public final class PlayerConnectionListener implements Listener {
             return;
         }
         String channel = event.getChannel();
-        if (Channels.SERVER_CONFIGURATION_S2C.contains(channel)) {
+        if (ArmorHiderPaperPackets.SERVER_CONFIG.channelKey().equals(channel)) {
             pushConfiguration(event.getPlayer());
         }
-        if (Channels.PERMISSIONS_S2C.contains(channel)) {
+        if (ArmorHiderPaperPackets.PERMISSION.channelKey().equals(channel)) {
             pushPermissions(event.getPlayer());
         }
     }
@@ -101,7 +94,6 @@ public final class PlayerConnectionListener implements Listener {
         configurationSent.remove(id);
         permissionsSent.remove(id);
         subscribing.remove(id);
-        dialects.forget(id);
     }
 
     private void pushConfiguration(Player player) {

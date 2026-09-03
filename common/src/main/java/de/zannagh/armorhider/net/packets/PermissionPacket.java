@@ -1,66 +1,14 @@
-//? if >= 1.20.5 {
 package de.zannagh.armorhider.net.packets;
 
-import de.zannagh.armorhider.net.CompressedJsonCodec;
-import io.netty.buffer.ByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.entity.player.Player;
-import org.jspecify.annotations.NonNull;
-import net.minecraft.resources.Identifier;
-
-public class PermissionPacket implements CustomPacketPayload {
-
-    public static final Identifier PACKET_IDENTIFIER = Identifier.fromNamespaceAndPath("de.zannagh.armorhider", "permissions_s2c_packet");
-    public static final StreamCodec<ByteBuf, PermissionPacket> STREAM_CODEC = CompressedJsonCodec.create(PermissionPacket.class);
-
-    public static final Type<PermissionPacket> TYPE = new Type<>(PACKET_IDENTIFIER);
-
-    public int permissionLevel;
-
-    public PermissionPacket(Player player, MinecraftServer server) {
-        //? if >= 1.21.11 {
-        this.permissionLevel = server.getProfilePermissions(player.nameAndId()).level().id();
-         //?}
-        //? if >= 1.21.9 && < 1.21.11 {
-        /*this.permissionLevel = server.getProfilePermissions(player.nameAndId());
-        *///?}
-        //? if >= 1.20.5 && < 1.21.9 {
-        /*this.permissionLevel = server.getProfilePermissions(player.getGameProfile());
-        *///?}
-    }
-
-    public PermissionPacket(int permissionLevel) {
-        this.permissionLevel = permissionLevel;
-    }
-
-    public PermissionPacket() {
-        permissionLevel = 0;
-    }
-
-    @Override
-    public @NonNull Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
-}
-//?}
-
-//? if < 1.20.5 {
-/*package de.zannagh.armorhider.net.packets;
-
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.entity.player.Player;
-
-// Simplified PermissionPacket for 1.20.x - no CustomPacketPayload interface
+/**
+ * Server -&gt; client announcement of the receiving player's op/permission level (0-4). A plain POJO
+ * carried on eunomia's {@code de.zannagh.armorhider:permissions_s2c_packet} channel; server-side
+ * permission resolution lives in {@code ArmorHiderServerNet} (via {@code ServerUtil}), not here.
+ */
 public class PermissionPacket {
 
     public int permissionLevel;
 
-    public PermissionPacket(Player player, MinecraftServer server) {
-        this.permissionLevel = server.getProfilePermissions(player.getGameProfile());
-    }
-
     public PermissionPacket(int permissionLevel) {
         this.permissionLevel = permissionLevel;
     }
@@ -69,4 +17,3 @@ public class PermissionPacket {
         permissionLevel = 0;
     }
 }
-*///?}

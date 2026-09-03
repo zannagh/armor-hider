@@ -301,7 +301,9 @@ public class ServerConfigurationTest {
             ByteBuf buffer = Unpooled.buffer();
             try {
                 Stopwatch stopwatch = Stopwatch.createStarted();
-                config.getCodec().encode(buffer, config);
+                // getCodec() was removed with the eunomia migration; encode via the shared payload codec
+                // (ServerConfiguration is clientbound, so serverbound=false).
+                buffer.writeBytes(de.zannagh.eunomia.networking.serialization.PayloadCodec.encode(config, false));
                 stopwatch.stop();
                 int compressedSize = buffer.readableBytes();
                 double compressionRatio = (double) uncompressedSize / compressedSize;

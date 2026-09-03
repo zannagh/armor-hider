@@ -102,8 +102,10 @@ public class ArmorHider {
         DevRunWatchdog.maybeArm();
 
         ArmorHiderApiImpl.init();
-        PayloadRegistry.init();
-        
+        // Resolve every eunomia payload with armor-hider's Gson (its config type adapters serialize the
+        // PlayerConfig/ServerConfiguration/ServerWideSettings graphs). Installed before any packet flows.
+        de.zannagh.eunomia.networking.serialization.NetworkSerializer.setGson(GSON);
+
         // Register server lifecycle events
         ServerLifecycleEvents.registerStarting(server -> {
             Path worldConfigPath = getWorldConfigPath(server);
@@ -118,7 +120,7 @@ public class ArmorHider {
             runtime = null;
         });
 
-        CommsManager.initServer();
+        ArmorHiderServerNet.init();
 
         ArmorHiderInitializer.dispatchAll(ArmorHiderApi.getInstance());
 

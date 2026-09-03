@@ -3,13 +3,16 @@ package de.zannagh.armorhider.client.api.impl;
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.api.ArmorHiderPlayerConfigApi;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.net.ClientPacketSender;
 import de.zannagh.armorhider.client.utils.McClientUtils;
 import de.zannagh.armorhider.configuration.ConfigurationProvider;
 import de.zannagh.armorhider.log.DebugLogger;
+import de.zannagh.armorhider.net.AhPackets;
+import de.zannagh.armorhider.net.packets.AhReplicatedPlayerConfig;
 import de.zannagh.armorhider.net.packets.PlayerConfig;
 import de.zannagh.armorhider.net.packets.ServerWideSettings;
 import de.zannagh.armorhider.server.ServerConfiguration;
+import de.zannagh.eunomia.keyed.ReplicatedClientStore;
+import de.zannagh.eunomia.networking.comms.CommunicationManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import org.jetbrains.annotations.Nullable;
@@ -26,6 +29,12 @@ public class AhPlayerConfigApiImpl implements ArmorHiderPlayerConfigApi, Configu
     private PlayerConfig CURRENT = PlayerConfig.defaults(DEFAULT_PLAYER_ID, DEFAULT_PLAYER_NAME);
 
     private @Nullable ServerConfiguration serverConfiguration;
+
+    // Client-side mirror of the relay's per-player config store, used ONLY on the HTTP/WebSocket fallback
+    // path (server does not run the mod). It is populated by eunomia's relay (snapshot on join + live
+    // relays); on a normal armor-hider MC server it stays empty, so the real SERVER_CONFIG snapshot is never
+    // shadowed. See currentServerConfig().
+    private @Nullable ReplicatedClientStore<AhReplicatedPlayerConfig> relayMirror;
 
     private final HashMap<UUID, Consumer<@Nullable String>> configListeners = new HashMap<>();
 
@@ -97,8 +106,19 @@ public class AhPlayerConfigApiImpl implements ArmorHiderPlayerConfigApi, Configu
         if (serverConfiguration != null && McClientUtils.isClientConnectedToServer() && clientNetwork != null) {
             ArmorHider.LOGGER.info("Sending to server...");
             // Strip the client-only per-player override map before transmitting (privacy + irrelevant to peers).
-            ClientPacketSender.sendToServer(config.forNetwork());
+            CommunicationManager.sendToServer(AhPackets.PLAYER_CONFIG, config.forNetwork());
             ArmorHider.LOGGER.info("Send client config package to server.");
+        }
+        // Also publish over the replicated channel so config propagates on the HTTP/WebSocket fallback (where
+        // no mod server exists and the block above never fires). eunomia's send gate routes this: to the relay
+        // when the fallback is active, or dropped on a plain server with no relay - so it is safe to fire on any
+        // connection. Unhandled (harmless) on a normal armor-hider MC server, which uses PLAYER_CONFIG above.
+        if (McClientUtils.isClientConnectedToServer() && clientNetwork != null) {
+            UUID id = config.playerId.getValue();
+            if (id != null) {
+                CommunicationManager.sendToServer(
+                        AhPackets.PLAYER_CONFIG_REPLICATED, AhReplicatedPlayerConfig.forNetwork(id, config));
+            }
         }
         notifyConfigListeners(config.playerName.getValue());
     }
@@ -168,7 +188,7 @@ public class AhPlayerConfigApiImpl implements ArmorHiderPlayerConfigApi, Configu
         }
         serverConfiguration.serverWideSettings = serverWideSettings;
         ArmorHider.LOGGER.info("Sending server-wide settings to server...");
-        ClientPacketSender.sendToServer(serverWideSettings);
+        CommunicationManager.sendToServer(AhPackets.SERVER_WIDE_SETTINGS, serverWideSettings);
     }
 
     @Override
@@ -186,9 +206,50 @@ public class AhPlayerConfigApiImpl implements ArmorHiderPlayerConfigApi, Configu
         setAndSendServerWideSettings(serverConfiguration.serverWideSettings);
     }
 
+    /**
+     * Installs the client-side relay mirror for the HTTP/WebSocket fallback. Idempotent; call once from client
+     * init after eunomia is ready. On the fallback path the relay pushes every player's config here (snapshot on
+     * join + live relays); {@link #currentServerConfig()} surfaces them through the normal resolution path.
+     */
+    @Override
+    public void enableRelayMirror() {
+        if (relayMirror == null) {
+            CommunicationManager.register(AhPackets.PLAYER_CONFIG_REPLICATED);
+            relayMirror = new ReplicatedClientStore<>(
+                    1, AhReplicatedPlayerConfig.class, AhPackets.PLAYER_CONFIG_REPLICATED).enableClient();
+        }
+    }
+
+    /**
+     * The per-player config snapshot resolution should read: the real server-transmitted {@link ServerConfiguration}
+     * when a mod server sent one, otherwise a view rebuilt from the relay mirror when the fallback populated it.
+     * The two are mutually exclusive - a mod server sends SERVER_CONFIG and never the replicated store; the relay
+     * populates the mirror and never sends SERVER_CONFIG - so this never shadows a real snapshot with relay data.
+     */
+    private @Nullable ServerConfiguration currentServerConfig() {
+        if (serverConfiguration != null) {
+            return serverConfiguration;
+        }
+        if (relayMirror == null) {
+            return null;
+        }
+        var snapshot = relayMirror.store().snapshot();
+        if (snapshot.isEmpty()) {
+            return null;
+        }
+        ServerConfiguration view = new ServerConfiguration();
+        for (AhReplicatedPlayerConfig entry : snapshot.values()) {
+            PlayerConfig config = entry.toPlayerConfig();
+            if (config != null) {
+                view.put(config);
+            }
+        }
+        return view;
+    }
+
     @Override
     public @Nullable ServerConfiguration getServerConfig() {
-        return serverConfiguration;
+        return currentServerConfig();
     }
 
     @Override
@@ -265,6 +326,9 @@ public class AhPlayerConfigApiImpl implements ArmorHiderPlayerConfigApi, Configu
 
         boolean allowed = areOtherPlayerConfigsAllowed();
 
+        // The server-transmitted snapshot on the normal path, or the relay mirror's view on the fallback path.
+        ServerConfiguration serverSnapshot = currentServerConfig();
+
         // Null name means the player couldn't be identified - treat as unknown/undeterminable.
         if (playerName == null) {
             return allowed
@@ -275,8 +339,8 @@ public class AhPlayerConfigApiImpl implements ArmorHiderPlayerConfigApi, Configu
         // A mod server that disallows client-side other-player config makes all the client controls inert:
         // fall back to the server-transmitted config (if any) or vanilla defaults.
         if (!allowed) {
-            var serverConfig = serverConfiguration != null
-                    ? serverConfiguration.getPlayerConfigOrDefault(playerName) : null;
+            var serverConfig = serverSnapshot != null
+                    ? serverSnapshot.getPlayerConfigOrDefault(playerName) : null;
             return serverConfig != null ? serverConfig : PlayerConfig.defaults(DEFAULT_PLAYER_ID, playerName);
         }
 
@@ -295,8 +359,8 @@ public class AhPlayerConfigApiImpl implements ArmorHiderPlayerConfigApi, Configu
 
         // Server-transmitted config from a modded player, by name then by UUID.
         UUID playerId = DEFAULT_PLAYER_ID;
-        if (serverConfiguration != null) {
-            var config = serverConfiguration.getPlayerConfigOrDefault(playerName);
+        if (serverSnapshot != null) {
+            var config = serverSnapshot.getPlayerConfigOrDefault(playerName);
             if (config != null) {
                 return config;
             }
@@ -304,11 +368,11 @@ public class AhPlayerConfigApiImpl implements ArmorHiderPlayerConfigApi, Configu
             if (isRemotePlayer.getA()) {
                 //? if >= 1.21.9 {
                 playerId = isRemotePlayer.getB().getProfile().id();
-                config = serverConfiguration.getPlayerConfigOrDefault(isRemotePlayer.getB().getProfile().id());
+                config = serverSnapshot.getPlayerConfigOrDefault(isRemotePlayer.getB().getProfile().id());
                 //?}
                 //? if < 1.21.9 {
                 /*playerId = isRemotePlayer.getB().getProfile().getId();
-                config = serverConfiguration.getPlayerConfigOrDefault(isRemotePlayer.getB().getProfile().getId());
+                config = serverSnapshot.getPlayerConfigOrDefault(isRemotePlayer.getB().getProfile().getId());
                 *///?}
                 if (config != null) {
                     return config;

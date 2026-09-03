@@ -45,7 +45,8 @@
   "depends": {
     "fabricloader": ">=${fabricloader_min}",
     "minecraft": "${fabric_minecraft_version}",
-    "java": ">=${java_version}"
+    "java": ">=${java_version}",
+    "eunomia": ">=0.3.4"
   },
   "suggests": {
     "luckperms": ">=5.4"
