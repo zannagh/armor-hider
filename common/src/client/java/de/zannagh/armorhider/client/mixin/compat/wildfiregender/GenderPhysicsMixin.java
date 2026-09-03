@@ -1,15 +1,18 @@
-// Gated to >= 1.21: fabric-1.20.1 pins an FGM build (nYZ0oktX) that predates
+// Gated on `gender_physics`, NOT `gender`: `gender` tracks the *layer* API generation (modern
+// GenderArmorLayer vs the legacy inline GenderLayer), which has nothing to do with the physics API.
+// getArmorPhysicsOverride()Z exists on com.wildfire.main.entitydata.PlayerConfig on both generations -
+// including FGM 3.2.2 (kKffHCGl), the only build FGM ships for NeoForge - so gating this on `gender`
+// left every NeoForge user with fully damped breasts behind hidden armor.
+// Still gated to >= 1.21: fabric-1.20.1 pins an FGM build (nYZ0oktX) that predates
 // com.wildfire.main.entitydata.PlayerConfig, so this would not compile there.
-//? if gender && >= 1.21 {
+//? if gender_physics && >= 1.21 {
 package de.zannagh.armorhider.client.mixin.compat.wildfiregender;
 
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.wildfire.main.entitydata.EntityConfig;
 import com.wildfire.main.entitydata.PlayerConfig;
-import de.zannagh.armorhider.client.common.SlotModification;
-import de.zannagh.armorhider.util.PlayerNameUtil;
+import de.zannagh.armorhider.client.compat.GenderPhysicsRelaxation;
 import net.minecraft.client.Minecraft;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Pseudo;
@@ -23,7 +26,8 @@ import org.spongepowered.asm.mixin.injection.At;
  * bounce even when Armor Hider has visually hidden that plate. FGM already exposes exactly the
  * behaviour we want under its own "Armor Physics Override" setting, which zeroes both values -
  * so rather than fake an empty chest stack, we simply force that override on for players whose
- * chest Armor Hider is fully hiding.
+ * chest Armor Hider is hiding. {@link GenderPhysicsRelaxation} owns that decision, including why it
+ * uses the configured opacity rather than {@code SlotModification#shouldHide()}.
  * <p>
  * {@code getArmorPhysicsOverride()} is the single point both consumers read:
  * <ul>
@@ -41,17 +45,18 @@ public class GenderPhysicsMixin {
 
     @ModifyReturnValue(method = "getArmorPhysicsOverride", at = @At("RETURN"), require = 0)
     private boolean armorHider$relaxPhysicsWhenChestHidden(boolean original) {
-        boolean relaxed = original || armorHider$isChestFullyHidden();
+        boolean relaxed = original || armorHider$shouldRelaxChestPhysics();
         de.zannagh.armorhider.client.render.rendertype.ArmorHiderRenderTypes
                 .recordGenderPhysicsTick(relaxed && !original);
         return relaxed;
     }
 
     /**
-     * Whether Armor Hider is fully hiding the chest of the player this config belongs to. The config
-     * carries only a UUID, so the player is resolved from the client level.
+     * Whether Armor Hider is hiding the chest of the player this config belongs to far enough to stop
+     * FGM damping the physics with it. The config carries only a UUID, so the player is resolved from
+     * the client level.
      */
-    private boolean armorHider$isChestFullyHidden() {
+    private boolean armorHider$shouldRelaxChestPhysics() {
         var level = Minecraft.getInstance().level;
         if (level == null) {
             return false;
@@ -73,14 +78,9 @@ public class GenderPhysicsMixin {
         if (player == null) {
             return false;
         }
-        String playerName = PlayerNameUtil.getPlayerName(player);
-        if (playerName == null) {
-            return false;
-        }
         // Resolved live from config (not the render-time PlayerModificationInfo cache, which is only
         // rebuilt on a dirty flag and would lag behind an opacity change at physics-tick time).
-        return SlotModification.of(playerName, EquipmentSlot.CHEST, player.getItemBySlot(EquipmentSlot.CHEST))
-                .shouldHide();
+        return GenderPhysicsRelaxation.shouldRelaxFor(player);
     }
 }
 //?}

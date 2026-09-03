@@ -170,11 +170,24 @@ public record SlotModification(
      * the two would drift apart.
      */
     public static double preRuleOpacityFor(PlayerConfig config, String playerName, EquipmentSlot slot, boolean isElytra) {
-        double base = isElytra ? config.elytraOpacity.getValue() : baseTransparencyFor(config, slot);
+        double base = configuredOpacityFor(config, slot, isElytra);
         if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.shouldApplyCombatDetectionTo(config)) {
             base = CombatManager.transformTransparencyBasedOnCombat(playerName, base);
         }
         return base;
+    }
+
+    /**
+     * The opacity the user configured for a slot, with the transient combat fade deliberately NOT applied
+     * - i.e. what the user asked for, not what is on screen this instant.
+     * <p>
+     * Only {@code GenderPhysicsRelaxation} wants this (referenced by name, not {@code @link}: that class
+     * is stonecutter-gated on {@code gender_physics} and is absent on variants without a compatible FGM
+     * build). Every render consumer must keep using {@link #preRuleOpacityFor}: what is drawn has to
+     * follow the combat fade.
+     */
+    public static double configuredOpacityFor(PlayerConfig config, EquipmentSlot slot, boolean isElytra) {
+        return isElytra ? config.elytraOpacity.getValue() : baseTransparencyFor(config, slot);
     }
 
     /**
