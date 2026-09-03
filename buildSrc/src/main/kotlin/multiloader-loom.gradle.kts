@@ -61,6 +61,16 @@ with(sc) {
     // leaving the breast body intact - it does not touch the modern GenderArmorLayer.
     constants["gender"] = hasProperty("gender.version") && findProperty("gender_legacy_api") != "true"
     constants["gender_legacy"] = hasProperty("gender.version") && findProperty("gender_legacy_api") == "true"
+    // `gender_physics` activates GenderPhysicsMixin, which relaxes FGM's armor-derived breast-physics
+    // damping when Armor Hider hides the chest. Deliberately NOT gated on `gender`: that constant
+    // tracks the *layer* API generation (GenderArmorLayer vs the legacy inline GenderLayer), which is
+    // unrelated to the physics API. `PlayerConfig#getArmorPhysicsOverride()Z` is present and is the
+    // single chokepoint for every damping consumer on BOTH generations - including FGM 3.2.2
+    // (kKffHCGl), the only build FGM ships for NeoForge - so gating physics on `gender` silently left
+    // every NeoForge user with fully damped breasts behind hidden armor. The `>= 1.21` guard in the
+    // mixin still excludes fabric-1.20.1 (FGM 3.0.1 / nYZ0oktX), which predates
+    // com.wildfire.main.entitydata.PlayerConfig entirely.
+    constants["gender_physics"] = hasProperty("gender.version")
     // First Person Model (tr7zw) renders the local player's body in first person, so layers we hook
     // (head, wings, held item) submit for the camera entity - and FPM cancels several of them at
     // their submit HEAD. `firstperson` compiles the typed guard that keeps our render scopes from
