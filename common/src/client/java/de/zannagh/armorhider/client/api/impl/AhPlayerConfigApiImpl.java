@@ -14,9 +14,11 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
-import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 
 public class AhPlayerConfigApiImpl implements ArmorHiderPlayerConfigApi, ConfigurationProvider<PlayerConfig> {
@@ -27,12 +29,15 @@ public class AhPlayerConfigApiImpl implements ArmorHiderPlayerConfigApi, Configu
 
     private @Nullable ServerConfiguration serverConfiguration;
 
-    private final HashMap<UUID, Consumer<@Nullable String>> configListeners = new HashMap<>();
+    // ConcurrentHashMap: the public listener API can be mutated from the client thread while
+    // notifyConfigListeners(...) iterates from a packet-handler thread, so a plain HashMap could throw or corrupt.
+    private final Map<UUID, Consumer<@Nullable String>> configListeners = new ConcurrentHashMap<>();
 
     // Monotonic config-change counter. Each notifyConfigListeners(...) bumps it; per-player render caches
     // compare it against their last-seen value to decide whether to rebuild, replacing the former
-    // per-entity listener registration (which leaked one map entry per Player entity).
-    private volatile long configGeneration = 0;
+    // per-entity listener registration (which leaked one map entry per Player entity). AtomicLong so
+    // concurrent notifications from different threads can't lose an increment.
+    private final AtomicLong configGeneration = new AtomicLong();
 
     public AhPlayerConfigApiImpl() {
         this.playerConfigProvider = new de.zannagh.armorhider.configuration.PlayerConfigFileProvider();
@@ -59,7 +64,7 @@ public class AhPlayerConfigApiImpl implements ArmorHiderPlayerConfigApi, Configu
     @Override
     public void notifyConfigListeners(@Nullable String playerName) {
         // Bump the generation counter so every per-player render cache rebuilds on its next access.
-        configGeneration++;
+        configGeneration.incrementAndGet();
         // Iterate a snapshot: a listener may (de)register listeners while being notified, which would
         // otherwise throw a ConcurrentModificationException or skip listeners.
         for (Consumer<@Nullable String> listener : new java.util.ArrayList<>(configListeners.values())) {
@@ -69,7 +74,7 @@ public class AhPlayerConfigApiImpl implements ArmorHiderPlayerConfigApi, Configu
 
     @Override
     public long getConfigGeneration() {
-        return configGeneration;
+        return configGeneration.get();
     }
 
     public PlayerConfig load() {
