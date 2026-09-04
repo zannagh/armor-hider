@@ -67,6 +67,19 @@ public interface ArmorHiderPlayerConfigApi {
     void notifyConfigListeners(@Nullable String playerName);
 
     /**
+     * A counter that changes on every configuration change, letting per-player render caches detect a change
+     * by comparing against their last-seen value instead of each registering a listener. The primary
+     * implementation returns a monotonically increasing value; the default implementation here returns a
+     * constant {@code 0}, meaning "generation tracking not supported" — callers will always read it as
+     * unchanged and must fall back to another invalidation signal.
+     *
+     * @return the current config generation, or {@code 0} if the implementation does not track generations.
+     */
+    default long getConfigGeneration() {
+        return 0;
+    }
+
+    /**
      * Sets the local player's name and (optionally) persists the change.
      *
      * @param playerName the new name.

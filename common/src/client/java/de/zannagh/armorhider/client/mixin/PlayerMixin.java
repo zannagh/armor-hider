@@ -31,9 +31,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.util.UUID;
-import java.util.function.Consumer;
-
 @Mixin(Player.class)
 public abstract class PlayerMixin
     //? if >= 1.21.11
@@ -47,37 +44,15 @@ public abstract class PlayerMixin
     private PlayerModificationInfo armorHider$playerModInfo;
 
     @Unique
-    private UUID armorHider$configChangeListenerGuid = UUID.randomUUID();
+    private long armorHider$seenConfigGeneration = -1;
 
     public PlayerModificationInfo armorHider$getPlayerModifications() {
         armorHider$rebuildModsIfDirty();
         return armorHider$playerModInfo;
     }
 
-    @Unique
-    private Consumer<@Nullable String> armorHider$configListener = (changedPlayerName) -> {
-        if (changedPlayerName == null || changedPlayerName.equals(armorHider$playerName())) {
-            armorHider$modsDirty = true;
-        }
-    };
-
     protected PlayerMixin(EntityType<? extends LivingEntity> type, Level level) {
         super(type, level);
-    }
-
-    @Inject(method = "<init>", at = @At("TAIL"))
-    private void registerConfigListener(CallbackInfo ci) {
-        if (ArmorHiderClient.CLIENT_CONFIG_MANAGER != null) {
-            armorHider$configChangeListenerGuid = ArmorHiderClient.CLIENT_CONFIG_MANAGER.addConfigChangeListener(armorHider$configListener);
-        }
-    }
-
-    @Inject(method = "remove", at = @At("HEAD"))
-    private void unregisterConfigListener(Entity.RemovalReason reason, CallbackInfo ci) {
-        if (armorHider$configListener != null && ArmorHiderClient.CLIENT_CONFIG_MANAGER != null) {
-            ArmorHiderClient.CLIENT_CONFIG_MANAGER.removeConfigChangeListener(armorHider$configChangeListenerGuid);
-            armorHider$configListener = null;
-        }
     }
 
     @Inject(method = "onEquipItem", at = @At("HEAD"))
@@ -90,10 +65,14 @@ public abstract class PlayerMixin
 
     @Unique
     private void armorHider$rebuildModsIfDirty() {
-        if (!armorHider$modsDirty) {
+        long gen = ArmorHiderClient.CLIENT_CONFIG_MANAGER == null
+                ? 0
+                : ArmorHiderClient.CLIENT_CONFIG_MANAGER.getConfigGeneration();
+        if (!armorHider$modsDirty && gen == armorHider$seenConfigGeneration) {
             return;
         }
         DebugLogger.log("Rebuilding armor mods for " + armorHider$playerName());
+        armorHider$seenConfigGeneration = gen;
         armorHider$modsDirty = false;
         var name = armorHider$playerName();
         armorHider$playerModInfo = new PlayerModificationInfo(
