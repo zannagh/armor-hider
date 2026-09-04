@@ -29,6 +29,11 @@ public class AhPlayerConfigApiImpl implements ArmorHiderPlayerConfigApi, Configu
 
     private final HashMap<UUID, Consumer<@Nullable String>> configListeners = new HashMap<>();
 
+    // Monotonic config-change counter. Each notifyConfigListeners(...) bumps it; per-player render caches
+    // compare it against their last-seen value to decide whether to rebuild, replacing the former
+    // per-entity listener registration (which leaked one map entry per Player entity).
+    private volatile long configGeneration = 0;
+
     public AhPlayerConfigApiImpl() {
         this.playerConfigProvider = new de.zannagh.armorhider.configuration.PlayerConfigFileProvider();
         CURRENT = load();
@@ -53,11 +58,18 @@ public class AhPlayerConfigApiImpl implements ArmorHiderPlayerConfigApi, Configu
 
     @Override
     public void notifyConfigListeners(@Nullable String playerName) {
+        // Bump the generation counter so every per-player render cache rebuilds on its next access.
+        configGeneration++;
         // Iterate a snapshot: a listener may (de)register listeners while being notified, which would
         // otherwise throw a ConcurrentModificationException or skip listeners.
         for (Consumer<@Nullable String> listener : new java.util.ArrayList<>(configListeners.values())) {
             listener.accept(playerName);
         }
+    }
+
+    @Override
+    public long getConfigGeneration() {
+        return configGeneration;
     }
 
     public PlayerConfig load() {

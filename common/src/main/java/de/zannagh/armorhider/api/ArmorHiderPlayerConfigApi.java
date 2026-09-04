@@ -67,6 +67,15 @@ public interface ArmorHiderPlayerConfigApi {
     void notifyConfigListeners(@Nullable String playerName);
 
     /**
+     * @return a monotonically increasing counter bumped on every configuration change, letting per-player
+     *         render caches detect a change by comparing against their last-seen value instead of each
+     *         registering a listener.
+     */
+    default long getConfigGeneration() {
+        return 0;
+    }
+
+    /**
      * Sets the local player's name and (optionally) persists the change.
      *
      * @param playerName the new name.
