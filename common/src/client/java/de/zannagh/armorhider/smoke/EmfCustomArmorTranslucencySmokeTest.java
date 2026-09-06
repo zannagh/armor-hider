@@ -62,9 +62,13 @@ public final class EmfCustomArmorTranslucencySmokeTest implements FabricClientGa
 
         boolean emfPresent = CompatManager.requiresCompatTo(CompatFlags.ENTITY_MODEL_FEATURES);
         boolean packEnabled = context.computeOnClient(EmfCustomArmorTranslucencySmokeTest::enableGlowingArmorPack);
+        // Only environments that can actually reach EMF's custom-armor path warrant the per-opacity
+        // poll. On software GL (or with EMF/pack absent) the custom model never renders, so spinning
+        // the ~300-tick ceiling per faded step just burns CI time before the inevitable SKIP.
+        boolean expectCustom = emfPresent && packEnabled && !armorHider$isSoftwareGl();
         AhArmProbe.enable();
-        ArmorHider.LOGGER.info("[smoke/fcgt] #360 env: emfPresent={}, glowingArmorPackEnabled={}",
-                emfPresent, packEnabled);
+        ArmorHider.LOGGER.info("[smoke/fcgt] #360 env: emfPresent={}, glowingArmorPackEnabled={}, expectCustom={}",
+                emfPresent, packEnabled, expectCustom);
         context.waitTicks(60);
 
         try (TestSingleplayerContext singleplayer = context.worldBuilder()
@@ -78,12 +82,12 @@ public final class EmfCustomArmorTranslucencySmokeTest implements FabricClientGa
             context.runOnClient(EmfCustomArmorTranslucencySmokeTest::setUpScene);
             context.waitTicks(20);
 
-            boolean anyCustom = renderOpacityGradient(context);
+            boolean anyCustom = renderOpacityGradient(context, expectCustom);
             if (!(emfPresent && packEnabled && anyCustom)) {
                 logCapabilitySkip(emfPresent, packEnabled, anyCustom);
                 return;
             }
-            assertFadedOpacities(context);
+            assertFadedOpacities(context, expectCustom);
             ArmorHider.LOGGER.info("[smoke/fcgt] #360 custom-armor translucency checks passed");
         }
     }
@@ -93,21 +97,21 @@ public final class EmfCustomArmorTranslucencySmokeTest implements FabricClientGa
      * EMF's custom armor model rendered at any step (the capability signal that separates a real
      * regression from a headless software-GL SKIP).
      */
-    private static boolean renderOpacityGradient(ClientGameTestContext context) {
+    private static boolean renderOpacityGradient(ClientGameTestContext context, boolean expectCustom) {
         boolean anyCustom = false;
         for (int i = 0; i < OPACITIES.length; i++) {
-            anyCustom |= observeOpacity(context, PERCENTS[i], OPACITIES[i]);
+            anyCustom |= observeOpacity(context, PERCENTS[i], OPACITIES[i], expectCustom);
         }
         return anyCustom;
     }
 
     /** Re-renders the faded steps and asserts EMF kept its custom model on each. */
-    private static void assertFadedOpacities(ClientGameTestContext context) {
+    private static void assertFadedOpacities(ClientGameTestContext context, boolean expectCustom) {
         for (int i = 0; i < OPACITIES.length; i++) {
             if (PERCENTS[i] == 100) {
                 continue;
             }
-            boolean custom = observeOpacity(context, PERCENTS[i], OPACITIES[i]);
+            boolean custom = observeOpacity(context, PERCENTS[i], OPACITIES[i], expectCustom);
             assertFaded(PERCENTS[i], custom);
         }
     }
@@ -131,11 +135,13 @@ public final class EmfCustomArmorTranslucencySmokeTest implements FabricClientGa
     }
 
     /**
-     * Applies {@code opacity} to all four armor slots, lets the render settle (polling a faded step
-     * until EMF's custom model is seen or a ceiling elapses), screenshots, and returns whether the
-     * custom-armor path ({@link AhArmProbe#PATH_CUSTOM}) was seen.
+     * Applies {@code opacity} to all four armor slots, lets the render settle, screenshots, and returns
+     * whether the custom-armor path ({@link AhArmProbe#PATH_CUSTOM}) was seen. When {@code expectCustom}
+     * is set (EMF + pack present on capable, non-software GL) a faded step polls until EMF's custom model
+     * is seen or a ceiling elapses; otherwise the custom path is unreachable in this environment, so a
+     * single settle wait replaces the poll instead of burning the full ceiling before the SKIP.
      */
-    private static boolean observeOpacity(ClientGameTestContext context, int pct, double opacity) {
+    private static boolean observeOpacity(ClientGameTestContext context, int pct, double opacity, boolean expectCustom) {
         context.runOnClient(client -> {
             var config = ArmorHiderClient.CLIENT_CONFIG_MANAGER
                     .resolveConfig(ArmorHiderClient.getCurrentPlayerName());
@@ -148,12 +154,17 @@ public final class EmfCustomArmorTranslucencySmokeTest implements FabricClientGa
         });
         boolean faded = opacity < 1.0;
         String path;
-        int waited = 0;
-        do {
+        if (faded && expectCustom) {
+            int waited = 0;
+            do {
+                context.waitTicks(10);
+                path = AhArmProbe.lastPath();
+                waited += 10;
+            } while (!AhArmProbe.PATH_CUSTOM.equals(path) && waited < 300);
+        } else {
             context.waitTicks(10);
             path = AhArmProbe.lastPath();
-            waited += 10;
-        } while (faded && !AhArmProbe.PATH_CUSTOM.equals(path) && waited < 300);
+        }
         boolean custom = AhArmProbe.PATH_CUSTOM.equals(path);
         context.takeScreenshot("emf360_" + pct);
         ArmorHider.LOGGER.info("[smoke/fcgt] #360 opacity {}%: emfPath={}", pct, path);
@@ -213,6 +224,17 @@ public final class EmfCustomArmorTranslucencySmokeTest implements FabricClientGa
             client.reloadResourcePacks();
         }
         return found;
+    }
+
+    /**
+     * Whether the client is running on a software GL rasterizer (Mesa llvmpipe on the headless CI
+     * runner), where GPU-dependent EMF custom-model rendering does not reliably happen. Keyed off the
+     * {@code LIBGL_ALWAYS_SOFTWARE} env var the smoke workflow sets - version-agnostic and needs no GL
+     * API, so it stays safe across every stonecutter variant.
+     */
+    private static boolean armorHider$isSoftwareGl() {
+        String flag = System.getenv("LIBGL_ALWAYS_SOFTWARE");
+        return "1".equals(flag) || "true".equalsIgnoreCase(flag);
     }
 
     /**

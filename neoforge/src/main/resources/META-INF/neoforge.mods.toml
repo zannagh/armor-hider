@@ -8,7 +8,7 @@ version="${version}"
 displayName="Armor Hider"
 description="Small mod to hide armor pieces based on player preferences."
 authors="zannagh"
-logoFile="assets/armor-hider/icon.png"
+iconFile="assets/armor-hider/icon.png"
 
 [[mixins]]
 config="armor-hider.mixins.json"
@@ -36,3 +36,12 @@ type="optional"
 versionRange="[5.4,)"
 ordering="AFTER"
 side="SERVER"
+
+# Optional: armor-hider still loads when EMF is absent, but refuses to load against EMF older
+# than 3.3, whose render API this build hard-links (EmfForcedVanillaResolver). Client-side only.
+[[dependencies."armor_hider"]]
+modId="entity_model_features"
+type="optional"
+versionRange="[3.3,)"
+ordering="NONE"
+side="CLIENT"

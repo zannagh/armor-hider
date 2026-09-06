@@ -86,6 +86,16 @@ public interface AhRenderManagementApi {
     }
 
     /**
+     * @return True if any per-scope context (empty or not) is currently active. A clean top-level
+     * entity-state extraction has none - scopes are only entered during the submit/layer phase - so
+     * this being true at extraction time signals a re-entrant, nested extraction (see
+     * {@link AhRenderStateImpl#hasAnyActiveScope()}).
+     */
+    static boolean hasAnyActiveScope() {
+        return AhRenderStateImpl.hasAnyActiveScope();
+    }
+
+    /**
      * @return whether vanilla rendering should be enforced (combat-detection result). Used by compat
      * code (EMF, …) that needs to fall back to vanilla geometry when a player's combat config requires it.
      */
