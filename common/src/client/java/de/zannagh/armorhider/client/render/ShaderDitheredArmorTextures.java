@@ -3,8 +3,8 @@ package de.zannagh.armorhider.client.render;
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.configuration.IrisPartialTransparencyMode;import net.minecraft.resources.Identifier;
 
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 //? if >= 26.2-1.pre && < 26.3-0.snapshot.2 {
 import com.mojang.blaze3d.platform.NativeImage;
@@ -45,7 +45,17 @@ public final class ShaderDitheredArmorTextures {
     // many derived textures per armor material) while still giving a smooth-enough gradation.
     public static final int BUCKETS = 32;
 
-    private static final Set<Identifier> REGISTERED = ConcurrentHashMap.newKeySet();
+    // Approximate native-memory budget for generated dither textures. Each entry is a full RGBA NativeImage
+    // plus its GL texture (up to tens of MB under HD packs), so the cache is byte-budgeted, not count-limited.
+    // Once the total exceeds this, least-recently-used entries are released until it fits again (issue #357).
+    private static final long MAX_CACHE_BYTES = 1024L * 1024L * 1024L;
+
+    // Access-ordered LRU of derived dither id -> approximate native byte size, guarded by CACHE_LOCK. Replaces
+    // the former unbounded set that only ever released on a resource reload, which could accumulate many GB of
+    // native textures across a session and exhaust off-heap memory.
+    private static final Object CACHE_LOCK = new Object();
+    private static final LinkedHashMap<Identifier, Long> CACHE = new LinkedHashMap<>(64, 0.75F, true);
+    private static long cacheBytes = 0L;
 
     // Golden-ratio conjugate: a low-discrepancy per-phase offset so the PHASES thresholds spread evenly
     // across [0,1) (each pixel is kept in ~coverage of the phases, consecutive frames decorrelated).
@@ -95,25 +105,61 @@ public final class ShaderDitheredArmorTextures {
                 : 0;
         Identifier derived = Identifier.fromNamespaceAndPath("armor_hider",
                 "dither/" + bucket + "/p" + phase + "/" + base.getNamespace() + "/" + base.getPath());
-        if (REGISTERED.contains(derived)) {
-            return derived;
+        synchronized (CACHE_LOCK) {
+            // get() on the access-ordered map both checks presence and marks the entry most-recently-used.
+            if (CACHE.get(derived) != null) {
+                return derived;
+            }
         }
+        // Track the native resources so a throw anywhere below (e.g. a NativeImage allocation failing under
+        // the very memory pressure this class guards against) frees them in finally instead of leaking.
+        NativeImage source = null;
+        NativeImage image = null;
+        DynamicTexture texture = null;
         try {
-            NativeImage source = readBaseTexture(base);
+            source = readBaseTexture(base);
             if (source == null) {
                 return null;
             }
             float phaseOffset = (phase * GOLDEN_CONJUGATE) % 1.0F;
-            NativeImage image = buildDithered(source, (float) bucket / BUCKETS, phaseOffset, config);
+            image = buildDithered(source, (float) bucket / BUCKETS, phaseOffset, config);
             source.close();
-            DynamicTexture texture = new DynamicTexture(derived::toString, image);
-            Minecraft.getInstance().getTextureManager().register(derived, texture);
-            REGISTERED.add(derived);
+            source = null;
+            long bytes = (long) image.getWidth() * image.getHeight() * 4L;
+            texture = new DynamicTexture(derived::toString, image);
+            // DynamicTexture now owns the image and closes it on texture.close(); drop our handle so the
+            // finally block never double-closes it.
+            image = null;
+            synchronized (CACHE_LOCK) {
+                if (CACHE.containsKey(derived)) {
+                    // Lost a race: another thread already built and registered this id. Drop our copy
+                    // (frees the NativeImage + GL texture) rather than leaking it or double-registering.
+                    texture.close();
+                    texture = null;
+                    return derived;
+                }
+                Minecraft.getInstance().getTextureManager().register(derived, texture);
+                CACHE.put(derived, bytes);
+                cacheBytes += bytes;
+                // Ownership has passed to the TextureManager / cache; don't let finally close it.
+                texture = null;
+                evictIfOverBudget();
+            }
             return derived;
         } catch (Throwable t) {
             ArmorHider.LOGGER.warn("[armor-hider] failed to build dithered armor texture for {} ({})",
                     base, t.toString());
             return null;
+        } finally {
+            if (source != null) {
+                source.close();
+            }
+            if (image != null) {
+                image.close();
+            }
+            if (texture != null) {
+                texture.close();
+            }
         }
         //?} else {
         /*return null;
@@ -125,20 +171,45 @@ public final class ShaderDitheredArmorTextures {
     // the ResourceManager instance, so an identity change signals that cached textures are stale.
     private static ResourceManager lastResourceManager;
 
+    // Releases least-recently-used dither textures (freeing each NativeImage + GL texture) until the cache
+    // fits within MAX_CACHE_BYTES. The caller must hold CACHE_LOCK; access-order iteration visits LRU first.
+    private static void evictIfOverBudget() {
+        if (cacheBytes <= MAX_CACHE_BYTES) {
+            return;
+        }
+        var textureManager = Minecraft.getInstance().getTextureManager();
+        var iterator = CACHE.entrySet().iterator();
+        int evicted = 0;
+        while (cacheBytes > MAX_CACHE_BYTES && iterator.hasNext()) {
+            Map.Entry<Identifier, Long> eldest = iterator.next();
+            textureManager.release(eldest.getKey());
+            cacheBytes -= eldest.getValue();
+            iterator.remove();
+            evicted++;
+        }
+        if (evicted > 0) {
+            ArmorHider.LOGGER.debug("[armor-hider] dither cache over budget - released {} LRU textures ({} MB now cached)",
+                    evicted, cacheBytes / (1024L * 1024L));
+        }
+    }
+
     private static void invalidateCacheIfNeeded() {
         ResourceManager current = Minecraft.getInstance().getResourceManager();
         if (current == lastResourceManager) {
             return;
         }
-        if (lastResourceManager != null && !REGISTERED.isEmpty()) {
-            var textureManager = Minecraft.getInstance().getTextureManager();
-            for (Identifier id : REGISTERED) {
-                textureManager.release(id);
+        synchronized (CACHE_LOCK) {
+            if (lastResourceManager != null && !CACHE.isEmpty()) {
+                var textureManager = Minecraft.getInstance().getTextureManager();
+                for (Identifier id : CACHE.keySet()) {
+                    textureManager.release(id);
+                }
+                ArmorHider.LOGGER.debug("[armor-hider] resource reload - released {} cached dither textures",
+                        CACHE.size());
             }
-            ArmorHider.LOGGER.debug("[armor-hider] resource reload - released {} cached dither textures",
-                    REGISTERED.size());
+            CACHE.clear();
+            cacheBytes = 0L;
         }
-        REGISTERED.clear();
         lastResourceManager = current;
     }
 
