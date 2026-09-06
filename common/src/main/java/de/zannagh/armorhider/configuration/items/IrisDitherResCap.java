@@ -11,9 +11,12 @@ import de.zannagh.armorhider.configuration.abstractions.IntConfigurationItem;
 public class IrisDitherResCap extends IntConfigurationItem {
 
     /**
-     * The default opacity value.
+     * The default resolution cap (longest side, in pixels) for a generated dither texture. Lowered from 8192
+     * to keep each cached texture small: at 8192 a single entry could be 8192*8192*4 = 256 MB, which under an
+     * HD armor pack made the dither cache exhaust native memory (issue #357). At 2048 an entry is at most
+     * 2048*2048*4 = 16 MB. Users on very high-res packs can still raise it up to the max.
      */
-    public static final Integer DEFAULT_SCALE = 8192;
+    public static final Integer DEFAULT_SCALE = 2048;
 
     public IrisDitherResCap() {
         super();
