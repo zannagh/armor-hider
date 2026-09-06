@@ -47,6 +47,9 @@
     "minecraft": "${fabric_minecraft_version}",
     "java": ">=${java_version}"
   },
+  "breaks": {
+    "entity_model_features": "<3.3"
+  },
   "suggests": {
     "luckperms": ">=5.4"
   }

@@ -51,6 +51,7 @@ class FcgtScenarioTest {
             "gender-breast-armor",
             "armored-elytra-gender",
             "emf-fa",
+            "emf-360",
             "fabric-armor-renderer"
     })
     void scenario(String fcgtId) throws Exception {

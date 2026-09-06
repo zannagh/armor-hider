@@ -98,6 +98,13 @@ public class EquipmentRenderMixin {
         // skips that step and leaves armor pieces in stale/default poses. ElytraModel likewise owns
         // the live wing rotations used by the queued draw.
         if (original instanceof HumanoidModel<?> humanoid) {
+            // #360: with EMF present, the custom armor model must survive to EMF's deferred draw, where
+            // EmfModelPartMixin makes it translucent using the pack's own custom-UV texture. Swapping in
+            // vanilla geometry here while the pack's custom-UV texture is still bound produces offset
+            // texels on faded armor. Mirror the ElytraModel EMF guard below: keep the original model.
+            if (CompatManager.requiresCompatTo(CompatFlags.ENTITY_MODEL_FEATURES)) {
+                return original;
+            }
             armorHider$recordEquipmentFallbackIfEnabled();
             return (Model<? super S>) new HumanoidModel<>(
                     vanillaRoot, original::renderType) {

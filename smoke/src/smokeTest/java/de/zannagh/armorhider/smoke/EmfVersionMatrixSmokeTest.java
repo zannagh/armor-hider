@@ -12,12 +12,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Runs the {@code emf-fa} FCGT (fabric-client-gametest) scenario against BOTH pinned EMF versions on
- * {@link SmokeMatrixTest#FCGT_PER_ID_VARIANT}, one gametest JVM at a time. Each parameter forks a
+ * Runs the {@code emf-fa} FCGT (fabric-client-gametest) scenario against the pinned EMF 3.3 line on
+ * {@link SmokeMatrixTest#FCGT_PER_ID_VARIANT}, in a single gametest JVM. The parameter forks a
  * single {@code runClientGametest} launch with {@code -Psmoke.emf.version=<id>}, which swaps the EMF
  * jar the fetch drops into {@code run/mods} WITHOUT changing the pinned {@code emf.version} in
  * {@code stonecutter.properties.toml}. {@code run/mods} is wiped before every launch (the fetch task
- * is never up-to-date), so the two sequential launches stay hermetic in one run dir.
+ * is never up-to-date), so the launch stays hermetic in one run dir.
  *
  * <p>Purpose: catch an EMF-version regression in the armor compat path (issue #217/EMF custom-model
  * rendering) before a new EMF release is promoted to the default pin. The {@code emf-fa} scenario
@@ -25,13 +25,13 @@ import java.util.List;
  * headless runner this is boot/no-crash coverage across both EMF jars; the strict path assertions
  * only bite on a real GPU.</p>
  */
-// OPT-IN: two extra full client launches (~one gametest JVM each) that only matter around an EMF
+// OPT-IN: one extra full client launch (~one gametest JVM) that only matters around an EMF
 // version bump, so this stays OUT of the default suite. Enable it with -Dsmoke.emf.matrix=true
 // (the nightly full-matrix CI job sets it; the PR gate does not).
 @EnabledIfSystemProperty(named = "smoke.emf.matrix", matches = "true")
-// Both parameterized launches fork runClientGametest against the SAME variant run dir and each wipes
-// run/mods on start; under -Dsmoke.parallel they would race. This lock serializes them (and composes
-// with any other test that takes the same run-dir key). Cross-class serialization against
+// The launch forks runClientGametest against the variant run dir and wipes run/mods on start; under
+// -Dsmoke.parallel it would race any other test on the same run dir. This lock serializes it (and
+// composes with any other test that takes the same run-dir key). Cross-class serialization against
 // SmokeMatrixTest's fabric-26.2 rows is separate - that class guards its own rows with an in-process
 // lock - but the CI nightly step runs this class in its own filtered, non-parallel gradle invocation.
 @ResourceLock("fcgt-run-" + SmokeMatrixTest.FCGT_PER_ID_VARIANT)
@@ -45,8 +45,7 @@ class EmfVersionMatrixSmokeTest {
     @CsvSource({
             // Modrinth version ids for fabric-26.2: emfVersionId, etfVersionId. EMF and ETF are pinned
             // together because EMF 3.3 hard-requires ETF 7.2+ (Fabric refuses to launch otherwise).
-            "xQeW3qQB, HLCBKYFD", // EMF 3.2.6 + ETF 7.1.1 - the current default pins
-            "GYu73iPJ, URB7DuXS"  // EMF 3.3   + ETF 7.2   - the newer release the matrix guards against
+            "GYu73iPJ, URB7DuXS"  // EMF 3.3 + ETF 7.2 - the only supported EMF line (3.2.x dropped)
     })
     void emfVersion(String emfVersionId, String etfVersionId) throws Exception {
         Path repoRoot = GradleFork.repoRoot();

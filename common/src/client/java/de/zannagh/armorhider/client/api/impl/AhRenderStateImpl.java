@@ -214,6 +214,17 @@ public final class AhRenderStateImpl {
         return ctx != null && !ctx.isEmpty();
     }
 
+    /**
+     * Whether any per-scope context is currently active (present in the map), including empty
+     * contexts. Per-scope contexts are only entered during the submit/layer phase and are removed
+     * by their paired exit, so a non-empty map at the start of a fresh entity-state extraction means
+     * that extraction is nested inside an already-active submit (e.g. EMF 3.3 re-extracting the
+     * player state from within the off-hand item submit) rather than a clean top-level extraction.
+     */
+    public static boolean hasAnyActiveScope() {
+        return !ACTIVE_SCOPES.get().isEmpty();
+    }
+
     public static boolean shouldEnforceVanillaRendering() {
         return shouldEnforceVanillaRendering(currentlyHandledPlayerName());
     }

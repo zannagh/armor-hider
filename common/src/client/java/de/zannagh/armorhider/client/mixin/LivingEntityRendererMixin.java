@@ -86,6 +86,18 @@ public abstract class LivingEntityRendererMixin
         if (!(state instanceof AvatarRenderState)) {
             return;
         }
+        // Re-entrancy guard. setInEntityRender() bulk-clears every active per-scope context (its whole
+        // purpose is to wipe stale state at the start of a fresh entity render). EMF 3.3 re-extracts the
+        // player render state from *inside* an item submit - ItemStackRenderState$LayerRenderState.submit
+        // -> EMFEntityRenderState.manualPlayerState() -> AvatarRenderer.extractRenderState() - so this hook
+        // fires again while the off-hand (or any layer) scope is still open, and the bulk clear sweeps that
+        // live scope, leaving its paired @At("TAIL") exit with nothing to remove (a leaked hide/opacity
+        // scope that bleeds onto later submits). A clean top-level extraction never has an active scope
+        // (scopes are only entered during the submit/layer phase), so a non-empty map here means we are
+        // nested inside an already-open submit: keep that render's scope state and skip the reset.
+        if (AhRenderManagementApi.isInEntityRender() && AhRenderManagementApi.hasAnyActiveScope()) {
+            return;
+        }
         AhRenderManagementApi.setInEntityRender();
         if (entity instanceof IdentityCarrier carrier) {
             AhRenderManagementApi.setCurrentPlayer(carrier.armorHider$playerName());
