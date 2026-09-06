@@ -352,6 +352,12 @@ if (branch == "fabric") {
         // actually present at runtime. Registered everywhere fcgt is on - run it in isolation with
         // `-Psmoke.fcgt.only=emf-fa -Pcompat=emf,etf,fa`.
         add("emf-fa" to "de.zannagh.armorhider.smoke.EmfFreshAnimationsSmokeTest")
+        // EMF custom-3D-armor translucency repro (issue #360). The class is `//? if fcgt` only (no
+        // pack-pin gate) so it always compiles on fcgt variants; it self-detects whether EMF and the
+        // Glowing 3D Armor pack are actually present/renderable at runtime and degrades to a
+        // screenshot-only SKIP otherwise. Run it in isolation with
+        // `-Psmoke.fcgt.only=emf-360 -Pcompat=emf,etf,glowingarmor`.
+        add("emf-360" to "de.zannagh.armorhider.smoke.EmfCustomArmorTranslucencySmokeTest")
         // Fabric API ArmorRenderer compat repro (issue #348). `//? if fcgt` only - it searches the item
         // registry for whatever item has a custom ArmorRenderer registered and self-skips when the run
         // has none, so it is safe to register on every fcgt variant. Nycto supplies one on the rows that
