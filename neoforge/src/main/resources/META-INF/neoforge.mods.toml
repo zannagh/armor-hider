@@ -8,7 +8,7 @@ version="${version}"
 displayName="Armor Hider"
 description="Small mod to hide armor pieces based on player preferences."
 authors="zannagh"
-iconFile="assets/armor-hider/icon.png"
+logoFile="assets/armor-hider/icon.png"
 
 [[mixins]]
 config="armor-hider.mixins.json"
