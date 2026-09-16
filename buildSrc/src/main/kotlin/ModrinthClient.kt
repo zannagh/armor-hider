@@ -33,11 +33,16 @@ internal class ModrinthClient(
     private val mcGameVersion: String?,
     private val loader: String?,
     private val downloadAttemptSeconds: Long = DOWNLOAD_ATTEMPT_SECONDS,
+    private val metadataTimeoutSeconds: Long = METADATA_TIMEOUT_SECONDS,
 ) {
 
     companion object {
         const val DOWNLOAD_ATTEMPT_SECONDS = 30L
         const val DOWNLOAD_ATTEMPTS = 2
+        const val METADATA_TIMEOUT_SECONDS = 30L
+        const val METADATA_ATTEMPTS = 2
+        /** Upper bound honoured for a `Retry-After` header on 429/5xx, so a hostile value cannot stall the build. */
+        const val MAX_RETRY_AFTER_SECONDS = 5L
         private const val USER_AGENT = "armor-hider-buildscript"
     }
 
@@ -52,15 +57,58 @@ internal class ModrinthClient(
      */
     private val projectResolutionMemo = mutableMapOf<String, String?>()
 
-    /** The Modrinth version object for [hash]. */
+    /** Base URL, overridable so tests can point the client at a local server. */
+    internal var apiBase: String = "https://api.modrinth.com/v2"
+
+    /**
+     * The Modrinth version object for [hash].
+     *
+     * @throws IOException on a non-2xx status, a timeout or a connection failure that survived the retry -
+     *         never silently parses an error body as a version.
+     */
     fun version(hash: String): JsonObject {
-        val body = http.send(
-            HttpRequest.newBuilder(URI.create("https://api.modrinth.com/v2/version/$hash"))
-                .header("User-Agent", USER_AGENT)
-                .GET().build(),
-            HttpResponse.BodyHandlers.ofString()
-        ).body()
+        val body = getJson("$apiBase/version/$hash", "version $hash")
         return JsonParser.parseString(body).asJsonObject
+    }
+
+    /**
+     * GETs a JSON body with a [metadataTimeoutSeconds] request timeout and a status check. Retries once on
+     * 429 / 5xx / timeout / connection failure (honouring `Retry-After`, capped at [MAX_RETRY_AFTER_SECONDS]);
+     * every other non-2xx throws immediately. Without the status check a 429 or 5xx body used to be handed
+     * to the JSON parser as if it were a version.
+     */
+    private fun getJson(url: String, label: String): String {
+        var last: IOException? = null
+        for (attempt in 1..METADATA_ATTEMPTS) {
+            val request = HttpRequest.newBuilder(URI.create(url))
+                .header("User-Agent", USER_AGENT)
+                .timeout(Duration.ofSeconds(metadataTimeoutSeconds))
+                .GET().build()
+            val response = try {
+                http.send(request, HttpResponse.BodyHandlers.ofString())
+            } catch (e: IOException) {
+                last = IOException("${e.javaClass.simpleName}: ${e.message} requesting $url ($label)", e)
+                logger.warn("[fetchCompatJars] {} attempt {}/{}: {}", label, attempt, METADATA_ATTEMPTS, last.message)
+                continue
+            }
+            val status = response.statusCode()
+            if (status in 200..299) {
+                return response.body()
+            }
+            last = IOException("HTTP $status from $url ($label)")
+            val retryable = status == 429 || status >= 500
+            if (!retryable) {
+                throw last
+            }
+            logger.warn("[fetchCompatJars] {} attempt {}/{}: {}", label, attempt, METADATA_ATTEMPTS, last.message)
+            if (attempt < METADATA_ATTEMPTS) {
+                val retryAfter = response.headers().firstValue("Retry-After")
+                    .map { it.trim().toLongOrNull() ?: 0L }.orElse(1L)
+                    .coerceIn(0L, MAX_RETRY_AFTER_SECONDS)
+                Thread.sleep(retryAfter * 1000L)
+            }
+        }
+        throw last ?: IOException("request failed: $url ($label)")
     }
 
     /**
@@ -140,15 +188,11 @@ internal class ModrinthClient(
         }
         val gv = URLEncoder.encode("""["$mcGameVersion"]""", StandardCharsets.UTF_8)
         val ld = URLEncoder.encode("""["$loader"]""", StandardCharsets.UTF_8)
-        val url = "https://api.modrinth.com/v2/project/$projectId/version?game_versions=$gv&loaders=$ld"
+        val url = "$apiBase/project/$projectId/version?game_versions=$gv&loaders=$ld"
+        // Auto-resolve is a best-effort fallback: a failed lookup is logged and reported as "no version"
+        // (the caller then skips the mod), unlike a failed lookup of an explicit pin, which fails the task.
         val body = try {
-            http.send(
-                HttpRequest.newBuilder(URI.create(url))
-                    .header("User-Agent", USER_AGENT)
-                    .timeout(Duration.ofSeconds(30))
-                    .GET().build(),
-                HttpResponse.BodyHandlers.ofString()
-            ).body()
+            getJson(url, "$parentLabel auto-resolve project=$projectId")
         } catch (e: Exception) {
             logger.warn("[fetchCompatJars] {} auto-resolve project={} failed: {}", parentLabel, projectId, e.message)
             projectResolutionMemo[projectId] = null

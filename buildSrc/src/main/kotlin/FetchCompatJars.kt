@@ -1,4 +1,5 @@
 import org.gradle.api.DefaultTask
+import org.gradle.api.GradleException
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
@@ -110,12 +111,18 @@ abstract class FetchCompatJars : DefaultTask() {
         // Phase 1 - explicit pins only, deps deferred. Downloading these first is what makes the
         // pin authoritative: it claims its project before any transitive resolution gets a look in,
         // so key iteration order can no longer decide which fabric-api the run boots against.
+        // An explicit pin that cannot be fetched (metadata lookup or download failed after the retries)
+        // fails the task instead of quietly booting with an incomplete mod set - a smoke row that silently
+        // ran without the mod it was meant to exercise looks identical to a green one. This is distinct
+        // from the version-mismatch SKIP inside fetchVersion, which returns normally and stays a warning.
+        val failedPins = mutableListOf<String>()
         keys.forEach { key ->
             val hash = versionHashes.get()[key] ?: return@forEach
             try {
                 fetchVersion(hash, target, seenHashes, claimedProjects, pendingDeps, key)
             } catch (e: Exception) {
-                logger.warn("[fetchCompatJars] {} ({}): {}", key, hash, e.message)
+                logger.error("[fetchCompatJars] pinned {} ({}) could not be fetched: {}", key, hash, e.message)
+                failedPins += "$key ($hash): ${e.message}"
             }
         }
 
@@ -143,6 +150,13 @@ abstract class FetchCompatJars : DefaultTask() {
             } catch (e: Exception) {
                 logger.warn("[fetchCompatJars] {}: {}", pending.label, e.message)
             }
+        }
+
+        if (failedPins.isNotEmpty()) {
+            throw GradleException(
+                "[fetchCompatJars] ${failedPins.size} pinned compat mod(s) could not be fetched - refusing to launch" +
+                        " with an incomplete mod set:\n  " + failedPins.joinToString("\n  ")
+            )
         }
     }
 

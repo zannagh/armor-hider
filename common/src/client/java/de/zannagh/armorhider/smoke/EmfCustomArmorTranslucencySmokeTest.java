@@ -235,16 +235,25 @@ public final class EmfCustomArmorTranslucencySmokeTest implements FabricClientGa
         repo.reload();
         List<String> selected = new ArrayList<>(repo.getSelectedIds());
         boolean found = false;
+        boolean added = false;
         for (String id : repo.getAvailableIds()) {
             String lower = id.toLowerCase(Locale.ROOT);
             boolean glowingArmor = lower.contains("glowing") || (lower.contains("3d") && lower.contains("armor"));
-            if (glowingArmor && !selected.contains(id)) {
+            if (!glowingArmor) {
+                continue;
+            }
+            // A pack persisted as selected by an earlier run (run/options.txt) is just as enabled as one
+            // selected now; reporting it as "not found" turned the strict #360 checks into a SKIP on reruns.
+            found = true;
+            if (selected.contains(id)) {
+                ArmorHider.LOGGER.info("[smoke/fcgt] resource pack already selected: {}", id);
+            } else {
                 selected.add(id);
-                found = true;
+                added = true;
                 ArmorHider.LOGGER.info("[smoke/fcgt] enabling resource pack: {}", id);
             }
         }
-        if (found) {
+        if (added) {
             repo.setSelected(selected);
             client.reloadResourcePacks();
         }
