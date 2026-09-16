@@ -33,13 +33,21 @@ public final class FirstPersonCompat {
     }
 
     /**
-     * Whether {@code state} is the first-person body FPM renders for the camera entity.
+     * Whether {@code state} is the first-person body FPM renders for the camera entity, honouring the
+     * test-only guard switch ({@link ArmorHiderRenderTypes#areFirstPersonGuardsEnabled()}).
      */
     public static boolean isFirstPersonBody(@Nullable Object state) {
+        return ArmorHiderRenderTypes.areFirstPersonGuardsEnabled() && isCameraEntityBody(state);
+    }
+
+    /**
+     * Whether {@code state} is the first-person body FPM renders for the camera entity, regardless of the
+     * guard switch. Diagnostic only: lets the first-person smoke attribute a scope entry to the camera body
+     * even while the guards are disabled.
+     */
+    public static boolean isCameraEntityBody(@Nullable Object state) {
         //? if firstperson {
-        if (state == null
-                || !ArmorHiderRenderTypes.areFirstPersonGuardsEnabled()
-                || !CompatManager.requiresCompatTo(CompatFlags.FIRST_PERSON_MODEL)) {
+        if (state == null || !CompatManager.requiresCompatTo(CompatFlags.FIRST_PERSON_MODEL)) {
             return false;
         }
         return state instanceof LivingEntityRenderStateAccess access && access.isCameraEntity();
@@ -51,6 +59,13 @@ public final class FirstPersonCompat {
     /**
      * Mirrors {@code dev.tr7zw.firstperson.mixins.CustomHeadLayerMixin}: the head layer is cancelled
      * unconditionally for the camera entity (the head model is hidden in first person anyway).
+     * <p>
+     * Defence in depth rather than the thing that prevents a leak today: FPM 2.7.2 also blanks the worn
+     * head for its body render ({@code PlayerMixin.getItemBySlot} returns EMPTY for HEAD while
+     * {@code isRenderingPlayer}), so the extracted state carries no head item, our head renderer resolves
+     * no modification, and no head scope is ever entered for the camera body - with or without this guard.
+     * Verified on a real GPU on 2026-09-16 (FirstPersonSmokeTest). The guard stays so a future FPM that
+     * renders the worn head again cannot strand a scope behind its cancel.
      */
     public static boolean suppressesHeadLayer(@Nullable Object state) {
         return record(isFirstPersonBody(state));

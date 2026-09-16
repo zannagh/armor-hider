@@ -22,6 +22,10 @@ val compatKeys = listOf(
     // -> NoClassDefFoundError at boot. Pinned explicitly (per variant) to the last build that has it so
     // the transitive resolution is overridden by our pin.
     "strawberrylib",
+    // Sodium - Iris's required dep, declared as a version RANGE the fetch does not honour: it auto-resolves
+    // the newest Sodium, which an older pinned Iris refuses (Iris 1.8.8 on 1.21.1 needs 0.6.x, the fetch
+    // picked 0.8.13 -> "Incompatible mods found"). Pinned per variant only where the Iris pin needs it.
+    "sodium",
     // Fresh Animations (issue #217). Not a mod - a resource pack fetched into run/resourcepacks/
     // by fetchFaResourcePack, not run/mods/. Requires emf + etf to actually animate.
     "fa",

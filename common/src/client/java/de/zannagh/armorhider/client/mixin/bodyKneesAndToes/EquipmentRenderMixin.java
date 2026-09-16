@@ -12,6 +12,7 @@ import de.zannagh.armorhider.client.api.AhRenderManagementApi;
 import de.zannagh.armorhider.client.api.AhRenderInterceptionRegistryApi;
 import de.zannagh.armorhider.client.common.RenderScope;
 import de.zannagh.armorhider.client.common.VanillaRootAccessor;
+import de.zannagh.armorhider.client.compat.GenderBreastRenderGuard;
 import de.zannagh.armorhider.client.render.AhArmProbe;
 import de.zannagh.armorhider.client.render.RenderModifications;
 import de.zannagh.armorhider.client.render.VanillaArmorTextureManager;
@@ -75,6 +76,13 @@ public class EquipmentRenderMixin {
         }
     }
 
+    @Unique
+    private static void armorHider$recordEmfModelKeptIfEnabled(){
+        if (AhArmProbe.isEnabled()) {
+            AhArmProbe.recordEmfModelKept();
+        }
+    }
+
     //? if >= 1.21.11 {
     /**
      * EMF/Fresh Animations models are rendered later than this equipment submission in 1.21.11+.
@@ -103,6 +111,7 @@ public class EquipmentRenderMixin {
             // vanilla geometry here while the pack's custom-UV texture is still bound produces offset
             // texels on faded armor. Mirror the ElytraModel EMF guard below: keep the original model.
             if (CompatManager.requiresCompatTo(CompatFlags.ENTITY_MODEL_FEATURES)) {
+                armorHider$recordEmfModelKeptIfEnabled();
                 return original;
             }
             armorHider$recordEquipmentFallbackIfEnabled();
@@ -121,6 +130,7 @@ public class EquipmentRenderMixin {
             // in order to not dislocate the Elytra from the player model.
             // This matches 0.12.17 behavior.
             if (CompatManager.requiresCompatTo(CompatFlags.ENTITY_MODEL_FEATURES)) {
+                armorHider$recordEmfModelKeptIfEnabled();
                 return original;
             }
             armorHider$recordEquipmentFallbackIfEnabled();
@@ -215,6 +225,13 @@ public class EquipmentRenderMixin {
         // ever covers an otherwise-unscoped foreign elytra draw.
         if (AhRenderManagementApi.hasScopeModification(RenderScope.ELYTRA)
                 || AhRenderManagementApi.hasScopeModification(RenderScope.ARMOR_PIECE)) {
+            return;
+        }
+        // FGM 5.0.0-Beta.5+ draws its breast armor through this overload with the RAW worn chest stack. For
+        // a dorkix armored elytra that stack is an Items.ELYTRA, and when the chest needs no modification
+        // GenderArmorLayerV5Mixin has entered no scope - so this would otherwise route the breast piece
+        // through the elytra renderer. The breast draw is already decided (chest slot) by that mixin.
+        if (GenderBreastRenderGuard.isActive()) {
             return;
         }
         if (RenderScope.of(null, itemStack) != RenderScope.ELYTRA) {
@@ -337,7 +354,14 @@ public class EquipmentRenderMixin {
 
         Identifier resolved = VanillaArmorTextureManager.resolveArmorTexture(ctx.modification(), texture);
         var originalType = original.call(resolved);
-        return ctx.renderModificationApi().getTranslucentArmorRenderType(resolved, originalType) instanceof RenderType rt ? rt : originalType;
+        RenderType swapped = ctx.renderModificationApi().getTranslucentArmorRenderType(resolved, originalType) instanceof RenderType rt ? rt : originalType;
+        // FGM 5.0.0-Beta.5+ breast armor comes through here (see GenderArmorLayerV5Mixin); the gender smoke
+        // tests count the swaps that actually changed the render type, exactly as the pre-Beta.5 breast
+        // wrap did.
+        if (swapped != originalType && GenderBreastRenderGuard.isActive()) {
+            de.zannagh.armorhider.client.render.rendertype.ArmorHiderRenderTypes.recordBreastArmorTranslucentSwap();
+        }
+        return swapped;
     }
 
     @WrapOperation(

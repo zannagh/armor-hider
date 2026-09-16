@@ -88,6 +88,7 @@ public final class EmfCustomArmorTranslucencySmokeTest implements FabricClientGa
                 return;
             }
             assertFadedOpacities(context, expectCustom);
+            assertEmfModelKept();
             ArmorHider.LOGGER.info("[smoke/fcgt] #360 custom-armor translucency checks passed");
         }
     }
@@ -114,6 +115,27 @@ public final class EmfCustomArmorTranslucencySmokeTest implements FabricClientGa
             boolean custom = observeOpacity(context, PERCENTS[i], OPACITIES[i], expectCustom);
             assertFaded(PERCENTS[i], custom);
         }
+    }
+
+    /**
+     * The mixin-side half of #360/#362: EquipmentRenderMixin.armorHider$vanillaEquipmentModel must have
+     * seen EMF's wrapped armor model on the translucent submits and KEPT it (never swapped in vanilla
+     * geometry). Only asserted on the path where the custom model demonstrably rendered, so a headless
+     * software-GL run still degrades to the capability SKIP above instead of a false red.
+     */
+    private static void assertEmfModelKept() {
+        long fallbacks = AhArmProbe.equipmentFallbackCount();
+        long kept = AhArmProbe.emfModelKeptCount();
+        if (fallbacks > 0) {
+            throw new IllegalStateException("[smoke/fcgt] #360/#362: EMF custom armor model must be kept, but"
+                    + " the vanilla-geometry fallback fired " + fallbacks + " times");
+        }
+        if (kept == 0) {
+            throw new IllegalStateException("[smoke/fcgt] #360/#362: EMF's custom armor rendered, but the"
+                    + " EMF-model-kept branch in EquipmentRenderMixin never ran (0) - the translucent submit"
+                    + " wrap did not see EMF's model root");
+        }
+        ArmorHider.LOGGER.info("[smoke/fcgt] #360/#362 EMF armor model kept {} times, fallbacks {}", kept, fallbacks);
     }
 
     private static void logCapabilitySkip(boolean emfPresent, boolean packEnabled, boolean anyCustom) {
@@ -143,6 +165,9 @@ public final class EmfCustomArmorTranslucencySmokeTest implements FabricClientGa
      */
     private static boolean observeOpacity(ClientGameTestContext context, int pct, double opacity, boolean expectCustom) {
         context.runOnClient(client -> {
+            // Fresh sample per step: enable() only reset the path once, so a step whose render never
+            // reached EMF would otherwise inherit the previous step's PATH_CUSTOM and pass falsely.
+            AhArmProbe.resetLastPath();
             var config = ArmorHiderClient.CLIENT_CONFIG_MANAGER
                     .resolveConfig(ArmorHiderClient.getCurrentPlayerName());
             config.helmetOpacity.setValue(opacity);
@@ -210,16 +235,25 @@ public final class EmfCustomArmorTranslucencySmokeTest implements FabricClientGa
         repo.reload();
         List<String> selected = new ArrayList<>(repo.getSelectedIds());
         boolean found = false;
+        boolean added = false;
         for (String id : repo.getAvailableIds()) {
             String lower = id.toLowerCase(Locale.ROOT);
             boolean glowingArmor = lower.contains("glowing") || (lower.contains("3d") && lower.contains("armor"));
-            if (glowingArmor && !selected.contains(id)) {
+            if (!glowingArmor) {
+                continue;
+            }
+            // A pack persisted as selected by an earlier run (run/options.txt) is just as enabled as one
+            // selected now; reporting it as "not found" turned the strict #360 checks into a SKIP on reruns.
+            found = true;
+            if (selected.contains(id)) {
+                ArmorHider.LOGGER.info("[smoke/fcgt] resource pack already selected: {}", id);
+            } else {
                 selected.add(id);
-                found = true;
+                added = true;
                 ArmorHider.LOGGER.info("[smoke/fcgt] enabling resource pack: {}", id);
             }
         }
-        if (found) {
+        if (added) {
             repo.setSelected(selected);
             client.reloadResourcePacks();
         }

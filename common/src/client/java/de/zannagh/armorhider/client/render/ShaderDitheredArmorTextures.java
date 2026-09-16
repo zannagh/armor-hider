@@ -1,12 +1,13 @@
 package de.zannagh.armorhider.client.render;
 
 import de.zannagh.armorhider.ArmorHider;
-import de.zannagh.armorhider.configuration.IrisPartialTransparencyMode;import net.minecraft.resources.Identifier;
+import de.zannagh.armorhider.configuration.IrisPartialTransparencyMode;
+import net.minecraft.resources.Identifier;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-//? if >= 26.2-1.pre && < 26.3-0.snapshot.2 {
+//? if >= 26.2-1.pre {
 import com.mojang.blaze3d.platform.NativeImage;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
@@ -79,7 +80,7 @@ public final class ShaderDitheredArmorTextures {
      * @return the derived dithered texture identifier, or {@code null} to fall back.
      */
     public static Identifier ditheredTexture(Identifier base, float opacity, de.zannagh.armorhider.net.packets.PlayerConfig config) {
-        //? if >= 26.2-1.pre && < 26.3-0.snapshot.2 {
+        //? if >= 26.2-1.pre {
         if (base == null) {
             return null;
         }
@@ -103,8 +104,14 @@ public final class ShaderDitheredArmorTextures {
         int phase = mode == IrisPartialTransparencyMode.TEMPORAL_DITHERING
                 ? Math.floorMod(frameCounter, phaseCount)
                 : 0;
+        // The upscale factor and its resolution cap change the generated pixels (buildDithered), and both
+        // are per-player config: without them in the key a slider change, or another player's different
+        // settings, would keep reusing the first texture generated for this bucket/phase. The byte-budgeted
+        // LRU above still bounds the total, so extra key variants only ever evict, never accumulate.
+        int scale = Math.max(1, (int) config.irisDitheringScale.getValue());
+        int resCap = (int) config.irisDitheringResCap.getValue();
         Identifier derived = Identifier.fromNamespaceAndPath("armor_hider",
-                "dither/" + bucket + "/p" + phase + "/" + base.getNamespace() + "/" + base.getPath());
+                "dither/" + bucket + "/p" + phase + "/s" + scale + "c" + resCap + "/" + base.getNamespace() + "/" + base.getPath());
         synchronized (CACHE_LOCK) {
             // get() on the access-ordered map both checks presence and marks the entry most-recently-used.
             if (CACHE.get(derived) != null) {
@@ -166,7 +173,7 @@ public final class ShaderDitheredArmorTextures {
         *///?}
     }
 
-    //? if >= 26.2-1.pre && < 26.3-0.snapshot.2 {
+    //? if >= 26.2-1.pre {
     // The resource stack in effect when the current cache entries were built. A resource reload swaps
     // the ResourceManager instance, so an identity change signals that cached textures are stale.
     private static ResourceManager lastResourceManager;

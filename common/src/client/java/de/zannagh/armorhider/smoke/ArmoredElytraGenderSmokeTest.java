@@ -7,9 +7,16 @@
 //? if fcgt && >= 26.2-1.pre {
 package de.zannagh.armorhider.smoke;
 
-import com.wildfire.main.WildfireGender;
+// FGM 5.0.0-Beta.5 (the 26.1.2+ pins, new package layout) repackaged its runtime config API (see GenderBreastArmorSmokeTest).
+//? if >= 26.1.2 {
+import com.wildfire.api.Gender;
+import com.wildfire.common.WildfireGender;
+import com.wildfire.common.entitydata.PlayerConfigHolder;
+//? } else {
+/*import com.wildfire.main.WildfireGender;
 import com.wildfire.main.config.enums.Gender;
 import com.wildfire.main.entitydata.PlayerConfig;
+*///? }
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.api.compat.CompatFlags;
 import de.zannagh.armorhider.api.compat.CompatManager;
@@ -68,8 +75,18 @@ public final class ArmoredElytraGenderSmokeTest implements FabricClientGameTest 
                 if (player == null) {
                     throw new IllegalStateException("[smoke/fcgt] Client player did not spawn");
                 }
-                PlayerConfig genderConfig = WildfireGender.getOrAddPlayerById(player.getUUID());
+                //? if >= 26.1.2 {
+                PlayerConfigHolder genderConfig = WildfireGender.getOrAddPlayerById(player.getUUID());
+                // Beta.5's update() validates and silently keeps the old value when rejected - read it back.
+                boolean updated = genderConfig.gender().update(Gender.FEMALE);
+                if (genderConfig.gender().get() != Gender.FEMALE) {
+                    throw new IllegalStateException("[smoke/fcgt] FGM rejected the gender update (update returned "
+                            + updated + ", value is " + genderConfig.gender().get() + ")");
+                }
+                //? } else {
+                /*PlayerConfig genderConfig = WildfireGender.getOrAddPlayerById(player.getUUID());
                 genderConfig.updateGender(Gender.FEMALE);
+                *///? }
                 client.options.setCameraType(CameraType.THIRD_PERSON_BACK);
 
                 ArmorHiderClient.CLIENT_CONFIG_MANAGER.clearSessionDisableOverride();

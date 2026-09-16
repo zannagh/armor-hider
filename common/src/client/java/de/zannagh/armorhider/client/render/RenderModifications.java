@@ -66,11 +66,16 @@ public class RenderModifications implements AhRenderModificationApi {
         // (issue #342 follow-up). Render an opaque ordered-dither ("screen-door") cutout copy instead:
         // shader-safe partial opacity that never enters the translucent pass and so never lets the body
         // read through. Falls back to the translucent type if the dithered texture can't be built.
-        if (ArmorHiderRenderTypes.armorShouldWriteDepth() && slotModification.config().irisPartialTransparencyMode.getValue() != de.zannagh.armorhider.configuration.IrisPartialTransparencyMode.NONE) {
+        // The Iris mode/scale/phases/resolution cap are THIS client's render preferences (the "local
+        // settings" group of AdvancedArmorHiderSettingsScreen, saved to the local config only), not a
+        // property of the player being drawn - so read them from the local viewer's config, never from
+        // the rendered player's synced one, or a remote player's settings would decide how this GPU dithers.
+        var localConfig = armorHider$localViewerConfig();
+        if (ArmorHiderRenderTypes.armorShouldWriteDepth() && localConfig.irisPartialTransparencyMode.getValue() != de.zannagh.armorhider.configuration.IrisPartialTransparencyMode.NONE) {
             RenderType dithered = ArmorHiderRenderTypes.ditheredArmorCutout(
                     texture,
                     (float) slotModification.transparency(),
-                    slotModification.config());
+                    localConfig);
             if (dithered != null) {
                 return dithered;
             }
@@ -205,12 +210,13 @@ public class RenderModifications implements AhRenderModificationApi {
         }
         // Same under-shaders dither path as the two-arg overload, so callers that reach the render type
         // through this entry (e.g. the GeckoLib armor hook) also avoid the translucent-pass see-through.
+        var localConfig = armorHider$localViewerConfig();
         if (!slotModification.isEmpty()
                 && slotModification.needsTranslucency()
                 && ArmorHiderRenderTypes.armorShouldWriteDepth()
-                && slotModification.config().irisPartialTransparencyMode.getValue() != de.zannagh.armorhider.configuration.IrisPartialTransparencyMode.NONE) {
+                && localConfig.irisPartialTransparencyMode.getValue() != de.zannagh.armorhider.configuration.IrisPartialTransparencyMode.NONE) {
             RenderType dithered = ArmorHiderRenderTypes.ditheredArmorCutout(
-                    texture, (float) slotModification.transparency(), slotModification.config());
+                    texture, (float) slotModification.transparency(), localConfig);
             if (dithered != null) {
                 return dithered;
             }
@@ -324,5 +330,14 @@ public class RenderModifications implements AhRenderModificationApi {
         to.zScale = from.zScale;
         to.visible = from.visible;
         to.skipDraw = from.skipDraw;
+    }
+
+    /**
+     * The local viewer's config - the source the settings screen writes the Iris dithering preferences to.
+     * Falls back to the rendered player's config only if the local one is unavailable (never in a live client).
+     */
+    private de.zannagh.armorhider.net.packets.PlayerConfig armorHider$localViewerConfig() {
+        var local = de.zannagh.armorhider.client.ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig();
+        return local != null ? local : slotModification.config();
     }
 }
