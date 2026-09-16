@@ -1,6 +1,7 @@
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import org.gradle.api.logging.Logger
+import java.io.IOException
 import java.net.URI
 import java.net.URLEncoder
 import java.net.http.HttpClient
@@ -11,6 +12,9 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
 import java.time.Duration
+import java.util.concurrent.ExecutionException
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 
 /**
  * Modrinth API access for [FetchCompatJars]: version lookup, latest-version resolution and jar
@@ -19,12 +23,23 @@ import java.time.Duration
  *
  * One instance per task run - [projectResolutionMemo] is scoped to that run, so a matrix row can
  * never inherit another row's resolution.
+ *
+ * @param downloadAttemptSeconds wall-clock budget for ONE download attempt, headers and body together.
+ *        Two attempts are made, so the worst case per jar is twice this - keep it well under the smoke
+ *        matrix's 90 s per-boot ceiling, which wraps the whole `runClient` including this fetch.
  */
 internal class ModrinthClient(
     private val logger: Logger,
     private val mcGameVersion: String?,
     private val loader: String?,
+    private val downloadAttemptSeconds: Long = DOWNLOAD_ATTEMPT_SECONDS,
 ) {
+
+    companion object {
+        const val DOWNLOAD_ATTEMPT_SECONDS = 30L
+        const val DOWNLOAD_ATTEMPTS = 2
+        private const val USER_AGENT = "armor-hider-buildscript"
+    }
 
     private val http: HttpClient by lazy {
         HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(20)).build()
@@ -41,7 +56,7 @@ internal class ModrinthClient(
     fun version(hash: String): JsonObject {
         val body = http.send(
             HttpRequest.newBuilder(URI.create("https://api.modrinth.com/v2/version/$hash"))
-                .header("User-Agent", "armor-hider-buildscript")
+                .header("User-Agent", USER_AGENT)
                 .GET().build(),
             HttpResponse.BodyHandlers.ofString()
         ).body()
@@ -49,31 +64,62 @@ internal class ModrinthClient(
     }
 
     /**
-     * Streams [url] to [out], replacing whatever was there.
+     * Downloads [url] to [out], replacing whatever was there - but only ever with a complete file.
      *
-     * The request carries a timeout and a User-Agent: without them a CDN connection that opens and then
-     * stalls blocked `send` forever, hanging the whole smoke launch until its 90 s ceiling (exit 124).
-     * One retry covers a single stalled connection; a second failure is rethrown.
+     * Each attempt streams into a `.part` sibling and is bounded as a WHOLE by [downloadAttemptSeconds]
+     * (`HttpRequest.timeout` alone only covers the response headers, so a CDN body stall would still
+     * hang the smoke launch to its ceiling). The sibling is atomically moved over [out] only after a
+     * 2xx status and a body whose length matches `Content-Length` (when the server sent one); on any
+     * failure the sibling is deleted so a truncated jar can never be left in `run/mods/` for the
+     * launch to load. [DOWNLOAD_ATTEMPTS] attempts, then the last failure is rethrown; the caller
+     * ([FetchCompatJars]) logs it and continues with the remaining pins, so a failed download means a
+     * missing jar, never a corrupt one.
      */
     fun download(url: String, out: Path) {
-        val request = HttpRequest.newBuilder(URI.create(url))
-            .header("User-Agent", "armor-hider-buildscript")
-            .timeout(Duration.ofSeconds(60))
-            .GET().build()
-        try {
-            downloadOnce(request, out)
-        } catch (e: java.io.IOException) {
-            downloadOnce(request, out)
+        var last: IOException? = null
+        for (attempt in 1..DOWNLOAD_ATTEMPTS) {
+            try {
+                downloadOnce(url, out)
+                return
+            } catch (e: IOException) {
+                last = e
+                logger.warn("[fetchCompatJars] download attempt {}/{} failed for {}: {}",
+                        attempt, DOWNLOAD_ATTEMPTS, url, e.message)
+            }
         }
+        throw IOException("download failed after $DOWNLOAD_ATTEMPTS attempts: $url", last)
     }
 
-    private fun downloadOnce(request: HttpRequest, out: Path) {
-        val response = http.send(request, HttpResponse.BodyHandlers.ofInputStream())
-        response.body().use { body ->
-            if (response.statusCode() !in 200..299) {
-                throw java.io.IOException("HTTP ${response.statusCode()} downloading ${request.uri()}")
+    private fun downloadOnce(url: String, out: Path) {
+        val tmp = out.resolveSibling("${out.fileName}.part")
+        Files.deleteIfExists(tmp)
+        val request = HttpRequest.newBuilder(URI.create(url))
+            .header("User-Agent", USER_AGENT)
+            .timeout(Duration.ofSeconds(downloadAttemptSeconds))
+            .GET().build()
+        val pending = http.sendAsync(request, HttpResponse.BodyHandlers.ofFile(tmp))
+        try {
+            val response = try {
+                pending.get(downloadAttemptSeconds, TimeUnit.SECONDS)
+            } catch (e: TimeoutException) {
+                pending.cancel(true)
+                throw IOException("timed out after ${downloadAttemptSeconds}s downloading $url", e)
+            } catch (e: ExecutionException) {
+                val cause = e.cause ?: e
+                throw IOException("${cause.javaClass.simpleName}: ${cause.message} downloading $url", cause)
             }
-            Files.copy(body, out, StandardCopyOption.REPLACE_EXISTING)
+            if (response.statusCode() !in 200..299) {
+                throw IOException("HTTP ${response.statusCode()} downloading $url")
+            }
+            val expected = response.headers().firstValueAsLong("Content-Length")
+            val actual = Files.size(tmp)
+            if (expected.isPresent && expected.asLong != actual) {
+                throw IOException("truncated body ($actual of ${expected.asLong} bytes) downloading $url")
+            }
+            Files.move(tmp, out, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
+        } finally {
+            // No-op after a successful move; removes the partial file on every failure path.
+            Files.deleteIfExists(tmp)
         }
     }
 
@@ -98,7 +144,7 @@ internal class ModrinthClient(
         val body = try {
             http.send(
                 HttpRequest.newBuilder(URI.create(url))
-                    .header("User-Agent", "armor-hider-buildscript")
+                    .header("User-Agent", USER_AGENT)
                     .timeout(Duration.ofSeconds(30))
                     .GET().build(),
                 HttpResponse.BodyHandlers.ofString()

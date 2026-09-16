@@ -207,10 +207,20 @@ public final class ArmorHiderRenderTypes {
     // while in vanilla the no-depth-write is what stops faded armor occluding water behind it. Where
     // the after-terrain deferral exists (>= 26.2-1.pre) that occlusion is already handled by draw
     // order, so writing depth under shaders is safe there.
-    private static volatile java.util.function.BooleanSupplier shaderPackActiveCheck = () -> false;
+    private static final java.util.function.BooleanSupplier NO_SHADER_PACK_CHECK = () -> false;
+    private static volatile java.util.function.BooleanSupplier shaderPackActiveCheck = NO_SHADER_PACK_CHECK;
 
     public static void setShaderPackActiveCheck(java.util.function.BooleanSupplier check) {
-        shaderPackActiveCheck = check != null ? check : () -> false;
+        shaderPackActiveCheck = check != null ? check : NO_SHADER_PACK_CHECK;
+    }
+
+    /**
+     * Whether a real shaderpack-state supplier has been installed (IrisCompat did so) rather than the
+     * "never under shaders" default. Test hook: the Iris smoke asserts this with Iris loaded, since the
+     * override below bypasses the supplier and would hide a missing installation.
+     */
+    public static boolean isShaderPackActiveCheckInstalled() {
+        return shaderPackActiveCheck != NO_SHADER_PACK_CHECK;
     }
 
     public static boolean isShaderPackActive() {

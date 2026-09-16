@@ -270,8 +270,11 @@ strawberrylib.version = "oMHDHxdk" # 26.2-r2 fabric (MoriyaShiine); nycto's requ
 ["fabric-26.3"]
 "fabric.minecraft_version" = "26.3"
 "fabric.minecraft_version_range" = "26.3"
-# 26.3 release pins (2026-09-16). Mods without a 26.3-series build deliberately keep their 26.2 jar
-# (user decision: keep current pins and fix API drift only if it actually bites).
+# 26.3 release pins (2026-09-16). Mods without a 26.3-series build keep their 26.2 hash so they can be
+# bumped in one place when a 26.3 build ships - but that jar is NOT loaded on 26.3: FetchCompatJars
+# skips any pin whose game_versions omit the row's MC version when no 26.3 build can be auto-resolved
+# (observed for waveycapes, elytratrims and the modmenu 26.3-rc-1 pin). Until those mods publish 26.3
+# builds, their compat paths are not exercised by the 26.3 smoke rows.
 elytratrims.version = "tKGLQKLD" # 26.2 jar (no 26.3 release build; only 26.3-snapshot alphas exist)
 geckolib.version = "1VWnZPbQ" # 5.5.6 (26.3)
 iris.version = "bAdKrpw8" # 1.11.6+26.3-fabric

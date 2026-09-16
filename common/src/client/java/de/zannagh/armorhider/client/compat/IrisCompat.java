@@ -14,6 +14,17 @@ public class IrisCompat implements CompatInitializer {
     public static void registerPipelines() {
         //? if >= 1.21.5 {
         var api = IrisApi.getInstance();
+        // Wire the shaderpack-active check FIRST and unconditionally: every "under shaders" decision
+        // (depth-writing translucent armor, the dithered opaque-cutout path in RenderModifications) keys
+        // off it, and it must not depend on whether pipeline registration below is possible on this
+        // Iris/MC pairing. isShaderPackInUse() is API revision 0, available on every Iris we pin.
+        ArmorHiderRenderTypes.setShaderPackActiveCheck(() -> {
+            try {
+                return IrisApi.getInstance().isShaderPackInUse();
+            } catch (Throwable t) {
+                return false;
+            }
+        });
         if (api.getMinorApiRevision() < 3) {
             ArmorHider.LOGGER.warn("Iris API revision {} does not support pipeline registration, skipping",
                     api.getMinorApiRevision());
@@ -26,16 +37,6 @@ public class IrisCompat implements CompatInitializer {
         for (var pipeline : ArmorHiderRenderTypes.pipelines()) {
             api.assignPipeline(pipeline, IrisProgram.ENTITIES_TRANSLUCENT);
         }
-        // Wire the shaderpack-active check so translucent armor uses Minecraft's own depth-writing
-        // armor pipeline while a pack is loaded. Unlike a custom clone, vanilla's pipeline is already
-        // present in Iris' main and shadow override maps.
-        ArmorHiderRenderTypes.setShaderPackActiveCheck(() -> {
-            try {
-                return IrisApi.getInstance().isShaderPackInUse();
-            } catch (Throwable t) {
-                return false;
-            }
-        });
         ArmorHider.LOGGER.debug("Registered custom pipelines with Iris");
         //?} else {
         /*ArmorHider.LOGGER.debug("Iris pipeline registration skipped: pinned Iris predates the 26.3 renderpearl API");

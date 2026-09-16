@@ -165,6 +165,9 @@ public final class EmfCustomArmorTranslucencySmokeTest implements FabricClientGa
      */
     private static boolean observeOpacity(ClientGameTestContext context, int pct, double opacity, boolean expectCustom) {
         context.runOnClient(client -> {
+            // Fresh sample per step: enable() only reset the path once, so a step whose render never
+            // reached EMF would otherwise inherit the previous step's PATH_CUSTOM and pass falsely.
+            AhArmProbe.resetLastPath();
             var config = ArmorHiderClient.CLIENT_CONFIG_MANAGER
                     .resolveConfig(ArmorHiderClient.getCurrentPlayerName());
             config.helmetOpacity.setValue(opacity);

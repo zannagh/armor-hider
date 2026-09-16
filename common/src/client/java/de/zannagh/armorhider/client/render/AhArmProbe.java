@@ -39,6 +39,15 @@ public final class AhArmProbe {
         enabled = false;
     }
 
+    /**
+     * Clears only the last-path sample, keeping the aggregate counters. A per-observation reset so a
+     * step that never reaches EMF's render reads {@link #PATH_NONE} instead of inheriting the previous
+     * step's {@link #PATH_CUSTOM}.
+     */
+    public static void resetLastPath() {
+        lastPath = PATH_NONE;
+    }
+
     public static boolean isEnabled() {
         return enabled;
     }

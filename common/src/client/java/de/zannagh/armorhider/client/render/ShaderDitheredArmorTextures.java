@@ -104,8 +104,14 @@ public final class ShaderDitheredArmorTextures {
         int phase = mode == IrisPartialTransparencyMode.TEMPORAL_DITHERING
                 ? Math.floorMod(frameCounter, phaseCount)
                 : 0;
+        // The upscale factor and its resolution cap change the generated pixels (buildDithered), and both
+        // are per-player config: without them in the key a slider change, or another player's different
+        // settings, would keep reusing the first texture generated for this bucket/phase. The byte-budgeted
+        // LRU above still bounds the total, so extra key variants only ever evict, never accumulate.
+        int scale = Math.max(1, (int) config.irisDitheringScale.getValue());
+        int resCap = (int) config.irisDitheringResCap.getValue();
         Identifier derived = Identifier.fromNamespaceAndPath("armor_hider",
-                "dither/" + bucket + "/p" + phase + "/" + base.getNamespace() + "/" + base.getPath());
+                "dither/" + bucket + "/p" + phase + "/s" + scale + "c" + resCap + "/" + base.getNamespace() + "/" + base.getPath());
         synchronized (CACHE_LOCK) {
             // get() on the access-ordered map both checks presence and marks the entry most-recently-used.
             if (CACHE.get(derived) != null) {
