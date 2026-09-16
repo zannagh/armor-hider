@@ -1,12 +1,13 @@
 package de.zannagh.armorhider.client.render;
 
 import de.zannagh.armorhider.ArmorHider;
-import de.zannagh.armorhider.configuration.IrisPartialTransparencyMode;import net.minecraft.resources.Identifier;
+import de.zannagh.armorhider.configuration.IrisPartialTransparencyMode;
+import net.minecraft.resources.Identifier;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-//? if >= 26.2-1.pre && < 26.3-0.snapshot.2 {
+//? if >= 26.2-1.pre {
 import com.mojang.blaze3d.platform.NativeImage;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
@@ -79,7 +80,7 @@ public final class ShaderDitheredArmorTextures {
      * @return the derived dithered texture identifier, or {@code null} to fall back.
      */
     public static Identifier ditheredTexture(Identifier base, float opacity, de.zannagh.armorhider.net.packets.PlayerConfig config) {
-        //? if >= 26.2-1.pre && < 26.3-0.snapshot.2 {
+        //? if >= 26.2-1.pre {
         if (base == null) {
             return null;
         }
@@ -166,7 +167,7 @@ public final class ShaderDitheredArmorTextures {
         *///?}
     }
 
-    //? if >= 26.2-1.pre && < 26.3-0.snapshot.2 {
+    //? if >= 26.2-1.pre {
     // The resource stack in effect when the current cache entries were built. A resource reload swaps
     // the ResourceManager instance, so an identity change signals that cached textures are stale.
     private static ResourceManager lastResourceManager;

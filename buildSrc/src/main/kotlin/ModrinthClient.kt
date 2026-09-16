@@ -48,12 +48,33 @@ internal class ModrinthClient(
         return JsonParser.parseString(body).asJsonObject
     }
 
-    /** Streams [url] to [out], replacing whatever was there. */
+    /**
+     * Streams [url] to [out], replacing whatever was there.
+     *
+     * The request carries a timeout and a User-Agent: without them a CDN connection that opens and then
+     * stalls blocked `send` forever, hanging the whole smoke launch until its 90 s ceiling (exit 124).
+     * One retry covers a single stalled connection; a second failure is rethrown.
+     */
     fun download(url: String, out: Path) {
-        http.send(
-            HttpRequest.newBuilder(URI.create(url)).GET().build(),
-            HttpResponse.BodyHandlers.ofInputStream()
-        ).body().use { Files.copy(it, out, StandardCopyOption.REPLACE_EXISTING) }
+        val request = HttpRequest.newBuilder(URI.create(url))
+            .header("User-Agent", "armor-hider-buildscript")
+            .timeout(Duration.ofSeconds(60))
+            .GET().build()
+        try {
+            downloadOnce(request, out)
+        } catch (e: java.io.IOException) {
+            downloadOnce(request, out)
+        }
+    }
+
+    private fun downloadOnce(request: HttpRequest, out: Path) {
+        val response = http.send(request, HttpResponse.BodyHandlers.ofInputStream())
+        response.body().use { body ->
+            if (response.statusCode() !in 200..299) {
+                throw java.io.IOException("HTTP ${response.statusCode()} downloading ${request.uri()}")
+            }
+            Files.copy(body, out, StandardCopyOption.REPLACE_EXISTING)
+        }
     }
 
     /**

@@ -12,7 +12,13 @@ public enum CompatFlags {
      *
      * @since 0.10.0-pre.8
      */
-    GENDER_MOD(1<<0, "com.wildfire.render.GenderArmorLayer"),
+    // FGM 5.0.0-Beta.5 (the 26.1.2+ pins, new package layout) moved its render classes from com.wildfire.render to
+    // com.wildfire.client.render.
+    //? if >= 26.1.2 {
+    GENDER_MOD(1<<0, "com.wildfire.client.render.GenderArmorLayer"),
+    //? } else {
+    /*GENDER_MOD(1<<0, "com.wildfire.render.GenderArmorLayer"),
+    *///? }
 
     /**
      * Elytra Trims.

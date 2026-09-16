@@ -1,5 +1,7 @@
-//? if gender {
-package de.zannagh.armorhider.client.mixin.compat.wildfiregender;
+// FGM builds up to 5.0.0-Beta.4 (com.wildfire.render layout). 26.1.2+ pins 5.0.0-Beta.5, handled by
+// GenderArmorLayerV5Mixin.
+//? if gender && < 26.1.2 {
+/*package de.zannagh.armorhider.client.mixin.compat.wildfiregender;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -42,12 +44,12 @@ import org.apache.commons.lang3.mutable.MutableInt;
 //?}
 
 //? if >= 1.21 && < 1.21.9 {
-/*import de.zannagh.armorhider.client.common.SlotModification;
+/^import de.zannagh.armorhider.client.common.SlotModification;
 import net.minecraft.client.renderer.MultiBufferSource;
-*///?}
+^///?}
 
 //? if < 1.21 {
-/*import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+/^import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.wildfire.render.GenderLayer;
 import de.zannagh.armorhider.client.common.IdentityCarrier;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -56,14 +58,17 @@ import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.armortrim.ArmorTrim;
-*///?}
+^///?}
 
-/**
- * Compatibility mixin for Wildfire's Female Gender Mod.
- * Applies chest armor hiding, transparency, and glint control
- * to the breast armor geometry rendered by {@code GenderArmorLayer}
- * (or {@code GenderLayer} on pre-1.21 versions).
- */
+/^*
+ * Compatibility mixin for Wildfire's Female Gender Mod up to 5.0.0-Beta.4 (the {@code com.wildfire.render}
+ * package layout). Applies chest armor hiding, transparency, and glint control to the breast armor geometry
+ * rendered by {@code GenderArmorLayer} (or {@code GenderLayer} on pre-1.21 versions).
+ * <p>
+ * From 26.1.2 on the FGM pin is 5.0.0-Beta.5, whose render classes moved to {@code com.wildfire.client.render}
+ * and which draws the breast armor through vanilla {@code EquipmentLayerRenderer.renderLayers};
+ * {@link GenderArmorLayerV5Mixin} covers that generation.
+ ^/
 @SuppressWarnings("UnresolvedMixinReference")
 @Pseudo
 //? if >= 1.21
@@ -163,12 +168,12 @@ public class GenderArmorLayerMixin {
             //? if >= 26.1-0.snapshot {
             Identifier texture, PoseStack poseStack, SubmitNodeCollector collector, HumanoidRenderState state, BreastSide side, int color, MutableBoolean glint, MutableInt order,
             //? } elif >= 1.21.9 {
-            /*Identifier texture, PoseStack poseStack, SubmitNodeCollector collector, HumanoidRenderState state, BreastSide side, int color, boolean glint,
-            *///? } elif >= 1.21 {
-            /*Identifier texture, PoseStack poseStack, MultiBufferSource bufferSource, int light, @Coerce Object side, int color, boolean glint,
-            *///? } else {
-            /*Player player, PoseStack poseStack, MultiBufferSource bufferSource, ArmorItem armorItem, ItemStack itemStack, int light, boolean isLeft,
-            *///?}
+            /^Identifier texture, PoseStack poseStack, SubmitNodeCollector collector, HumanoidRenderState state, BreastSide side, int color, boolean glint,
+            ^///? } elif >= 1.21 {
+            /^Identifier texture, PoseStack poseStack, MultiBufferSource bufferSource, int light, @Coerce Object side, int color, boolean glint,
+            ^///? } else {
+            /^Player player, PoseStack poseStack, MultiBufferSource bufferSource, ArmorItem armorItem, ItemStack itemStack, int light, boolean isLeft,
+            ^///?}
             CallbackInfo ci) {
         //? if >= 1.21.9 {
         var interceptionResult = interceptArmor(state, EquipmentSlot.CHEST, state.chestEquipment, ci);
@@ -177,7 +182,7 @@ public class GenderArmorLayerMixin {
         }
         AhRenderManagementApi.enterScope(interceptionResult.getSecond());
         //? } elif >= 1.21 {
-        /*String playerName = AhRenderManagementApi.currentlyHandledPlayerName();
+        /^String playerName = AhRenderManagementApi.currentlyHandledPlayerName();
         if (playerName == null || playerName.isBlank()) return;
         var mod = SlotModification.of(playerName, EquipmentSlot.CHEST, null);
         if (mod.needsModification()) {
@@ -187,14 +192,14 @@ public class GenderArmorLayerMixin {
             AhRenderManagementApi.exitScope(RenderScope.ARMOR_PIECE);
             ci.cancel();
         }
-        *///? } else {
-        /*if (!(player instanceof IdentityCarrier carrier)) return;
+        ^///? } else {
+        /^if (!(player instanceof IdentityCarrier carrier)) return;
         var ctx = AhRenderManagementApi.enterScope(RenderScope.ARMOR_PIECE, carrier, EquipmentSlot.CHEST, itemStack);
         if (!ctx.isEmpty() && ctx.shouldCancel()) {
             AhRenderManagementApi.exitScope(RenderScope.ARMOR_PIECE);
             ci.cancel();
         }
-        *///?}
+        ^///?}
     }
 
     @Inject(method = BREAST_METHOD, at = @At("RETURN"))
@@ -202,12 +207,12 @@ public class GenderArmorLayerMixin {
             //? if >= 26.1-0.snapshot {
             Identifier texture, PoseStack poseStack, SubmitNodeCollector collector, HumanoidRenderState state, BreastSide side, int color, MutableBoolean glint, MutableInt order,
             //? } elif >= 1.21.9 {
-            /*Identifier texture, PoseStack poseStack, SubmitNodeCollector collector, HumanoidRenderState state, BreastSide side, int color, boolean glint,
-            *///? } elif >= 1.21 {
-            /*Identifier texture, PoseStack poseStack, MultiBufferSource bufferSource, int light, @Coerce Object side, int color, boolean glint,
-            *///? } else {
-            /*Player player, PoseStack poseStack, MultiBufferSource bufferSource, ArmorItem armorItem, ItemStack itemStack, int light, boolean isLeft,
-            *///?}
+            /^Identifier texture, PoseStack poseStack, SubmitNodeCollector collector, HumanoidRenderState state, BreastSide side, int color, boolean glint,
+            ^///? } elif >= 1.21 {
+            /^Identifier texture, PoseStack poseStack, MultiBufferSource bufferSource, int light, @Coerce Object side, int color, boolean glint,
+            ^///? } else {
+            /^Player player, PoseStack poseStack, MultiBufferSource bufferSource, ArmorItem armorItem, ItemStack itemStack, int light, boolean isLeft,
+            ^///?}
             CallbackInfo ci) {
         // Exit BOTH: for an "armored elytra" chest the breast piece is scoped as ELYTRA, not ARMOR_PIECE
         // (see interceptArmor). Exiting only ARMOR_PIECE leaked the ELYTRA scope for the rest of the frame.
@@ -229,7 +234,7 @@ public class GenderArmorLayerMixin {
     //?}
 
     //? if >= 1.21 && < 1.21.9 {
-    /*@WrapOperation(
+    /^@WrapOperation(
             method = BREAST_METHOD,
             require = 0,
             at = @At(value = "INVOKE",
@@ -240,7 +245,7 @@ public class GenderArmorLayerMixin {
         int opaqueColor = original.call(color);
         return AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE).renderModificationApi().applyArmorTransparency(opaqueColor);
     }
-    *///?}
+    ^///?}
 
     //? if >= 26.1-0.snapshot.1 {
     @WrapOperation(
@@ -262,7 +267,7 @@ public class GenderArmorLayerMixin {
     //?}
 
     //? if >= 1.21.9 && < 26.1-0.snapshot.1 {
-    /*@WrapOperation(
+    /^@WrapOperation(
             method = BREAST_METHOD,
             require = 0,
             at = @At(value = "INVOKE",
@@ -277,10 +282,10 @@ public class GenderArmorLayerMixin {
         }
         return originalType;
     }
-    *///?}
+    ^///?}
 
     //? if < 1.21.9 {
-    /*@WrapOperation(
+    /^@WrapOperation(
             method = BREAST_METHOD,
             require = 0,
             at = @At(value = "INVOKE",
@@ -295,10 +300,10 @@ public class GenderArmorLayerMixin {
         }
         return originalType;
     }
-    *///?}
+    ^///?}
 
     //? if < 1.21 {
-    /*@ModifyExpressionValue(
+    /^@ModifyExpressionValue(
             method = BREAST_METHOD,
             require = 0,
             at = @At(value = "INVOKE",
@@ -312,7 +317,7 @@ public class GenderArmorLayerMixin {
         }
         return original;
     }
-    *///?}
+    ^///?}
 
     // ========================
     // renderArmorTrim
@@ -323,12 +328,12 @@ public class GenderArmorLayerMixin {
             //? if >= 26.1-0.snapshot {
             ResourceKey<EquipmentAsset> armorModel, PoseStack poseStack, SubmitNodeCollector collector, HumanoidRenderState state, ArmorTrim trim, BreastSide side, MutableInt order,
             //? } elif >= 1.21.9 {
-            /*ResourceKey<EquipmentAsset> armorModel, PoseStack poseStack, SubmitNodeCollector collector, HumanoidRenderState state, ArmorTrim trim, BreastSide side, boolean glint,
-            *///? } elif >= 1.21 {
-            /*@Coerce Object armorModel, PoseStack poseStack, MultiBufferSource bufferSource, int light, @Coerce Object trim, boolean glint, @Coerce Object side,
-            *///? } else {
-            /*ArmorMaterial material, PoseStack poseStack, MultiBufferSource bufferSource, int light, ArmorTrim trim, boolean glint, boolean isLeft,
-            *///?}
+            /^ResourceKey<EquipmentAsset> armorModel, PoseStack poseStack, SubmitNodeCollector collector, HumanoidRenderState state, ArmorTrim trim, BreastSide side, boolean glint,
+            ^///? } elif >= 1.21 {
+            /^@Coerce Object armorModel, PoseStack poseStack, MultiBufferSource bufferSource, int light, @Coerce Object trim, boolean glint, @Coerce Object side,
+            ^///? } else {
+            /^ArmorMaterial material, PoseStack poseStack, MultiBufferSource bufferSource, int light, ArmorTrim trim, boolean glint, boolean isLeft,
+            ^///?}
             CallbackInfo ci) {
         //? if >= 1.21.9 {
         var interceptionResult = interceptArmor(state, EquipmentSlot.CHEST, state.chestEquipment, ci);
@@ -337,7 +342,7 @@ public class GenderArmorLayerMixin {
         }
         AhRenderManagementApi.enterScope(interceptionResult.getSecond());
         //? } elif >= 1.21 {
-        /*String playerName = AhRenderManagementApi.currentlyHandledPlayerName();
+        /^String playerName = AhRenderManagementApi.currentlyHandledPlayerName();
         if (playerName == null || playerName.isBlank()) return;
         var mod = SlotModification.of(playerName, EquipmentSlot.CHEST, null);
         if (mod.needsModification()) {
@@ -347,12 +352,12 @@ public class GenderArmorLayerMixin {
             AhRenderManagementApi.exitScope(RenderScope.ARMOR_PIECE);
             ci.cancel();
         }
-        *///? } else {
-        /*var armorCtx = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE);
+        ^///? } else {
+        /^var armorCtx = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE);
         if (!armorCtx.isEmpty() && armorCtx.modification().shouldHide()) {
             ci.cancel();
         }
-        *///?}
+        ^///?}
     }
 
     @Inject(method = TRIM_METHOD, at = @At("RETURN"))
@@ -360,12 +365,12 @@ public class GenderArmorLayerMixin {
             //? if >= 26.1-0.snapshot {
             ResourceKey<EquipmentAsset> armorModel, PoseStack poseStack, SubmitNodeCollector collector, HumanoidRenderState state, ArmorTrim trim, BreastSide side, MutableInt order,
             //? } elif >= 1.21.9 {
-            /*ResourceKey<EquipmentAsset> armorModel, PoseStack poseStack, SubmitNodeCollector collector, HumanoidRenderState state, ArmorTrim trim, BreastSide side, boolean glint,
-            *///? } elif >= 1.21 {
-            /*@Coerce Object armorModel, PoseStack poseStack, MultiBufferSource bufferSource, int light, @Coerce Object trim, boolean glint, @Coerce Object side,
-            *///? } else {
-            /*ArmorMaterial material, PoseStack poseStack, MultiBufferSource bufferSource, int light, ArmorTrim trim, boolean glint, boolean isLeft,
-            *///?}
+            /^ResourceKey<EquipmentAsset> armorModel, PoseStack poseStack, SubmitNodeCollector collector, HumanoidRenderState state, ArmorTrim trim, BreastSide side, boolean glint,
+            ^///? } elif >= 1.21 {
+            /^@Coerce Object armorModel, PoseStack poseStack, MultiBufferSource bufferSource, int light, @Coerce Object trim, boolean glint, @Coerce Object side,
+            ^///? } else {
+            /^ArmorMaterial material, PoseStack poseStack, MultiBufferSource bufferSource, int light, ArmorTrim trim, boolean glint, boolean isLeft,
+            ^///?}
             CallbackInfo ci) {
         AhRenderManagementApi.exitScopes(RenderScope.ARMOR_PIECE, RenderScope.ELYTRA);
     }
@@ -386,7 +391,7 @@ public class GenderArmorLayerMixin {
     //?}
 
     //? if < 1.21.9 {
-    /*@WrapOperation(
+    /^@WrapOperation(
             method = TRIM_METHOD,
             require = 0,
             at = @At(value = "INVOKE",
@@ -401,14 +406,14 @@ public class GenderArmorLayerMixin {
         }
         return originalType;
     }
-    *///?}
+    ^///?}
 
     // ========================
     // renderGlint (era 3a / 1.21.9-1.21.11 only; removed in 26.1+)
     // ========================
 
     //? if >= 1.21.9 && < 26.1-0.snapshot {
-    /*@Inject(method = "renderGlint", at = @At("HEAD"), cancellable = true)
+    /^@Inject(method = "renderGlint", at = @At("HEAD"), cancellable = true)
     private void interceptGlint(PoseStack poseStack, SubmitNodeCollector queue,
             HumanoidRenderState state, @Coerce Object box, CallbackInfo ci) {
         if (!(state instanceof IdentityCarrier carrier)) return;
@@ -418,6 +423,6 @@ public class GenderArmorLayerMixin {
             ci.cancel();
         }
     }
-    *///?}
+    ^///?}
 }
-//?}
+*///?}

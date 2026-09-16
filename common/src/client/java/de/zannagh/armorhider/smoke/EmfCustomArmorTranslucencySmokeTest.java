@@ -88,6 +88,7 @@ public final class EmfCustomArmorTranslucencySmokeTest implements FabricClientGa
                 return;
             }
             assertFadedOpacities(context, expectCustom);
+            assertEmfModelKept();
             ArmorHider.LOGGER.info("[smoke/fcgt] #360 custom-armor translucency checks passed");
         }
     }
@@ -114,6 +115,27 @@ public final class EmfCustomArmorTranslucencySmokeTest implements FabricClientGa
             boolean custom = observeOpacity(context, PERCENTS[i], OPACITIES[i], expectCustom);
             assertFaded(PERCENTS[i], custom);
         }
+    }
+
+    /**
+     * The mixin-side half of #360/#362: EquipmentRenderMixin.armorHider$vanillaEquipmentModel must have
+     * seen EMF's wrapped armor model on the translucent submits and KEPT it (never swapped in vanilla
+     * geometry). Only asserted on the path where the custom model demonstrably rendered, so a headless
+     * software-GL run still degrades to the capability SKIP above instead of a false red.
+     */
+    private static void assertEmfModelKept() {
+        long fallbacks = AhArmProbe.equipmentFallbackCount();
+        long kept = AhArmProbe.emfModelKeptCount();
+        if (fallbacks > 0) {
+            throw new IllegalStateException("[smoke/fcgt] #360/#362: EMF custom armor model must be kept, but"
+                    + " the vanilla-geometry fallback fired " + fallbacks + " times");
+        }
+        if (kept == 0) {
+            throw new IllegalStateException("[smoke/fcgt] #360/#362: EMF's custom armor rendered, but the"
+                    + " EMF-model-kept branch in EquipmentRenderMixin never ran (0) - the translucent submit"
+                    + " wrap did not see EMF's model root");
+        }
+        ArmorHider.LOGGER.info("[smoke/fcgt] #360/#362 EMF armor model kept {} times, fallbacks {}", kept, fallbacks);
     }
 
     private static void logCapabilitySkip(boolean emfPresent, boolean packEnabled, boolean anyCustom) {

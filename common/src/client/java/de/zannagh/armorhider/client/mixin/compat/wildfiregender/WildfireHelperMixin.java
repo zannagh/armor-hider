@@ -8,9 +8,13 @@ import org.spongepowered.asm.mixin.Pseudo;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
-//? if >= 1.21 {
-import com.wildfire.main.WildfireHelper;
-//?}
+// FGM 5.0.0-Beta.5 (the 26.1.2+ pins, new package layout) split the helper: getArmorConfig(ItemStack) moved from
+// com.wildfire.main.WildfireHelper to the client-only com.wildfire.client.WildfireClientHelper.
+//? if >= 26.1.2 {
+import com.wildfire.client.WildfireClientHelper;
+//? } elif >= 1.21 {
+/*import com.wildfire.main.WildfireHelper;
+*///? }
 
 /**
  * Armored Elytra (dorkix) compat for Female Gender Mod.
@@ -28,10 +32,13 @@ import com.wildfire.main.WildfireHelper;
  */
 @SuppressWarnings("UnresolvedMixinReference")
 @Pseudo
-//? if >= 1.21
-@Mixin(value = WildfireHelper.class, remap = false)
-//? if < 1.21
-/*@Mixin(targets = "com.wildfire.main.WildfireHelper", remap = false)*/
+//? if >= 26.1.2 {
+@Mixin(value = WildfireClientHelper.class, remap = false)
+//? } elif >= 1.21 {
+/*@Mixin(value = WildfireHelper.class, remap = false)
+*///? } else {
+/*@Mixin(targets = "com.wildfire.main.WildfireHelper", remap = false)
+*///? }
 public class WildfireHelperMixin {
 
     // require = 0 matches the rest of this @Pseudo FGM compat (silent no-op if FGM's helper drifts);

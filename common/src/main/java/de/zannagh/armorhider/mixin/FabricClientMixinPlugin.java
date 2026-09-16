@@ -49,8 +49,10 @@ public abstract class FabricClientMixinPlugin extends ArmorHiderMixinPlugin {
             "PlayerModelMixin",
             // Compat - @Pseudo, auto-skipped if target mod absent
             "compat.wildfiregender.GenderArmorLayerMixin",
+            "compat.wildfiregender.GenderArmorLayerV5Mixin",
             "compat.wildfiregender.GenderLegacyLayerMixin",
             "compat.wildfiregender.GenderPhysicsMixin",
+            "compat.wildfiregender.GenderRenderStateMixin",
             "compat.wildfiregender.WildfireHelperMixin",
             "compat.geckolib.GeckoLibArmorMixin",
             "compat.waveycapes.WaveyCapesMixin",

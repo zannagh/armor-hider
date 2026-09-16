@@ -4,9 +4,19 @@
 //? if fcgt && >= 26.2-1.pre {
 package de.zannagh.armorhider.smoke;
 
-import com.wildfire.main.WildfireGender;
+// FGM 5.0.0-Beta.5 (the 26.1.2+ pins, new package layout) repackaged its runtime config API: WildfireGender.getOrAddPlayerById
+// now hands out a PlayerConfigHolder whose settings are ConfigValue<T> accessors (update(T)) instead of
+// PlayerConfig#updateXxx setters, and Gender moved to the public com.wildfire.api package.
+//? if >= 26.1.2 {
+import com.wildfire.api.Gender;
+import com.wildfire.common.WildfireGender;
+import com.wildfire.common.config.value.ConfigValue;
+import com.wildfire.common.entitydata.PlayerConfigHolder;
+//? } else {
+/*import com.wildfire.main.WildfireGender;
 import com.wildfire.main.config.enums.Gender;
 import com.wildfire.main.entitydata.PlayerConfig;
+*///? }
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.api.ArmorHiderApi;
 import de.zannagh.armorhider.api.compat.CompatFlags;
@@ -73,7 +83,27 @@ import java.util.function.LongSupplier;
 public final class GenderBreastArmorSmokeTest implements FabricClientGameTest {
 
     // Front third-person so the breast cups face the camera in the screenshots.
-    private static final float BUST_SIZE = 0.9F;
+    //? if >= 26.1.2 {
+    // Beta.5 validates bustSize against ConfigKey.create(0.6f, 0.0f, 0.8f) and REJECTS an out-of-range
+    // update (returns false, keeps 0.6), so stay inside the range.
+    private static final float BUST_SIZE = 0.8F;
+    //? } else {
+    /*private static final float BUST_SIZE = 0.9F;
+    *///? }
+
+    //? if >= 26.1.2 {
+    /**
+     * Beta.5's {@code ConfigValue#update} validates the value and silently keeps the old one when it is
+     * rejected (e.g. out of range), so every setting the test depends on is read back and asserted.
+     */
+    private static <T> void setAndVerify(ConfigValue<T> value, T target, String setting) {
+        boolean updated = value.update(target);
+        if (!java.util.Objects.equals(value.get(), target)) {
+            throw new IllegalStateException("[smoke/fcgt] FGM rejected the " + setting + " update to " + target
+                    + " (update returned " + updated + ", value is " + value.get() + ")");
+        }
+    }
+    //?}
 
     @Override
     public void runTest(ClientGameTestContext context) {
@@ -104,11 +134,19 @@ public final class GenderBreastArmorSmokeTest implements FabricClientGameTest {
 
                 // Make the local player female with visible, physics-enabled breasts, shown even in
                 // armor (we equip a chestplate). This drives FGM's GenderArmorLayer for our hooks.
-                PlayerConfig genderConfig = WildfireGender.getOrAddPlayerById(player.getUUID());
+                //? if >= 26.1.2 {
+                PlayerConfigHolder genderConfig = WildfireGender.getOrAddPlayerById(player.getUUID());
+                setAndVerify(genderConfig.gender(), Gender.FEMALE, "gender");
+                setAndVerify(genderConfig.breasts().bustSize(), BUST_SIZE, "bustSize");
+                setAndVerify(genderConfig.breasts().physics().enabled(), true, "breastPhysics");
+                setAndVerify(genderConfig.showBreastsInArmor(), true, "showBreastsInArmor");
+                //? } else {
+                /*PlayerConfig genderConfig = WildfireGender.getOrAddPlayerById(player.getUUID());
                 genderConfig.updateGender(Gender.FEMALE);
                 genderConfig.updateBustSize(BUST_SIZE);
                 genderConfig.updateBreastPhysics(true);
                 genderConfig.updateShowBreastsInArmor(true);
+                *///? }
 
                 player.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.DIAMOND_CHESTPLATE));
                 client.options.setCameraType(CameraType.THIRD_PERSON_FRONT);
@@ -540,11 +578,19 @@ public final class GenderBreastArmorSmokeTest implements FabricClientGameTest {
                 if (player == null) {
                     return 0.0;
                 }
-                PlayerConfig cfg = WildfireGender.getPlayerById(player.getUUID());
+                //? if >= 26.1.2 {
+                PlayerConfigHolder cfg = WildfireGender.getPlayerById(player.getUUID());
+                if (cfg == null) {
+                    return 0.0;
+                }
+                return (double) cfg.breastPhysics().left().getPositionY();
+                //? } else {
+                /*PlayerConfig cfg = WildfireGender.getPlayerById(player.getUUID());
                 if (cfg == null) {
                     return 0.0;
                 }
                 return (double) cfg.getLeftBreastPhysics().getPositionY();
+                *///? }
             });
             min = Math.min(min, y);
             max = Math.max(max, y);

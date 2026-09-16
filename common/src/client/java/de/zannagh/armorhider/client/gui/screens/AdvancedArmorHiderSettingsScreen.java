@@ -299,9 +299,9 @@ public class AdvancedArmorHiderSettingsScreen extends ArmorHiderConfigurationScr
         factory.addElementAsWidget(settingsLocationButton);
 
         // Iris partial-transparency (dithering) settings. Only shown on the version family where the
-        // dithering render path actually runs (26.2); on other versions the render path is a no-op, so
-        // exposing knobs there would just be confusing.
-        //? if >= 26.2-1.pre && < 26.3-0.snapshot.2 {
+        // dithering render path actually runs (>= 26.2-1.pre); on older versions the render path is a
+        // no-op, so exposing knobs there would just be confusing.
+        //? if >= 26.2-1.pre {
         factory.addTextWidget(Component.translatable("armorhider.options.iris_dithering.title"));
 
         var irisModeButton = Button.builder(
@@ -394,7 +394,7 @@ public class AdvancedArmorHiderSettingsScreen extends ArmorHiderConfigurationScr
         };
     }
 
-    //? if >= 26.2-1.pre && < 26.3-0.snapshot.2 {
+    //? if >= 26.2-1.pre {
     private static IrisPartialTransparencyMode nextIrisMode(IrisPartialTransparencyMode current) {
         var values = IrisPartialTransparencyMode.values();
         return values[(current.ordinal() + 1) % values.length];

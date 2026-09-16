@@ -27,6 +27,10 @@ import net.minecraft.client.renderer.RenderTypes;
 /^import net.minecraft.client.renderer.feature.phase.TranslucentFeatureRenderPhase;
 import net.minecraft.client.renderer.feature.submit.TranslucentSubmit;
 ^///?}
+// 26.3 swapped ModelFeatureRenderer.Submit's TextureAtlasSprite slot for a UvMapping (sprites still
+// implement it), mirroring the submitModel change EquipmentRenderMixin tracks.
+//? if >= 26.3-0.snapshot.2
+//import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 
 /^*
  * NeoForge-specific armor color transparency mixin.
@@ -152,14 +156,24 @@ public class NeoForgeArmorColorMixin {
             int modifiedColor = (origColor & 0x00FFFFFF) | (newAlpha << 24);
 
             RenderType translucentType = modelSubmit.renderType();
+            //? if >= 26.3-0.snapshot.2 {
+            /^if (modelSubmit.uvMapping() instanceof TextureAtlasSprite sprite) {
+                translucentType = RenderTypes.entityTranslucent(sprite.atlasLocation());
+            }
+            ^///? } else {
             if (modelSubmit.sprite() != null) {
                 translucentType = RenderTypes.entityTranslucent(modelSubmit.sprite().atlasLocation());
             }
+            //? }
 
             var modified = new ModelFeatureRenderer.Submit(
                     translucentType, modelSubmit.pose(), modelSubmit.model(), modelSubmit.state(),
                     modelSubmit.lightCoords(), modelSubmit.overlayCoords(), modifiedColor,
+                    //? if >= 26.3-0.snapshot.2 {
+                    /^modelSubmit.uvMapping(), modelSubmit.sheetedDecalPose()
+                    ^///? } else {
                     modelSubmit.sprite(), modelSubmit.sheetedDecalPose()
+                    //? }
             );
 
             original.call(phase, (TranslucentSubmit) modified);

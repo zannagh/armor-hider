@@ -38,12 +38,21 @@ import net.minecraft.world.item.Items;
  *       the compat recognises FPM's first-person body and is actually declining scopes, not lying
  *       dormant) while {@link AhRenderStateImpl#leakedScopeClears} for {@link RenderScope#HEAD} stays
  *       flat.</li>
- *   <li><b>Guards off.</b> The same scene must now leak HEAD scopes - which is what proves the leak is
- *       real and the guard is what prevents it, rather than the scene never entering a head scope at
- *       all.</li>
+ *   <li><b>Guards off.</b> With FPM 2.7.2 the same scene must still enter no HEAD scope for the camera
+ *       body ({@link ArmorHiderRenderTypes#firstPersonHeadScopeEntryCount()} stays flat) and leak
+ *       nothing: FPM blanks the worn head during its body render ({@code PlayerMixin.getItemBySlot}
+ *       returns EMPTY for HEAD while {@code isRenderingPlayer}), so the extracted state carries no head
+ *       item and there is no head scope to leak, guard or not. The worn head is asserted present via a
+ *       direct {@code getItemBySlot(HEAD)} read outside FPM's rendering flag, so "no scope entered" is
+ *       not vacuous. If this ever climbs, FPM has started rendering the worn head again and the leak
+ *       hazard the guard exists for is back - re-validate the guard, do not weaken this check.</li>
  * </ol>
- * A worn player head plus a partial helmet opacity is the setup that makes the head scope non-empty:
- * the HEAD scope keys off {@code IdentityCarrier#customHeadItem()}, not the armor slot.
+ * A worn player head plus a partial helmet opacity is the setup that would make the head scope non-empty
+ * in third person: the HEAD scope keys off {@code IdentityCarrier#customHeadItem()}, not the armor slot.
+ * <p>
+ * Verified on a real GPU on 2026-09-16 (fabric-1.21.11, FPM 2.7.2 alone and with EMF/ETF/Iris): the
+ * unguarded scene never reproduces a head-scope leak, for the reason above - the earlier "leak must
+ * reappear with guards off" control was vacuous and has been replaced.
  */
 public final class FirstPersonSmokeTest implements FabricClientGameTest {
 
@@ -115,51 +124,52 @@ public final class FirstPersonSmokeTest implements FabricClientGameTest {
                                 + " worn head's opacity bleeds into the rest of the entity render");
             }
 
-            // ── Guards off: the leak must reappear, or the assertion above proves nothing ────────
-            context.runOnClient(client -> ArmorHiderRenderTypes.setFirstPersonGuardsEnabled(false));
+            // ── Guards off: FPM's own head-slot blanking leaves no head scope to leak ────────────
+            context.runOnClient(client -> {
+                // Read outside FPM's rendering flag (runOnClient runs between frames, never inside
+                // renderEntities), so this sees the real slot: the head must actually be worn, or the
+                // "no head scope entered" check below would be vacuous.
+                ItemStack worn = client.player.getItemBySlot(EquipmentSlot.HEAD);
+                if (!worn.is(Items.PLAYER_HEAD)) {
+                    throw new IllegalStateException("[smoke/fcgt] the player is not wearing the player head"
+                            + " (HEAD slot is " + worn + ") - cannot judge the first-person head scope");
+                }
+                ArmorHiderRenderTypes.setFirstPersonGuardsEnabled(false);
+            });
             context.waitTicks(10);
             long unguardedLeaksBefore = context.computeOnClient(client -> AhRenderStateImpl.leakedScopeClears(RenderScope.HEAD));
+            long headEntriesBefore = context.computeOnClient(client -> ArmorHiderRenderTypes.firstPersonHeadScopeEntryCount());
             context.waitTicks(RENDER_TICKS);
             long unguardedLeaksAfter = context.computeOnClient(client -> AhRenderStateImpl.leakedScopeClears(RenderScope.HEAD));
+            long headEntriesAfter = context.computeOnClient(client -> ArmorHiderRenderTypes.firstPersonHeadScopeEntryCount());
             context.takeScreenshot("armorhider_firstperson_2_unguarded");
             context.runOnClient(client -> ArmorHiderRenderTypes.setFirstPersonGuardsEnabled(true));
-            ArmorHider.LOGGER.info("[smoke/fcgt] guards off: HEAD leaks {} -> {}",
-                    unguardedLeaksBefore, unguardedLeaksAfter);
+            ArmorHider.LOGGER.info("[smoke/fcgt] guards off: camera-body HEAD scope entries {} -> {}, HEAD leaks {} -> {}",
+                    headEntriesBefore, headEntriesAfter, unguardedLeaksBefore, unguardedLeaksAfter);
 
-            if (unguardedLeaksAfter <= unguardedLeaksBefore) {
-                if (armorHider$isSoftwareGl()) {
-                    // Reproducing the leak needs the real CustomHeadLayer#submit render path to execute so
-                    // FPM can cancel it mid-scope; under Mesa software GL (headless CI) that head-layer draw
-                    // does not happen, so the leak cannot be provoked here even though phase 1 already proved
-                    // the guards fire. Capability SKIP (loudly logged) rather than a false "vacuous" red; on a
-                    // real GPU the leak reappears and this self-check stays strict. This scenario is meant to
-                    // be run on real hardware with -Pcompat=fpm anyway.
-                    ArmorHider.LOGGER.warn("[smoke/fcgt] SKIP First Person Model leak-reproduction check:"
-                            + " guards fired but the unguarded leak did not reproduce under software GL"
-                            + " (headless cannot render the head layer). Run on a real GPU for the strict check.");
-                } else {
-                    throw new IllegalStateException(
-                            "[smoke/fcgt] no HEAD scope leaked with the guards disabled (" + unguardedLeaksBefore
-                                    + " -> " + unguardedLeaksAfter + ") - this scene does not reproduce the leak the"
-                                    + " guards exist for, so the guarded assertion above is vacuous. Either FPM stopped"
-                                    + " cancelling CustomHeadLayer#submit, or the head scope is no longer entered here");
-                }
+            // Scoped to the camera entity only (the counter is recorded solely for FPM's first-person body,
+            // never for remote or third-person players, which legitimately enter head scopes).
+            if (headEntriesAfter > headEntriesBefore) {
+                throw new IllegalStateException(
+                        "[smoke/fcgt] a HEAD scope was entered for FPM's camera body with the guards disabled ("
+                                + headEntriesBefore + " -> " + headEntriesAfter + "). FPM 2.7.2 blanks the worn head"
+                                + " during its body render (PlayerMixin.getItemBySlot returns EMPTY for HEAD while"
+                                + " isRenderingPlayer), so no head scope should exist there to leak. FPM has started"
+                                + " rendering the worn head again: the leak hazard FirstPersonCompat guards against is"
+                                + " back - re-validate the guard, do not weaken this check");
+            }
+            if (unguardedLeaksAfter > unguardedLeaksBefore) {
+                throw new IllegalStateException(
+                        "[smoke/fcgt] HEAD scopes leaked with the guards disabled (" + unguardedLeaksBefore + " -> "
+                                + unguardedLeaksAfter + ") although no camera-body head scope was entered - a"
+                                + " different cancelled render path is entering the head scope");
             }
 
             ArmorHider.LOGGER.info("[smoke/fcgt] First Person Model compat smoke complete "
-                    + "({} guard hits, {} leaks prevented)",
-                    guardsAfter - guardsBefore, unguardedLeaksAfter - unguardedLeaksBefore);
+                    + "({} guard hits, {} camera-body head scopes, {} leaks)",
+                    guardsAfter - guardsBefore, headEntriesAfter - headEntriesBefore,
+                    unguardedLeaksAfter - unguardedLeaksBefore);
         }
-    }
-
-    /**
-     * Whether the client runs on a software GL rasterizer (Mesa llvmpipe on the headless CI runner), where
-     * GPU-dependent render paths do not reliably execute. Keyed off the {@code LIBGL_ALWAYS_SOFTWARE} env
-     * var the smoke workflow sets - version-agnostic and needs no GL API, so it stays safe across variants.
-     */
-    private static boolean armorHider$isSoftwareGl() {
-        String flag = System.getenv("LIBGL_ALWAYS_SOFTWARE");
-        return "1".equals(flag) || "true".equalsIgnoreCase(flag);
     }
 }
 //?}
