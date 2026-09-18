@@ -120,6 +120,10 @@ abstract class FetchCompatJars : DefaultTask() {
             val hash = versionHashes.get()[key] ?: return@forEach
             try {
                 fetchVersion(hash, target, seenHashes, claimedProjects, pendingDeps, key)
+            } catch (e: InterruptedException) {
+                // A cancelled build must stop, not be recorded as a failed pin.
+                Thread.currentThread().interrupt()
+                throw e
             } catch (e: Exception) {
                 logger.error("[fetchCompatJars] pinned {} ({}) could not be fetched: {}", key, hash, e.message)
                 failedPins += "$key ($hash): ${e.message}"
@@ -147,6 +151,9 @@ abstract class FetchCompatJars : DefaultTask() {
                     modrinth.latestForProject(projectId, pending.label)
                 } ?: continue
                 fetchVersion(hash, target, seenHashes, claimedProjects, pendingDeps, pending.label)
+            } catch (e: InterruptedException) {
+                Thread.currentThread().interrupt()
+                throw e
             } catch (e: Exception) {
                 logger.warn("[fetchCompatJars] {}: {}", pending.label, e.message)
             }
