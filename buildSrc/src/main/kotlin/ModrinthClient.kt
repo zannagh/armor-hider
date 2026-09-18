@@ -155,6 +155,11 @@ internal class ModrinthClient(
             } catch (e: ExecutionException) {
                 val cause = e.cause ?: e
                 throw IOException("${cause.javaClass.simpleName}: ${cause.message} downloading $url", cause)
+            } catch (e: InterruptedException) {
+                // Build cancelled while waiting: stop the transfer and let the interruption propagate.
+                pending.cancel(true)
+                Thread.currentThread().interrupt()
+                throw e
             }
             if (response.statusCode() !in 200..299) {
                 throw IOException("HTTP ${response.statusCode()} downloading $url")
@@ -166,8 +171,13 @@ internal class ModrinthClient(
             }
             Files.move(tmp, out, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
         } finally {
-            // No-op after a successful move; removes the partial file on every failure path.
-            Files.deleteIfExists(tmp)
+            // No-op after a successful move; removes the partial file on every failure path. A failure to
+            // delete (e.g. the cancelled transfer still holding the handle) must not mask the real error.
+            try {
+                Files.deleteIfExists(tmp)
+            } catch (e: IOException) {
+                logger.warn("[fetchCompatJars] could not remove partial download {}: {}", tmp, e.message)
+            }
         }
     }
 
@@ -193,6 +203,9 @@ internal class ModrinthClient(
         // (the caller then skips the mod), unlike a failed lookup of an explicit pin, which fails the task.
         val body = try {
             getJson(url, "$parentLabel auto-resolve project=$projectId")
+        } catch (e: InterruptedException) {
+            Thread.currentThread().interrupt()
+            throw e
         } catch (e: Exception) {
             logger.warn("[fetchCompatJars] {} auto-resolve project={} failed: {}", parentLabel, projectId, e.message)
             projectResolutionMemo[projectId] = null
