@@ -53,9 +53,53 @@ base {
     archivesName.set("armor-hider-paper")
 }
 
+// Resolve a GitHub token for reading eunomia-core from GitHub Packages, in order:
+//   1. the GITHUB_TOKEN environment variable (CI), then
+//   2. `gh auth token` from an authenticated GitHub CLI (local dev).
+// The token needs the read:packages scope. Fails with an actionable message if neither yields one.
+fun resolveEunomiaGitHubCredentials(): Pair<String, String> {
+    fun gh(vararg args: String): String? = runCatching {
+        val proc = ProcessBuilder(listOf("gh") + args).redirectErrorStream(false).start()
+        val out = proc.inputStream.bufferedReader().use { it.readText() }.trim()
+        if (proc.waitFor() == 0 && out.isNotBlank()) out else null
+    }.getOrNull()
+
+    val token = System.getenv("GITHUB_TOKEN")?.takeIf { it.isNotBlank() }
+        ?: gh("auth", "token")
+        ?: throw GradleException(
+            "Cannot read eunomia-core from GitHub Packages: no GitHub token was found.\n" +
+                "Provide one of:\n" +
+                "  - the GITHUB_TOKEN environment variable (with the read:packages scope) - used in CI, or\n" +
+                "  - an authenticated GitHub CLI so `gh auth token` returns a token. The default gh token\n" +
+                "    does NOT include read:packages, so add it once:\n" +
+                "        gh auth login                                   # if not logged in\n" +
+                "        gh auth refresh -h github.com -s read:packages  # grant read:packages"
+        )
+
+    // Username is largely cosmetic for a valid token, but GitHub Packages still wants one.
+    val user = System.getenv("GITHUB_ACTOR")?.takeIf { it.isNotBlank() }
+        ?: gh("api", "user", "--jq", ".login")
+        ?: "x-access-token"
+
+    return user to token
+}
+
 repositories {
     mavenCentral()
     maven("https://repo.papermc.io/repository/maven-public/")
+    // eunomia-core (the MC-free networking/config library) is shaded into this plugin below. Pulled from
+    // GitHub Packages so both CI and local builds resolve it without mavenLocal. Group-scoped so nothing
+    // else ever resolves from here.
+    maven {
+        name = "EunomiaGitHubPackages"
+        url = uri("https://maven.pkg.github.com/zannagh/eunomia")
+        val (ghUser, ghToken) = resolveEunomiaGitHubCredentials()
+        credentials {
+            username = ghUser
+            password = ghToken
+        }
+        content { includeGroup("de.zannagh.eunomia") }
+    }
 }
 
 dependencies {
@@ -67,6 +111,11 @@ dependencies {
     compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
     compileOnly("net.luckperms:api:5.4")
     implementation("com.google.code.gson:gson:2.11.0")
+    // The shared, Minecraft-free networking core: PacketType, CommunicationManager, the wire codec
+    // and the built-in handshake. Shaded into the plugin jar below so the same clean frame the
+    // loaders speak is spoken here. Its gson/slf4j are compileOnly upstream, so nothing transitive
+    // is bundled; Paper supplies slf4j at runtime and this project bundles (relocated) gson.
+    implementation("de.zannagh.eunomia:eunomia-core:${property("eunomia.version")}")
 
     testImplementation(platform("org.junit:junit-bom:6.0.1"))
     testImplementation("org.junit.jupiter:junit-jupiter")

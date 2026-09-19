@@ -1,6 +1,6 @@
 package de.zannagh.armorhider.client.gui.elements.implementations;
 
-import de.zannagh.armorhider.client.gui.elements.LayeredImageButton;
+import de.zannagh.eunomia.client.gui.LayeredImageButton;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.Nullable;
@@ -12,7 +12,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class ElytraGlintButton extends LayeredImageButton {
 
-    private final Identifier elytraSprite = modSprite("elytra");
+    private final Identifier elytraSprite = sprite("armor-hider", "elytra");
 
     @Override
     protected @Nullable Identifier spriteForeground(boolean enabled) {
@@ -21,7 +21,7 @@ public class ElytraGlintButton extends LayeredImageButton {
 
     @Override
     protected @Nullable Identifier midLayerSprite(boolean enabled) {
-        return enabled ? modSprite("glint_button_icon") : null;
+        return enabled ? sprite("armor-hider", "glint_button_icon") : null;
     }
 
     @Override
@@ -35,7 +35,7 @@ public class ElytraGlintButton extends LayeredImageButton {
     }
 
     public ElytraGlintButton(boolean initial, int width, int height, OnPress onPress) {
-        super(null, initial, width, height,
+        super(initial, width, height,
                 initial ? Component.translatable("armorhider.options.elytra_glint.tooltip.enabled")
                         : Component.translatable("armorhider.options.elytra_glint.tooltip.disabled"),
                 onPress);

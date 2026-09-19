@@ -3,12 +3,13 @@ package de.zannagh.armorhider.smoke;
 
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.client.gui.AhGuiSprites;
 import de.zannagh.armorhider.client.gui.elements.ArmorHiderOptionsPanelWidget;
-import de.zannagh.armorhider.client.gui.elements.PlayerHeadBarWidget;
-import de.zannagh.armorhider.client.gui.elements.PlayerPreviewWidget;
+import de.zannagh.eunomia.client.gui.PlayerHeadBarWidget;
+import de.zannagh.eunomia.client.gui.PlayerPreviewWidget;
 import de.zannagh.armorhider.client.gui.screens.IndividualPlayerConfigurationsScreen;
 import de.zannagh.armorhider.client.common.SlotModification;
-import de.zannagh.armorhider.client.gui.util.PlayerFaceTextures;
+import de.zannagh.eunomia.client.gui.util.PlayerFaceTextures;
 import de.zannagh.armorhider.net.packets.PlayerConfig;
 import de.zannagh.armorhider.server.ServerConfiguration;
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
@@ -373,7 +374,7 @@ public final class IndividualConfigSmokeTest implements FabricClientGameTest {
         @Override
         protected void init() {
             var entry = new PlayerHeadBarWidget.Entry(id, "AhSmokeTarget", () -> PlayerFaceTextures.face(info));
-            addRenderableWidget(new PlayerHeadBarWidget(10, 10, this.width - 20, 28, List.of(entry), e -> {}));
+            addRenderableWidget(new PlayerHeadBarWidget(10, 10, this.width - 20, 28, List.of(entry), e -> {}, AhGuiSprites.ARROW_BACK, AhGuiSprites.ARROW_FORWARD));
 
             int panelWidth = this.width * 6 / 10;
             int panelTop = 50;

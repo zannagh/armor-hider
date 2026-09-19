@@ -3,7 +3,7 @@ package de.zannagh.armorhider.paper.config;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import de.zannagh.armorhider.paper.net.PayloadCodec;
+import de.zannagh.eunomia.networking.serialization.NetworkSerializer;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -110,7 +110,10 @@ public final class ServerConfigStorage {
                 Files.createDirectories(file.getParent());
                 Path temporary = file.resolveSibling(file.getFileName() + ".tmp");
                 try (Writer writer = Files.newBufferedWriter(temporary)) {
-                    PayloadCodec.gson().toJson(document, writer);
+                    // The same pretty-printing Gson the wire codec uses (installed via
+                    // NetworkSerializer.setGson in ArmorHiderPlugin.onEnable), so the on-disk and
+                    // clientbound documents are byte-for-byte identical to the mod's.
+                    NetworkSerializer.gson().toJson(document, writer);
                 }
                 Files.move(temporary, file, StandardCopyOption.REPLACE_EXISTING);
             } catch (IOException | RuntimeException e) {

@@ -10,12 +10,6 @@ public class FabricMixinPlugin extends ArmorHiderMixinPlugin {
             "ServerLoginMixin",
     };
 
-    private static final String[] AT_OR_ABOVE_1_20_5_MIXINS_FABRIC = new String[]{
-            "ClientboundCustomPayloadPacketMixin",
-            "ServerboundCustomPayloadPacketMixin",
-            "ServerGamePacketListenerMixin"
-    };
-
     private static final String[] BELOW_1_20_5_MIXINS = new String[]{
             "ServerPlayNetworkHandlerMixin"
     };
@@ -31,8 +25,8 @@ public class FabricMixinPlugin extends ArmorHiderMixinPlugin {
         var mixinsToAdd = new ArrayList<String>();
         mixinsToAdd.addAll(List.of(GENERIC_MIXINS));
 
-        //? if >= 1.20.5
-        mixinsToAdd.addAll(List.of(AT_OR_ABOVE_1_20_5_MIXINS_FABRIC));
+        // Custom-payload codec/dispatch mixins were removed with the eunomia networking migration:
+        // the eunomia mod's transport now injects codecs and dispatches payloads.
         //? if < 1.20.5
         //mixinsToAdd.addAll(List.of(BELOW_1_20_5_MIXINS));
 

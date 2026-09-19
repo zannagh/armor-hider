@@ -1,12 +1,4 @@
-//? if >= 1.20.5 {
 package de.zannagh.armorhider.net.packets;
-
-import de.zannagh.armorhider.net.CompressedJsonCodec;
-import io.netty.buffer.ByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.Identifier;
-import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,14 +14,12 @@ import java.util.UUID;
  *
  * <p>An empty {@link #overrides} list clears the named player's entry.</p>
  *
+ * <p>A plain POJO carried on eunomia's {@code de.zannagh.armorhider:shared_rules_s2c_packet}
+ * channel; eunomia serializes from the class.</p>
+ *
  * @since 0.13.0
  */
-public class SharedRuleNotificationPacket implements CustomPacketPayload {
-
-    public static final Identifier PACKET_IDENTIFIER = Identifier.fromNamespaceAndPath("de.zannagh.armorhider", "shared_rules_s2c_packet");
-    public static final StreamCodec<ByteBuf, SharedRuleNotificationPacket> STREAM_CODEC = CompressedJsonCodec.create(SharedRuleNotificationPacket.class);
-
-    public static final Type<SharedRuleNotificationPacket> TYPE = new Type<>(PACKET_IDENTIFIER);
+public class SharedRuleNotificationPacket {
 
     public String playerName;
 
@@ -49,39 +39,4 @@ public class SharedRuleNotificationPacket implements CustomPacketPayload {
         this.overrides = overrides != null ? new ArrayList<>(overrides) : new ArrayList<>();
         this.timestamp = timestamp;
     }
-
-    @Override
-    public @NonNull Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
 }
-//?}
-
-//? if < 1.20.5 {
-/*package de.zannagh.armorhider.net.packets;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
-public class SharedRuleNotificationPacket {
-
-    public String playerName;
-
-    public UUID playerId;
-
-    public List<SharedRuleOverride> overrides = new ArrayList<>();
-
-    public long timestamp;
-
-    public SharedRuleNotificationPacket() {
-    }
-
-    public SharedRuleNotificationPacket(String playerName, UUID playerId, List<SharedRuleOverride> overrides, long timestamp) {
-        this.playerName = playerName;
-        this.playerId = playerId;
-        this.overrides = overrides != null ? new ArrayList<>(overrides) : new ArrayList<>();
-        this.timestamp = timestamp;
-    }
-}
-*///?}

@@ -1,20 +1,19 @@
 package de.zannagh.armorhider.client.gui.elements.implementations;
 
-import de.zannagh.armorhider.client.gui.UiConstants;
-import de.zannagh.armorhider.client.gui.elements.LayeredImageButton;
+import de.zannagh.eunomia.client.gui.LayeredImageButton;
+import de.zannagh.eunomia.ui.UiSizes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.Nullable;
 
 public class IndividualPlayerSettingsButton extends LayeredImageButton {
 
-    private final Identifier slotSprite = modSprite("other_players");
-    private final Identifier disabledSlotSprite = modSprite("other_players");
+    private final Identifier slotSprite = sprite("armor-hider", "other_players");
+    private final Identifier disabledSlotSprite = sprite("armor-hider", "other_players");
 
     public IndividualPlayerSettingsButton(OnPress onPress) {
-        super(null,
-                false, // Setting this to false prevents the green rectangle background from being drawn
-                UiConstants.SQUARE_BUTTON_WIDTH, UiConstants.DEFAULT_BUTTON_HEIGHT,
+        super(false, // Setting this to false prevents the green rectangle background from being drawn
+                UiSizes.SQUARE_BUTTON_WIDTH, UiSizes.DEFAULT_BUTTON_HEIGHT,
                 IndividualPlayerSettingsButton.enabledMsg(), onPress);
     }
 
@@ -25,7 +24,7 @@ public class IndividualPlayerSettingsButton extends LayeredImageButton {
 
     @Override
     protected @Nullable Identifier midLayerSprite(boolean enabled) {
-        return enabled ? modSprite("accept_highlighted") : null;
+        return enabled ? sprite("armor-hider", "accept_highlighted") : null;
     }
 
     @Override

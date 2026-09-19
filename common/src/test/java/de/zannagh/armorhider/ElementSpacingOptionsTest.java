@@ -1,7 +1,9 @@
 package de.zannagh.armorhider;
 
 import com.mojang.datafixers.util.Pair;
-import de.zannagh.armorhider.client.gui.elements.ElementSpacingOptions;
+import de.zannagh.eunomia.client.gui.CompoundOptionWidget;
+import de.zannagh.eunomia.client.gui.CompoundButtonWidget;
+import de.zannagh.eunomia.client.gui.ElementSpacingOptions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
