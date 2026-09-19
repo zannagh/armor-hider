@@ -17,9 +17,11 @@ import de.zannagh.armorhider.client.suppressions.InvisibilitySuppressor;
 import de.zannagh.armorhider.configuration.PresetManager;
 import de.zannagh.armorhider.log.DebugLogger;
 import de.zannagh.armorhider.util.PlayerNameUtil;
+import de.zannagh.eunomia.client.EunomiaClient;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.multiplayer.PlayerInfo;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.NonNull;
@@ -39,6 +41,18 @@ public class ArmorHiderClient {
     public static void init() {
         ArmorHider.LOGGER.info("Armor Hider client initializing...");
         ClientCommunicationManager.initClient();
+
+        // Armor Hider's own wording for eunomia's "this server has no eunomia sync" toast, replacing its
+        // generic copy. Registered here because init() is the single client entry point both loaders call
+        // exactly once per launch, and because the builder is single-use - a second chain per join would
+        // either throw or quietly re-register. Keyed by the mod id, so eunomia replaces rather than
+        // accumulates if a re-init ever happens. EunomiaClientConfiguration lives in eunomia's client
+        // source set, so this must not move into the common initializer.
+        EunomiaClient.configure()
+                .syncUnavailableNotice(
+                        ArmorHider.MOD_ID,
+                        Component.translatable("armorhider.toast.cloud_sync.unavailable"))
+                .apply();
 
         // The name -> Player snapshot used by ArmorHiderRenderApi's Predicate<Player> rules lives on
         // the render thread, which outlives every ClientLevel. Its entries are weak, so nothing is

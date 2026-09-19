@@ -8,6 +8,7 @@ import de.zannagh.eunomia.client.settings.ServerSettingsClient;
 import de.zannagh.eunomia.client.settings.ServerSettingsView;
 import de.zannagh.eunomia.client.settings.SyncSettingSource;
 import de.zannagh.eunomia.configuration.EunomiaSyncSettings;
+import de.zannagh.eunomia.configuration.SyncSetting;
 import de.zannagh.eunomia.ui.UiSizes;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
@@ -39,16 +40,28 @@ public final class CloudSyncRow {
      */
     public static AbstractWidget create(Screen hostScreen, Options gameOptions, int rowWidth) {
         var label = statusLabel();
+
+        // Two very different kinds of "the server has an opinion here", and only one of them may grey this
+        // button out. Getting either direction wrong is a real bug, so they are spelled out:
+        //
+        //  - ServerSettingsView#editable() -> NEVER disable. It is false whenever the joined server manages
+        //    its own SERVER-WIDE sync settings, which says nothing about this player: in eunomia's precedence
+        //    chain PLAYER still outranks SERVER, so they can change their own three sync settings. editable()
+        //    is a rendering hint for the server-wide admin controls only, and eunomia's own
+        //    ServerSettingsSection greys exactly those out inside the screen. Disabling here would lock
+        //    players out of settings they are entitled to change; that state is surfaced in the tooltip only.
+        //  - EunomiaSyncSettings#isLockedByServer(EXTERNAL_FALLBACK) -> DO disable. True only when the server
+        //    actively enforces the setting, in which case SERVER_ENFORCED outranks PLAYER: the player's own
+        //    override is ignored (though kept, and it applies again on a server that does not enforce), so
+        //    the screen behind this button holds nothing they could act on for cloud sync.
+        boolean lockedByServer = EunomiaSyncSettings.isLockedByServer(SyncSetting.EXTERNAL_FALLBACK);
         var button = Button.builder(
                 Component.translatable("armorhider.options.cloud_sync.button"),
-                // Deliberately never disabled by ServerSettingsView#editable(): in eunomia's precedence
-                // chain PLAYER outranks SERVER, so a player can always change their own three sync
-                // settings. editable() is a rendering hint for the SERVER-WIDE controls only, and
-                // eunomia's own ServerSettingsSection greys those out inside the screen. Greying this
-                // button would lock players out of settings they are entitled to change; the
-                // server-managed state is surfaced in the row's tooltip instead.
                 btn -> Minecraft.getInstance().setScreenAndShow(new EunomiaSettingsScreen(hostScreen, gameOptions))
-        ).tooltip(Tooltip.create(Component.translatable("armorhider.options.cloud_sync.button.tooltip"))).build();
+        ).tooltip(Tooltip.create(Component.translatable(lockedByServer
+                ? "armorhider.options.cloud_sync.button.tooltip.enforced"
+                : "armorhider.options.cloud_sync.button.tooltip"))).build();
+        button.active = !lockedByServer;
 
         return new CompoundButtonWidget(new AbstractWidget[]{label, button}, rowWidth, UiSizes.DEFAULT_BUTTON_HEIGHT, spacing(rowWidth));
     }
@@ -91,7 +104,14 @@ public final class CloudSyncRow {
                 () -> label.setTooltip(Tooltip.create(statusTooltip(view)))));
     }
 
-    /** Names the precedence rung the effective value comes from, and whether the server manages its own. */
+    /**
+     * Names the precedence rung the effective value comes from, and whether the server manages its own.
+     *
+     * <p>Enforcement needs no extra line here: when the server locks cloud sync,
+     * {@link SyncSettingSource#forExternalFallback()} already resolves to {@code SERVER_ENFORCED}, whose
+     * label reads "Locked by server", so the source line states it. The appended note below is about the
+     * unrelated, weaker case of a server merely managing its own server-wide settings.</p>
+     */
     private static MutableComponent statusTooltip(@Nullable ServerSettingsView serverView) {
         var tooltip = Component.translatable(
                 "armorhider.options.cloud_sync.tooltip.source",
