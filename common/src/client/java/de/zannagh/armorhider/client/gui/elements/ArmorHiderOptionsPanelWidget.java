@@ -271,6 +271,7 @@ public class ArmorHiderOptionsPanelWidget extends AbstractWidget {
         }
 
         if (showPresets) {
+            factory.addElementAsWidget(CloudSyncRow.create(this.hostScreen, this.gameOptions, factory.getRowWidth()));
             factory.addElementAsWidget(Button.builder(
                     Component.translatable("armorhider.options.regular.title"),
                     btn -> Minecraft.getInstance().setScreenAndShow(new AdvancedArmorHiderSettingsScreen(this.hostScreen, this.gameOptions, this.hostScreen.getTitle()))
