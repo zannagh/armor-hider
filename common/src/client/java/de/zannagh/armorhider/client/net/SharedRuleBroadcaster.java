@@ -6,8 +6,10 @@ import de.zannagh.armorhider.client.api.impl.AhRenderRuleRegistryImpl;
 import de.zannagh.armorhider.client.api.impl.AhRuleTarget;
 import de.zannagh.armorhider.client.api.impl.AhSharedRuleStore;
 import de.zannagh.armorhider.client.common.SlotModification;
+import de.zannagh.armorhider.net.AhPackets;
 import de.zannagh.armorhider.net.packets.SharedRuleOverride;
 import de.zannagh.armorhider.net.packets.SharedRuleStatePacket;
+import de.zannagh.eunomia.networking.comms.CommunicationManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.player.Player;
 import org.jspecify.annotations.Nullable;
@@ -32,7 +34,7 @@ import java.util.UUID;
  * Sends are diffed against the last snapshot and rate limited, so a predicate that is simply
  * <em>true</em> every tick produces exactly one packet. Nothing is sent at all until some mod
  * registers a shared rule ({@link AhRenderRuleRegistryImpl#hasSharedRules()} is one volatile read),
- * and {@link ClientPacketSender} drops everything anyway on a server that does not run Armor Hider.
+ * and eunomia's send gate drops everything anyway on a server that does not run Armor Hider.
  */
 public final class SharedRuleBroadcaster {
 
@@ -48,7 +50,7 @@ public final class SharedRuleBroadcaster {
     private static final int PRUNE_INTERVAL_TICKS = 40;
 
     /**
-     * The last snapshot handed to {@link ClientPacketSender}, or {@code null} when nothing has been
+     * The last snapshot handed to the server, or {@code null} when nothing has been
      * sent on this connection yet. The {@code null} state is what makes a rejoin re-announce: a
      * previous session's state may still be standing on the other clients.
      */
@@ -114,7 +116,8 @@ public final class SharedRuleBroadcaster {
         lastSendMillis = now;
         lastSent = current;
         try {
-            ClientPacketSender.sendToServer(new SharedRuleStatePacket(ArmorHiderClient.getCurrentPlayerName(), current));
+            CommunicationManager.sendToServer(AhPackets.SHARED_RULES,
+                    new SharedRuleStatePacket(ArmorHiderClient.getCurrentPlayerName(), current));
         } catch (Exception e) {
             // Never take the client tick down for this. Forgetting what was "sent" makes the next tick
             // retry, which is the right behaviour for a transient encoder or connection failure.

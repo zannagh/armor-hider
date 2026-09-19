@@ -1,18 +1,18 @@
 package de.zannagh.armorhider.client.gui.elements.implementations;
 
-import de.zannagh.armorhider.client.gui.UiConstants;
-import de.zannagh.armorhider.client.gui.elements.LayeredImageButton;
+import de.zannagh.eunomia.client.gui.LayeredImageButton;
+import de.zannagh.eunomia.ui.UiSizes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.Nullable;
 
 public class CombatDetectionButton extends LayeredImageButton {
 
-    private final Identifier slotSprite = modSprite("in_combat_button_icon_enabled");
-    private final Identifier disabledSlotSprite = modSprite("in_combat_button_icon_disabled");
+    private final Identifier slotSprite = sprite("armor-hider", "in_combat_button_icon_enabled");
+    private final Identifier disabledSlotSprite = sprite("armor-hider", "in_combat_button_icon_disabled");
 
     public CombatDetectionButton(boolean initial, OnPress onPress) {
-        super(null, initial, UiConstants.SQUARE_BUTTON_WIDTH, UiConstants.DEFAULT_BUTTON_HEIGHT,
+        super(initial, UiSizes.SQUARE_BUTTON_WIDTH, UiSizes.DEFAULT_BUTTON_HEIGHT,
                 initial ? CombatDetectionButton.enabledMsg() : CombatDetectionButton.disabledMsg(), onPress);
     }
 
@@ -23,7 +23,7 @@ public class CombatDetectionButton extends LayeredImageButton {
     
     @Override
     protected @Nullable Identifier midLayerSprite(boolean enabled) {
-        return enabled ? modSprite("accept_highlighted") : null;
+        return enabled ? sprite("armor-hider", "accept_highlighted") : null;
     }
 
     @Override

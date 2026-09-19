@@ -1,6 +1,6 @@
 package de.zannagh.armorhider.client.gui.elements.implementations;
 
-import de.zannagh.armorhider.client.gui.elements.LayeredImageButton;
+import de.zannagh.armorhider.client.gui.elements.SlotLayeredImageButton;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -9,7 +9,7 @@ import org.jetbrains.annotations.Nullable;
 //? if < 1.21
 //import net.minecraft.ChatFormatting;
 
-public class AffectOtherItemsButton extends LayeredImageButton {
+public class AffectOtherItemsButton extends SlotLayeredImageButton {
     @Nullable private final Identifier slotSprite;
 
     @Override
@@ -19,7 +19,7 @@ public class AffectOtherItemsButton extends LayeredImageButton {
 
     @Override
     protected @Nullable Identifier midLayerSprite(boolean enabled) {
-        return enabled ? modSprite("accept_highlighted") : modSprite("reject_highlighted");
+        return enabled ? sprite("armor-hider", "accept_highlighted") : sprite("armor-hider", "reject_highlighted");
     }
 
     @Override
@@ -55,10 +55,10 @@ public class AffectOtherItemsButton extends LayeredImageButton {
     public AffectOtherItemsButton(boolean initial, EquipmentSlot slot, int width, int height, OnPress onPress) {
         super(slot, initial, width, height, initial ? enabledMsg(slot) : disabledMsg(slot), onPress);
         if (slot == EquipmentSlot.HEAD) {
-            slotSprite = modSprite("affect_head_slot_button");
+            slotSprite = sprite("armor-hider", "affect_head_slot_button");
         }
         else if (slot == EquipmentSlot.CHEST) {
-            slotSprite = modSprite("elytra");
+            slotSprite = sprite("armor-hider", "elytra");
         }
         else {
             slotSprite = null;

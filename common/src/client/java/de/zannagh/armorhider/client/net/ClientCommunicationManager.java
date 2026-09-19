@@ -5,93 +5,56 @@ import de.zannagh.armorhider.api.ArmorHiderApi;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.api.impl.AhSharedRuleStore;
 import de.zannagh.armorhider.client.utils.McClientUtils;
-import de.zannagh.armorhider.net.packets.HandshakePacket;
 import de.zannagh.armorhider.net.packets.SharedRuleNotificationPacket;
 import net.minecraft.network.chat.Component;
 import de.zannagh.armorhider.combat.DefaultCombatEvent;
 import de.zannagh.armorhider.log.DebugLogger;
+import de.zannagh.armorhider.net.AhPackets;
+import de.zannagh.armorhider.net.packets.AhReplicatedPlayerConfig;
 import de.zannagh.armorhider.net.packets.CombatLogNotificationPacket;
 import de.zannagh.armorhider.net.packets.PermissionPacket;
 import de.zannagh.armorhider.server.ServerConfiguration;
 import de.zannagh.armorhider.util.PlayerNameUtil;
+import de.zannagh.eunomia.networking.comms.CommunicationManager;
 import net.minecraft.client.multiplayer.ServerData;
 
-//? if >= 1.20.5
-import de.zannagh.armorhider.net.PayloadRegistry;
-//? if < 1.20.5
-//import de.zannagh.armorhider.net.LegacyPacketHandler;
-
 /**
- * Client-side communication manager.
- * Handles packet registration and events without Fabric API.
+ * Client-side communication manager, wired against eunomia's {@link CommunicationManager}.
+ * <p>
+ * The historical "server supports the mod" signal is now eunomia's capability handshake: whether the
+ * server runs Armor Hider is {@code CommunicationManager.serverCapabilities().isPresent()}. Outgoing
+ * C2S traffic is gated by eunomia's own send path: {@link CommunicationManager#sendToServer} defaults
+ * to {@link de.zannagh.eunomia.networking.comms.SendOptions#AFTER_SUCCESSFUL_HANDSHAKE}, so a packet is held
+ * until the probe resolves and dropped if the server does not run eunomia - the gating Armor Hider's
+ * bespoke {@code ClientSendGate} used to provide before it was folded into eunomia.
  */
 public final class ClientCommunicationManager {
 
-    /**
-     * Whether the connected server has proven it runs Armor Hider (by sending a
-     * {@link HandshakePacket}). Written on the netty/client thread from the handshake handler, the
-     * join handler and the disconnect handler; read off-thread by {@link ClientPacketSender}'s waiter,
-     * hence {@code volatile}. Reset to {@code false} on every disconnect.
-     */
-    public static volatile boolean SERVER_SUPPORTS_MOD;
-
     public static void initClient() {
-        //? if >= 1.20.5 {
-        PayloadRegistry.registerS2CHandler(ServerConfiguration.TYPE, ctx -> ClientCommunicationManager.handleServerConfigReceived(ctx.payload()));
-        PayloadRegistry.registerS2CHandler(PermissionPacket.TYPE, ctx -> ClientCommunicationManager.handlePermissionPacketReceived(ctx.payload()));
-        PayloadRegistry.registerS2CHandler(CombatLogNotificationPacket.TYPE, ctx -> ClientCommunicationManager.handleCombatLogNotificationReceived(ctx.payload()));
-        PayloadRegistry.registerS2CHandler(HandshakePacket.TYPE, ctx -> ClientCommunicationManager.handleHandshakePacketReceived(ctx.payload()));
-        PayloadRegistry.registerS2CHandler(SharedRuleNotificationPacket.TYPE, ctx -> ClientCommunicationManager.handleSharedRuleNotificationReceived(ctx.payload()));
-        //?}
+        CommunicationManager.onClientReceive(AhPackets.SERVER_CONFIG,
+                (payload, ctx) -> handleServerConfigReceived(payload));
+        CommunicationManager.onClientReceive(AhPackets.PERMISSION,
+                (payload, ctx) -> handlePermissionPacketReceived(payload));
+        CommunicationManager.onClientReceive(AhPackets.COMBAT_NOTIFICATION,
+                (payload, ctx) -> handleCombatLogNotificationReceived(payload));
+        CommunicationManager.onClientReceive(AhPackets.SHARED_RULES_NOTIFICATION,
+                (payload, ctx) -> handleSharedRuleNotificationReceived(payload));
 
-        //? if < 1.20.5 {
-        /*LegacyPacketHandler.registerS2CHandler(LegacyPacketHandler.getServerConfigChannel(), ctx -> {
-            if (!(ctx.payload() instanceof ServerConfiguration payload)) {
-                return;
-            }
-            handleServerConfigReceived(payload);
-        });
+        // Install the relay mirror: on the HTTP/WebSocket fallback (server does not run the mod) eunomia's
+        // relay replicates every player's config into this mirror, which resolveConfig reads via
+        // getServerConfig(). Harmless/empty on a normal armor-hider MC server.
+        ArmorHiderClient.CLIENT_CONFIG_MANAGER.enableRelayMirror();
 
-        LegacyPacketHandler.registerS2CHandler(LegacyPacketHandler.getPermissionChannel(), ctx -> {
-            if (!(ctx.payload() instanceof PermissionPacket payload)) {
-                return;
-            }
-            handlePermissionPacketReceived(payload);
-        });
-
-        LegacyPacketHandler.registerS2CHandler(LegacyPacketHandler.getCombatLogNotificationChannel(), ctx -> {
-            if (!(ctx.payload() instanceof CombatLogNotificationPacket payload)) {
-                return;
-            }
-            handleCombatLogNotificationReceived(payload);
-        });
-
-        LegacyPacketHandler.registerS2CHandler(LegacyPacketHandler.getHandshakeChannel(), ctx -> {
-            if (!(ctx.payload() instanceof HandshakePacket payload)) {
-                return;
-            }
-            handleHandshakePacketReceived(payload);
-        });
-
-        LegacyPacketHandler.registerS2CHandler(LegacyPacketHandler.getSharedRuleNotificationChannel(), ctx -> {
-            if (!(ctx.payload() instanceof de.zannagh.armorhider.net.packets.SharedRuleNotificationPacket payload)) {
-                return;
-            }
-            handleSharedRuleNotificationReceived(payload);
-        });
-        *///?}
+        // Consume eunomia's server-capability probe results. Outgoing C2S traffic now flows through
+        // eunomia's own send path: CommunicationManager.sendToServer defaults to AFTER_SUCCESSFUL_HANDSHAKE,
+        // which queues a packet until the capability probe resolves and drops it if the server does not run
+        // eunomia - exactly the gating Armor Hider's bespoke ClientSendGate used to provide.
+        CommunicationManager.enableClientHandshake();
 
         ClientConnectionEvents.registerJoin((handler, client) -> {
             if (client.player == null) {
                 return;
             }
-            // Start every connection assuming the server does NOT run the mod. Relying only on the
-            // disconnect handler to clear this is unsafe: a stale true (from singleplayer or an
-            // incomplete disconnect) would let the gate treat the next - possibly vanilla - server as
-            // supported and send it custom payloads before any handshake, risking a kick. The handshake
-            // handler (or the local-server shortcut below) re-sets it to true when appropriate.
-            SERVER_SUPPORTS_MOD = false;
-            ClientPacketSender.reset();
             // Shared render state belongs to one connection. Dropping what the previous server sent and
             // forgetting what we announced there makes the first tick on the new server re-announce.
             AhSharedRuleStore.clear();
@@ -126,16 +89,24 @@ public final class ClientCommunicationManager {
             }
 
             if (!McClientUtils.isClientConnectedToServer()) {
-                SERVER_SUPPORTS_MOD = true;
                 ArmorHiderClient.permissionLevel = 4; // local -> admin
             }
 
-            // A send failure must never abort the join. ClientPacketSender already swallows the
-            // "server doesn't know this channel" case, but the encoder can still reject an oversized
-            // payload and the connection can drop between the check and the write - neither is worth
-            // taking the client down for, since the config is client-authoritative anyway.
+            // Push our local config to the server. eunomia's sendToServer holds it until the capability
+            // probe resolves, then delivers it if the server runs the mod and drops it otherwise, so this
+            // is safe to fire on join. A send failure must never abort the join: the encoder can reject an
+            // oversized payload and the connection can drop between here and the write, and neither is worth
+            // taking the client down for since the config is client-authoritative.
             try {
-                ClientPacketSender.sendToServer(currentConfig.forNetwork());
+                CommunicationManager.sendToServer(AhPackets.PLAYER_CONFIG, currentConfig.forNetwork());
+                // Also publish over the replicated channel so config propagates on the relay fallback (where the
+                // line above is dropped because the server is not the mod). eunomia's gate routes it to the relay
+                // when the fallback is active and drops it otherwise, so it is safe to fire unconditionally here.
+                java.util.UUID localId = currentConfig.playerId.getValue();
+                if (localId != null) {
+                    CommunicationManager.sendToServer(AhPackets.PLAYER_CONFIG_REPLICATED,
+                            AhReplicatedPlayerConfig.forNetwork(localId, currentConfig));
+                }
             } catch (Exception e) {
                 ArmorHider.LOGGER.warn("Could not send the local config to the server on join.", e);
             }
@@ -165,8 +136,9 @@ public final class ClientCommunicationManager {
             // Drop the transient keybind override so the next connection starts from the persisted baseline.
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.clearSessionDisableOverride();
             ArmorHiderClient.permissionLevel = 0;
-            SERVER_SUPPORTS_MOD = false;
-            ClientPacketSender.reset();
+            // eunomia's own disconnect wiring (onClientDisconnect) resets its capability probe and send
+            // gate. Shared render state is connection-scoped, so drop what the previous server relayed and
+            // forget what we announced there.
             AhSharedRuleStore.clear();
             SharedRuleBroadcaster.reset();
         });
@@ -191,11 +163,6 @@ public final class ClientCommunicationManager {
         // rule outcome arriving over the network has to invalidate it explicitly or it would not show
         // until the player next changed armor.
         ArmorHiderClient.CLIENT_CONFIG_MANAGER.notifyConfigListeners(ctx.playerName);
-    }
-
-    private static void handleHandshakePacketReceived(de.zannagh.armorhider.net.packets.HandshakePacket payload) {
-        ArmorHider.LOGGER.info("Received handshake packet from session: {}", payload.sessionId);
-        SERVER_SUPPORTS_MOD = true;
     }
 
     private static void handleServerConfigReceived(ServerConfiguration ctx) {

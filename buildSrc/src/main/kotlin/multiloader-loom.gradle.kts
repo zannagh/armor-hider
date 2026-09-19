@@ -31,6 +31,12 @@ repositories {
     maven("https://api.modrinth.com/maven") {
         content { includeGroup("maven.modrinth") }
     }
+    // Cursemaven (https://cursemaven.com) - keyless CurseForge proxy for CF-hosted mod jars declared as
+    // `curse.maven:<slug>-<projectId>:<fileId>`. Backs the eunomia runtime mod jar (project 1654849) the
+    // FCGT smoke run drops into run/mods. Group-scoped so it only handles `curse.maven` coordinates.
+    maven("https://cursemaven.com") {
+        content { includeGroup("curse.maven") }
+    }
 }
 
 // ── Stonecutter constants ──
@@ -123,9 +129,56 @@ if (branch == "common") {
         }
         add("compileOnly", "net.luckperms:api:5.4")
         add("compileOnly", "org.jspecify:jspecify:1.0.0")
+        // eunomia-core: the MC-free, version-agnostic API surface (CommunicationManager, PacketType,
+        // the transport interfaces). Plain compileOnly - it is a normal Java library, NOT a remapped
+        // mod jar, so it never goes through loom. One coordinate resolves on every variant because the
+        // core artifact carries no MC version. The runtime implementation ships in the eunomia mod
+        // (declared as a required dependency in fabric.mod.json / neoforge.mods.toml), so eunomia is
+        // never bundled here. Mirrored unremapped in multiloader-loader for the loader compile.
+        if (hasProperty("eunomia.version")) {
+            add("compileOnly", "de.zannagh.eunomia:eunomia-core:${findProperty("eunomia.version")}")
+            // eunomia-core is compileOnly for the mod (the eunomia mod supplies it at game runtime), but
+            // the JUnit tests load the config POJOs in a plain JVM and those implement eunomia's
+            // NetworkHealable / encode via its PayloadCodec - and the HTTP/WebSocket fallback E2E
+            // (HttpFallbackE2ETest) drives eunomia's ExternalServerClient / ReplicatedClientStore /
+            // ReplicatedPlayerConfigStore directly - so the classes must be on the test COMPILE classpath,
+            // not just runtime. Test scope only - never bundled into the shipped mod jar.
+            add("testImplementation", "de.zannagh.eunomia:eunomia-core:${findProperty("eunomia.version")}")
+            // eunomia-common on the test classpath too: ElementSpacingOptionsTest exercises eunomia's
+            // layout solver and compound widgets directly, now that our duplicates of them are gone. The
+            // arithmetic is third-party but still load-bearing for our screens, so the test stays as a
+            // guard against an upstream regression rather than being deleted with the classes.
+            add(
+                "testImplementation",
+                "de.zannagh.eunomia:eunomia-common:${findProperty("eunomia.version")}+${findProperty("display_version")}:dev"
+            )
+            // eunomia-common: the MC-facing half of the library - the client settings API
+            // (EunomiaConfig / EunomiaSyncSettings / ServerSettingsClient) and the reusable GUI premades
+            // (WidgetList, OptionElementFactory, ServerSettingsSection, ...). Unlike eunomia-core this one
+            // IS MC-version-specific, so the coordinate carries the same `+<display_version>` suffix our
+            // own jars use; eunomia publishes the identical display_version set, so it maps 1:1 onto every
+            // variant here. Still a plain compileOnly library, not a remapped mod jar - the eunomia mod
+            // supplies the implementation at game runtime, exactly like eunomia-core.
+            add(
+                "compileOnly",
+                "de.zannagh.eunomia:eunomia-common:${findProperty("eunomia.version")}+${findProperty("display_version")}:dev"
+            )
+        }
         add("testImplementation", platform("org.junit:junit-bom:6.0.1"))
         add("testImplementation", "org.junit.jupiter:junit-jupiter")
         add("testRuntimeOnly", "org.junit.platform:junit-platform-launcher")
+        // The fallback E2E's embedded stub relay needs to serve HTTP (/health, PUT /api/packets/*) AND a
+        // WebSocket (/ws) on the SAME port, because eunomia's ExternalServerClient derives the ws URL from
+        // the same base host:port as its REST calls. NanoHTTPD-websocket (NanoWSD) does exactly that in one
+        // tiny, dependency-free server. Test scope only; the real relay is the C# server. Gated at runtime,
+        // so a normal `./gradlew test` never opens a socket - it just needs the class on the test classpath.
+        add("testImplementation", "org.nanohttpd:nanohttpd-websocket:2.3.1")
+        // eunomia-core logs via slf4j-api, which it declares compileOnly (the game/Paper supply a binding at
+        // runtime), so it is not transitive onto the plain-JVM test classpath. The fallback E2E constructs
+        // eunomia's ExternalServerClient (which takes an slf4j Logger), so the API + a simple binding are
+        // needed for the test JVM only.
+        add("testImplementation", "org.slf4j:slf4j-api:2.0.16")
+        add("testRuntimeOnly", "org.slf4j:slf4j-simple:2.0.16")
         // :paper's compiled classes, for PaperSchemaContractTest - the Paper plugin re-declares the
         // parts of the wire schema it has to understand (the serverWideSettings block, the channel
         // names), and nothing else would notice if the mod's side moved. The classes it asserts on
@@ -201,7 +254,10 @@ if (branch == "fabric") {
     // This deliberately REPLACES any dev-profile identity rather than adding to it: MC's arg
     // parser cannot take `--username` twice.
     val paperSmokePort = findProperty("smoke.paper.port")?.toString()
-    val paperSmokeUsername = "ArmorHiderSmoke"
+    // Defaults to ArmorHiderSmoke (the single-client handshake row); overridable so a multi-client row
+    // (e.g. the two-client config-propagation E2E) can fork the same variant twice under distinct
+    // identities. The offline UUID is derived from the name, matching Paper's offline-mode hashing.
+    val paperSmokeUsername = findProperty("smoke.paper.username")?.toString() ?: "ArmorHiderSmoke"
     val paperSmokeUuid = java.util.UUID
         .nameUUIDFromBytes("OfflinePlayer:$paperSmokeUsername".toByteArray(Charsets.UTF_8))
         .toString()
@@ -257,6 +313,14 @@ if (branch == "fabric") {
             // PaperHandshakeSmokeTest skips itself when this is absent, so normal runs are unaffected.
             if (paperSmokePort != null) {
                 jvmArguments.add("-Darmorhider.smoke.paper.port=${paperSmokePort}")
+            }
+            // Two-client config-propagation E2E (TwoClientConfigPropagationSmokeTest): the PaperE2E row
+            // forks the same variant twice, once as the sender and once as the reader, forwarding the
+            // role, the peer's name and the marker opacity. Absent on every normal run - the test no-ops.
+            listOf("role", "peer", "marker").forEach { key ->
+                findProperty("smoke.twoclient.$key")?.toString()?.let {
+                    jvmArguments.add("-Darmorhider.smoke.twoclient.$key=$it")
+                }
             }
             if (runProfile != null) {
                 programArguments.add("--username")
@@ -336,6 +400,9 @@ if (branch == "fabric") {
         // Paper end-to-end handshake smoke. Gated only on `fcgt` like the class itself: it no-ops
         // unless -Psmoke.paper.port is supplied, so registering it everywhere is harmless.
         add("paper-handshake" to "de.zannagh.armorhider.smoke.PaperHandshakeSmokeTest")
+        // Two-client config-propagation E2E: one client changes its config, a second observes it via the
+        // server. Role-dispatched by -Darmorhider.smoke.twoclient.role; no-ops unless a Paper port is set.
+        add("two-client-propagation" to "de.zannagh.armorhider.smoke.TwoClientConfigPropagationSmokeTest")
         // WaterTransparencySmokeTest drives the after-terrain feature phase (the fix), which only
         // exists >= 26.2-1.pre - its class is stonecutter-gated to the same floor, so only register
         // the entrypoint there or fabric-loader would fail to find the commented-out class.
@@ -452,6 +519,104 @@ if (branch == "fabric") {
     // When -Psmoke is set, populate run/mods with the configured compat jars before launching.
     if (project.hasProperty("smoke")) {
         tasks.named("runClient") { dependsOn("fetchCompatJars") }
+    }
+
+    // ── eunomia runtime mod provisioning (EVERY Fabric variant) ──────────────────────
+    // armor-hider consumes eunomia-core at compile time only; the eunomia MOD supplies the
+    // networking transports + codec injection + capability handshake at game runtime and is a
+    // REQUIRED dependency (fabric.mod.json). So every client launch - a plain dev/smoke `runClient`
+    // just as much as an FCGT `runClientGametest` - must have the eunomia fabric mod jar in run/mods,
+    // or armor-hider fails its dependency: a plain client aborts mod resolution at boot, and a gametest
+    // boots vanilla and exits ZERO having run nothing (a false green - blueprint risk R4).
+    //
+    // Deliberately registered HERE, at Fabric-branch level, and not inside the FCGT block below: that
+    // block is gated on `fabricapi.semver`, which fabric-1.20.1 / 1.21.1 / 1.21.2 / 1.21.3 do not pin.
+    // Registering inside it meant those four variants got no copy task at all, so their `runClient`
+    // booted with an empty run/mods and failed mod resolution. Only the `runClientGametest` wiring stays
+    // conditional, because that task exists only on the FCGT-capable variants.
+    //
+    // The jar is pulled from CurseForge (project `eunomia.cf.project`) via Cursemaven by default, resolved
+    // for this variant's MC version from the pinned file id `eunomia.cf.file`. Pass -Peunomia.fabric.jar=<path>
+    // to smoke-test a locally-built eunomia instead (e.g. an unreleased change). The CF configuration is
+    // non-transitive, so only eunomia's own jar lands - never its CF-declared deps.
+    //
+    // Clear any previously-copied eunomia jar before copying the current one. Without this, a filename
+    // change - an eunomia version bump changes the CurseForge file id (and thus the jar name), or a run
+    // switches between the CF jar and a -Peunomia.fabric.jar override - leaves TWO eunomia mods in
+    // run/mods. fabric-loader then loads both, the codec-injection mixins apply twice and the handshake
+    // S2C payloads fail to decode (the client disconnects at join). fetchFcgtCompatJars / fetchCompatJars
+    // wipe run/mods on -Psmoke runs, but the plain dev and FCGT/E2E paths do not, so this copy must clean
+    // up after itself.
+    fun deleteStaleEunomiaJars() {
+        delete(fileTree(project.layout.projectDirectory.dir("run/mods")) { include("eunomia*.jar") })
+    }
+    val eunomiaOverrideJar = findProperty("eunomia.fabric.jar")?.toString()
+    val eunomiaCfFile = findProperty("eunomia.cf.file")?.toString()
+    val copyEunomiaToMods = if (eunomiaOverrideJar != null) {
+        tasks.register<Copy>("copyEunomiaToMods") {
+            group = "verification"
+            description = "Drop the local eunomia fabric mod jar into run/mods/ (armor-hider's required runtime dependency)."
+            from(eunomiaOverrideJar)
+            into(project.layout.projectDirectory.dir("run/mods"))
+            // Both wipe run/mods first: fetchFcgtCompatJars on the runClientGametest (ENTITY_RENDER)
+            // path, fetchCompatJars on the runClient (BOOT) path. Land after whichever is in the graph,
+            // or a wipe deletes the eunomia jar we just dropped and the client fails its required dep.
+            mustRunAfter("fetchFcgtCompatJars", "fetchCompatJars")
+            outputs.upToDateWhen { false }
+            doFirst {
+                if (!file(eunomiaOverrideJar).exists()) {
+                    throw GradleException(
+                        "eunomia fabric mod jar (-Peunomia.fabric.jar) not found at:\n  $eunomiaOverrideJar"
+                    )
+                }
+                deleteStaleEunomiaJars()
+            }
+        }
+    } else if (eunomiaCfFile != null) {
+        val cfProject = findProperty("eunomia.cf.project")?.toString()
+            ?: error("eunomia.cf.project is not set; cannot resolve the eunomia mod jar from CurseForge")
+        val eunomiaRuntimeMod = configurations.create("eunomiaRuntimeMod") {
+            isCanBeResolved = true
+            isCanBeConsumed = false
+            isVisible = false
+            isTransitive = false
+        }
+        dependencies.add("eunomiaRuntimeMod", "curse.maven:eunomia-$cfProject:$eunomiaCfFile")
+        tasks.register<Copy>("copyEunomiaToMods") {
+            group = "verification"
+            description = "Drop the eunomia fabric mod jar (CurseForge $cfProject/$eunomiaCfFile) into run/mods/."
+            from(eunomiaRuntimeMod)
+            into(project.layout.projectDirectory.dir("run/mods"))
+            // Both wipe run/mods first: fetchFcgtCompatJars on the runClientGametest (ENTITY_RENDER)
+            // path, fetchCompatJars on the runClient (BOOT) path. Land after whichever is in the graph,
+            // or a wipe deletes the eunomia jar we just dropped and the client fails its required dep.
+            mustRunAfter("fetchFcgtCompatJars", "fetchCompatJars")
+            outputs.upToDateWhen { false }
+            doFirst { deleteStaleEunomiaJars() }
+        }
+    } else {
+        // Lenient, mirroring the NeoForge side (neoforge/build.gradle.kts): an unpinned variant gets no
+        // copy task rather than failing CONFIGURATION, which would break every task on that variant
+        // (`tasks`, `build`, the unit tests) and not just the client runs that actually need the jar.
+        // Adding a new Fabric variant therefore never breaks the build; this warning - plus the hard
+        // failure the runClientGametest wiring installs below - is the signal to pin `eunomia.cf.file`
+        // (https://www.curseforge.com/minecraft/mc-mods/eunomia/files/all) in that variant's section of
+        // stonecutter.properties.toml, or to pass -Peunomia.fabric.jar=<path>.
+        logger.warn(
+            "[armor-hider] eunomia.cf.file is not pinned for ${sc.current.project}; the eunomia mod will " +
+                "NOT be placed in run/mods, so a client run on this variant fails its required eunomia " +
+                "dependency at boot."
+        )
+        null
+    }
+    // A plain `runClient` boot (the smoke BOOT phase, and any dev client launch) needs the eunomia mod in
+    // run/mods just as much as the gametest does - armor-hider hard-requires it, so without this the client
+    // fails mod resolution and never boots. The FCGT module jar is NOT needed for a plain boot, so only the
+    // eunomia copy is wired here. Unlike runClientGametest, `runClient` exists on every Fabric variant.
+    if (copyEunomiaToMods != null) {
+        tasks.named("runClient") {
+            dependsOn(copyEunomiaToMods)
+        }
     }
 
     // ── Phase 2 smoke: FCGT-driven entity render run config ──────────────────────────
@@ -650,6 +815,23 @@ if (branch == "fabric") {
             // leftover and every other variant did not, so the Paper E2E matrix "passed" on 26.2 and
             // silently ran nothing elsewhere.
             dependsOn(copyFcgtToMods)
+            // Same unconditional guarantee for the eunomia runtime dependency (registered above, at
+            // Fabric-branch level, so the non-FCGT variants get it too). Registration is lenient, so on a
+            // variant that pins neither `eunomia.cf.file` nor -Peunomia.fabric.jar the task is absent -
+            // fail the gametest loudly there instead of letting it boot without eunomia and report the
+            // exact false green (exit ZERO, nothing run) this wiring exists to prevent.
+            if (copyEunomiaToMods != null) {
+                dependsOn(copyEunomiaToMods)
+            } else {
+                doFirst {
+                    throw GradleException(
+                        "No eunomia mod jar is provisioned for ${sc.current.project}: armor-hider requires " +
+                            "the eunomia mod at runtime, so this gametest would boot vanilla and exit 0 " +
+                            "having run nothing. Pin `eunomia.cf.file` for this variant in " +
+                            "stonecutter.properties.toml, or pass -Peunomia.fabric.jar=<path>."
+                    )
+                }
+            }
         }
         if (project.hasProperty("smoke")) {
             // Compat-mod fetching stays smoke-only: it wipes run/mods and pulls the full

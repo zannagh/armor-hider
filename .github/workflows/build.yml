@@ -50,13 +50,23 @@ jobs:
     needs: runner-and-version
     runs-on: ${{ fromJSON(needs.runner-and-version.outputs.runner) }}
     # `contents: read` to check out; `pull-requests: write` so the coverage step can post/update its
-    # summary comment on the PR.
+    # summary comment on the PR; `packages: read` so Gradle can resolve the eunomia libraries from
+    # GitHub Packages (see `env.GITHUB_TOKEN` below).
     permissions:
       contents: read
       pull-requests: write
+      packages: read
     defaults:
       run:
         shell: bash
+    # eunomia-core/eunomia-common live in GitHub Packages (maven.pkg.github.com/zannagh/eunomia) and
+    # need an authenticated read. buildSrc only declares that repository when a token is visible, and
+    # :paper fails at configuration time without one, so every Gradle step in this job needs it.
+    # EUNOMIA_PACKAGES_TOKEN is deliberately NOT defined: eunomia is a public repo publishing a public
+    # package, so the automatic token can read it. It is an escape hatch if that package ever goes
+    # private (a PAT with read:packages); unset, it evaluates empty and the automatic token is used.
+    env:
+      GITHUB_TOKEN: ${{ secrets.EUNOMIA_PACKAGES_TOKEN || secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7

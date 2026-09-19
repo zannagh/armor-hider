@@ -89,6 +89,16 @@ class PaperE2ESmokeTest {
     private static final String HANDSHAKE_START = "Paper handshake smoke starting";
     private static final String HANDSHAKE_PASS = "Paper handshake smoke passed";
 
+    /** FCGT entrypoint id for the two-client propagation row (matches the catalog in multiloader-loom). */
+    private static final String TWO_CLIENT_FCGT_ID = "two-client-propagation";
+    /** Distinct identities for the two forked clients, and the marker opacity the sender pushes. */
+    private static final String SENDER_NAME = "ArmorHiderSmokeA";
+    private static final String READER_NAME = "ArmorHiderSmokeB";
+    private static final String MARKER = "0.35";
+    /** Log markers proving each half of the two-client exchange ran. */
+    private static final String SENDER_DONE = "sender done - marker config sent";
+    private static final String READER_VERIFIED = "cross-client config propagation verified";
+
     static Stream<String> variants() {
         List<String> only = VariantFilter.only();
         List<String> exclude = VariantFilter.exclude();
@@ -137,6 +147,77 @@ class PaperE2ESmokeTest {
             System.out.println("[paper-e2e] paper exit code " + server.getExitCode()
                     + ", log kept at " + server.getLogFile());
         }
+    }
+
+    @ParameterizedTest(name = "PAPER_E2E_2CLIENT {0}")
+    @MethodSource("variants")
+    @DisplayName("two clients propagate a config change through a real Paper server")
+    void twoClientsPropagateConfig(String variant) throws Exception {
+        Assumptions.assumeTrue(optedIn(),
+                "PAPER_E2E is opt-in: pass -Dsmoke.paper.e2e (or -Dsmoke.phase=paper-e2e)");
+        Assumptions.assumeTrue(SmokeMatrixTest.FCGT_VARIANTS.contains(variant),
+                variant + " has no runClientGametest task");
+
+        String minecraftVersion = paperVersionFor(variant);
+        Path pluginJar = PaperEnvironment.locatePluginJar();
+        PaperServerDownloader.PaperBuild build =
+                PaperEnvironment.resolveOrSkip(serverProject(), minecraftVersion);
+        Path java = PaperEnvironment.resolveJavaOrSkip(build.javaVersion());
+        Path serverDirectory = Files.createTempDirectory("armor-hider-paper-2client");
+
+        System.out.println("[paper-e2e-2client] variant=" + variant + " marker=" + MARKER
+                + " sender=" + SENDER_NAME + " reader=" + READER_NAME);
+
+        PaperServer server = new PaperServer(build, pluginJar, serverDirectory, java);
+        try {
+            bootServer(server);
+            // Sender first: it changes its config and disconnects, leaving the plugin holding it.
+            runTwoClientRole(variant, server, "sender", SENDER_NAME, SENDER_NAME);
+            // Reader second: its join push carries the sender's stored config, which it asserts on.
+            runTwoClientRole(variant, server, "reader", READER_NAME, SENDER_NAME);
+        } finally {
+            server.close();
+            System.out.println("[paper-e2e-2client] paper exit code " + server.getExitCode()
+                    + ", log kept at " + server.getLogFile());
+        }
+    }
+
+    /**
+     * Forks one client of the two-client scenario and requires it to log its success marker. The sender
+     * and reader run in separate client launches (sequentially) against the same Paper server, under
+     * distinct offline identities so the plugin stores and looks their configs up independently.
+     */
+    private static void runTwoClientRole(String variant, PaperServer server, String role,
+                                         String username, String peer) throws Exception {
+        String loader = variant.split("-")[0];
+        List<String> command = List.of(
+                GradleFork.gradleScript(),
+                ":" + loader + ":" + variant + ":runClientGametest",
+                "-Psmoke.paper.port=" + server.getPort(),
+                "-Psmoke.paper.username=" + username,
+                "-Psmoke.fcgt.only=" + TWO_CLIENT_FCGT_ID,
+                "-Psmoke.twoclient.role=" + role,
+                "-Psmoke.twoclient.peer=" + peer,
+                "-Psmoke.twoclient.marker=" + MARKER,
+                "--console=plain",
+                "--no-daemon");
+        System.out.println("[paper-e2e-2client] " + String.join(" ", command));
+
+        GradleFork.Result result =
+                GradleFork.runToExit(command, GradleFork.repoRoot().toFile(), CLIENT_CEILING_MS);
+        String expectedMarker = role.equals("reader") ? READER_VERIFIED : SENDER_DONE;
+        if (result.exitCode() != 0 || result.lines().stream().noneMatch(line -> line.contains(expectedMarker))) {
+            Assertions.fail(String.format(
+                    "PAPER_E2E_2CLIENT %s (%s) failed: exit=%d, marker \"%s\" %s.%n"
+                            + "Command: %s%nLast 80 lines of gradle output:%n%s%n"
+                            + "Last %d lines of the Paper log:%n%s",
+                    variant, role, result.exitCode(), expectedMarker,
+                    result.lines().stream().anyMatch(line -> line.contains(expectedMarker))
+                            ? "was logged" : "was never logged",
+                    String.join(" ", command), result.tail(80),
+                    PAPER_LOG_TAIL_LINES, lastLines(server.getCombinedLogText(), PAPER_LOG_TAIL_LINES)));
+        }
+        System.out.println("[paper-e2e-2client] " + role + " passed for " + variant);
     }
 
     private static void bootServer(PaperServer server) throws Exception {

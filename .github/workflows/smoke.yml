@@ -25,11 +25,21 @@ on:
 
 permissions:
   contents: read
+  # Gradle resolves eunomia-core/eunomia-common from GitHub Packages; reading them needs an
+  # authenticated token (exported as GITHUB_TOKEN on each Gradle job below).
+  packages: read
 
 # Headless software-GL environment for booting real clients on the runner.
 env:
   LIBGL_ALWAYS_SOFTWARE: "1"
   MESA_GL_VERSION_OVERRIDE: "4.5"
+  # eunomia-core/eunomia-common live in GitHub Packages (maven.pkg.github.com/zannagh/eunomia) and
+  # need an authenticated read. buildSrc only declares that repository when a token is visible, and
+  # :paper fails at configuration time without one, so every ./gradlew invocation here needs it.
+  # EUNOMIA_PACKAGES_TOKEN is deliberately NOT defined: eunomia is a public repo publishing a public
+  # package, so the automatic token can read it. It is an escape hatch if that package ever goes
+  # private (a PAT with read:packages); unset, it evaluates empty and the automatic token is used.
+  GITHUB_TOKEN: ${{ secrets.EUNOMIA_PACKAGES_TOKEN || secrets.GITHUB_TOKEN }}
 
 concurrency:
   group: smoke-${{ github.ref }}
