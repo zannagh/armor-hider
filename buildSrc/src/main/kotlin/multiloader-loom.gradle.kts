@@ -521,6 +521,104 @@ if (branch == "fabric") {
         tasks.named("runClient") { dependsOn("fetchCompatJars") }
     }
 
+    // ── eunomia runtime mod provisioning (EVERY Fabric variant) ──────────────────────
+    // armor-hider consumes eunomia-core at compile time only; the eunomia MOD supplies the
+    // networking transports + codec injection + capability handshake at game runtime and is a
+    // REQUIRED dependency (fabric.mod.json). So every client launch - a plain dev/smoke `runClient`
+    // just as much as an FCGT `runClientGametest` - must have the eunomia fabric mod jar in run/mods,
+    // or armor-hider fails its dependency: a plain client aborts mod resolution at boot, and a gametest
+    // boots vanilla and exits ZERO having run nothing (a false green - blueprint risk R4).
+    //
+    // Deliberately registered HERE, at Fabric-branch level, and not inside the FCGT block below: that
+    // block is gated on `fabricapi.semver`, which fabric-1.20.1 / 1.21.1 / 1.21.2 / 1.21.3 do not pin.
+    // Registering inside it meant those four variants got no copy task at all, so their `runClient`
+    // booted with an empty run/mods and failed mod resolution. Only the `runClientGametest` wiring stays
+    // conditional, because that task exists only on the FCGT-capable variants.
+    //
+    // The jar is pulled from CurseForge (project `eunomia.cf.project`) via Cursemaven by default, resolved
+    // for this variant's MC version from the pinned file id `eunomia.cf.file`. Pass -Peunomia.fabric.jar=<path>
+    // to smoke-test a locally-built eunomia instead (e.g. an unreleased change). The CF configuration is
+    // non-transitive, so only eunomia's own jar lands - never its CF-declared deps.
+    //
+    // Clear any previously-copied eunomia jar before copying the current one. Without this, a filename
+    // change - an eunomia version bump changes the CurseForge file id (and thus the jar name), or a run
+    // switches between the CF jar and a -Peunomia.fabric.jar override - leaves TWO eunomia mods in
+    // run/mods. fabric-loader then loads both, the codec-injection mixins apply twice and the handshake
+    // S2C payloads fail to decode (the client disconnects at join). fetchFcgtCompatJars / fetchCompatJars
+    // wipe run/mods on -Psmoke runs, but the plain dev and FCGT/E2E paths do not, so this copy must clean
+    // up after itself.
+    fun deleteStaleEunomiaJars() {
+        delete(fileTree(project.layout.projectDirectory.dir("run/mods")) { include("eunomia*.jar") })
+    }
+    val eunomiaOverrideJar = findProperty("eunomia.fabric.jar")?.toString()
+    val eunomiaCfFile = findProperty("eunomia.cf.file")?.toString()
+    val copyEunomiaToMods = if (eunomiaOverrideJar != null) {
+        tasks.register<Copy>("copyEunomiaToMods") {
+            group = "verification"
+            description = "Drop the local eunomia fabric mod jar into run/mods/ (armor-hider's required runtime dependency)."
+            from(eunomiaOverrideJar)
+            into(project.layout.projectDirectory.dir("run/mods"))
+            // Both wipe run/mods first: fetchFcgtCompatJars on the runClientGametest (ENTITY_RENDER)
+            // path, fetchCompatJars on the runClient (BOOT) path. Land after whichever is in the graph,
+            // or a wipe deletes the eunomia jar we just dropped and the client fails its required dep.
+            mustRunAfter("fetchFcgtCompatJars", "fetchCompatJars")
+            outputs.upToDateWhen { false }
+            doFirst {
+                if (!file(eunomiaOverrideJar).exists()) {
+                    throw GradleException(
+                        "eunomia fabric mod jar (-Peunomia.fabric.jar) not found at:\n  $eunomiaOverrideJar"
+                    )
+                }
+                deleteStaleEunomiaJars()
+            }
+        }
+    } else if (eunomiaCfFile != null) {
+        val cfProject = findProperty("eunomia.cf.project")?.toString()
+            ?: error("eunomia.cf.project is not set; cannot resolve the eunomia mod jar from CurseForge")
+        val eunomiaRuntimeMod = configurations.create("eunomiaRuntimeMod") {
+            isCanBeResolved = true
+            isCanBeConsumed = false
+            isVisible = false
+            isTransitive = false
+        }
+        dependencies.add("eunomiaRuntimeMod", "curse.maven:eunomia-$cfProject:$eunomiaCfFile")
+        tasks.register<Copy>("copyEunomiaToMods") {
+            group = "verification"
+            description = "Drop the eunomia fabric mod jar (CurseForge $cfProject/$eunomiaCfFile) into run/mods/."
+            from(eunomiaRuntimeMod)
+            into(project.layout.projectDirectory.dir("run/mods"))
+            // Both wipe run/mods first: fetchFcgtCompatJars on the runClientGametest (ENTITY_RENDER)
+            // path, fetchCompatJars on the runClient (BOOT) path. Land after whichever is in the graph,
+            // or a wipe deletes the eunomia jar we just dropped and the client fails its required dep.
+            mustRunAfter("fetchFcgtCompatJars", "fetchCompatJars")
+            outputs.upToDateWhen { false }
+            doFirst { deleteStaleEunomiaJars() }
+        }
+    } else {
+        // Lenient, mirroring the NeoForge side (neoforge/build.gradle.kts): an unpinned variant gets no
+        // copy task rather than failing CONFIGURATION, which would break every task on that variant
+        // (`tasks`, `build`, the unit tests) and not just the client runs that actually need the jar.
+        // Adding a new Fabric variant therefore never breaks the build; this warning - plus the hard
+        // failure the runClientGametest wiring installs below - is the signal to pin `eunomia.cf.file`
+        // (https://www.curseforge.com/minecraft/mc-mods/eunomia/files/all) in that variant's section of
+        // stonecutter.properties.toml, or to pass -Peunomia.fabric.jar=<path>.
+        logger.warn(
+            "[armor-hider] eunomia.cf.file is not pinned for ${sc.current.project}; the eunomia mod will " +
+                "NOT be placed in run/mods, so a client run on this variant fails its required eunomia " +
+                "dependency at boot."
+        )
+        null
+    }
+    // A plain `runClient` boot (the smoke BOOT phase, and any dev client launch) needs the eunomia mod in
+    // run/mods just as much as the gametest does - armor-hider hard-requires it, so without this the client
+    // fails mod resolution and never boots. The FCGT module jar is NOT needed for a plain boot, so only the
+    // eunomia copy is wired here. Unlike runClientGametest, `runClient` exists on every Fabric variant.
+    if (copyEunomiaToMods != null) {
+        tasks.named("runClient") {
+            dependsOn(copyEunomiaToMods)
+        }
+    }
+
     // ── Phase 2 smoke: FCGT-driven entity render run config ──────────────────────────
     // Registers `runClientGametest` on Fabric variants that pin `fabricapi.semver`.
     // FCGT discovers the `fabric-client-gametest` entrypoint, swaps the main loop for the
@@ -708,77 +806,6 @@ if (branch == "fabric") {
             outputs.upToDateWhen { false }
         }
 
-        // armor-hider now consumes eunomia-core at compile time only; the eunomia MOD supplies the
-        // networking transports + codec injection + capability handshake at game runtime and is a
-        // REQUIRED dependency (fabric.mod.json). So every FCGT client launch must have the eunomia
-        // fabric mod jar in run/mods, or armor-hider fails its dependency, MC boots vanilla and the
-        // gametest exits ZERO having run nothing (a false green - blueprint risk R4).
-        //
-        // The jar is pulled from CurseForge (project 1654849) via Cursemaven by default, resolved for this
-        // variant's MC version from the pinned file id `eunomia.cf.file`. Pass -Peunomia.fabric.jar=<path>
-        // to smoke-test a locally-built eunomia instead (e.g. an unreleased change). The CF configuration is
-        // non-transitive, so only eunomia's own jar lands - never its CF-declared deps.
-        //
-        // Clear any previously-copied eunomia jar before copying the current one. Without this, a filename
-        // change - an eunomia version bump changes the CurseForge file id (and thus the jar name), or a run
-        // switches between the CF jar and a -Peunomia.fabric.jar override - leaves TWO eunomia mods in
-        // run/mods. fabric-loader then loads both, the codec-injection mixins apply twice and the handshake
-        // S2C payloads fail to decode (the client disconnects at join). fetchFcgtCompatJars wipes run/mods on
-        // -Psmoke runs, but the FCGT/E2E path does not run it, so this copy must clean up after itself.
-        fun deleteStaleEunomiaJars() {
-            delete(fileTree(project.layout.projectDirectory.dir("run/mods")) { include("eunomia*.jar") })
-        }
-        val eunomiaOverrideJar = findProperty("eunomia.fabric.jar")?.toString()
-        val copyEunomiaToMods = if (eunomiaOverrideJar != null) {
-            tasks.register<Copy>("copyEunomiaToMods") {
-                group = "verification"
-                description = "Drop the local eunomia fabric mod jar into run/mods/ (armor-hider's required runtime dependency)."
-                from(eunomiaOverrideJar)
-                into(project.layout.projectDirectory.dir("run/mods"))
-                // Both wipe run/mods first: fetchFcgtCompatJars on the runClientGametest (ENTITY_RENDER)
-                // path, fetchCompatJars on the runClient (BOOT) path. Land after whichever is in the graph,
-                // or a wipe deletes the eunomia jar we just dropped and the client fails its required dep.
-                mustRunAfter("fetchFcgtCompatJars", "fetchCompatJars")
-                outputs.upToDateWhen { false }
-                doFirst {
-                    if (!file(eunomiaOverrideJar).exists()) {
-                        throw GradleException(
-                            "eunomia fabric mod jar (-Peunomia.fabric.jar) not found at:\n  $eunomiaOverrideJar"
-                        )
-                    }
-                    deleteStaleEunomiaJars()
-                }
-            }
-        } else {
-            val cfProject = findProperty("eunomia.cf.project")?.toString()
-                ?: error("eunomia.cf.project is not set; cannot resolve the eunomia mod jar from CurseForge")
-            val cfFile = findProperty("eunomia.cf.file")?.toString()
-                ?: error(
-                    "eunomia.cf.file is not set for ${sc.current.project}; pin the CurseForge fabric file id " +
-                        "(https://www.curseforge.com/minecraft/mc-mods/eunomia/files/all) in that variant's " +
-                        "section of stonecutter.properties.toml, or pass -Peunomia.fabric.jar=<path>."
-                )
-            val eunomiaRuntimeMod = configurations.create("eunomiaRuntimeMod") {
-                isCanBeResolved = true
-                isCanBeConsumed = false
-                isVisible = false
-                isTransitive = false
-            }
-            dependencies.add("eunomiaRuntimeMod", "curse.maven:eunomia-$cfProject:$cfFile")
-            tasks.register<Copy>("copyEunomiaToMods") {
-                group = "verification"
-                description = "Drop the eunomia fabric mod jar (CurseForge $cfProject/$cfFile) into run/mods/."
-                from(eunomiaRuntimeMod)
-                into(project.layout.projectDirectory.dir("run/mods"))
-                // Both wipe run/mods first: fetchFcgtCompatJars on the runClientGametest (ENTITY_RENDER)
-                // path, fetchCompatJars on the runClient (BOOT) path. Land after whichever is in the graph,
-                // or a wipe deletes the eunomia jar we just dropped and the client fails its required dep.
-                mustRunAfter("fetchFcgtCompatJars", "fetchCompatJars")
-                outputs.upToDateWhen { false }
-                doFirst { deleteStaleEunomiaJars() }
-            }
-        }
-
         tasks.named("runClientGametest") {
             // NOT gated on -Psmoke. The FCGT module jar is what makes this task do anything at all:
             // without it on the runtime classpath fabric-loader never loads FCGT's mixin plugin, MC
@@ -788,16 +815,23 @@ if (branch == "fabric") {
             // leftover and every other variant did not, so the Paper E2E matrix "passed" on 26.2 and
             // silently ran nothing elsewhere.
             dependsOn(copyFcgtToMods)
-            // Same unconditional guarantee for the eunomia runtime dependency (see above).
-            dependsOn(copyEunomiaToMods)
-        }
-        // A plain `runClient` boot (the smoke BOOT phase, and any dev client launch) also needs the
-        // eunomia mod in run/mods - armor-hider hard-requires it, so without this the client fails mod
-        // resolution and never boots. Only runClientGametest was wired before, so the BOOT smoke rows
-        // (and dev runClient) had no eunomia. The FCGT jar is NOT needed for a plain boot, so only the
-        // eunomia copy is added here.
-        tasks.named("runClient") {
-            dependsOn(copyEunomiaToMods)
+            // Same unconditional guarantee for the eunomia runtime dependency (registered above, at
+            // Fabric-branch level, so the non-FCGT variants get it too). Registration is lenient, so on a
+            // variant that pins neither `eunomia.cf.file` nor -Peunomia.fabric.jar the task is absent -
+            // fail the gametest loudly there instead of letting it boot without eunomia and report the
+            // exact false green (exit ZERO, nothing run) this wiring exists to prevent.
+            if (copyEunomiaToMods != null) {
+                dependsOn(copyEunomiaToMods)
+            } else {
+                doFirst {
+                    throw GradleException(
+                        "No eunomia mod jar is provisioned for ${sc.current.project}: armor-hider requires " +
+                            "the eunomia mod at runtime, so this gametest would boot vanilla and exit 0 " +
+                            "having run nothing. Pin `eunomia.cf.file` for this variant in " +
+                            "stonecutter.properties.toml, or pass -Peunomia.fabric.jar=<path>."
+                    )
+                }
+            }
         }
         if (project.hasProperty("smoke")) {
             // Compat-mod fetching stays smoke-only: it wipes run/mods and pulls the full

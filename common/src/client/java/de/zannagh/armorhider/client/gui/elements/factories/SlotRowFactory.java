@@ -50,7 +50,6 @@ final class SlotRowFactory {
 
     private static ExtendedSlotIconButton createExclusionButton(EquipmentSlot slot, Options options, int buttonWidth) {
         return new ExtendedSlotIconButton(
-                slot,
                 buttonWidth,
                 UiSizes.DEFAULT_BUTTON_HEIGHT, onPress -> {
             var mc = Minecraft.getInstance();

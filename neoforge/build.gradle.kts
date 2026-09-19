@@ -45,15 +45,16 @@ val devProfile = if (!gradle.startParameter.isOffline && requestedTasks.any {
 
 // eunomia is a REQUIRED runtime dependency (neoforge.mods.toml): the eunomia mod supplies the
 // networking transports + codec injection + capability handshake at game runtime, while armor-hider
-// only compiles against eunomia-core. So every client run must have the eunomia NeoForge mod jar in
-// run/mods, or armor-hider fails its dependency and the client aborts at boot. Resolved from CurseForge
+// only compiles against eunomia-core. The dependency is declared side="BOTH", so every run - client AND
+// dedicated server - must have the eunomia NeoForge mod jar in run/mods, or armor-hider fails its
+// dependency and the game aborts at boot. Resolved from CurseForge
 // (project `eunomia.cf.project`) for this variant's MC version via the pinned file id `eunomia.cf.file`.
 // This mirrors the Fabric copyEunomiaToMods in multiloader-loom.gradle.kts. The gameDir for a run is the
 // variant's `run/` dir, so run/mods is where NeoForge/FML loads it from - the same dir fetchCompatJars uses.
 // Registered only when the variant pins `eunomia.cf.file` (all current NeoForge variants do). Lenient by
 // design: an unpinned variant simply gets no copy task rather than failing configuration, so adding a new
-// NeoForge variant never breaks the build - a client run on an unpinned variant fails loudly at boot on the
-// missing eunomia dependency, which is the signal to pin it.
+// NeoForge variant never breaks the build - a client or server run on an unpinned variant fails loudly at
+// boot on the missing eunomia dependency, which is the signal to pin it.
 val eunomiaCfFile = findProperty("eunomia.cf.file")?.toString()
 val copyEunomiaToMods = if (eunomiaCfFile != null) {
     val eunomiaCfProject = findProperty("eunomia.cf.project")?.toString()
@@ -82,7 +83,8 @@ val copyEunomiaToMods = if (eunomiaCfFile != null) {
 } else {
     logger.warn(
         "[armor-hider] eunomia.cf.file is not pinned for ${sc.current.project}; the eunomia mod will NOT be " +
-            "placed in run/mods, so a client run on this variant fails its required eunomia dependency at boot."
+            "placed in run/mods, so a client or server run on this variant fails its required eunomia " +
+            "dependency at boot."
     )
     null
 }
@@ -123,6 +125,11 @@ neoForge {
         register("server") {
             server()
             taskBefore(expandResourcesForIdea)
+            // The server needs eunomia too: neoforge.mods.toml declares the dependency side="BOTH" and the
+            // server code uses eunomia's transport, so a dedicated-server run without the jar in run/mods
+            // fails mod resolution at boot exactly like the client does. Same null-safe wiring as the
+            // client run above - null on a variant that doesn't pin eunomia.cf.file.
+            copyEunomiaToMods?.let { taskBefore(it) }
             jvmArgument("-Darmorhider.devRun.watchdog=true")
         }
     }
