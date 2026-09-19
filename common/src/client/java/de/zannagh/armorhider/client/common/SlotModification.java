@@ -1,5 +1,6 @@
 package de.zannagh.armorhider.client.common;
 
+import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.api.impl.AhRenderRuleRegistryImpl;
 import de.zannagh.armorhider.client.api.impl.AhRuleTarget;
@@ -11,6 +12,9 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.EnumMap;
+import java.util.Objects;
 
 /**
  * Represents the modifications that should be applied for a specific slot.
@@ -87,14 +91,59 @@ public record SlotModification(
     }
 
     /**
+     * One immutable empty modification per slot, built once. {@code empty()} sits on the render hot path -
+     * it is reached from {@code RenderScopeContext.empty(...)}, i.e. from every scope MISS, which happens
+     * per model part and per baked quad - and constructing one allocates a whole {@link PlayerConfig}.
+     * <p>
+     * The shared {@link PlayerConfig} these carry is only ever *read* (RenderModifications' local-viewer
+     * fallback and ArmorHiderElytraRenderer's elytraInFlight lookup are the only readers) - never written.
+     * The one write that used to reach it, the exclusion-item discovery in {@link #addItemInformation},
+     * is now skipped for empty modifications; it wrote into a throwaway instance before, so nothing
+     * observable changes.
+     * <p>
+     * Deliberately tolerant of its own initialisation failing: {@link PlayerConfig#empty()} and
+     * {@link ItemInfo#empty()} both touch registry-backed state that can be unbound this early (the same
+     * window documented at {@code ItemInfo.java:40-48}, issue #260). A throwing {@code <clinit>} would
+     * latch that transient failure for the whole session (ExceptionInInitializerError, then
+     * NoClassDefFoundError on every later touch), so a failure here leaves the map empty and
+     * {@link #empty(EquipmentSlot)} falls back to the old allocating path, retrying on the next call.
+     */
+    private static final EnumMap<EquipmentSlot, SlotModification> EMPTY_BY_SLOT =
+            new EnumMap<>(EquipmentSlot.class);
+
+    static {
+        try {
+            PlayerConfig emptyConfig = PlayerConfig.empty();
+            ItemInfo emptyItemInfo = ItemInfo.empty();
+            for (EquipmentSlot value : EquipmentSlot.values()) {
+                EMPTY_BY_SLOT.put(value, new SlotModification(
+                        value, false, false, false, 1.0, "", emptyConfig, emptyItemInfo));
+            }
+        } catch (Throwable t) {
+            // Partial fills are as bad as none here (the cached instances would disagree with the
+            // fallback ones), so drop everything and let every slot take the allocating path.
+            EMPTY_BY_SLOT.clear();
+            ArmorHider.LOGGER.warn(
+                    "Could not pre-build the shared empty slot modifications; falling back to allocating"
+                            + " them per call. This is expected only if item registries are not bound yet.", t);
+        }
+    }
+
+    /**
      * Creates an empty slot modification.
      * @return An empty slot modification.
      */
     public static SlotModification empty(){
-        return new SlotModification(EquipmentSlot.MAINHAND, false, false, false, 1.0, "", PlayerConfig.empty(), ItemInfo.empty());
+        return empty(EquipmentSlot.MAINHAND);
     }
 
     public static SlotModification empty(EquipmentSlot slot){
+        Objects.requireNonNull(slot, "slot must not be null when asking for an empty SlotModification");
+        SlotModification cached = EMPTY_BY_SLOT.get(slot);
+        if (cached != null) {
+            return cached;
+        }
+        // Only reached when the static pre-build above failed. Slow, but the render path keeps working.
         return new SlotModification(slot, false, false, false, 1.0, "", PlayerConfig.empty(), ItemInfo.empty());
     }
 
@@ -229,9 +278,29 @@ public record SlotModification(
     public SlotModification addItemInformation(@Nullable ItemStack item) {
         ItemStack resolvedItem = item != null ? item : ItemStack.EMPTY;
         ItemInfo resolvedItemInfo = new ItemInfo(resolvedItem);
-        if (!resolvedItemInfo.isEmpty()) {
+        // Skipped when this modification is empty: an empty modification carries the shared config held by
+        // EMPTY_BY_SLOT, and discoverItem() would mutate (and grow without bound) an instance that is
+        // shared across every scope miss. Before the empties were shared this wrote into a per-call throwaway config that was
+        // discarded on the next line, and shouldArmorHiderIgnore() returns false for an absent entry, so
+        // the whole block was already inert on this path - nothing observable changes.
+        //
+        if (!resolvedItemInfo.isEmpty() && !isEmpty()) {
             var exclusionConfig = config.getExclusionItems();
-            exclusionConfig.discoverItem(slot, resolvedItem.getItem(), resolvedItem.getHoverName().getString());
+            // The DISCOVERY write (but not the ignore lookup below, which reads the user's own flags carried
+            // over by the deep copy) is skipped for a DERIVED resolution
+            // (PlayerConfig#isDerivedResolution): the copy built for an unknown remote player and the
+            // synthesized global-override fallback. Those used to be rebuilt on every resolveConfig() call
+            // and dropped immediately, so discovery on them went nowhere; ResolvedConfigCache now memoises
+            // them, and without this they would start accumulating for the session. Do NOT "fix" this by
+            // removing the check: nothing reads remote discovery (ItemExclusionScreen reads
+            // getLocalPlayerConfig() unconditionally) and nothing prunes it (discoverItem has no cap;
+            // prune() only runs via PlayerConfig.heal() on deserialization, which these instances never
+            // see). The local config, a configured globalPlayerOverride, a server-transmitted config and an
+            // individual override are all un-flagged and still discover, exactly as before the cache.
+            if (!config.isDerivedResolution()) {
+                exclusionConfig.discoverItem(
+                        slot, resolvedItem.getItem(), resolvedItem.getHoverName().getString());
+            }
 
             if (exclusionConfig.shouldArmorHiderIgnore(slot, resolvedItem.getItem())) {
                 return empty(slot);
@@ -243,9 +312,16 @@ public record SlotModification(
             return empty(slot);
         }
 
+        // !isEmpty() for the same reason as the discovery block above: elytraModification hands `config`
+        // - the shared empty-modification config - to AhRenderRuleRegistryImpl.evaluate(...), which
+        // surfaces it to every registered third-party AhRenderRule as AhHideContext.config(). Behaviour
+        // is unchanged: on an empty modification elytraModification either returns empty(slot) outright,
+        // or returns a record whose playerName is still blank - so isEmpty() holds and every consumer
+        // short-circuits to the original value anyway.
         if (slot == EquipmentSlot.CHEST
                 && resolvedItemInfo.isElytra()
-                && !resolvedItemInfo.isArmoredElytra()) {
+                && !resolvedItemInfo.isArmoredElytra()
+                && !isEmpty()) {
             return elytraModification(resolvedItemInfo);
         }
 

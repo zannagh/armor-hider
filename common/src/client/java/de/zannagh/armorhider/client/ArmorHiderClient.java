@@ -46,6 +46,16 @@ public class ArmorHiderClient {
         // instead of waiting for a GC. No-op when no rule ever asked for a player.
         ClientConnectionEvents.registerDisconnect(client -> AhPlayerLookupCache.invalidate());
 
+        // Memoised remote-player config resolutions are session-scoped: they are keyed by player name and
+        // carry per-session item discovery, and the individual-override map they can shadow is keyed by
+        // server. Drop them on both edges of a connection so nothing crosses between servers and so the
+        // entries are released immediately rather than at the next resolution. The stamp inside the cache
+        // would catch a server change on its own; this is the eager half.
+        if (CLIENT_CONFIG_MANAGER instanceof AhPlayerConfigApiImpl configApi) {
+            ClientConnectionEvents.registerDisconnect(client -> configApi.invalidateResolvedConfigCache());
+            ClientConnectionEvents.registerJoin((handler, client) -> configApi.invalidateResolvedConfigCache());
+        }
+
         initRenderTypes();
 
         ArmorHider.LOGGER.info("Registering render interceptors...");

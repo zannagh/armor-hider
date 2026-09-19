@@ -316,6 +316,18 @@ if (branch == "fabric") {
         add("individual-config" to "de.zannagh.armorhider.smoke.IndividualConfigSmokeTest")
         add("keybind" to "de.zannagh.armorhider.smoke.KeybindSmokeTest")
         add("combat-detection" to "de.zannagh.armorhider.smoke.CombatDetectionSmokeTest")
+        // Render hot-path allocation regression (frame drops): asserts ZERO PlayerConfig graphs are built
+        // on the render thread during a render window. Deliberately NOT gated on >= 26.2-1.pre like the
+        // rows below: the mixins that carried the regression (hand/ModelPartMixin, hand/ItemRendererMixin)
+        // are `//? if < 1.21.9`, so the oldest FCGT-capable variant that still has them - fabric-1.21.4 -
+        // is exactly where this has to be runnable. The class is `//? if fcgt` only, matching this gate.
+        // Run it in isolation with `-Psmoke.fcgt.only=hot-path-alloc`.
+        add("hot-path-alloc" to "de.zannagh.armorhider.smoke.HotPathAllocSmokeTest")
+        // Report-only sibling of the row above: spawns a client-side RemotePlayer so the NON-local
+        // branch of resolveConfig() is exercised, and logs how many PlayerConfig graphs the render thread
+        // builds per window. Measurement harness, not an assertion - see the class doc.
+        // Run it in isolation with `-Psmoke.fcgt.only=hot-path-remote-alloc`.
+        add("hot-path-remote-alloc" to "de.zannagh.armorhider.smoke.HotPathRemoteAllocSmokeTest")
         // Public ArmorHiderRenderApi end-to-end smoke. Asserts on SlotModification + the translucent
         // armor path rather than on a version-specific render architecture, so it is `//? if fcgt`
         // only and registers on every fcgt variant.

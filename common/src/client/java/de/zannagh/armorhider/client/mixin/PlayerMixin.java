@@ -127,10 +127,12 @@ public abstract class PlayerMixin
 
     @ModifyReturnValue(method = "getItemBySlot", at = @At("RETURN"))
     private ItemStack hideFullyHiddenSlot(ItemStack original, EquipmentSlot slot) {
+        // getItemBySlot is called constantly by game logic as well as by rendering, so every bail-out is
+        // ordered cheapest-first. All of them return `original` unchanged, which is what makes the order
+        // free to choose: the only path that returns something else is the final hidden-slot check, and it
+        // is reached only when every guard below has passed. Resolving the scope (RenderScope.of -> new
+        // ItemInfo -> isElytra) used to happen before the two pure flag reads; it now happens after them.
         if (original.isEmpty()) {
-            return original;
-        }
-        if (AhRenderManagementApi.hasScopeModification(RenderScope.of(slot, new ItemInfo(original)))) {
             return original;
         }
 
@@ -140,14 +142,23 @@ public abstract class PlayerMixin
             return original;
         }
 
-        var playerName = armorHider$playerName();
         // During entity rendering (extractRenderState + layer rendering), return the
         // real item so that renderArmorPiece is called (for downstream render processing).
-        if (AhRenderManagementApi.isInEntityRender() || playerName == null) {
+        if (AhRenderManagementApi.isInEntityRender()) {
             return original;
         }
 
-        if (AhRenderManagementApi.getActiveScope(RenderScope.of(slot, new ItemInfo(original))).renderModificationApi().isSlotFullyHiddenForPlayer(playerName, slot, original)) {
+        var scope = RenderScope.of(slot, new ItemInfo(original));
+        if (AhRenderManagementApi.hasScopeModification(scope)) {
+            return original;
+        }
+
+        var playerName = armorHider$playerName();
+        if (playerName == null) {
+            return original;
+        }
+
+        if (AhRenderManagementApi.getActiveScope(scope).renderModificationApi().isSlotFullyHiddenForPlayer(playerName, slot, original)) {
             DebugTracer.equipmentSlotHidingFired(playerName, slot, true, "isSlotFullyHidden");
             return ItemStack.EMPTY;
         }

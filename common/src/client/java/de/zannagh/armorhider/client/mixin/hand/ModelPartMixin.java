@@ -20,7 +20,14 @@ public class ModelPartMixin {
             argsOnly = true
     )
     private int modifyRenderColor(int color) {
-        
+        // This runs at the HEAD of every ModelPart.render - per model part, recursively, for every entity,
+        // every frame - so the miss case has to cost as close to nothing as possible. When no scope carries
+        // a modification, both getActiveScope(...) calls below would hand back an empty, no-op context and
+        // the color would be returned unchanged, so bail out before querying anything.
+        if (!AhRenderManagementApi.hasAnyScopeModification()) {
+            return color;
+        }
+
         var offCtx = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
         var hdCtx = AhRenderManagementApi.getActiveScope(RenderScope.HEAD);
         var activeCtx = !offCtx.isEmpty() ? offCtx : hdCtx;
@@ -39,7 +46,12 @@ public class ModelPartMixin {
             argsOnly = true
     )
     private float modifyRenderAlpha(float alpha) {
-        
+        // Per model part, recursively, for every entity, every frame - see the note on modifyRenderColor.
+        // With no scope carrying a modification both lookups below return an empty, no-op context.
+        if (!AhRenderManagementApi.hasAnyScopeModification()) {
+            return alpha;
+        }
+
         var offCtx2 = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
         var hdCtx2 = AhRenderManagementApi.getActiveScope(RenderScope.HEAD);
         var activeCtx2 = !offCtx2.isEmpty() ? offCtx2 : hdCtx2;

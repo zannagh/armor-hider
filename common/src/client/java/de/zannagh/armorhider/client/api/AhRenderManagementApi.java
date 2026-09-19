@@ -96,6 +96,21 @@ public interface AhRenderManagementApi {
     }
 
     /**
+     * @return True if any currently active scope carries a real (non-empty) modification.
+     * <p>
+     * Unlike {@link #hasAnyActiveScope()} this ignores empty contexts, and unlike
+     * {@link #getActiveScope(RenderScope...)} it allocates nothing - no varargs array and no empty
+     * context. Meant as a cheap first check on the hottest render hooks (per model part, per baked
+     * quad): when it returns {@code false}, every {@code getActiveScope(...)} query on that call would
+     * have handed back an empty, no-op context.
+     *
+     * @since 0.13.6
+     */
+    static boolean hasAnyScopeModification() {
+        return AhRenderStateImpl.hasAnyScopeModification();
+    }
+
+    /**
      * @return whether vanilla rendering should be enforced (combat-detection result). Used by compat
      * code (EMF, …) that needs to fall back to vanilla geometry when a player's combat config requires it.
      */

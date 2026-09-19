@@ -80,6 +80,26 @@ public interface ArmorHiderPlayerConfigApi {
     }
 
     /**
+     * Bumps the config-change counter WITHOUT notifying listeners.
+     * <p>
+     * {@link #notifyConfigListeners(String)} both bumps the counter and fans out to every registered
+     * listener. The in-place mutators below ({@code set...To(value, withSave)}) legitimately do not want the
+     * fan-out when they are not persisting - a settings screen saves once on close - but the render-side
+     * caches keyed on the counter (per-player {@code PlayerModificationInfo}, and the memoised remote config
+     * resolutions) must still see the change immediately. This is the cheap half of the notification.
+     * <p>
+     * The default deliberately delegates to {@link #notifyConfigListeners(String)} with a {@code null} name
+     * rather than doing nothing. An implementation that overrides {@link #getConfigGeneration()} but forgets
+     * this method would otherwise inherit mutators that silently fail to advance its counter - a render cache
+     * stuck on a pre-change answer with no symptom to chase. Over-invalidating (a listener fan-out and a
+     * whole-cache drop) is the strictly safer failure. The primary implementation overrides this and only
+     * increments, so it neither recurses nor fans out.
+     */
+    default void bumpConfigGeneration() {
+        notifyConfigListeners(null);
+    }
+
+    /**
      * Sets the local player's name and (optionally) persists the change.
      *
      * @param playerName the new name.
@@ -158,6 +178,11 @@ public interface ArmorHiderPlayerConfigApi {
     /**
      * @return whether any client-side configuration of other players applies at all. The server-wide
      *         force-off is a separate, higher-priority guard applied at render time.
+     *         <p>
+     *         This is currently the same predicate as {@link #areIndividualConfigsAllowedByServer()} and is
+     *         kept as a distinct name only because it reads at a different level in
+     *         {@link #resolveConfig(String)}. Anything that snapshots the resolution-affecting toggles (see
+     *         the client-side {@code ConfigResolutionStamp.pack}) must treat the two as ONE bit, not two.
      */
     default boolean areOtherPlayerConfigsAllowed() {
         return areIndividualConfigsAllowedByServer();
@@ -179,6 +204,11 @@ public interface ArmorHiderPlayerConfigApi {
         }
         if (withSave.orElse(true)) {
             saveLocalPlayerConfig(local);
+        } else {
+            // saveLocalPlayerConfig(...) bumps the generation through notifyConfigListeners; the no-save
+            // branch mutates the local config in place, so it has to bump it itself or render-side caches
+            // would keep serving the pre-change answer until the next unrelated save.
+            bumpConfigGeneration();
         }
     }
 
@@ -299,6 +329,11 @@ public interface ArmorHiderPlayerConfigApi {
         local.individualConfigurations.putOverride(getServerKey(), playerName, config);
         if (withSave.isPresent() && withSave.get()) {
             saveLocalPlayerConfig(local);
+        } else {
+            // saveLocalPlayerConfig(...) bumps the generation through notifyConfigListeners; the no-save
+            // branch mutates the local config in place, so it has to bump it itself or render-side caches
+            // would keep serving the pre-change answer until the next unrelated save.
+            bumpConfigGeneration();
         }
     }
 
@@ -313,6 +348,11 @@ public interface ArmorHiderPlayerConfigApi {
         local.individualConfigurations.removeOverride(getServerKey(), playerName);
         if (withSave.isPresent() && withSave.get()) {
             saveLocalPlayerConfig(local);
+        } else {
+            // saveLocalPlayerConfig(...) bumps the generation through notifyConfigListeners; the no-save
+            // branch mutates the local config in place, so it has to bump it itself or render-side caches
+            // would keep serving the pre-change answer until the next unrelated save.
+            bumpConfigGeneration();
         }
     }
 
@@ -325,6 +365,11 @@ public interface ArmorHiderPlayerConfigApi {
         local.disableArmorHiderForOthers.setValue(value);
         if (withSave.isPresent() && withSave.get()) {
             saveLocalPlayerConfig(local);
+        } else {
+            // saveLocalPlayerConfig(...) bumps the generation through notifyConfigListeners; the no-save
+            // branch mutates the local config in place, so it has to bump it itself or render-side caches
+            // would keep serving the pre-change answer until the next unrelated save.
+            bumpConfigGeneration();
         }
     }
 
@@ -358,6 +403,11 @@ public interface ArmorHiderPlayerConfigApi {
         }
         if (withSave.isPresent() && withSave.get()) {
             saveLocalPlayerConfig(local);
+        } else {
+            // saveLocalPlayerConfig(...) bumps the generation through notifyConfigListeners; the no-save
+            // branch mutates the local config in place, so it has to bump it itself or render-side caches
+            // would keep serving the pre-change answer until the next unrelated save.
+            bumpConfigGeneration();
         }
     }
 
