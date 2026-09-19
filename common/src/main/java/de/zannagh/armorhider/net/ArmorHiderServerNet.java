@@ -1,6 +1,8 @@
 package de.zannagh.armorhider.net;
 
 import de.zannagh.armorhider.ArmorHider;
+import de.zannagh.armorhider.configuration.items.PlayerName;
+import de.zannagh.armorhider.configuration.items.PlayerUuid;
 import de.zannagh.armorhider.net.packets.CombatLogEventPacket;
 import de.zannagh.armorhider.net.packets.CombatLogNotificationPacket;
 import de.zannagh.armorhider.net.packets.PermissionPacket;
@@ -174,8 +176,17 @@ public final class ArmorHiderServerNet {
         }
         try {
             // Re-broadcast to everyone but the authenticated sender, as a (clientbound) notification.
+            // The originator is stamped from the authenticated connection, NOT from the payload:
+            // COMBAT_NOTIFICATION promises receivers an authenticated originator, and eventPacket.originator
+            // is client-controlled, so forwarding it verbatim would let any client attribute a combat event
+            // to somebody else. The player name is resolved from the same authenticated id for the same
+            // reason, falling back to the payload's name only when the player is no longer online.
+            ServerPlayer originatorPlayer = resolvePlayer(ctx.senderId());
+            String originatorName = originatorPlayer != null
+                    ? PlayerNameUtil.getPlayerName(originatorPlayer)
+                    : eventPacket.playerName;
             var notification = new CombatLogNotificationPacket(
-                    eventPacket.playerName, eventPacket.originator, eventPacket.timestamp);
+                    originatorName, ctx.senderId(), eventPacket.timestamp);
             CommunicationManager.broadcastExcept(ctx.senderId(), AhPackets.COMBAT_NOTIFICATION, notification);
         } catch (Exception e) {
             ArmorHider.LOGGER.error("Failed to broadcast combat log event for player {}!", eventPacket.playerName, e);
@@ -192,13 +203,22 @@ public final class ArmorHiderServerNet {
         }
 
         try {
-            runtime.put(config.playerId.getValue(), config);
+            // Identity comes from the authenticated connection, never from the payload. config.playerId and
+            // config.playerName are client-supplied: keying the store on them would let any client overwrite
+            // another player's saved configuration (and, by naming someone else in the exclusion, dodge its
+            // own broadcast). Stamp both fields from the connection before anything is stored or sent.
+            UUID senderId = ctx.senderId();
+            ServerPlayer player = resolvePlayer(senderId);
+            config.playerId = new PlayerUuid(senderId);
+            if (player != null) {
+                config.playerName = new PlayerName(PlayerNameUtil.getPlayerName(player));
+            }
+            runtime.put(senderId, config);
             var currentConfig = runtime.getStore().getConfig();
-            CommunicationManager.broadcastExcept(config.playerId.getValue(), AhPackets.SERVER_CONFIG, currentConfig);
-            ServerPlayer player = resolvePlayer(ctx.senderId());
+            CommunicationManager.broadcastExcept(senderId, AhPackets.SERVER_CONFIG, currentConfig);
             if (player != null) {
                 var permissionLevel = ServerUtil.getPermissionLevelForPlayer(player, runtime.getServer());
-                CommunicationManager.sendToPlayer(ctx.senderId(), AhPackets.PERMISSION,
+                CommunicationManager.sendToPlayer(senderId, AhPackets.PERMISSION,
                         new PermissionPacket(permissionLevel));
             }
         } catch (Exception e) {

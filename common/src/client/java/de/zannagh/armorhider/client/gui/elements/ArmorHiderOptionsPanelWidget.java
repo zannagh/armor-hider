@@ -4,7 +4,7 @@ import com.mojang.datafixers.util.Pair;
 import de.zannagh.armorhider.api.compat.CompatFlags;
 import de.zannagh.armorhider.api.compat.CompatManager;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.gui.elements.factories.OptionElementFactory;
+import de.zannagh.armorhider.client.gui.elements.factories.ArmorHiderOptionElementFactory;
 import de.zannagh.armorhider.client.gui.elements.implementations.AccessoryAffectButton;
 import de.zannagh.armorhider.client.gui.elements.implementations.AffectAccessoriesButton;
 import de.zannagh.armorhider.client.gui.elements.implementations.HiddenModelBehaviourButton;
@@ -99,7 +99,7 @@ public class ArmorHiderOptionsPanelWidget extends AbstractWidget {
     }
 
     private void populateOptions() {
-        var factory = new OptionElementFactory(widgetList::addWidget, gameOptions, widgetList.getRowWidth());
+        var factory = new ArmorHiderOptionElementFactory(widgetList::addWidget, gameOptions, widgetList.getRowWidth());
         var config = configSource();
 
         ArrayList<Pair<Boolean, Consumer<Boolean>>> configs = new ArrayList<>();

@@ -15,7 +15,7 @@ import java.util.function.Consumer;
 
 /**
  * Builds the armor-hider opacity slider rows (per equipment slot and for the elytra).
- * Split out of {@link OptionElementFactory} to keep that class within the file size limit.
+ * Split out of {@link ArmorHiderOptionElementFactory} to keep that class within the file size limit.
  */
 final class SlotRowFactory {
     private SlotRowFactory() {

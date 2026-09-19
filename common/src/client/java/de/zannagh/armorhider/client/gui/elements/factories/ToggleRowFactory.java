@@ -20,7 +20,7 @@ import java.util.function.Consumer;
 
 /**
  * Builds the armor-hider specific toggle rows (general behaviour toggles, presets, compatibilities).
- * Split out of {@link OptionElementFactory} to keep that class within the file size limit.
+ * Split out of {@link ArmorHiderOptionElementFactory} to keep that class within the file size limit.
  */
 final class ToggleRowFactory {
     private ToggleRowFactory() {

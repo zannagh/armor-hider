@@ -2,6 +2,7 @@ package de.zannagh.armorhider.client.gui.elements.factories;
 
 import com.mojang.datafixers.util.Pair;
 import de.zannagh.armorhider.configuration.PresetManager;
+import de.zannagh.eunomia.client.gui.factories.OptionElementFactory;
 import net.minecraft.client.OptionInstance;
 import net.minecraft.client.Options;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -18,14 +19,14 @@ import java.util.function.Consumer;
  * Armor-hider's option element factory: eunomia's generic factory plus the mod-specific rows
  * (behaviour toggles, presets, compatibilities, slot sliders, elytra).
  */
-public class OptionElementFactory extends de.zannagh.eunomia.client.gui.factories.OptionElementFactory {
+public class ArmorHiderOptionElementFactory extends OptionElementFactory {
     /**
      * Own copy of the game options: eunomia's field is private with no accessor, so the same instance is
      * handed to {@code super} and kept here for the rows that need it.
      */
     private final Options gameOptions;
 
-    public OptionElementFactory(Consumer<AbstractWidget> widgetAdder, Options gameOptions, int rowWidth) {
+    public ArmorHiderOptionElementFactory(Consumer<AbstractWidget> widgetAdder, Options gameOptions, int rowWidth) {
         super(widgetAdder, gameOptions, rowWidth);
         this.gameOptions = gameOptions;
     }

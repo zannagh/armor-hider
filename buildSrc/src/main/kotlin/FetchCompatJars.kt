@@ -207,8 +207,9 @@ abstract class FetchCompatJars : DefaultTask() {
     private fun fetchCurseForge(pin: String, target: File, label: String) {
         val parts = pin.split(":")
         if (parts.size != 2 || parts.any { it.isBlank() }) {
-            logger.warn("[fetchCompatJars] {} has a malformed CurseForge pin '{}' (want '<projectId>:<fileId>')", label, pin)
-            return
+            throw GradleException(
+                "[fetchCompatJars] $label has a malformed CurseForge pin '$pin' (want '<projectId>:<fileId>')"
+            )
         }
         val (projectId, fileId) = parts
         val artifact = "$label-$projectId"
@@ -224,8 +225,9 @@ abstract class FetchCompatJars : DefaultTask() {
         )
         if (resp.statusCode() != 200) {
             resp.body().close()
-            logger.warn("[fetchCompatJars] {} CurseForge fetch failed (HTTP {}): {}", label, resp.statusCode(), url)
-            return
+            throw GradleException(
+                "[fetchCompatJars] $label CurseForge fetch failed (HTTP ${resp.statusCode()}): $url"
+            )
         }
         resp.body().use { Files.copy(it, out, StandardCopyOption.REPLACE_EXISTING) }
     }

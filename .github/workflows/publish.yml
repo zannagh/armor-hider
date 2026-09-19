@@ -115,9 +115,22 @@ jobs:
     runs-on: ${{ fromJSON(needs.prepare.outputs.runner) }}
 
     if: "!cancelled() && needs.prepare.result == 'success'"
+    # `packages: read` so Gradle can resolve eunomia-core/eunomia-common from GitHub Packages;
+    # `contents: read` is all this job otherwise needs (checkout + build; the release jobs downstream
+    # keep their own `contents: write`).
+    permissions:
+      contents: read
+      packages: read
     defaults:
       run:
         shell: bash
+    # buildSrc only declares the GitHub Packages repository when a token is visible, and :paper fails
+    # at configuration time without one - so the Gradle steps below need it in the environment.
+    # EUNOMIA_PACKAGES_TOKEN is deliberately NOT defined: eunomia is a public repo publishing a public
+    # package, so the automatic token can read it. It is an escape hatch if that package ever goes
+    # private (a PAT with read:packages); unset, it evaluates empty and the automatic token is used.
+    env:
+      GITHUB_TOKEN: ${{ secrets.EUNOMIA_PACKAGES_TOKEN || secrets.GITHUB_TOKEN }}
     outputs:
       # Pass-through from prepare so downstream jobs keep reading needs.build.outputs.*.
       mod_version: ${{ needs.prepare.outputs.mod_version }}

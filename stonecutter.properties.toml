@@ -111,6 +111,7 @@ trinkets.version = "AHxQGtuC" # 3.7.2 (1.20.1)
 accessories.version = "A7wwzJ0e" # 1.0.0-beta.48+1.20.1
 fabricapi.version = "hu6gukgT"
 immersivearmors.version = "mGE2GYeN" # 1.7.2+1.20.1 fabric
+eunomia.cf.file = "8920890" # [Fabric] mc-1.20.0-1 - 0.3.8
 
 ["fabric-1.21.1"]
 "fabric.minecraft_version" = "1.21.1"
@@ -130,6 +131,7 @@ accessories.version = "Xlt4eWBe" # 1.1.0-beta.53+1.21.1
 fabricapi.version = "Lwt6YYHL"
 immersivearmors.version = "4m0lwLNO" # 1.7.6+1.21.1 fabric
 uranus.version = "H6EWSmDu" # 2.4.1 fabric (Ice and Fire: CE custom armor)
+eunomia.cf.file = "8920892" # [Fabric] mc-1.21.0-1 - 0.3.8
 # fabric-api 0.116.x for 1.21.1 predates fabric-client-gametest-api-v1 - Phase 2 entity
 # render smoke can't be wired here. fabricapi.semver intentionally omitted; the variant
 # stays on Phase 1 boot smoke only.
@@ -146,6 +148,7 @@ modmenu.version = "v6Xx3fbU"
 waveycapes.version = "EcKyPvJR"
 gender.version = "kJmjQvAS"
 fabricapi.version = "UEjZZNue"
+eunomia.cf.file = "8920897" # [Fabric] mc-1.21.2 - 0.3.8
 # fabric-api 0.116.x for 1.21.1 predates fabric-client-gametest-api-v1 - Phase 2 entity
 # render smoke can't be wired here. fabricapi.semver intentionally omitted; the variant
 # stays on Phase 1 boot smoke only.
@@ -162,6 +165,7 @@ modmenu.version = "v6Xx3fbU"
 waveycapes.version = "EcKyPvJR"
 gender.version = "kJmjQvAS"
 fabricapi.version = "wLq4rGsB"
+eunomia.cf.file = "8920899" # [Fabric] mc-1.21.3 - 0.3.8
 # fabric-api 0.116.x for 1.21.1 predates fabric-client-gametest-api-v1 - Phase 2 entity
 # render smoke can't be wired here. fabricapi.semver intentionally omitted; the variant
 # stays on Phase 1 boot smoke only.

@@ -39,6 +39,14 @@ public class AhPlayerConfigApiImpl implements ArmorHiderPlayerConfigApi, Configu
     // shadowed. See currentServerConfig().
     private @Nullable ReplicatedClientStore<AhReplicatedPlayerConfig> relayMirror;
 
+    // Memoised materialisation of that mirror (see RelayServerConfigView). currentServerConfig() is on the
+    // render path on the fallback, so the ServerConfiguration is rebuilt only when the mirror's contents
+    // actually changed - detected by comparing the store snapshot entry-by-entry by reference, since eunomia's
+    // KeyedStore offers neither a version counter nor a change hook. volatile, not a lock: the field publishes
+    // one fully-built immutable holder, so a reader either sees the previous view or the new one, never a
+    // half-built one; two threads racing to rebuild only cost a duplicate build.
+    private volatile @Nullable RelayServerConfigView relayViewCache;
+
     // ConcurrentHashMap: the public listener API can be mutated from the client thread while
     // notifyConfigListeners(...) iterates from a packet-handler thread, so a plain HashMap could throw or corrupt.
     private final Map<UUID, Consumer<@Nullable String>> configListeners = new ConcurrentHashMap<>();
@@ -294,6 +302,8 @@ public class AhPlayerConfigApiImpl implements ArmorHiderPlayerConfigApi, Configu
             CommunicationManager.register(AhPackets.PLAYER_CONFIG_REPLICATED);
             relayMirror = new ReplicatedClientStore<>(
                     1, AhReplicatedPlayerConfig.class, AhPackets.PLAYER_CONFIG_REPLICATED).enableClient();
+            // A newly installed mirror can never match a view built over the previous one.
+            relayViewCache = null;
         }
     }
 
@@ -312,16 +322,18 @@ public class AhPlayerConfigApiImpl implements ArmorHiderPlayerConfigApi, Configu
         }
         var snapshot = relayMirror.store().snapshot();
         if (snapshot.isEmpty()) {
+            relayViewCache = null;
             return null;
         }
-        ServerConfiguration view = new ServerConfiguration();
-        for (AhReplicatedPlayerConfig entry : snapshot.values()) {
-            PlayerConfig config = entry.toPlayerConfig();
-            if (config != null) {
-                view.put(config);
-            }
+        // Reuse the materialised view while the mirror still holds exactly the entries it was built from;
+        // rebuild (and re-stamp) otherwise. RelayServerConfigView documents why that comparison is exact.
+        RelayServerConfigView cached = relayViewCache;
+        if (cached != null && cached.isBuiltFrom(snapshot)) {
+            return cached.view();
         }
-        return view;
+        RelayServerConfigView rebuilt = RelayServerConfigView.of(snapshot);
+        relayViewCache = rebuilt;
+        return rebuilt.view();
     }
 
     @Override
@@ -551,5 +563,8 @@ public class AhPlayerConfigApiImpl implements ArmorHiderPlayerConfigApi, Configu
      */
     public void invalidateResolvedConfigCache() {
         resolvedConfigCache.clear();
+        // Same reasoning for the relay view: release it on disconnect/join rather than carrying another
+        // session's materialisation until the next lookup notices the mirror changed.
+        relayViewCache = null;
     }
 }
