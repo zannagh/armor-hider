@@ -22,6 +22,8 @@ public final class AhArmProbe {
     private static volatile String lastPath = PATH_NONE;
     private static final java.util.concurrent.atomic.AtomicLong equipmentFallbacks =
             new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong emfModelsKept =
+            new java.util.concurrent.atomic.AtomicLong();
 
     private AhArmProbe() {
     }
@@ -30,10 +32,20 @@ public final class AhArmProbe {
         enabled = true;
         lastPath = PATH_NONE;
         equipmentFallbacks.set(0);
+        emfModelsKept.set(0);
     }
 
     public static void disable() {
         enabled = false;
+    }
+
+    /**
+     * Clears only the last-path sample, keeping the aggregate counters. A per-observation reset so a
+     * step that never reaches EMF's render reads {@link #PATH_NONE} instead of inheriting the previous
+     * step's {@link #PATH_CUSTOM}.
+     */
+    public static void resetLastPath() {
+        lastPath = PATH_NONE;
     }
 
     public static boolean isEnabled() {
@@ -58,6 +70,19 @@ public final class AhArmProbe {
 
     public static long equipmentFallbackCount() {
         return equipmentFallbacks.get();
+    }
+
+    /**
+     * Counts the #360/#362 branch in {@code EquipmentRenderMixin.armorHider$vanillaEquipmentModel}: an
+     * EMF-wrapped humanoid/elytra equipment model that was deliberately kept (not swapped for vanilla
+     * geometry) on a translucent piece. The positive signal that EMF actually rendered and that branch ran.
+     */
+    public static void recordEmfModelKept() {
+        emfModelsKept.incrementAndGet();
+    }
+
+    public static long emfModelKeptCount() {
+        return emfModelsKept.get();
     }
 
     public static String lastPath() {

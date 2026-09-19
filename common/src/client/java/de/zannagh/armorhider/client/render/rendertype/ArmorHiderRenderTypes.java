@@ -7,6 +7,8 @@ import java.util.concurrent.ConcurrentHashMap;
 //?if >= 1.21.11 {
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import net.minecraft.client.renderer.RenderPipelines;
+// 26.3 removed OutputTarget outright (no replacement type; see the setOutputTarget note below).
+//? if < 26.3-0.snapshot.2
 import net.minecraft.client.renderer.rendertype.OutputTarget;
 import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
@@ -154,6 +156,22 @@ public final class ArmorHiderRenderTypes {
         return FIRST_PERSON_LAYER_GUARDS.get();
     }
 
+    // Diagnostic counter: HEAD scopes actually entered (with a modification) for FPM's first-person camera
+    // body specifically - never for remote or third-person players. FPM 2.7.2 blanks the worn head during
+    // its body render (PlayerMixin.getItemBySlot returns EMPTY for HEAD while isRenderingPlayer), so no
+    // head scope can exist there to leak; the first-person smoke asserts this stays flat with the guards
+    // off, which is what would change first if FPM ever stopped blanking the slot.
+    private static final java.util.concurrent.atomic.AtomicLong FIRST_PERSON_HEAD_SCOPE_ENTRIES =
+            new java.util.concurrent.atomic.AtomicLong();
+
+    public static void recordFirstPersonHeadScopeEntry() {
+        FIRST_PERSON_HEAD_SCOPE_ENTRIES.incrementAndGet();
+    }
+
+    public static long firstPersonHeadScopeEntryCount() {
+        return FIRST_PERSON_HEAD_SCOPE_ENTRIES.get();
+    }
+
     // Test-only diagnostic switch, mirroring deferralEnabled below. Flipped off, FirstPersonCompat's
     // predicates all report false, restoring the unguarded behaviour so the first-person smoke can
     // observe the scope leak and its absence in a single run. Always true in normal play.
@@ -189,10 +207,20 @@ public final class ArmorHiderRenderTypes {
     // while in vanilla the no-depth-write is what stops faded armor occluding water behind it. Where
     // the after-terrain deferral exists (>= 26.2-1.pre) that occlusion is already handled by draw
     // order, so writing depth under shaders is safe there.
-    private static volatile java.util.function.BooleanSupplier shaderPackActiveCheck = () -> false;
+    private static final java.util.function.BooleanSupplier NO_SHADER_PACK_CHECK = () -> false;
+    private static volatile java.util.function.BooleanSupplier shaderPackActiveCheck = NO_SHADER_PACK_CHECK;
 
     public static void setShaderPackActiveCheck(java.util.function.BooleanSupplier check) {
-        shaderPackActiveCheck = check != null ? check : () -> false;
+        shaderPackActiveCheck = check != null ? check : NO_SHADER_PACK_CHECK;
+    }
+
+    /**
+     * Whether a real shaderpack-state supplier has been installed (IrisCompat did so) rather than the
+     * "never under shaders" default. Test hook: the Iris smoke asserts this with Iris loaded, since the
+     * override below bypasses the supplier and would hide a missing installation.
+     */
+    public static boolean isShaderPackActiveCheckInstalled() {
+        return shaderPackActiveCheck != NO_SHADER_PACK_CHECK;
     }
 
     public static boolean isShaderPackActive() {
@@ -545,7 +573,9 @@ public final class ArmorHiderRenderTypes {
      * back to the translucent type). See {@link de.zannagh.armorhider.client.render.ShaderDitheredArmorTextures}.
      */
     public static RenderType ditheredArmorCutout(Identifier base, float opacity, de.zannagh.armorhider.net.packets.PlayerConfig config) {
-        //? if >= 26.2-1.pre && < 26.3-0.snapshot.2 {
+        // RenderTypes.armorCutoutNoCull(Identifier) survived the 26.3 render-type rework unchanged
+        // (ARMOR_CUTOUT_NO_CULL pipeline + Sampler0 + lightmap/overlay + VIEW_OFFSET_Z_LAYERING).
+        //? if >= 26.2-1.pre {
         // Count the decision to take the dither path (the swap is wired) up front, independent of
         // whether the texture upload succeeds - the smoke tests assert on this like the other paths.
         ARMOR_DITHER_PATH.incrementAndGet();
@@ -573,7 +603,7 @@ public final class ArmorHiderRenderTypes {
     public static RenderType translucentArmor(Identifier texture) {
         // Under an active shaderpack, hand back the depth-writing armor type so the body under faded
         // armor stops reading see-through at grazing angles. Safe only where the deferral covers water.
-        //? if >= 26.2-1.pre && < 26.3-0.snapshot.2 {
+        //? if >= 26.2-1.pre {
         if (armorShouldWriteDepth()) {
             ARMOR_DEPTH_PATH.incrementAndGet();
             // Use Minecraft's own depth-writing armor pipeline rather than a clone of it: Iris'
@@ -582,7 +612,13 @@ public final class ArmorHiderRenderTypes {
             // wings broken/invisible under a shaderpack. Deliberately NOT added to DEFERRED_TYPES,
             // for the same reason the clone never was: under a shaderpack the faded piece must draw
             // as an ordinary translucent entity, and the depth write handles water occlusion.
+            // 26.3 removed RenderTypes.armorTranslucent and its ARMOR_TRANSLUCENT pipeline; the
+            // helper rebuilds the same setup on the vanilla ENTITY_TRANSLUCENT pipeline.
+            //? if >= 26.3-0.snapshot.2 {
+            /*return DepthArmorRenderTypes.armorTranslucent(texture);
+            *///?} else {
             return RenderTypes.armorTranslucent(texture);
+            //?}
         }
         //?}
         ARMOR_NODEPTH_PATH.incrementAndGet();

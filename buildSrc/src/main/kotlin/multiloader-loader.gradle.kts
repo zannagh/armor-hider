@@ -17,17 +17,41 @@ val compatKeys = listOf(
     // reproduction case for the fabric-rendering-v1 armor compat (issue #348). Fabric-only, and only
     // fetched on the variants that pin nycto.version.
     "nycto",
+    // StrawberryLib - nycto's required lib dep. nycto declares it version-less, so the fetch would
+    // otherwise auto-resolve the latest (26.2-r3), which dropped the EatFoodEvent API nycto still calls
+    // -> NoClassDefFoundError at boot. Pinned explicitly (per variant) to the last build that has it so
+    // the transitive resolution is overridden by our pin.
+    "strawberrylib",
+    // Sodium - Iris's required dep, declared as a version RANGE the fetch does not honour: it auto-resolves
+    // the newest Sodium, which an older pinned Iris refuses (Iris 1.8.8 on 1.21.1 needs 0.6.x, the fetch
+    // picked 0.8.13 -> "Incompatible mods found"). Pinned per variant only where the Iris pin needs it.
+    "sodium",
     // Fresh Animations (issue #217). Not a mod - a resource pack fetched into run/resourcepacks/
     // by fetchFaResourcePack, not run/mods/. Requires emf + etf to actually animate.
     "fa",
     // Fresh Animations: Player Extension (the add-on that actually animates the player model).
     "faplayer",
+    // Glowing 3D Armor (issue #360). Not a mod - a resource pack fetched into run/resourcepacks/
+    // by fetchFaResourcePack, not run/mods/. Provides custom 3D CEM armor models rendered via EMF;
+    // the #360 smoke fades it to prove the EMF custom-armor translucent swap fired.
+    "glowingarmor",
     // Accessory providers (issue #246). trinkets + accessories are Fabric; curios is NeoForge-only.
     "trinkets", "accessories", "curios"
 )
 val availableHashes = compatKeys.mapNotNull { key ->
     findProperty("$key.version")?.toString()?.let { hash -> key to hash }
-}.toMap()
+}.toMap().toMutableMap()
+// Smoke matrix overrides (EmfVersionMatrixSmokeTest): -Psmoke.<key>.version=<modrinth-id> swaps the
+// jar the FCGT run fetches for that compat key WITHOUT touching the pinned <key>.version in
+// stonecutter.properties.toml. Used to test an EMF bump against the otherwise-pinned stack - and since
+// EMF 3.3 hard-requires ETF 7.2+, the matrix overrides emf AND etf together. Flows straight into
+// modHashes -> fetchFcgtCompatJars; run/mods is wiped each launch, so sequential launches with
+// different ids stay hermetic in one run dir.
+compatKeys.forEach { key ->
+    (findProperty("smoke.$key.version")?.toString())?.takeIf { it.isNotBlank() }?.let { override ->
+        availableHashes[key] = override
+    }
+}
 val compatSel = (findProperty("compat")?.toString() ?: "all").trim()
 val selectedKeys: Set<String> = when (compatSel.lowercase()) {
     "all" -> availableHashes.keys
@@ -37,11 +61,12 @@ val selectedKeys: Set<String> = when (compatSel.lowercase()) {
 val activeMcVersion: String? = listOf("fabric.minecraft_version", "neoforge.minecraft_version")
     .firstNotNullOfOrNull { findProperty(it)?.toString() }
     ?.substringBefore("-pre")?.substringBefore("-rc")?.substringBefore("-alpha")
-// Keys that resolve to a mod jar (run/mods). "fa" (Fresh Animations) and "faplayer" (its Player
-// Extension) are resource packs handled separately by fetchFaResourcePack into run/resourcepacks,
-// so they must never be dropped into run/mods even when listed in -Pcompat.
+// Keys that resolve to a mod jar (run/mods). "fa" (Fresh Animations), "faplayer" (its Player
+// Extension) and "glowingarmor" (Glowing 3D Armor, issue #360) are resource packs handled
+// separately by fetchFaResourcePack into run/resourcepacks, so they must never be dropped into
+// run/mods even when listed in -Pcompat.
 val modHashes = availableHashes
-    .filterKeys { it != "fa" && it != "faplayer" }
+    .filterKeys { it != "fa" && it != "faplayer" && it != "glowingarmor" }
     // On 1.20.1, Iris pulls a Sodium whose EarlyDriverScanner rejects loom's dev-runtime LWJGL
     // (caffeine gh-2561), hard-failing the boot - and 1.20.1 is not an FCGT variant, so iris/sodium
     // exercise nothing here. Drop iris from the FETCH only (the compileOnly stays, so IrisCompat still
@@ -101,9 +126,9 @@ val fetchFcgtCompatJars = tasks.register<FetchCompatJars>("fetchFcgtCompatJars")
 // required emf/etf deps aren't pulled into the pack dir (they go into run/mods/ via the mod fetch).
 val fetchFaResourcePack = tasks.register<FetchCompatJars>("fetchFaResourcePack") {
     group = "verification"
-    description = "Fetch the Fresh Animations resource pack into run/resourcepacks/ for smoke runs"
+    description = "Fetch the Fresh Animations / Glowing 3D Armor resource packs into run/resourcepacks/ for smoke runs"
     modsDir.set(project.layout.projectDirectory.dir("run/resourcepacks"))
-    versionHashes.set(availableHashes.filterKeys { it == "fa" || it == "faplayer" })
+    versionHashes.set(availableHashes.filterKeys { it == "fa" || it == "faplayer" || it == "glowingarmor" })
     include.set(selectedKeys)
     followDependencies.set(false)
     activeMcVersion?.let { mcGameVersion.set(it) }

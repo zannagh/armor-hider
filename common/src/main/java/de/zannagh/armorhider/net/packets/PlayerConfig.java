@@ -1,6 +1,7 @@
 package de.zannagh.armorhider.net.packets;
 
 import com.google.gson.annotations.SerializedName;
+import de.zannagh.armorhider.AhAllocProbe;
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.api.ArmorHiderPlayerConfigApi;
 import de.zannagh.armorhider.configuration.*;
@@ -371,6 +372,28 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig>, NetworkH
 
     private transient boolean hasChangedFromSerializedContent;
 
+    /**
+     * Whether this instance was synthesized as a per-call, derived resolution of some OTHER config rather
+     * than being a config the user owns: the {@code CURRENT.deepCopy(name, id)} of an unknown remote player
+     * and the fresh-defaults fallback of {@code getGlobalConfigOverride()}. Both are answers the client
+     * computes on the fly for "how do I render that stranger"; neither is ever persisted, transmitted, or
+     * shown in a settings screen.
+     * <p>
+     * It exists so writes that only made sense against a user-owned config can be skipped here - currently
+     * just the exclusion-item discovery in {@code SlotModification.addItemInformation}. Before those
+     * resolutions were memoised by {@code ResolvedConfigCache} they were rebuilt per call and discarded on
+     * the next line, so the writes went nowhere; the flag restores exactly that, making the memoisation a
+     * pure performance change.
+     * <p>
+     * {@code transient}, deliberately and load-bearingly: Gson's default excluder drops transient fields, so
+     * this can reach neither the config JSON on disk nor the gzipped-JSON network payload
+     * ({@code CompressedJsonCodec} encodes through the same {@code ArmorHider.GSON}). It is also never
+     * copied by {@link #deepCopy} / {@link #forNetwork} / {@link #migrate}: those all build their result via
+     * a constructor, so every derived or healed config starts out {@code false} and only the two explicit
+     * call sites in {@code AhPlayerConfigApiImpl} ever set it.
+     */
+    private transient boolean derivedResolution;
+
     public PlayerConfig(UUID uuid, String name) {
         this();
         this.playerId = new PlayerUuid(uuid);
@@ -419,6 +442,24 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig>, NetworkH
         irisDitheringPhases = new IrisDitherPhases();
         irisDitheringResCap = new IrisDitherResCap();
         irisPartialTransparencyMode = new IrisTransparencyMode();
+
+        // Test-only probe (no-op unless a smoke test armed it): this constructor allocates ~37 config
+        // items and must never be reached from the render hot path. See HotPathAllocSmokeTest.
+        AhAllocProbe.recordPlayerConfigAllocation();
+    }
+
+    /**
+     * Marks this instance as a derived, per-call resolution and returns it, so call sites can read
+     * {@code return CURRENT.deepCopy(name, id).markAsDerivedResolution();}. See {@link #derivedResolution}.
+     */
+    public @NonNull PlayerConfig markAsDerivedResolution() {
+        derivedResolution = true;
+        return this;
+    }
+
+    /** @see #derivedResolution */
+    public boolean isDerivedResolution() {
+        return derivedResolution;
     }
 
     public @NonNull ExclusionItemConfiguration getExclusionItems() {

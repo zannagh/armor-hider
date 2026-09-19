@@ -1,6 +1,6 @@
 plugins {
     id("dev.kikugie.stonecutter")
-    id("net.neoforged.moddev") version "2.0.140" apply false
+    id("net.neoforged.moddev") version "2.0.147" apply false
     // Supplies the JaCoCo tooling classpath used by the `aggregatedCoverage` JacocoReport below.
     id("jacoco")
 }

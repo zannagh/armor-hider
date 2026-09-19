@@ -1,5 +1,6 @@
 package de.zannagh.armorhider.client.api.impl;
 
+import de.zannagh.armorhider.AhAllocProbe;
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.api.ArmorHiderPlayerConfigApi;
 import de.zannagh.armorhider.client.ArmorHiderClient;
@@ -17,9 +18,11 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
-import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 
 public class AhPlayerConfigApiImpl implements ArmorHiderPlayerConfigApi, ConfigurationProvider<PlayerConfig> {
@@ -36,7 +39,27 @@ public class AhPlayerConfigApiImpl implements ArmorHiderPlayerConfigApi, Configu
     // shadowed. See currentServerConfig().
     private @Nullable ReplicatedClientStore<AhReplicatedPlayerConfig> relayMirror;
 
-    private final HashMap<UUID, Consumer<@Nullable String>> configListeners = new HashMap<>();
+    // ConcurrentHashMap: the public listener API can be mutated from the client thread while
+    // notifyConfigListeners(...) iterates from a packet-handler thread, so a plain HashMap could throw or corrupt.
+    private final Map<UUID, Consumer<@Nullable String>> configListeners = new ConcurrentHashMap<>();
+
+    // Monotonic config-change counter. Each notifyConfigListeners(...) bumps it; per-player render caches
+    // compare it against their last-seen value to decide whether to rebuild, replacing the former
+    // per-entity listener registration (which leaked one map entry per Player entity). AtomicLong so
+    // concurrent notifications from different threads can't lose an increment.
+    private final AtomicLong configGeneration = new AtomicLong();
+
+    // The subset of those changes that are NOT provably scoped to a single remote player, and therefore have
+    // to invalidate every memoised resolution. This is the counter ResolvedConfigCache's stamp is built on;
+    // the public configGeneration above still moves on every notification, because its one consumer
+    // (PlayerMixin's per-player PlayerModificationInfo, PlayerMixin.java:70) is keyed per player and must
+    // rebuild for a player-scoped change too. Splitting them is what stops an ordinary per-player network
+    // notification from dropping all 256 cached entries - see notifyConfigListeners(...).
+    private final AtomicLong globalConfigGeneration = new AtomicLong();
+
+    // Memoised remote-player resolutions. resolveConfig(name) used to build a fresh PlayerConfig graph for
+    // every non-local name on every call - i.e. per rendered player per frame. See ResolvedConfigCache.
+    private final ResolvedConfigCache resolvedConfigCache = new ResolvedConfigCache();
 
     public AhPlayerConfigApiImpl() {
         this.playerConfigProvider = new de.zannagh.armorhider.configuration.PlayerConfigFileProvider();
@@ -62,11 +85,59 @@ public class AhPlayerConfigApiImpl implements ArmorHiderPlayerConfigApi, Configu
 
     @Override
     public void notifyConfigListeners(@Nullable String playerName) {
+        if (isRemotePlayerScopedChange(playerName)) {
+            // Provably about one remote player: drop just that entry and leave the stamp (and therefore the
+            // other 255 possible entries) alone.
+            resolvedConfigCache.evict(playerName);
+        } else {
+            // Anything else - a null name, or the local player, whose config every cached entry is a deep
+            // copy of - moves the global counter and invalidates the whole memoised set.
+            globalConfigGeneration.incrementAndGet();
+        }
+        // Bump the public generation counter so every per-player render cache rebuilds on its next access.
+        configGeneration.incrementAndGet();
         // Iterate a snapshot: a listener may (de)register listeners while being notified, which would
         // otherwise throw a ConcurrentModificationException or skip listeners.
         for (Consumer<@Nullable String> listener : new java.util.ArrayList<>(configListeners.values())) {
             listener.accept(playerName);
         }
+    }
+
+    @Override
+    public long getConfigGeneration() {
+        return configGeneration.get();
+    }
+
+    @Override
+    public void bumpConfigGeneration() {
+        // Always global: the only callers are the in-place mutators of CURRENT, and every memoised remote
+        // resolution is a deep copy of CURRENT.
+        globalConfigGeneration.incrementAndGet();
+        configGeneration.incrementAndGet();
+    }
+
+    /**
+     * Whether a {@link #notifyConfigListeners(String)} name identifies a change that can only affect that one
+     * remote player's memoised resolution.
+     * <p>
+     * Only a non-null name that is NOT the local player's qualifies. In the tree that is exactly the
+     * shared-render-rule outcome relayed by {@code ClientCommunicationManager} (which names the player the
+     * rule fired for). Everything else is treated as global: a {@code null} name by definition, and a name
+     * equal to the local player's because that is what {@link #save} and {@code markLocalDirty()} pass when
+     * CURRENT itself changed - and every cached entry is a deep copy of CURRENT, so those must invalidate all
+     * of them.
+     * <p>
+     * Compared against {@code CURRENT.playerName} rather than {@code ArmorHiderClient.getCurrentPlayerName()}
+     * on purpose: this runs on the netty I/O thread for network-sourced notifications, and the two agree
+     * anyway because the join handler persists the real name into CURRENT
+     * ({@code ClientCommunicationManager.java:106}).
+     */
+    private boolean isRemotePlayerScopedChange(@Nullable String playerName) {
+        if (playerName == null) {
+            return false;
+        }
+        String localName = CURRENT.playerName.getValue();
+        return localName == null || !localName.equals(playerName);
     }
 
     public PlayerConfig load() {
@@ -145,6 +216,10 @@ public class AhPlayerConfigApiImpl implements ArmorHiderPlayerConfigApi, Configu
         // Per the documented contract, saving defaults to enabled when withSave is empty.
         if (withSave.orElse(true)) {
             save(CURRENT);
+        } else {
+            // save(...) bumps the generation via notifyConfigListeners; the no-save path has to bump it
+            // itself, or the memoised remote resolutions would keep answering from the pre-change CURRENT.
+            bumpConfigGeneration();
         }
     }
 
@@ -154,6 +229,8 @@ public class AhPlayerConfigApiImpl implements ArmorHiderPlayerConfigApi, Configu
         // Per the documented contract, saving defaults to enabled when withSave is empty.
         if (withSave.orElse(true)) {
             save(CURRENT);
+        } else {
+            bumpConfigGeneration();
         }
     }
 
@@ -319,7 +396,11 @@ public class AhPlayerConfigApiImpl implements ArmorHiderPlayerConfigApi, Configu
 
     @Override
     public PlayerConfig resolveConfig(@Nullable String playerName) {
-        if (playerName != null && playerName.equals(ArmorHiderClient.getCurrentPlayerName())) {
+        boolean isLocal = playerName != null && playerName.equals(ArmorHiderClient.getCurrentPlayerName());
+        // Test-only probe (no-op unless a smoke test armed it): lets HotPathRemoteAllocSmokeTest count how
+        // often the render path asks for a config and how many of those miss the local fast path below.
+        AhAllocProbe.recordResolveConfig(isLocal);
+        if (isLocal) {
             logOwnResolveForDiagnostics(playerName);
             return CURRENT;
         }
@@ -386,9 +467,89 @@ public class AhPlayerConfigApiImpl implements ArmorHiderPlayerConfigApi, Configu
 
     @Override
     public PlayerConfig resolveUnknownPlayerConfig(String playerName, UUID playerId) {
-        if (CURRENT.usePlayerSettingsWhenUndeterminable.getValue()) {
-            return CURRENT.deepCopy(playerName, playerId);
+        if (!CURRENT.usePlayerSettingsWhenUndeterminable.getValue()) {
+            return getGlobalConfigOverride();
         }
-        return getGlobalConfigOverride();
+        // Capture the stamp BEFORE the deep copy is built, and hand it to put(...): the copy below reads
+        // CURRENT without any lock, so an invalidation can land between reading it and storing it. Without
+        // the captured stamp that copy would be stored under the NEW stamp and never re-checked again.
+        ConfigResolutionStamp builtUnder = refreshResolvedConfigCache();
+        PlayerConfig cached = resolvedConfigCache.get(playerName, playerId);
+        if (cached != null) {
+            return cached;
+        }
+        // Deliberately a deep copy, never CURRENT itself: SlotModification.shouldUseVanilla identifies the
+        // local player by reference against getLocalPlayerConfig() (SlotModification.java:76).
+        // markAsDerivedResolution() keeps the memoisation semantically invisible: this copy used to be a
+        // per-call throwaway, so the exclusion-item discovery SlotModification writes into it was discarded.
+        // Now that it is cached the flag makes that write be skipped instead. See PlayerConfig.
+        return resolvedConfigCache.put(
+                playerName,
+                playerId,
+                CURRENT.deepCopy(playerName, playerId).markAsDerivedResolution(),
+                builtUnder);
+    }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Overridden purely to memoise the fallback. The interface default answers a missing
+     * {@code globalPlayerOverride} with a freshly built default config, which - because Row C
+     * ("use the global configuration for all other players") is evaluated on the render path - allocated a
+     * full {@code PlayerConfig} graph per rendered player per frame exactly like the unknown-player copy did.
+     */
+    @Override
+    public PlayerConfig getGlobalConfigOverride() {
+        PlayerConfig configured = CURRENT.globalPlayerOverride;
+        if (configured != null) {
+            return configured;
+        }
+        // No refreshResolvedConfigCache() here: the memoised fallback is stamp-independent (its value is a
+        // constant PlayerConfig.defaults(DEFAULT_PLAYER_ID, DEFAULT_PLAYER_NAME)), so a generation bump
+        // cannot make it wrong and refreshing would only cost a getServerKey() lookup per rendered player.
+        PlayerConfig cached = resolvedConfigCache.getGlobalOverrideFallback();
+        if (cached != null) {
+            return cached;
+        }
+        // markAsDerivedResolution() for the same reason as the deep copy above, and ONLY on this fallback:
+        // the configured CURRENT.globalPlayerOverride returned a few lines up is a real, persisted config the
+        // user edits in the settings screen, and discovery has always written into it. Only the synthesized
+        // fallback was a per-call throwaway before memoisation.
+        return resolvedConfigCache.putGlobalOverrideFallback(
+                PlayerConfig.defaults(DEFAULT_PLAYER_ID, DEFAULT_PLAYER_NAME).markAsDerivedResolution());
+    }
+
+    /**
+     * Reads the current resolution stamp and drops the memoised remote configs if anything that could change
+     * a resolution has moved. Allocation-free on the common (unchanged) path - see
+     * {@link ConfigResolutionStamp#matches}.
+     *
+     * @return the stamp the cache is now on; hand it to {@code ResolvedConfigCache.put(...)}.
+     */
+    private ConfigResolutionStamp refreshResolvedConfigCache() {
+        // ARGUMENT ORDER IS LOAD-BEARING - do not reorder. globalConfigGeneration.get() is a volatile read
+        // and MUST be evaluated first, before the plain reads of CURRENT / serverConfiguration below. Writers
+        // mutate those plain fields and only then increment the counter, so a reader that takes the volatile
+        // read first is guaranteed that any plain field it reads afterwards is at least as new as the
+        // generation it stamped with. Taking the plain reads first would let a reader pair a NEW generation
+        // with a pre-change identity and stamp a stale cache as fresh.
+        return resolvedConfigCache.invalidateIfStale(
+                globalConfigGeneration.get(),
+                System.identityHashCode(CURRENT),
+                getServerKey(),
+                ConfigResolutionStamp.pack(
+                        CURRENT.useGlobalOverrideForAllPlayers.getValue(),
+                        CURRENT.usePlayerSettingsWhenUndeterminable.getValue(),
+                        areIndividualConfigsAllowedByServer()),
+                System.identityHashCode(serverConfiguration));
+    }
+
+    /**
+     * Drops every memoised remote-player config. Called on disconnect and on join so a session never carries
+     * another server's resolutions (or its accumulated item discovery) into the next one, and so the entries
+     * are released immediately rather than at the next resolution.
+     */
+    public void invalidateResolvedConfigCache() {
+        resolvedConfigCache.clear();
     }
 }

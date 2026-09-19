@@ -48,6 +48,9 @@
     "java": ">=${java_version}",
     "eunomia": ">=0.3.4"
   },
+  "breaks": {
+    "entity_model_features": "<3.3"
+  },
   "suggests": {
     "luckperms": ">=5.4"
   }

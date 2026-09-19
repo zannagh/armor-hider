@@ -67,6 +67,16 @@ with(sc) {
     // leaving the breast body intact - it does not touch the modern GenderArmorLayer.
     constants["gender"] = hasProperty("gender.version") && findProperty("gender_legacy_api") != "true"
     constants["gender_legacy"] = hasProperty("gender.version") && findProperty("gender_legacy_api") == "true"
+    // `gender_physics` activates GenderPhysicsMixin, which relaxes FGM's armor-derived breast-physics
+    // damping when Armor Hider hides the chest. Deliberately NOT gated on `gender`: that constant
+    // tracks the *layer* API generation (GenderArmorLayer vs the legacy inline GenderLayer), which is
+    // unrelated to the physics API. `PlayerConfig#getArmorPhysicsOverride()Z` is present and is the
+    // single chokepoint for every damping consumer on BOTH generations - including FGM 3.2.2
+    // (kKffHCGl), the only build FGM ships for NeoForge - so gating physics on `gender` silently left
+    // every NeoForge user with fully damped breasts behind hidden armor. The `>= 1.21` guard in the
+    // mixin still excludes fabric-1.20.1 (FGM 3.0.1 / nYZ0oktX), which predates
+    // com.wildfire.main.entitydata.PlayerConfig entirely.
+    constants["gender_physics"] = hasProperty("gender.version")
     // First Person Model (tr7zw) renders the local player's body in first person, so layers we hook
     // (head, wings, held item) submit for the camera entity - and FPM cancels several of them at
     // their submit HEAD. `firstperson` compiles the typed guard that keeps our render scopes from
@@ -351,6 +361,19 @@ if (branch == "fabric") {
         add("individual-config" to "de.zannagh.armorhider.smoke.IndividualConfigSmokeTest")
         add("keybind" to "de.zannagh.armorhider.smoke.KeybindSmokeTest")
         add("combat-detection" to "de.zannagh.armorhider.smoke.CombatDetectionSmokeTest")
+        // Render hot-path allocation regression (frame drops): asserts ZERO PlayerConfig graphs are built
+        // on the render thread during a render window. Deliberately NOT gated on >= 26.2-1.pre like the
+        // rows below: the mixins that carried the regression (hand/ModelPartMixin, hand/ItemRendererMixin)
+        // are `//? if < 1.21.9`, so the oldest FCGT-capable variant that still has them - fabric-1.21.4 -
+        // is exactly where this has to be runnable. The class is `//? if fcgt` only, matching this gate.
+        // Run it in isolation with `-Psmoke.fcgt.only=hot-path-alloc`.
+        add("hot-path-alloc" to "de.zannagh.armorhider.smoke.HotPathAllocSmokeTest")
+        // Sibling of the row above for the NON-local branch of resolveConfig(): spawns client-side
+        // RemotePlayers and asserts the render thread stays within a small allocation budget per window,
+        // so the cost tracks player count rather than frame count. Two legs (steady-state and a cold
+        // multi-player one) plus a positive control on the non-local resolve count - see the class doc.
+        // Run it in isolation with `-Psmoke.fcgt.only=hot-path-remote-alloc`.
+        add("hot-path-remote-alloc" to "de.zannagh.armorhider.smoke.HotPathRemoteAllocSmokeTest")
         // Public ArmorHiderRenderApi end-to-end smoke. Asserts on SlotModification + the translucent
         // armor path rather than on a version-specific render architecture, so it is `//? if fcgt`
         // only and registers on every fcgt variant.
@@ -390,6 +413,18 @@ if (branch == "fabric") {
         // actually present at runtime. Registered everywhere fcgt is on - run it in isolation with
         // `-Psmoke.fcgt.only=emf-fa -Pcompat=emf,etf,fa`.
         add("emf-fa" to "de.zannagh.armorhider.smoke.EmfFreshAnimationsSmokeTest")
+        // EMF custom-3D-armor translucency repro (issue #360). The class is `//? if fcgt` only (no
+        // pack-pin gate) so it always compiles on fcgt variants; it self-detects whether EMF and the
+        // Glowing 3D Armor pack are actually present/renderable at runtime and degrades to a
+        // screenshot-only SKIP otherwise. Registered ONLY on the variant that pins
+        // `glowingarmor.version` (currently fabric-26.2, the sole build with a compatible pack - it
+        // needs 1.21.9+/26.x): every other fcgt variant could only ever hit the capability SKIP after
+        // burning the per-opacity poll ceiling, so registering it there just wastes CI time. Gate
+        // mirrors the `firstperson.version` pin gate above. Run it in isolation with
+        // `-Psmoke.fcgt.only=emf-360 -Pcompat=emf,etf,glowingarmor`.
+        if (hasProperty("glowingarmor.version")) {
+            add("emf-360" to "de.zannagh.armorhider.smoke.EmfCustomArmorTranslucencySmokeTest")
+        }
         // Fabric API ArmorRenderer compat repro (issue #348). `//? if fcgt` only - it searches the item
         // registry for whatever item has a custom ArmorRenderer registered and self-skips when the run
         // has none, so it is safe to register on every fcgt variant. Nycto supplies one on the rows that

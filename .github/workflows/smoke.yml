@@ -150,6 +150,17 @@ jobs:
           xvfb-run -a -s "-screen 0 1280x1024x24" \
             ./gradlew :smoke:smokeTest -Dsmoke.parallel=4 --no-daemon --console=plain
 
+      # Dual-version EMF matrix: run the emf-fa scenario against BOTH pinned EMF versions (3.2.6 default
+      # + 3.3 alt) via -Psmoke.emf.version override. Two sequential client launches, so it stays off the
+      # PR gate and only runs nightly. Headless gives boot/no-crash coverage across both EMF jars; the
+      # strict #217 EMF-custom-model path assertions only bite on a real GPU (emf-fa self-skips them under
+      # software GL), so this guards against a hard boot regression when EMF is bumped, not pixel parity.
+      - name: EMF version matrix (emf-fa, both EMF versions)
+        run: |
+          xvfb-run -a -s "-screen 0 1280x1024x24" \
+            ./gradlew :smoke:smokeTest --tests '*EmfVersionMatrixSmokeTest*' \
+              -Dsmoke.emf.matrix=true --no-daemon --console=plain
+
   # E2E line coverage from an offline-instrumented FCGT run (fabric-26.2, full-stack), uploaded to Codecov
   # under the `e2e` flag so render/config/net lines exercised only in a live client are credited alongside
   # the Tier-1 unit coverage. Nightly/on-demand: instrumentation adds overhead we keep off the PR gate.

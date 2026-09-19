@@ -90,7 +90,10 @@ testing {
                     listOf(
                         "smoke.only", "smoke.exclude", "smoke.compat", "smoke.phase", "smoke.delay.ms",
                         // Opt-in switch for PaperE2ESmokeTest (boots a Paper server + forks runClientGametest).
-                        "smoke.paper.e2e"
+                        "smoke.paper.e2e",
+                        // Opt-in gate for EmfVersionMatrixSmokeTest (@EnabledIfSystemProperty); the nightly
+                        // full-matrix job passes -Dsmoke.emf.matrix=true, so forward it to the test worker.
+                        "smoke.emf.matrix"
                     ).forEach { key ->
                         System.getProperty(key)?.let { systemProperty(key, it) }
                     }

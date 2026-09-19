@@ -3,6 +3,7 @@ package de.zannagh.armorhider.client.mixin.compat.emf;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import de.zannagh.armorhider.client.api.AhRenderManagementApi;
+import de.zannagh.armorhider.client.compat.EmfForcedVanillaResolver;
 import de.zannagh.armorhider.client.render.AhArmProbe;
 import de.zannagh.armorhider.client.render.EmfHiddenModeContext;
 import de.zannagh.armorhider.client.render.RenderModifications;
@@ -17,7 +18,6 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import traben.entity_model_features.models.animation.EMFAnimationEntityContext;
 import traben.entity_model_features.models.parts.EMFModelPart;
 
 @Pseudo
@@ -92,8 +92,7 @@ public abstract class EmfModelPartMixin {
             return;
         }
 
-        @SuppressWarnings("deprecation")
-        boolean emfForced = EMFAnimationEntityContext.isEntityForcedToVanillaModel();
+        boolean emfForced = EmfForcedVanillaResolver.isForced();
         boolean playerForced = AhRenderManagementApi.shouldEnforceVanillaRendering();
         if (!emfForced && !playerForced) {
             // Not forced: EMF draws its own (possibly custom) model. Record it so the #217 smoke

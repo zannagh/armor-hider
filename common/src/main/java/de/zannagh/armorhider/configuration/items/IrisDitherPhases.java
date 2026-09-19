@@ -11,9 +11,12 @@ import de.zannagh.armorhider.configuration.abstractions.IntConfigurationItem;
 public class IrisDitherPhases extends IntConfigurationItem {
 
     /**
-     * The default opacity value.
+     * The default number of temporal dither phases. Lowered from 32 to halve the number of distinct
+     * per-phase textures generated (and cached) for each faded armor piece, which shrinks the dither cache's
+     * working set and reduces LRU thrash on busy scenes (issue #357 follow-up). TAA still has plenty of
+     * phases to average, so the fade stays smooth; users can raise it again for finer temporal blending.
      */
-    public static final Integer DEFAULT_PHASES = 32;
+    public static final Integer DEFAULT_PHASES = 16;
 
     public IrisDitherPhases() {
         super();

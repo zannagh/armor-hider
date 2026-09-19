@@ -36,6 +36,10 @@ public final class ServerConnectionEvents {
         *///?}
 
         long now = System.currentTimeMillis();
+        // Evict entries older than the dedupe window before checking: they can never trigger a dedupe-skip
+        // again, so keeping them would grow RECENT_JOINS by one permanent entry per unique UUID over the
+        // server's lifetime. Joins are infrequent, so this sweep is cheap and bounds the map to the window.
+        RECENT_JOINS.entrySet().removeIf(entry -> (now - entry.getValue()) >= DEDUPE_WINDOW_MS);
         Long lastJoin = RECENT_JOINS.get(playerId);
         if (lastJoin != null && (now - lastJoin) < DEDUPE_WINDOW_MS) {
             return;
