@@ -4,7 +4,6 @@ import com.mojang.datafixers.util.Pair;
 import de.zannagh.armorhider.api.compat.CompatFlags;
 import de.zannagh.armorhider.api.compat.CompatManager;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.gui.UiConstants;
 import de.zannagh.armorhider.client.gui.elements.factories.OptionElementFactory;
 import de.zannagh.armorhider.client.gui.elements.implementations.AccessoryAffectButton;
 import de.zannagh.armorhider.client.gui.elements.implementations.AffectAccessoriesButton;
@@ -13,6 +12,7 @@ import de.zannagh.armorhider.client.gui.elements.implementations.ShowShieldWhenB
 import de.zannagh.armorhider.client.gui.screens.AdvancedArmorHiderSettingsScreen;
 import de.zannagh.armorhider.configuration.PresetManager;
 import de.zannagh.eunomia.client.gui.WidgetList;
+import de.zannagh.eunomia.ui.UiSizes;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -90,7 +90,7 @@ public class ArmorHiderOptionsPanelWidget extends AbstractWidget {
         if (!CompatManager.anyAccessoryProviderLoaded()) {
             return null;
         }
-        return new AccessoryAffectButton(initial, slot, UiConstants.SQUARE_BUTTON_WIDTH, UiConstants.DEFAULT_BUTTON_HEIGHT,
+        return new AccessoryAffectButton(initial, slot, UiSizes.SQUARE_BUTTON_WIDTH, UiSizes.DEFAULT_BUTTON_HEIGHT,
                 onPress -> {
                     if (onPress instanceof AccessoryAffectButton btn) {
                         setSetting(btn.toggle(), setter);
@@ -226,8 +226,8 @@ public class ArmorHiderOptionsPanelWidget extends AbstractWidget {
         );
         var shieldButton = new ShowShieldWhenBlockingButton(
                 config.showShieldWhenBlocking.getValue(),
-                UiConstants.SQUARE_BUTTON_WIDTH,
-                UiConstants.DEFAULT_BUTTON_HEIGHT,
+                UiSizes.SQUARE_BUTTON_WIDTH,
+                UiSizes.DEFAULT_BUTTON_HEIGHT,
                 onPress -> {
                     if (onPress instanceof ShowShieldWhenBlockingButton btn) {
                         setSetting(btn.toggle(), config.showShieldWhenBlocking::setValue);

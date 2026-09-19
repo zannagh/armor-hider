@@ -1,7 +1,6 @@
 package de.zannagh.armorhider.client.gui.elements.factories;
 
 import com.mojang.datafixers.util.Pair;
-import de.zannagh.armorhider.client.gui.UiConstants;
 import de.zannagh.armorhider.client.gui.elements.implementations.*;
 import de.zannagh.armorhider.client.gui.screens.ItemExclusionScreen;
 import de.zannagh.armorhider.configuration.ConfigPreset;
@@ -9,6 +8,8 @@ import de.zannagh.armorhider.configuration.PresetManager;
 import de.zannagh.eunomia.client.gui.CompoundOptionWidget;
 import de.zannagh.eunomia.client.gui.CompoundButtonWidget;
 import de.zannagh.eunomia.client.gui.ElementSpacingOptions;
+import de.zannagh.eunomia.client.gui.factories.NarratedTooltipFactory;
+import de.zannagh.eunomia.ui.UiSizes;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.OptionInstance;
 import net.minecraft.client.Options;
@@ -134,8 +135,8 @@ public class OptionElementFactory {
         groups.add(new Pair<>(0, globalButtonCount - 1));
         groups.add(new Pair<>(globalButtonCount, totalButtons - 1));
 
-        int sq = UiConstants.SQUARE_BUTTON_WIDTH;
-        int g = UiConstants.DEFAULT_BUTTON_SPACING / 2;
+        int sq = UiSizes.SQUARE_BUTTON_WIDTH;
+        int g = UiSizes.DEFAULT_BUTTON_SPACING / 2;
         int presetCount = PresetManager.PRESET_COUNT;
         int groupBWidth = presetCount * sq + (presetCount - 1) * g;
         int groupAWidth = rowWidth - groupBWidth - g;
@@ -184,7 +185,7 @@ public class OptionElementFactory {
         // The accessory + hidden-model compat toggles moved to the dedicated "Compatibilities" row.
         var buttons = new java.util.ArrayList<AbstractWidget>(java.util.List.of(first, second, third));
 
-        int sq = UiConstants.SQUARE_BUTTON_WIDTH;
+        int sq = UiSizes.SQUARE_BUTTON_WIDTH;
         var spacing = new ElementSpacingOptions(rowWidth)
                 .forEvenElements(sq, buttons.size())
                 .withLeftAlignment();
@@ -205,7 +206,7 @@ public class OptionElementFactory {
         }
         // Left-aligned label (MultiLineTextWidget defaults to left-aligned) nudged to vertically centre
         // in the row; CompoundOptionWidget sets its X/width and top Y, so we offset Y on top of that.
-        int rowHeight = UiConstants.DEFAULT_BUTTON_HEIGHT;
+        int rowHeight = UiSizes.DEFAULT_BUTTON_HEIGHT;
         var label = new MultiLineTextWidget(
                 Component.translatable("armorhider.options.compatibilities"),
                 Minecraft.getInstance().font) {
@@ -304,7 +305,7 @@ public class OptionElementFactory {
         ExtendedSlotIconButton button = new ExtendedSlotIconButton(
                 slot,
                 buttonWidth,
-                UiConstants.DEFAULT_BUTTON_HEIGHT, onPress -> {
+                UiSizes.DEFAULT_BUTTON_HEIGHT, onPress -> {
                 var mc = Minecraft.getInstance();
 
                 //? if <= 26.1.2
@@ -323,7 +324,7 @@ public class OptionElementFactory {
                     initialGlint,
                     slot,
                     buttonWidth,
-                    UiConstants.DEFAULT_BUTTON_HEIGHT,
+                    UiSizes.DEFAULT_BUTTON_HEIGHT,
                     onPress -> {
                         if (onPress instanceof GlintSlotOnOffButton btn) {
                             var newValue = btn.toggle();
@@ -338,7 +339,7 @@ public class OptionElementFactory {
             affectOtherItemsButton = new AffectOtherItemsButton(initialOtherAffect,
                     slot,
                     buttonWidth,
-                    UiConstants.DEFAULT_BUTTON_HEIGHT,
+                    UiSizes.DEFAULT_BUTTON_HEIGHT,
                     onPress -> {
                         if (onPress instanceof AffectOtherItemsButton btn) {
                             boolean result = btn.toggle();
@@ -372,13 +373,13 @@ public class OptionElementFactory {
 
         AbstractWidget sliderWidget = slider.createButton(options, 0, 0, sliderWidth);
 
-        var glintButton = new ElytraGlintButton(initialGlint, buttonWidth, UiConstants.DEFAULT_BUTTON_HEIGHT,
+        var glintButton = new ElytraGlintButton(initialGlint, buttonWidth, UiSizes.DEFAULT_BUTTON_HEIGHT,
                 onPress -> {
                     if (onPress instanceof ElytraGlintButton btn) {
                         glintConsumer.accept(btn.toggle());
                     }
                 });
-        var inFlightButton = new ElytraInFlightButton(initialInFlight, buttonWidth, UiConstants.DEFAULT_BUTTON_HEIGHT,
+        var inFlightButton = new ElytraInFlightButton(initialInFlight, buttonWidth, UiSizes.DEFAULT_BUTTON_HEIGHT,
                 onPress -> {
                     if (onPress instanceof ElytraInFlightButton btn) {
                         inFlightConsumer.accept(btn.toggle());

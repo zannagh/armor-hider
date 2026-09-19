@@ -2,10 +2,10 @@ package de.zannagh.armorhider.client.mixin;
 
 import de.zannagh.armorhider.client.ArmorHiderClient;
 //? if >= 1.21 {
-import de.zannagh.armorhider.client.gui.UiConstants;
 import de.zannagh.armorhider.client.gui.elements.ArmorHiderOptionsPanelWidget;
-import de.zannagh.armorhider.client.gui.elements.PlayerPreviewWidget;
+import de.zannagh.eunomia.client.gui.PlayerPreviewWidget;
 import de.zannagh.eunomia.client.gui.ElementSpacingOptions;
+import de.zannagh.eunomia.ui.UiSizes;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.OptionsList;
 import net.minecraft.client.gui.layouts.HeaderAndFooterLayout;
@@ -120,7 +120,7 @@ public abstract class SkinCustomizationScreenMixin extends Screen {
             return;
         }
 
-        int listBottom = this.list.getY() + 4 * UiConstants.DEFAULT_BUTTON_HEIGHT + 3 * UiConstants.DEFAULT_BUTTON_SPACING;
+        int listBottom = this.list.getY() + 4 * UiSizes.DEFAULT_BUTTON_HEIGHT + 3 * UiSizes.DEFAULT_BUTTON_SPACING;
         int gap = 4;
         int panelY = listBottom + gap;
         int panelHeight = this.height - panelY - 37;

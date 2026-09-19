@@ -1,7 +1,6 @@
 package de.zannagh.armorhider.client.gui.elements;
 
 import com.mojang.datafixers.util.Pair;
-import de.zannagh.armorhider.client.gui.UiConstants;
 import de.zannagh.eunomia.client.gui.CompoundButtonWidget;
 import de.zannagh.eunomia.client.gui.ElementSpacingOptions;
 import de.zannagh.eunomia.client.gui.screens.EunomiaSettingsScreen;
@@ -9,6 +8,7 @@ import de.zannagh.eunomia.client.settings.ServerSettingsClient;
 import de.zannagh.eunomia.client.settings.ServerSettingsView;
 import de.zannagh.eunomia.client.settings.SyncSettingSource;
 import de.zannagh.eunomia.configuration.EunomiaSyncSettings;
+import de.zannagh.eunomia.ui.UiSizes;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -50,7 +50,7 @@ public final class CloudSyncRow {
                 btn -> Minecraft.getInstance().setScreenAndShow(new EunomiaSettingsScreen(hostScreen, gameOptions))
         ).tooltip(Tooltip.create(Component.translatable("armorhider.options.cloud_sync.button.tooltip"))).build();
 
-        return new CompoundButtonWidget(new AbstractWidget[]{label, button}, rowWidth, UiConstants.DEFAULT_BUTTON_HEIGHT, spacing(rowWidth));
+        return new CompoundButtonWidget(new AbstractWidget[]{label, button}, rowWidth, UiSizes.DEFAULT_BUTTON_HEIGHT, spacing(rowWidth));
     }
 
     /** The left column: "Cloud Synchronisation: ON/OFF" plus a tooltip naming where that value came from. */
@@ -59,7 +59,7 @@ public final class CloudSyncRow {
         var state = Component.translatable(relayUsable
                 ? "armorhider.options.toggle.on"
                 : "armorhider.options.toggle.off");
-        int rowHeight = UiConstants.DEFAULT_BUTTON_HEIGHT;
+        int rowHeight = UiSizes.DEFAULT_BUTTON_HEIGHT;
         var label = new MultiLineTextWidget(
                 Component.translatable("armorhider.options.cloud_sync.status", state),
                 Minecraft.getInstance().font) {
@@ -105,18 +105,18 @@ public final class CloudSyncRow {
 
     /** Two columns: the label left-bound in the remaining width, the button right-bound at a fixed width. */
     private static ElementSpacingOptions spacing(int rowWidth) {
-        int gap = UiConstants.DEFAULT_BUTTON_SPACING / 2;
-        int buttonWidth = Math.min(BUTTON_WIDTH, Math.max(UiConstants.SQUARE_BUTTON_WIDTH, rowWidth / 2));
-        int labelWidth = Math.max(UiConstants.SQUARE_BUTTON_WIDTH, rowWidth - buttonWidth - gap);
+        int gap = UiSizes.DEFAULT_BUTTON_SPACING / 2;
+        int buttonWidth = Math.min(BUTTON_WIDTH, Math.max(UiSizes.SQUARE_BUTTON_WIDTH, rowWidth / 2));
+        int labelWidth = Math.max(UiSizes.SQUARE_BUTTON_WIDTH, rowWidth - buttonWidth - gap);
 
         var groups = new ArrayList<Pair<Integer, Integer>>();
         groups.add(new Pair<>(0, 0));
         groups.add(new Pair<>(1, 1));
 
         return new ElementSpacingOptions(rowWidth)
-                .forEvenElements(UiConstants.SQUARE_BUTTON_WIDTH, 2)
+                .forEvenElements(UiSizes.SQUARE_BUTTON_WIDTH, 2)
                 .withGroups(groups)
-                .withMinSizesForGroups(new int[]{UiConstants.SQUARE_BUTTON_WIDTH, UiConstants.SQUARE_BUTTON_WIDTH})
+                .withMinSizesForGroups(new int[]{UiSizes.SQUARE_BUTTON_WIDTH, UiSizes.SQUARE_BUTTON_WIDTH})
                 .withSizesForGroups(new int[]{labelWidth, buttonWidth})
                 .withLeftAlignmentForGroup(0)
                 .withRightAlignmentForGroup(1);

@@ -3,7 +3,7 @@
 
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.gui.elements.ArmorHiderOptionsPanelWidget;
-import de.zannagh.armorhider.client.gui.elements.PlayerPreviewWidget;
+import de.zannagh.eunomia.client.gui.PlayerPreviewWidget;
 import de.zannagh.eunomia.client.gui.ElementSpacingOptions;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;

@@ -1,7 +1,7 @@
 package de.zannagh.armorhider.client.gui.elements.implementations;
 
-import de.zannagh.armorhider.client.gui.UiConstants;
 import de.zannagh.armorhider.client.gui.elements.LayeredImageButton;
+import de.zannagh.eunomia.ui.UiSizes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.Nullable;
@@ -9,7 +9,7 @@ import org.jetbrains.annotations.Nullable;
 public class VanillaArmorInCombatButton extends LayeredImageButton {
 
     public VanillaArmorInCombatButton(boolean initial, OnPress onPress) {
-        super(null, initial, UiConstants.SQUARE_BUTTON_WIDTH, UiConstants.DEFAULT_BUTTON_HEIGHT,
+        super(null, initial, UiSizes.SQUARE_BUTTON_WIDTH, UiSizes.DEFAULT_BUTTON_HEIGHT,
                 initial ? VanillaArmorInCombatButton.enabledMsg() : VanillaArmorInCombatButton.disabledMsg(), onPress);
     }
 

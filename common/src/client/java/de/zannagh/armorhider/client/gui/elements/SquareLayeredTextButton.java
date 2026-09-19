@@ -1,6 +1,6 @@
 package de.zannagh.armorhider.client.gui.elements;
 
-import de.zannagh.armorhider.client.gui.UiConstants;
+import de.zannagh.eunomia.ui.UiSizes;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 
@@ -9,7 +9,7 @@ public abstract class SquareLayeredTextButton extends LayeredButton {
     private final String label;
 
     public SquareLayeredTextButton(boolean initial, String label, Component message, OnPress onPress) {
-        super(initial, UiConstants.SQUARE_BUTTON_WIDTH, UiConstants.DEFAULT_BUTTON_HEIGHT, message, onPress);
+        super(initial, UiSizes.SQUARE_BUTTON_WIDTH, UiSizes.DEFAULT_BUTTON_HEIGHT, message, onPress);
         this.label = label;
     }
 
