@@ -159,6 +159,14 @@ dependencies {
 // eunomia-core, unremapped - the loader recompiles common's sources, so it needs the same
 // version-agnostic API on its compile classpath (see the compileOnly in multiloader-loom).
 addCompileOnlyDependency("eunomia.version", "de.zannagh.eunomia:eunomia-core")
+// eunomia-common, unremapped - same reason as eunomia-core above, but MC-version-specific, so the
+// coordinate needs the variant's display_version appended (see multiloader-loom).
+if (hasProperty("eunomia.version") && hasProperty("display_version")) {
+    dependencies.add(
+        "compileOnly",
+        "de.zannagh.eunomia:eunomia-common:${findProperty("eunomia.version")}+${findProperty("display_version")}"
+    )
+}
 addCompileOnlyDependency("geckolib.version", "maven.modrinth:geckolib")
 addCompileOnlyDependency("iris.version", "maven.modrinth:iris")
 addCompileOnlyDependency("emf.version", "maven.modrinth:entity-model-features")

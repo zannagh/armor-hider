@@ -144,6 +144,17 @@ if (branch == "common") {
             // ReplicatedPlayerConfigStore directly - so the classes must be on the test COMPILE classpath,
             // not just runtime. Test scope only - never bundled into the shipped mod jar.
             add("testImplementation", "de.zannagh.eunomia:eunomia-core:${findProperty("eunomia.version")}")
+            // eunomia-common: the MC-facing half of the library - the client settings API
+            // (EunomiaConfig / EunomiaSyncSettings / ServerSettingsClient) and the reusable GUI premades
+            // (WidgetList, OptionElementFactory, ServerSettingsSection, ...). Unlike eunomia-core this one
+            // IS MC-version-specific, so the coordinate carries the same `+<display_version>` suffix our
+            // own jars use; eunomia publishes the identical display_version set, so it maps 1:1 onto every
+            // variant here. Still a plain compileOnly library, not a remapped mod jar - the eunomia mod
+            // supplies the implementation at game runtime, exactly like eunomia-core.
+            add(
+                "compileOnly",
+                "de.zannagh.eunomia:eunomia-common:${findProperty("eunomia.version")}+${findProperty("display_version")}"
+            )
         }
         add("testImplementation", platform("org.junit:junit-bom:6.0.1"))
         add("testImplementation", "org.junit.jupiter:junit-jupiter")
