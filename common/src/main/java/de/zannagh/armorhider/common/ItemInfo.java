@@ -21,7 +21,9 @@ import net.minecraft.world.item.equipment.EquipmentAssets;
 //import net.minecraft.world.item.Equipable;
 
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ItemInfo {
 
@@ -106,8 +108,44 @@ public class ItemInfo {
                 //? if >= 1.21.2 {
                 || itemStack.getComponents().has(DataComponents.GLIDER)
                 //? }
-                || itemStack.getItem().toString().toLowerCase(Locale.ROOT).contains("elytra");
+                || armorHider$nameLooksLikeElytra(itemStack.getItem());
     }
+
+    /**
+     * The name-sniffing fallback of {@link #isElytra()}, memoized per {@link Item}. The raw check is a
+     * registry reverse lookup plus two String allocations ({@code toString()} + {@code toLowerCase}), and
+     * {@code isElytra()} sits on the render path (it is what {@code RenderScope.of} calls), so it used to
+     * run that for every stack, every frame. The answer only depends on the item TYPE, never on the stack,
+     * so one evaluation per item type is enough.
+     */
+    private static boolean armorHider$nameLooksLikeElytra(Item item) {
+        // Plain get() first, and never computeIfAbsent: for any key that is not the head of its bin,
+        // ConcurrentHashMap.computeIfAbsent takes the bin node's monitor on EVERY call, hit or miss -
+        // which is exactly the per-quad contention this memoization exists to avoid.
+        Boolean cached = ELYTRA_NAME_FALLBACK.get(item);
+        if (cached != null) {
+            return cached;
+        }
+        String name = item.toString();
+        // Item#toString() resolves through Holder#getRegisteredName(), which does NOT throw while the
+        // item's registry key is still unbound - it returns the literal "[unregistered]". That is the
+        // same binding window documented for elytraStack above (issue #260), so caching the answer
+        // derived from it would pin "not an elytra" for the rest of the session instead of
+        // self-correcting on the next frame. Answer this call, cache nothing, retry next time. Mirrors
+        // the "BuiltInRegistries returns minecraft:air for unknown items" guard in
+        // ExclusionItemConfiguration#getItemId.
+        if (UNREGISTERED_ITEM_NAME.equals(name)) {
+            return false;
+        }
+        boolean looksLikeElytra = name.toLowerCase(Locale.ROOT).contains("elytra");
+        ELYTRA_NAME_FALLBACK.put(item, looksLikeElytra);
+        return looksLikeElytra;
+    }
+
+    /** What {@code Holder#getRegisteredName()} returns while an item's registry key is still unbound. */
+    private static final String UNREGISTERED_ITEM_NAME = "[unregistered]";
+
+    private static final Map<Item, Boolean> ELYTRA_NAME_FALLBACK = new ConcurrentHashMap<>();
 
     /**
      * Whether this item both glides ({@link #isElytra()}) and renders as chest body armor - a

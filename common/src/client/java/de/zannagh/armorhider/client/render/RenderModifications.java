@@ -1,5 +1,6 @@
 package de.zannagh.armorhider.client.render;
 
+import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.client.api.AhColorTransformer;
 import de.zannagh.armorhider.client.api.AhRenderTypeFactory;
 import de.zannagh.armorhider.client.common.SlotModification;
@@ -13,6 +14,8 @@ import net.minecraft.client.renderer.Sheets;
 
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.resources.Identifier;
+
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Applies visual modifications (transparency, render type swaps, color changes)
@@ -29,13 +32,58 @@ public class RenderModifications implements AhRenderModificationApi {
     private final SlotModification slotModification;
     private final ItemInfo itemInfo;
 
+    /**
+     * Set on every pass-through instance returned by {@link #empty()} - the shared {@link #EMPTY}
+     * singleton and, if that could not be pre-built, the per-call degraded fallback. It makes the two
+     * setters below no-ops, so an instance handed out for a scope miss cannot be repurposed by a compat
+     * layer and leak a custom render type or color transformer into unrelated render paths. Instances
+     * built through the public constructor for a real modification are never immutable.
+     */
+    private final boolean immutable;
+
     public RenderModifications(SlotModification slotModification) {
+        this(slotModification, false);
+    }
+
+    private RenderModifications(SlotModification slotModification, boolean immutable) {
         this.slotModification = slotModification;
         this.itemInfo = slotModification.itemInfo();
+        this.immutable = immutable;
+    }
+
+    /**
+     * The shared pass-through instance. {@code empty()} is on the render hot path (it is what
+     * {@code RenderScopeContext.empty(...)} builds on every scope miss - per model part, per baked quad),
+     * and every method on an empty modification short-circuits to the original value, so one instance is
+     * enough. It deliberately does NOT go through {@code AhRenderModificationApi.getInstance(...)}: the
+     * previous {@code new RenderModifications(...)} here did not either, so registered factories and
+     * transformers were never applied to an empty context and still are not.
+     */
+    private static final RenderModifications EMPTY = buildEmpty();
+
+    /**
+     * Null if the chain is not ready yet - see the note on {@code RenderScopeContext.buildEmpties()} and the
+     * precedent at {@code ItemInfo.java:40-48} (issue #260). Letting a transient early-bootstrap failure
+     * escape this {@code <clinit>} would latch it for the session and kill the render path.
+     */
+    private static RenderModifications buildEmpty() {
+        try {
+            return new RenderModifications(SlotModification.empty(), true);
+        } catch (Throwable t) {
+            ArmorHider.LOGGER.warn(
+                    "Could not pre-build the shared empty RenderModifications; falling back to allocating per call",
+                    t);
+            return null;
+        }
     }
 
     public static RenderModifications empty() {
-        return new RenderModifications(SlotModification.empty());
+        RenderModifications cached = EMPTY;
+        if (cached != null) {
+            return cached;
+        }
+        // Degraded path - see buildEmpty(). Allocates, but keeps rendering alive.
+        return new RenderModifications(SlotModification.empty(), true);
     }
 
     public AhRenderTypeFactory renderTypes() {
@@ -191,12 +239,37 @@ public class RenderModifications implements AhRenderModificationApi {
     private AhColorTransformer customColorTransformer;
 
     public void setRenderTypeFactory(AhRenderTypeFactory renderTypeFactory) {
+        if (immutable) {
+            warnImmutable("setRenderTypeFactory");
+            return;
+        }
         customRenderTypeFactory = renderTypeFactory;
     }
 
     @Override
     public void setColorTransformer(AhColorTransformer colorTransformer) {
+        if (immutable) {
+            warnImmutable("setColorTransformer");
+            return;
+        }
         customColorTransformer = colorTransformer;
+    }
+
+    /** Guards {@link #warnImmutable(String)} so a per-quad misuse cannot flood the log. */
+    private static final AtomicBoolean IMMUTABLE_WARNING_LOGGED = new AtomicBoolean();
+
+    /**
+     * Reports an attempt to customise the shared pass-through instance. Logged rather than thrown: this
+     * object reaches third parties through public API ({@code ArmorHiderEmptyRenderer#getRenderModificationApi},
+     * {@code AbstractArmorHiderRenderer}), and throwing would break existing consumers.
+     */
+    private static void warnImmutable(String setter) {
+        if (IMMUTABLE_WARNING_LOGGED.compareAndSet(false, true)) {
+            ArmorHider.LOGGER.warn(
+                    "Ignoring {} on the shared empty RenderModifications instance: it is handed out for every"
+                            + " scope miss and cannot be customised. Obtain a modification API bound to an actual"
+                            + " render scope instead. This is logged once per session.", setter);
+        }
     }
 
     @Override

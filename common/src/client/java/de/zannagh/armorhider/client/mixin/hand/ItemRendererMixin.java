@@ -31,6 +31,10 @@ public class ItemRendererMixin {
             argsOnly = true
     )
     private MultiBufferSource wrapBufferSourceForTransparency(MultiBufferSource bufferSource) {
+        // Per rendered item, every frame; the scope lookups below allocate an empty context each on a miss.
+        if (!AhRenderManagementApi.hasAnyScopeModification()) {
+            return bufferSource;
+        }
 
         var offCtx = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
         var hdCtx = AhRenderManagementApi.getActiveScope(RenderScope.HEAD);
@@ -91,6 +95,10 @@ public class ItemRendererMixin {
     )
     private RenderType wrapGetRenderType(ItemStack itemStack, boolean fabulous, Operation<RenderType> original) {
         RenderType type = original.call(itemStack, fabulous);
+        // Per rendered item, every frame; on a scope miss both lookups below yield empty, no-op contexts.
+        if (!AhRenderManagementApi.hasAnyScopeModification()) {
+            return type;
+        }
 
         var offCtx3 = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
         var hdCtx3 = AhRenderManagementApi.getActiveScope(RenderScope.HEAD);
@@ -112,6 +120,13 @@ public class ItemRendererMixin {
             )
     )
     private void wrapPutBulkData(VertexConsumer instance, PoseStack.Pose pose, BakedQuad quad, float r, float g, float b, float alpha, int light, int overlay, Operation<Void> original) {
+        // Per baked quad of every item model, every frame. With no scope carrying a modification both
+        // lookups below return an empty, no-op context and the alpha is passed through untouched, so
+        // delegate straight to the original call instead.
+        if (!AhRenderManagementApi.hasAnyScopeModification()) {
+            original.call(instance, pose, quad, r, g, b, alpha, light, overlay);
+            return;
+        }
 
         var offCtx4 = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
         var hdCtx4 = AhRenderManagementApi.getActiveScope(RenderScope.HEAD);
@@ -135,6 +150,13 @@ public class ItemRendererMixin {
             )
     )
     private void wrapPutBulkData(VertexConsumer instance, PoseStack.Pose pose, BakedQuad quad, float r, float g, float b, float alpha, int light, int overlay, boolean useBlockLight, Operation<Void> original) {
+        // Per baked quad of every item model, every frame. With no scope carrying a modification both
+        // lookups below return an empty, no-op context and the alpha is passed through untouched, so
+        // delegate straight to the original call instead.
+        if (!AhRenderManagementApi.hasAnyScopeModification()) {
+            original.call(instance, pose, quad, r, g, b, alpha, light, overlay, useBlockLight);
+            return;
+        }
 
         var offCtx5 = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
         var hdCtx5 = AhRenderManagementApi.getActiveScope(RenderScope.HEAD);
@@ -180,6 +202,10 @@ public class ItemRendererMixin {
             argsOnly = true
     )
     private static RenderType modifyRenderType(RenderType renderType) {
+        // Per rendered item, every frame; on a scope miss both lookups below yield empty, no-op contexts.
+        if (!AhRenderManagementApi.hasAnyScopeModification()) {
+            return renderType;
+        }
 
         var offCtx = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
         var hdCtx = AhRenderManagementApi.getActiveScope(RenderScope.HEAD);
@@ -201,6 +227,13 @@ public class ItemRendererMixin {
             )
     )
     private static void wrapPutBulkData(VertexConsumer instance, PoseStack.Pose pose, BakedQuad quad, float r, float g, float b, float alpha, int light, int overlay, Operation<Void> original) {
+        // Per baked quad of every item model, every frame. With no scope carrying a modification both
+        // lookups below return an empty, no-op context and the alpha is passed through untouched, so
+        // delegate straight to the original call instead.
+        if (!AhRenderManagementApi.hasAnyScopeModification()) {
+            original.call(instance, pose, quad, r, g, b, alpha, light, overlay);
+            return;
+        }
 
         var offCtx2 = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
         var hdCtx2 = AhRenderManagementApi.getActiveScope(RenderScope.HEAD);
@@ -224,6 +257,13 @@ public class ItemRendererMixin {
             )
     )
     private static void wrapPutBulkData(VertexConsumer instance, PoseStack.Pose pose, BakedQuad quad, float r, float g, float b, float alpha, int light, int overlay, boolean useBlockLight, Operation<Void> original) {
+        // Per baked quad of every item model, every frame. With no scope carrying a modification both
+        // lookups below return an empty, no-op context and the alpha is passed through untouched, so
+        // delegate straight to the original call instead.
+        if (!AhRenderManagementApi.hasAnyScopeModification()) {
+            original.call(instance, pose, quad, r, g, b, alpha, light, overlay, useBlockLight);
+            return;
+        }
 
         var offCtx2 = AhRenderManagementApi.getActiveScope(RenderScope.OFFHAND);
         var hdCtx2 = AhRenderManagementApi.getActiveScope(RenderScope.HEAD);
