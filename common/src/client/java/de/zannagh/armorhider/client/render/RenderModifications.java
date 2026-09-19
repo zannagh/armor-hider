@@ -33,9 +33,11 @@ public class RenderModifications implements AhRenderModificationApi {
     private final ItemInfo itemInfo;
 
     /**
-     * Set only on the shared {@link #EMPTY} instance. It makes the two setters below no-ops, so the one
-     * instance handed out for every scope miss cannot be repurposed by a compat layer and leak a custom
-     * render type or color transformer into unrelated render paths.
+     * Set on every pass-through instance returned by {@link #empty()} - the shared {@link #EMPTY}
+     * singleton and, if that could not be pre-built, the per-call degraded fallback. It makes the two
+     * setters below no-ops, so an instance handed out for a scope miss cannot be repurposed by a compat
+     * layer and leak a custom render type or color transformer into unrelated render paths. Instances
+     * built through the public constructor for a real modification are never immutable.
      */
     private final boolean immutable;
 

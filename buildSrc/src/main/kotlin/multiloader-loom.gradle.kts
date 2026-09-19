@@ -323,9 +323,10 @@ if (branch == "fabric") {
         // is exactly where this has to be runnable. The class is `//? if fcgt` only, matching this gate.
         // Run it in isolation with `-Psmoke.fcgt.only=hot-path-alloc`.
         add("hot-path-alloc" to "de.zannagh.armorhider.smoke.HotPathAllocSmokeTest")
-        // Report-only sibling of the row above: spawns a client-side RemotePlayer so the NON-local
-        // branch of resolveConfig() is exercised, and logs how many PlayerConfig graphs the render thread
-        // builds per window. Measurement harness, not an assertion - see the class doc.
+        // Sibling of the row above for the NON-local branch of resolveConfig(): spawns client-side
+        // RemotePlayers and asserts the render thread stays within a small allocation budget per window,
+        // so the cost tracks player count rather than frame count. Two legs (steady-state and a cold
+        // multi-player one) plus a positive control on the non-local resolve count - see the class doc.
         // Run it in isolation with `-Psmoke.fcgt.only=hot-path-remote-alloc`.
         add("hot-path-remote-alloc" to "de.zannagh.armorhider.smoke.HotPathRemoteAllocSmokeTest")
         // Public ArmorHiderRenderApi end-to-end smoke. Asserts on SlotModification + the translucent
