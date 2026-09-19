@@ -9,6 +9,13 @@ import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import java.io.File
+import java.net.URI
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
+import java.time.Duration
 
 /**
  * Fetches Modrinth jars for the compat dependencies declared in `stonecutter.properties.toml`
@@ -86,6 +93,21 @@ abstract class FetchCompatJars : DefaultTask() {
     @get:Optional
     abstract val followDependencies: Property<Boolean>
 
+    /**
+     * Map of compat-key → CurseForge pin {@code "<projectId>:<fileId>"}. A keyless fallback for mods not
+     * (yet) on Modrinth: the exact file is pulled from the Cursemaven proxy. Unlike the Modrinth path there
+     * is no auto-resolution or {@code required}-dependency following - the CurseForge read API those would
+     * need is key-gated - so each entry pins one exact per-loader, per-MC file. A key present in both
+     * {@link #versionHashes} and here resolves from Modrinth (the richer source); the pin is the fallback.
+     */
+    @get:Input
+    @get:Optional
+    abstract val curseForgePins: MapProperty<String, String>
+
+    private val http: HttpClient by lazy {
+        HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(20)).build()
+    }
+
     /** Modrinth access for this run. Rebuilt per {@link #fetch()} so its memo never leaks rows. */
     private lateinit var modrinth: ModrinthClient
 
@@ -97,7 +119,9 @@ abstract class FetchCompatJars : DefaultTask() {
         target.listFiles()?.forEach { it.delete() }
         modrinth = ModrinthClient(logger, mcGameVersion.orNull, loader.orNull)
 
-        val keys = versionHashes.get().keys.toMutableSet()
+        val cfPins = curseForgePins.getOrElse(emptyMap())
+        // A key is fetchable if it has a Modrinth version hash, a CurseForge pin, or both.
+        val keys = (versionHashes.get().keys + cfPins.keys).toMutableSet()
         keys.retainAll(include.get())
         if (keys.isEmpty()) {
             logger.lifecycle("[fetchCompatJars] No compat mods selected; mods dir left empty")
@@ -117,16 +141,23 @@ abstract class FetchCompatJars : DefaultTask() {
         // from the version-mismatch SKIP inside fetchVersion, which returns normally and stays a warning.
         val failedPins = mutableListOf<String>()
         keys.forEach { key ->
-            val hash = versionHashes.get()[key] ?: return@forEach
+            val hash = versionHashes.get()[key]
             try {
-                fetchVersion(hash, target, seenHashes, claimedProjects, pendingDeps, key)
+                if (hash != null) {
+                    // Modrinth is preferred when available: its open API lets the version and its required
+                    // deps auto-resolve. CurseForge (keyless Cursemaven) is exact-pin-only, so it is the fallback.
+                    fetchVersion(hash, target, seenHashes, claimedProjects, pendingDeps, key)
+                } else {
+                    fetchCurseForge(cfPins.getValue(key), target, key)
+                }
             } catch (e: InterruptedException) {
                 // A cancelled build must stop, not be recorded as a failed pin.
                 Thread.currentThread().interrupt()
                 throw e
             } catch (e: Exception) {
-                logger.error("[fetchCompatJars] pinned {} ({}) could not be fetched: {}", key, hash, e.message)
-                failedPins += "$key ($hash): ${e.message}"
+                val pin = hash ?: "cf:${cfPins[key]}"
+                logger.error("[fetchCompatJars] pinned {} ({}) could not be fetched: {}", key, pin, e.message)
+                failedPins += "$key ($pin): ${e.message}"
             }
         }
 
@@ -165,6 +196,40 @@ abstract class FetchCompatJars : DefaultTask() {
                         " with an incomplete mod set:\n  " + failedPins.joinToString("\n  ")
             )
         }
+    }
+
+    /**
+     * Fetch a single CurseForge file via the keyless Cursemaven proxy. {@code pin} is
+     * {@code "<projectId>:<fileId>"}. The Cursemaven descriptor path segment is cosmetic (only the numeric
+     * ids are resolved), so the compat {@code label} fills it. No dependency following - see
+     * {@link #curseForgePins}.
+     */
+    private fun fetchCurseForge(pin: String, target: File, label: String) {
+        val parts = pin.split(":")
+        if (parts.size != 2 || parts.any { it.isBlank() }) {
+            throw GradleException(
+                "[fetchCompatJars] $label has a malformed CurseForge pin '$pin' (want '<projectId>:<fileId>')"
+            )
+        }
+        val (projectId, fileId) = parts
+        val artifact = "$label-$projectId"
+        val url = "https://cursemaven.com/curse/maven/$artifact/$fileId/$artifact-$fileId.jar"
+        val filename = "$artifact-$fileId.jar"
+        val out = target.toPath().resolve(filename)
+        logger.lifecycle("[fetchCompatJars] {} → {} (CurseForge {}/{})", label, filename, projectId, fileId)
+        val resp = http.send(
+            HttpRequest.newBuilder(URI.create(url))
+                .header("User-Agent", "armor-hider-buildscript")
+                .GET().build(),
+            HttpResponse.BodyHandlers.ofInputStream()
+        )
+        if (resp.statusCode() != 200) {
+            resp.body().close()
+            throw GradleException(
+                "[fetchCompatJars] $label CurseForge fetch failed (HTTP ${resp.statusCode()}): $url"
+            )
+        }
+        resp.body().use { Files.copy(it, out, StandardCopyOption.REPLACE_EXISTING) }
     }
 
     /**

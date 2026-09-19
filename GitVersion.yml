@@ -31,6 +31,21 @@ branches:
     prevent-increment:
       when-current-commit-tagged: true
 
+  # Same rules as main, but always a prerelease line (label "exp") - merges here never produce a
+  # release version, only a "beta" build published to Modrinth/CurseForge/Hangar (see publish.yml).
+  experimental:
+    mode: ContinuousDeployment
+    increment: Patch
+    label: exp
+    is-release-branch: false
+    track-merge-target: true
+    track-merge-message: true
+    prevent-increment:
+      when-current-commit-tagged: true
+    regex: ^experimental$
+    source-branches:
+      - main
+
   feature:
     mode: ContinuousDelivery
     increment: Patch

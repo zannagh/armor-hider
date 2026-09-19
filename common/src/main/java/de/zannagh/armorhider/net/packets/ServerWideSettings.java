@@ -7,16 +7,8 @@ import de.zannagh.armorhider.configuration.items.AllowIndividualPlayerConfigurat
 import de.zannagh.armorhider.configuration.items.CombatDetection;
 import de.zannagh.armorhider.configuration.items.DisableArmorHiderOnInvisibilityGlobally;
 import de.zannagh.armorhider.configuration.items.ForceArmorHiderOffOnPlayers;
-//? if >= 1.20.5 {
-import de.zannagh.armorhider.net.CompressedJsonCodec;
-import io.netty.buffer.ByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-//?}
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.NonNull;
-
-import net.minecraft.resources.Identifier;
 
 
 /**
@@ -60,29 +52,6 @@ public class ServerWideSettings implements ConfigurationSource<ServerWideSetting
     public ServerWideSettings migrateFrom(ServerWideSettings old) {
         return ServerWideSettings.migrate(old);
     }
-
-    //? if >= 1.21.11 {
-    public static final Identifier PACKET_IDENTIFIER = Identifier.fromNamespaceAndPath("de.zannagh.armorhider", "server_wide_settings");
-     //?}
-    //? if >= 1.20.5 && < 1.21.11 {
-    /*public static final Identifier PACKET_IDENTIFIER = Identifier.fromNamespaceAndPath("armorhider", "server_wide_settings");
-    *///?}
-
-    //? if >= 1.20.5 {
-    public static final Type<ServerWideSettings> TYPE = new Type<>(PACKET_IDENTIFIER);
-
-    public static final StreamCodec<ByteBuf, ServerWideSettings> STREAM_CODEC = CompressedJsonCodec.create(ServerWideSettings.class);
-
-    @Override
-    public StreamCodec<ByteBuf, ServerWideSettings> getCodec() {
-        return CompressedJsonCodec.create(ServerWideSettings.class);
-    }
-
-    @Override
-    public @NonNull Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
-    //?}
 
     /**
      * @since 0.4.0

@@ -1,8 +1,8 @@
 package de.zannagh.armorhider.client.gui.elements.implementations;
 
-import de.zannagh.armorhider.client.gui.UiConstants;
-import de.zannagh.armorhider.client.gui.elements.LayeredImageButton;
 import de.zannagh.armorhider.configuration.EmfHiddenModelMode;
+import de.zannagh.eunomia.client.gui.LayeredImageButton;
+import de.zannagh.eunomia.ui.UiSizes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.Nullable;
@@ -18,7 +18,7 @@ public class HiddenModelBehaviourButton extends LayeredImageButton {
     private EmfHiddenModelMode mode;
 
     public HiddenModelBehaviourButton(EmfHiddenModelMode initial, OnPress onPress) {
-        super(null, false, UiConstants.SQUARE_BUTTON_WIDTH, UiConstants.DEFAULT_BUTTON_HEIGHT, tooltipFor(initial), onPress);
+        super(false, UiSizes.SQUARE_BUTTON_WIDTH, UiSizes.DEFAULT_BUTTON_HEIGHT, tooltipFor(initial), onPress);
         this.mode = initial;
         this.setMessage(tooltipFor(initial));
         this.setTooltip(net.minecraft.client.gui.components.Tooltip.create(tooltipFor(initial)));
@@ -42,7 +42,7 @@ public class HiddenModelBehaviourButton extends LayeredImageButton {
 
     @Override
     protected @Nullable Identifier spriteForeground(boolean enabled) {
-        return modSprite(switch (mode) {
+        return sprite("armor-hider", switch (mode) {
             case KEEP -> "hidden_model_keep";
             case VANILLA -> "hidden_model_vanilla";
             case VANILLA_SEAMS -> "hidden_model_mix";

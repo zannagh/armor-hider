@@ -1,6 +1,6 @@
 package de.zannagh.armorhider.client.gui.elements.implementations;
 
-import de.zannagh.armorhider.client.gui.elements.SquareLayeredTextButton;
+import de.zannagh.eunomia.client.gui.SquareLayeredTextButton;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.Nullable;
@@ -42,7 +42,7 @@ public class PresetButton extends SquareLayeredTextButton {
 
     @Override
     protected @Nullable Identifier midLayerSprite(boolean enabled) {
-        return presetActive ? modSprite("accept_highlighted") : null;
+        return presetActive ? sprite("armor-hider", "accept_highlighted") : null;
     }
 
     @Override

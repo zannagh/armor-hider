@@ -1,6 +1,6 @@
 package de.zannagh.armorhider.client.gui.elements.implementations;
 
-import de.zannagh.armorhider.client.gui.elements.LayeredImageButton;
+import de.zannagh.armorhider.client.gui.elements.SlotLayeredImageButton;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -11,7 +11,7 @@ import org.jetbrains.annotations.Nullable;
  * boots) is hidden together with the slot. Placeholder foreground uses the slot's armor icon - swap for
  * dedicated accessory art. Only takes effect while the master {@link AffectAccessoriesButton} is on.
  */
-public class AccessoryAffectButton extends LayeredImageButton {
+public class AccessoryAffectButton extends SlotLayeredImageButton {
 
     public AccessoryAffectButton(boolean initial, EquipmentSlot slot, int width, int height, OnPress onPress) {
         super(slot, initial, width, height, initial ? enabledMsg(slot) : disabledMsg(slot), onPress);
@@ -23,17 +23,17 @@ public class AccessoryAffectButton extends LayeredImageButton {
             return null;
         }
         return switch (slot) {
-            case HEAD -> modSprite("iron_helmet");
-            case CHEST -> modSprite("iron_chestplate");
-            case LEGS -> modSprite("iron_leggings");
-            case FEET -> modSprite("iron_boots");
+            case HEAD -> sprite("armor-hider", "iron_helmet");
+            case CHEST -> sprite("armor-hider", "iron_chestplate");
+            case LEGS -> sprite("armor-hider", "iron_leggings");
+            case FEET -> sprite("armor-hider", "iron_boots");
             default -> null;
         };
     }
 
     @Override
     protected @Nullable Identifier midLayerSprite(boolean enabled) {
-        return enabled ? modSprite("accept_highlighted") : modSprite("reject_highlighted");
+        return enabled ? sprite("armor-hider", "accept_highlighted") : sprite("armor-hider", "reject_highlighted");
     }
 
     @Override

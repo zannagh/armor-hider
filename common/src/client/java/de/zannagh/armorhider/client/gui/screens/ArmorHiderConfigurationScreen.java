@@ -2,8 +2,8 @@ package de.zannagh.armorhider.client.gui.screens;
 
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.client.ArmorHiderClient;
-import de.zannagh.armorhider.client.gui.elements.factories.OptionElementFactory;
-import de.zannagh.armorhider.client.gui.elements.WidgetList;
+import de.zannagh.armorhider.client.gui.elements.factories.ArmorHiderOptionElementFactory;
+import de.zannagh.eunomia.client.gui.WidgetList;
 import net.minecraft.client.Options;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
@@ -26,7 +26,7 @@ public abstract class ArmorHiderConfigurationScreen extends Screen {
 
     protected int rowWidth = this.width;
 
-    protected OptionElementFactory factory;
+    protected ArmorHiderOptionElementFactory factory;
 
     protected Options gameOptions;
 
@@ -61,7 +61,7 @@ public abstract class ArmorHiderConfigurationScreen extends Screen {
     protected void initWidgetList(int width) {
         widgetList = new WidgetList(this.minecraft, width, this.height - topMargin - bottomMargin, topMargin, itemHeight);
         rowWidth = widgetList.getRowWidth();
-        factory = new OptionElementFactory(widgetList::addWidget, gameOptions, rowWidth);
+        factory = new ArmorHiderOptionElementFactory(widgetList::addWidget, gameOptions, rowWidth);
     }
 
     protected boolean isPlayerInGame() {

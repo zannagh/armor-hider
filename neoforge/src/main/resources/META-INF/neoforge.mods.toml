@@ -30,6 +30,29 @@ versionRange="${minecraft_version}"
 ordering="NONE"
 side="BOTH"
 
+# eunomia supplies the config/networking framework armor-hider compiles against (eunomia-core) and
+# installs the live client/server transports at runtime. Ordered AFTER so eunomia's init runs first.
+# Published on CurseForge (project 1654849) and Modrinth (project BvzQw4wL, approved 2026-09-16). Floor is 0.3.4: armor-hider's per-player
+# config rides eunomia 0.3.0's replicated keyed store (ReplicatedPlayerConfig / ReplicatedPlayerConfigStore
+# / ReplicatedClientStore) and the HTTP/WebSocket external-relay fallback (ClientTransportSelector /
+# ExternalServerClient), and 0.3.2's versioned API surface (ApiVersion / SemanticVersion) plus the reworked
+# relay protocol (RelayProtocol / RelayEndpoints / RelayConnectionState) and send-gate fallback - on top of
+# the earlier send gate (0.2.3) and installDefaultGson (0.2.4). 0.3.4 is the floor rather than a preference
+# because it moves the send gate's per-connection reset out of the HELLO probe and into the connection
+# lifecycle (CommunicationManager.beginClientConnection): before it, armor-hider's join-time PLAYER_CONFIG
+# send - parked behind the gate by the default AFTER_SUCCESSFUL_HANDSHAKE - was discarded by the probe's own
+# reset whenever armor-hider's join listener happened to be registered ahead of eunomia's, which no
+# initializer ordering on our side could make safe.
+# The compile-time pin (eunomia.version) moved to 0.3.6 for MC 26.3 support, but the floor stays 0.3.4:
+# 0.3.5/0.3.6 add no API armor-hider uses, and on 26.3 the floor is moot anyway - eunomia has no 26.3
+# build before 0.3.6, so nothing older can be installed there. Raising it would only break older MC users.
+[[dependencies."armor_hider"]]
+modId="eunomia"
+type="required"
+versionRange="[0.3.4,)"
+ordering="AFTER"
+side="BOTH"
+
 [[dependencies."armor_hider"]]
 modId="luckperms"
 type="optional"

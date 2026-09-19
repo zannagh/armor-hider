@@ -1,9 +1,8 @@
 package de.zannagh.armorhider.paper;
 
-import com.google.gson.JsonObject;
-import de.zannagh.armorhider.paper.net.Channels;
-import de.zannagh.armorhider.paper.net.ClientDialects;
-import de.zannagh.armorhider.paper.net.PayloadCodec;
+import de.zannagh.armorhider.paper.net.ArmorHiderServerContext;
+import de.zannagh.armorhider.paper.net.PaperServerTransport;
+import de.zannagh.eunomia.networking.comms.CommunicationManager;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 
@@ -11,65 +10,35 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Dispatches inbound plugin messages to {@link ArmorHiderService}.
+ * Feeds inbound plugin messages into the eunomia {@link CommunicationManager}.
  *
- * <p>Bukkit hands every registered incoming channel to the same listener, so the channel name - in
- * either namespace - selects the handler. A malformed or oversized payload is logged and dropped;
- * it must never propagate out of here, because that would kill the sender's connection.</p>
+ * <p>Bukkit hands every registered incoming channel to the same listener, so the channel name is the
+ * {@code namespace:path} routing key. The manager decodes the raw {@code gzip(json)} bytes through the
+ * shared {@link de.zannagh.eunomia.networking.serialization.PayloadCodec} and dispatches to the handler
+ * registered for that channel - including eunomia's own {@code eunomia:hello}, which the handshake
+ * handler answers automatically.</p>
  *
- * <p>The channel's namespace is also the only signal of which dialect the client speaks, so it is
- * recorded in {@link ClientDialects} before anything else - even a payload we fail to decode still
- * proves which alias its sender uses.</p>
+ * <p>A malformed or oversized payload is logged and dropped; it must never propagate out of here,
+ * because an exception would kill the sender's connection.</p>
  */
 public final class ArmorHiderMessageListener implements PluginMessageListener {
 
     private final Logger logger;
-    private final ArmorHiderService service;
-    private final ClientDialects dialects;
+    private final PaperServerTransport transport;
 
-    public ArmorHiderMessageListener(Logger logger, ArmorHiderService service,
-                                     ClientDialects dialects) {
+    public ArmorHiderMessageListener(Logger logger, PaperServerTransport transport) {
         this.logger = logger;
-        this.service = service;
-        this.dialects = dialects;
+        this.transport = transport;
     }
 
     @Override
     public void onPluginMessageReceived(String channel, Player player, byte[] message) {
-        dialects.remember(player.getUniqueId(), channel);
-
-        JsonObject payload;
         try {
-            payload = PayloadCodec.decodeServerbound(message);
+            ArmorHiderServerContext context = new ArmorHiderServerContext(player, transport);
+            CommunicationManager.dispatchServerboundRaw(channel, message, context);
         } catch (RuntimeException e) {
             logger.log(Level.WARNING, "Dropping a malformed armor-hider payload on " + channel
                     + " from " + player.getUniqueId() + ": " + e.getMessage());
-            return;
-        }
-
-        try {
-            dispatch(channel, player, payload);
-        } catch (RuntimeException e) {
-            logger.log(Level.SEVERE, "Failed to handle an armor-hider payload on " + channel
-                    + " from " + player.getUniqueId(), e);
-        }
-    }
-
-    private void dispatch(String channel, Player player, JsonObject payload) {
-        if (Channels.PLAYER_CONFIG_C2S.contains(channel)) {
-            service.handlePlayerConfig(player, payload);
-            return;
-        }
-        if (Channels.SERVER_WIDE_SETTINGS_C2S.contains(channel)) {
-            service.handleServerWideSettings(player, payload);
-            return;
-        }
-        if (Channels.COMBAT_LOG_C2S.contains(channel)) {
-            service.handleCombatLogEvent(player, payload);
-            return;
-        }
-        if (Channels.SHARED_RULES_C2S.contains(channel)) {
-            service.handleSharedRuleState(player, payload);
         }
     }
 }

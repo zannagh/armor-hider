@@ -1,25 +1,16 @@
 package de.zannagh.armorhider.configuration;
 
-//? if >= 1.20.5 {
-import io.netty.buffer.ByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-//? }
-
 /**
  * Marker interface for configuration classes that should have their
  * ConfigurationItemBase fields automatically initialized when missing from JSON.
- * In < 1.20.5 the CustomPacketPayload does not yet exist, so the imports and extends are not needed.
+ *
+ * <p>Since the eunomia networking migration these are plain POJOs: the wire codec is
+ * {@code de.zannagh.eunomia.networking.serialization.PayloadCodec}, so there is no longer a
+ * Minecraft {@code CustomPacketPayload}/{@code StreamCodec} coupling here.
  *
  * @since 0.5.0
  */
-public interface ConfigurationSource<T extends ConfigurationSource<T>>
-    //? if >= 1.20.5
-    extends CustomPacketPayload
-{
-
-    //? if >= 1.20.5
-    StreamCodec<ByteBuf, T> getCodec();
+public interface ConfigurationSource<T extends ConfigurationSource<T>> {
 
     /**
      * Checks whether the configuration source has been modified from its
