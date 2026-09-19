@@ -12,6 +12,7 @@ import de.zannagh.armorhider.client.gui.elements.implementations.HiddenModelBeha
 import de.zannagh.armorhider.client.gui.elements.implementations.ShowShieldWhenBlockingButton;
 import de.zannagh.armorhider.client.gui.screens.AdvancedArmorHiderSettingsScreen;
 import de.zannagh.armorhider.configuration.PresetManager;
+import de.zannagh.eunomia.client.gui.WidgetList;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
 import net.minecraft.client.gui.components.AbstractWidget;

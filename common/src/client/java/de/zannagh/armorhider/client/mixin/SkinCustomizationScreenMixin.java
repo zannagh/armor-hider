@@ -4,8 +4,8 @@ import de.zannagh.armorhider.client.ArmorHiderClient;
 //? if >= 1.21 {
 import de.zannagh.armorhider.client.gui.UiConstants;
 import de.zannagh.armorhider.client.gui.elements.ArmorHiderOptionsPanelWidget;
-import de.zannagh.armorhider.client.gui.elements.ElementSpacingOptions;
 import de.zannagh.armorhider.client.gui.elements.PlayerPreviewWidget;
+import de.zannagh.eunomia.client.gui.ElementSpacingOptions;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.OptionsList;
 import net.minecraft.client.gui.layouts.HeaderAndFooterLayout;

@@ -2,13 +2,13 @@ package de.zannagh.armorhider.client.gui.elements.factories;
 
 import com.mojang.datafixers.util.Pair;
 import de.zannagh.armorhider.client.gui.UiConstants;
-import de.zannagh.armorhider.client.gui.elements.CompoundButtonWidget;
-import de.zannagh.armorhider.client.gui.elements.CompoundOptionWidget;
-import de.zannagh.armorhider.client.gui.elements.ElementSpacingOptions;
 import de.zannagh.armorhider.client.gui.elements.implementations.*;
 import de.zannagh.armorhider.client.gui.screens.ItemExclusionScreen;
 import de.zannagh.armorhider.configuration.ConfigPreset;
 import de.zannagh.armorhider.configuration.PresetManager;
+import de.zannagh.eunomia.client.gui.CompoundOptionWidget;
+import de.zannagh.eunomia.client.gui.CompoundButtonWidget;
+import de.zannagh.eunomia.client.gui.ElementSpacingOptions;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.OptionInstance;
 import net.minecraft.client.Options;

@@ -144,6 +144,14 @@ if (branch == "common") {
             // ReplicatedPlayerConfigStore directly - so the classes must be on the test COMPILE classpath,
             // not just runtime. Test scope only - never bundled into the shipped mod jar.
             add("testImplementation", "de.zannagh.eunomia:eunomia-core:${findProperty("eunomia.version")}")
+            // eunomia-common on the test classpath too: ElementSpacingOptionsTest exercises eunomia's
+            // layout solver and compound widgets directly, now that our duplicates of them are gone. The
+            // arithmetic is third-party but still load-bearing for our screens, so the test stays as a
+            // guard against an upstream regression rather than being deleted with the classes.
+            add(
+                "testImplementation",
+                "de.zannagh.eunomia:eunomia-common:${findProperty("eunomia.version")}+${findProperty("display_version")}"
+            )
             // eunomia-common: the MC-facing half of the library - the client settings API
             // (EunomiaConfig / EunomiaSyncSettings / ServerSettingsClient) and the reusable GUI premades
             // (WidgetList, OptionElementFactory, ServerSettingsSection, ...). Unlike eunomia-core this one

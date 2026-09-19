@@ -2,12 +2,12 @@ package de.zannagh.armorhider.client.gui.screens;
 
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.gui.elements.ArmorHiderOptionsPanelWidget;
-import de.zannagh.armorhider.client.gui.elements.ElementSpacingOptions;
 import de.zannagh.armorhider.client.gui.elements.PlayerHeadBarWidget;
 import de.zannagh.armorhider.client.gui.elements.PlayerPreviewWidget;
 import de.zannagh.armorhider.client.gui.util.PlayerFaceTextures;
 import de.zannagh.armorhider.client.utils.McClientUtils;
 import de.zannagh.armorhider.net.packets.PlayerConfig;
+import de.zannagh.eunomia.client.gui.ElementSpacingOptions;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
 import net.minecraft.client.gui.components.Button;

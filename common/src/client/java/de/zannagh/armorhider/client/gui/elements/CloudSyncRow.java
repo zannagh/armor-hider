@@ -2,6 +2,8 @@ package de.zannagh.armorhider.client.gui.elements;
 
 import com.mojang.datafixers.util.Pair;
 import de.zannagh.armorhider.client.gui.UiConstants;
+import de.zannagh.eunomia.client.gui.CompoundButtonWidget;
+import de.zannagh.eunomia.client.gui.ElementSpacingOptions;
 import de.zannagh.eunomia.client.gui.screens.EunomiaSettingsScreen;
 import de.zannagh.eunomia.client.settings.ServerSettingsClient;
 import de.zannagh.eunomia.client.settings.ServerSettingsView;
