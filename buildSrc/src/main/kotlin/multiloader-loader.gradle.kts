@@ -160,11 +160,13 @@ dependencies {
 // version-agnostic API on its compile classpath (see the compileOnly in multiloader-loom).
 addCompileOnlyDependency("eunomia.version", "de.zannagh.eunomia:eunomia-core")
 // eunomia-common, unremapped - same reason as eunomia-core above, but MC-version-specific, so the
-// coordinate needs the variant's display_version appended (see multiloader-loom).
+// coordinate needs the variant's display_version appended, plus the `dev` classifier: eunomia's default
+// artifact is loom's remapped jar, which is intermediary-mapped on every MC 1.x variant. See
+// multiloader-loom for the full reasoning.
 if (hasProperty("eunomia.version") && hasProperty("display_version")) {
     dependencies.add(
         "compileOnly",
-        "de.zannagh.eunomia:eunomia-common:${findProperty("eunomia.version")}+${findProperty("display_version")}"
+        "de.zannagh.eunomia:eunomia-common:${findProperty("eunomia.version")}+${findProperty("display_version")}:dev"
     )
 }
 addCompileOnlyDependency("geckolib.version", "maven.modrinth:geckolib")

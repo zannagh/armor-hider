@@ -150,7 +150,7 @@ if (branch == "common") {
             // guard against an upstream regression rather than being deleted with the classes.
             add(
                 "testImplementation",
-                "de.zannagh.eunomia:eunomia-common:${findProperty("eunomia.version")}+${findProperty("display_version")}"
+                "de.zannagh.eunomia:eunomia-common:${findProperty("eunomia.version")}+${findProperty("display_version")}:dev"
             )
             // eunomia-common: the MC-facing half of the library - the client settings API
             // (EunomiaConfig / EunomiaSyncSettings / ServerSettingsClient) and the reusable GUI premades
@@ -161,7 +161,7 @@ if (branch == "common") {
             // supplies the implementation at game runtime, exactly like eunomia-core.
             add(
                 "compileOnly",
-                "de.zannagh.eunomia:eunomia-common:${findProperty("eunomia.version")}+${findProperty("display_version")}"
+                "de.zannagh.eunomia:eunomia-common:${findProperty("eunomia.version")}+${findProperty("display_version")}:dev"
             )
         }
         add("testImplementation", platform("org.junit:junit-bom:6.0.1"))
