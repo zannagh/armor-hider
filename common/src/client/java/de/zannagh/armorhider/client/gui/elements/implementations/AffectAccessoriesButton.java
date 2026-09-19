@@ -1,6 +1,6 @@
 package de.zannagh.armorhider.client.gui.elements.implementations;
 
-import de.zannagh.armorhider.client.gui.elements.LayeredImageButton;
+import de.zannagh.eunomia.client.gui.LayeredImageButton;
 import de.zannagh.eunomia.ui.UiSizes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -13,18 +13,18 @@ import org.jetbrains.annotations.Nullable;
 public class AffectAccessoriesButton extends LayeredImageButton {
 
     public AffectAccessoriesButton(boolean initial, OnPress onPress) {
-        super(null, initial, UiSizes.SQUARE_BUTTON_WIDTH, UiSizes.DEFAULT_BUTTON_HEIGHT,
+        super(initial, UiSizes.SQUARE_BUTTON_WIDTH, UiSizes.DEFAULT_BUTTON_HEIGHT,
                 initial ? enabledMsg() : disabledMsg(), onPress);
     }
 
     @Override
     protected @Nullable Identifier spriteForeground(boolean enabled) {
-        return modSprite("accessories_icon");
+        return sprite("armor-hider", "accessories_icon");
     }
 
     @Override
     protected @Nullable Identifier midLayerSprite(boolean enabled) {
-        return enabled ? modSprite("accept_highlighted") : modSprite("reject_highlighted");
+        return enabled ? sprite("armor-hider", "accept_highlighted") : sprite("armor-hider", "reject_highlighted");
     }
 
     @Override

@@ -1,6 +1,6 @@
 package de.zannagh.armorhider.client.gui.elements.implementations;
 
-import de.zannagh.armorhider.client.gui.elements.LayeredImageButton;
+import de.zannagh.eunomia.client.gui.LayeredImageButton;
 import de.zannagh.eunomia.ui.UiSizes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -8,11 +8,11 @@ import org.jetbrains.annotations.Nullable;
 
 public class RespectInvisibilityButton extends LayeredImageButton {
 
-    private final Identifier slotSprite = modSprite("invisibility_respect_enabled");
-    private final Identifier disabledSlotSprite = modSprite("invisibility_respect_disabled");
+    private final Identifier slotSprite = sprite("armor-hider", "invisibility_respect_enabled");
+    private final Identifier disabledSlotSprite = sprite("armor-hider", "invisibility_respect_disabled");
 
     public RespectInvisibilityButton(boolean initial, OnPress onPress) {
-        super(null, initial, UiSizes.SQUARE_BUTTON_WIDTH, UiSizes.DEFAULT_BUTTON_HEIGHT,
+        super(initial, UiSizes.SQUARE_BUTTON_WIDTH, UiSizes.DEFAULT_BUTTON_HEIGHT,
                 initial ? RespectInvisibilityButton.enabledMsg() : RespectInvisibilityButton.disabledMsg(), onPress);
     }
 
@@ -23,7 +23,7 @@ public class RespectInvisibilityButton extends LayeredImageButton {
     
     @Override
     protected @Nullable Identifier midLayerSprite(boolean enabled) {
-        return enabled ? modSprite("accept_highlighted") : null;
+        return enabled ? sprite("armor-hider", "accept_highlighted") : null;
     }
 
     @Override

@@ -1,17 +1,17 @@
 package de.zannagh.armorhider.client.gui.elements.implementations;
 
-import de.zannagh.armorhider.client.gui.elements.LayeredImageButton;
+import de.zannagh.eunomia.client.gui.LayeredImageButton;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.Nullable;
 
 public class ShowShieldWhenBlockingButton extends LayeredImageButton {
 
-    private final Identifier enabledSprite = modSprite("shield_blocking_enabled");
-    private final Identifier disabledSprite = modSprite("shield_blocking_disabled");
+    private final Identifier enabledSprite = sprite("armor-hider", "shield_blocking_enabled");
+    private final Identifier disabledSprite = sprite("armor-hider", "shield_blocking_disabled");
 
     public ShowShieldWhenBlockingButton(boolean initial, int width, int height, OnPress onPress) {
-        super(null, initial, width, height,
+        super(initial, width, height,
                 initial ? enabledMsg() : disabledMsg(), onPress);
     }
 

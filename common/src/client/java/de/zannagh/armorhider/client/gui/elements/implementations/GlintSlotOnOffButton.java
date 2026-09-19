@@ -1,12 +1,12 @@
 package de.zannagh.armorhider.client.gui.elements.implementations;
 
-import de.zannagh.armorhider.client.gui.elements.LayeredImageButton;
+import de.zannagh.armorhider.client.gui.elements.SlotLayeredImageButton;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
 import org.jetbrains.annotations.Nullable;
 
-public class GlintSlotOnOffButton extends LayeredImageButton {
+public class GlintSlotOnOffButton extends SlotLayeredImageButton {
     @Nullable private final Identifier slotSprite;
 
     @Override
@@ -16,7 +16,7 @@ public class GlintSlotOnOffButton extends LayeredImageButton {
 
     @Override
     protected @Nullable Identifier midLayerSprite(boolean enabled) {
-        return enabled ? modSprite("glint_button_icon") : null;
+        return enabled ? sprite("armor-hider", "glint_button_icon") : null;
     }
 
     @Override
@@ -66,16 +66,16 @@ public class GlintSlotOnOffButton extends LayeredImageButton {
     public GlintSlotOnOffButton(boolean initial, EquipmentSlot slot, int width, int height, OnPress onPress) {
         super(slot, initial, width, height, initial ? GlintSlotOnOffButton.enabledMsg(slot) : GlintSlotOnOffButton.disabledMsg(slot), onPress);
         if (slot == EquipmentSlot.HEAD) {
-            slotSprite = modSprite("iron_helmet");
+            slotSprite = sprite("armor-hider", "iron_helmet");
         }
         else if (slot == EquipmentSlot.CHEST) {
-            slotSprite = modSprite("iron_chestplate");
+            slotSprite = sprite("armor-hider", "iron_chestplate");
         }
         else if (slot == EquipmentSlot.LEGS) {
-            slotSprite = modSprite("iron_leggings");
+            slotSprite = sprite("armor-hider", "iron_leggings");
         }
         else if (slot == EquipmentSlot.FEET) {
-            slotSprite = modSprite("iron_boots");
+            slotSprite = sprite("armor-hider", "iron_boots");
         }
         else {
             slotSprite = null;
