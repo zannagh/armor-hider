@@ -1,8 +1,9 @@
 package de.zannagh.armorhider.client.gui.screens;
 
 import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.client.gui.AhGuiSprites;
 import de.zannagh.armorhider.client.gui.elements.ArmorHiderOptionsPanelWidget;
-import de.zannagh.armorhider.client.gui.elements.PlayerHeadBarWidget;
+import de.zannagh.eunomia.client.gui.PlayerHeadBarWidget;
 import de.zannagh.eunomia.client.gui.PlayerPreviewWidget;
 import de.zannagh.eunomia.client.gui.util.PlayerFaceTextures;
 import de.zannagh.armorhider.client.utils.McClientUtils;
@@ -78,7 +79,7 @@ public class IndividualPlayerConfigurationsScreen extends ArmorHiderConfiguratio
 
         int margin = 12;
         int barHeight = 28;
-        headBar = new PlayerHeadBarWidget(margin, topMargin, this.width - margin * 2, barHeight, entries, this::onEntrySelected);
+        headBar = new PlayerHeadBarWidget(margin, topMargin, this.width - margin * 2, barHeight, entries, this::onEntrySelected, AhGuiSprites.ARROW_BACK, AhGuiSprites.ARROW_FORWARD);
 
         int selectedIndex = resolveSelectedIndex(entries);
         headBar.setSelectedIndex(selectedIndex);
