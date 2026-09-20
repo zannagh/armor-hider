@@ -4,8 +4,7 @@ package de.zannagh.armorhider.client.mixin.compat.elytratrims;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
-import de.zannagh.armorhider.client.api.AhRenderManagementApi;
-import de.zannagh.armorhider.client.common.RenderScope;
+import de.zannagh.armorhider.client.compat.ElytraTrimsFade;
 import net.minecraft.client.model.Model;
 import net.minecraft.client.renderer.OrderedSubmitNodeCollector;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
@@ -16,39 +15,29 @@ import org.spongepowered.asm.mixin.Pseudo;
 import org.spongepowered.asm.mixin.injection.At;
 
 /**
- * Compat for ElytraTrims (ET) 4.x — makes ET's custom elytra decorations respond to the player's
- * configured elytra transparency instead of the coarse full-hide-or-show the mod falls back to without
- * this hook.
+ * Compat for ElytraTrims (ET) <b>up to 4.8.x</b> - makes ET's custom elytra decorations respond to the
+ * player's configured elytra transparency instead of the coarse full-hide-or-show the mod falls back to
+ * without this hook. {@link ETRenderingActionsSubmitMixin} is the same hook on ET 4.9.0+, which moved the
+ * helper to a different class; exactly one of the two binds on any given install.
  * <p>
  * ET does not own a separate elytra pipeline: it injects into the vanilla equipment-layer renderer
  * (wings only) and draws each "decorator" layer through the shared helper
- * {@code ETRenderParameters.submitToCollector(...)} → {@code OrderedSubmitNodeCollector.submitModel(...)},
- * threading its own ARGB {@code color}. We wrap that one {@code submitModel}, gated on the active
- * {@link RenderScope#ELYTRA} scope, and behave differently depending on how ET is drawing:
- * <ul>
- *   <li><b>ET draws translucent</b> (its {@code >= 26.x} builds use {@code RenderTypes.armorTranslucent}
- *       for trims) — scale {@code color}'s alpha by the scope transparency (keeping RGB so dyed
- *       color/pattern decorators keep their hue) and let ET's own translucent type blend it. The trim
- *       fades in lockstep with the wing.</li>
- *   <li><b>ET draws cutout</b> (its {@code 1.21.x} builds use {@code armorCutoutNoCull} /
- *       {@code createArmorDecalCutoutNoCull}) — a cutout sheet can't alpha-blend, and swapping it to any
- *       translucent type renders ET's {@code AtlasManager} atlas as flat blue in the world pass (a
- *       Minecraft-side limitation of translucent-rendering that atlas on those versions; it's exactly why
- *       ET itself stays on cutout there). So instead of a broken fade we drop the submit while the wing is
- *       faded — the trim hides below 100% and returns at 100%.</li>
- * </ul>
- * Translucent-vs-cutout is detected at runtime via {@link RenderType#sortOnUpload()} (translucent types
- * sort back-to-front; cutout types don't) — version-agnostic, and it degrades safely either way (a
- * misdetection only ever costs a fade-vs-hide, never the blue). The {@link RenderType#sortOnUpload()}
- * accessor is {@code RenderSetup}-era (1.21.11+); on 1.21.9/1.21.10 ET is always cutout, so we hardcode
- * that branch. The base elytra itself is faded separately at the {@code renderLayers} call site.
+ * {@code ETRenderingAPIUtilsKt.submitToCollector(...)} → {@code OrderedSubmitNodeCollector.submitModel(...)},
+ * threading its own ARGB {@code color}. We wrap that one {@code submitModel} and, while the
+ * {@code ELYTRA} scope carries a modification, scale the color's alpha so the trim fades in lockstep
+ * with the wing ({@link ElytraTrimsFade#fadeTrimColor(int)}). The base elytra itself is faded separately
+ * at the {@code renderLayers} call site.
+ * <p>
+ * The outline argument is additionally sanitised ({@link ElytraTrimsFade#sanitizeOutline(int)}): these ET
+ * builds read the wrong local out of vanilla {@code renderLayers} and pass our render-order constant on
+ * as an outline color, which vanilla renders as a solid blue full-bright outline.
  * <p>
  * {@code @Pseudo} + {@code require = 0}: ET is optional and Kotlin (its API class is the file-class
  * {@code ETRenderingAPIUtilsKt}); absent → skipped. {@code @Mixin(remap = false)} because the target is a
  * mod class, but the wrapped {@code submitModel} is a Minecraft method, so its {@code @At} keeps
  * {@code remap = true} (a no-op on the Mojmap NeoForge runtime; remapped to intermediary on Fabric). The
- * {@code submitModel} descriptor matches {@code EquipmentRenderMixin}'s; the 26.3+ UvMapping form is out of
- * range, hence the upper version bound.
+ * {@code submitModel} descriptor matches {@code EquipmentRenderMixin}'s. No ET build carrying this class
+ * exists for 26.3, hence the upper version bound.
  */
 @Pseudo
 @Mixin(targets = "dev.kikugie.elytratrims.api.impl.ETRenderingAPIUtilsKt", remap = false)
@@ -68,34 +57,9 @@ public class ETElytraTrimSubmitMixin {
                                                       int color, TextureAtlasSprite sprite, int outline,
                                                       ModelFeatureRenderer.CrumblingOverlay crumblingOverlay,
                                                       Operation<Void> original) {
-        // Count every ET trim submit that reaches our wrap (before any scope check) - the "ET is drawing
-        // a decorator through the helper we target" signal the smoke test keys off.
-        de.zannagh.armorhider.client.render.rendertype.ArmorHiderRenderTypes.recordElytraTrimSeen();
-        var ctx = AhRenderManagementApi.getActiveScope(RenderScope.ELYTRA);
-        if (ctx.isEmpty() || !ctx.needsModification()) {
-            original.call(collector, model, state, poseStack, renderType, light, overlay, color, sprite, outline, crumblingOverlay);
-            return;
-        }
-        //? if >= 1.21.11 {
-        boolean etDrawsTranslucent = renderType.sortOnUpload();
-        //? } else {
-        /*boolean etDrawsTranslucent = false; // 1.21.9/1.21.10 ET draws trims cutout
-        *///?}
-        if (etDrawsTranslucent) {
-            // ET already blends (>= 1.21.11): fade by scaling alpha, keep ET's translucent type - the trim
-            // fades in lockstep with the wing.
-            var modApi = ctx.renderModificationApi();
-            int modifiedColor = modApi.colors().scaleAlpha(color, modApi.getTransparencyAlpha());
-            de.zannagh.armorhider.client.render.rendertype.ArmorHiderRenderTypes.recordElytraTrimFade();
-            original.call(collector, model, state, poseStack, renderType, light, overlay, modifiedColor, sprite, outline, crumblingOverlay);
-        } else {
-            // ET draws cutout, which can't be alpha-blended (a translucent swap renders its atlas flat
-            // blue). We do NOT hide it here: hiding a trim at partial opacity would change the render, and
-            // the policy on cutout versions is "full at 5-100%, hidden only at 0%". On those versions
-            // ArmorHiderElytraRenderer already collapses so this scope isn't even entered at partial;
-            // reaching here (a cutout ET on a translucent-era MC) means: leave the trim exactly as ET drew.
-            original.call(collector, model, state, poseStack, renderType, light, overlay, color, sprite, outline, crumblingOverlay);
-        }
+        original.call(collector, model, state, poseStack, renderType, light, overlay,
+                ElytraTrimsFade.fadeTrimColor(color), sprite, ElytraTrimsFade.sanitizeOutline(outline),
+                crumblingOverlay);
     }
 }
 //?}

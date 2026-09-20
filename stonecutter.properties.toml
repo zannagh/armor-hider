@@ -242,7 +242,7 @@ nycto.version = "ejwBt1f7" # 1.21.11-b7 fabric (Fabric API ArmorRenderer repro, 
 ["fabric-26.1.2"]
 "fabric.minecraft_version" = "26.1.2"
 "fabric.minecraft_version_range" = ">=26.1 <=26.1.2"
-elytratrims.version = "NLOF6eKu"
+elytratrims.version = "3xm94UbA" # 4.9.0 (26.1-26.1.2)
 geckolib.version = "yUpAp23B"
 iris.version = "MwcLS51S"
 emf.version = "x608KQlq" # EMF 3.3.6-fabric-26.1 (issue #360; 3.2 dropped; 3.3.0 pins failed EMF-side mixin injection on 1.21.1/1.21.4 in the nightly)
@@ -261,7 +261,7 @@ strawberrylib.version = "ZTcuEejF" # 26.1-r9 fabric (MoriyaShiine); nycto's requ
 ["fabric-26.2"]
 "fabric.minecraft_version" = "26.2"
 "fabric.minecraft_version_range" = "26.2"
-elytratrims.version = "tKGLQKLD"
+elytratrims.version = "6vl1Qyl0" # 4.9.0 (26.2)
 geckolib.version = "GdrAq4td"
 iris.version = "3uIIps8q"
 emf.version = "QjGIDlyH" # EMF 3.3.6-fabric-26.2 (issue #360; 3.2 dropped; 3.3.0 pins failed EMF-side mixin injection on 1.21.1/1.21.4 in the nightly)
@@ -291,9 +291,11 @@ strawberrylib.version = "oMHDHxdk" # 26.2-r2 fabric (MoriyaShiine); nycto's requ
 # 26.3 release pins (2026-09-16). Mods without a 26.3-series build keep their 26.2 hash so they can be
 # bumped in one place when a 26.3 build ships - but that jar is NOT loaded on 26.3: FetchCompatJars
 # skips any pin whose game_versions omit the row's MC version when no 26.3 build can be auto-resolved
-# (observed for waveycapes, elytratrims and the modmenu 26.3-rc-1 pin). Until those mods publish 26.3
-# builds, their compat paths are not exercised by the 26.3 smoke rows.
-elytratrims.version = "tKGLQKLD" # 26.2 jar (no 26.3 release build; only 26.3-snapshot alphas exist)
+# (observed for waveycapes and the modmenu 26.3-rc-1 pin). Until those mods publish 26.3 builds, their
+# compat paths are not exercised by the 26.3 smoke rows. ElytraTrims is no longer one of them: 4.9.0
+# ships real 26.3 fabric + neoforge builds, so the 26.3 rows now DO load an ET jar and the ET compat
+# path is live (and must be handled) there.
+elytratrims.version = "zox5ML8k" # 4.9.0 (26.3)
 geckolib.version = "1VWnZPbQ" # 5.5.6 (26.3)
 iris.version = "bAdKrpw8" # 1.11.6+26.3-fabric
 emf.version = "gfsJrXHb" # EMF 3.3.6-fabric-26.3 (issue #360; 3.2 dropped)
@@ -422,7 +424,7 @@ waveycapes.version = "aurAWvjX"
 eunomia.cf.file = "8929924" # [Neoforge] mc-26.1.0-2 - 0.3.10
 "neoforge.minecraft_version_range" = "[26.1,26.1.2]"
 geckolib.version = "ScUAwGRA"
-elytratrims.version = "wgUBgHvL"
+elytratrims.version = "6eusU1lF" # 4.9.0 (26.1.2)
 iris.version = "MwcLS51S"
 emf.version = "Psz2rruD" # EMF 3.3 (issue #360; 3.2 dropped)
 etf.version = "Wvr9Q7lC" # ETF 7.2 (required by EMF 3.3)
@@ -433,7 +435,7 @@ immersivearmors.version = "1zKCa66X" # 1.8.1+26.1.2 neoforge
 eunomia.cf.file = "8929910" # [Neoforge] 26.2 - 0.3.10
 "neoforge.minecraft_version_range" = "[26.2]"
 geckolib.version = "Y5jWG02T"
-elytratrims.version = "kHpKqNuJ"
+elytratrims.version = "iBLfMta5" # 4.9.0 (26.2)
 iris.version = "3uIIps8q"
 emf.version = "1nuGyOBC" # EMF 3.3 (issue #360; 3.2 dropped)
 etf.version = "ygxHZPPn" # ETF 7.2 (required by EMF 3.3)
@@ -444,7 +446,7 @@ immersivearmors.version = "hga2z8pc" # 1.8.1+26.2 neoforge
 "neoforge.minecraft_version_range" = "[26.3]"
 # 26.3 release pins (2026-09-16). Mods without a 26.3 neoforge build keep their 26.2 jar.
 geckolib.version = "uGEFXLKA" # 5.5.6 (26.3 neoforge)
-elytratrims.version = "kHpKqNuJ" # 26.2 jar (no 26.3 neoforge build)
+elytratrims.version = "ueVTWdRi" # 4.9.0 (26.3)
 iris.version = "3uIIps8q" # 26.2 jar (no 26.3 neoforge build)
 emf.version = "eO4YXm8k" # EMF 3.3.6-neoforge-26.3 (issue #360; 3.2 dropped)
 etf.version = "wBQtstvY" # ETF 7.2.2-neoforge-26.3 (required by EMF 3.3)

@@ -74,7 +74,10 @@ public class NeoForgeClientMixinPlugin extends ArmorHiderMixinPlugin {
             "compat.curios.CuriosLayerMixin",
             "compat.trinkets.TrinketRendererMixin",
             "compat.accessories.AccessoriesRenderLayerMixin",
-            "compat.elytratrims.ETElytraTrimSubmitMixin"
+            // ElytraTrims moved its trim-submit helper class in 4.9.0. Both mixins are @Pseudo
+            // + require = 0, so whichever target class this install does not have is skipped.
+            "compat.elytratrims.ETElytraTrimSubmitMixin",
+            "compat.elytratrims.ETRenderingActionsSubmitMixin"
     };
 
     @Override
