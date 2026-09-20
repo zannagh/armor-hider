@@ -341,12 +341,17 @@ if (branch == "fabric") {
         if (!isDeobf) {
             add("modImplementation", "net.fabricmc:fabric-loader:${property("loader_version")}")
         }
+        // ElytraTrims on the compile classpath. NOT load-bearing for compilation - nothing in this
+        // repo imports a dev.kikugie.* type; ETElytraTrimSubmitMixin is @Pseudo and names its target
+        // by string, so it resolves purely at runtime. Kept so the jar is available for javap/IDE
+        // inspection of the wrap target, which is the only reason the hash matters; bump it alongside
+        // the elytratrims.version runtime pins in stonecutter.properties.toml.
         if (isDeobf) {
-            add("compileOnly", "maven.modrinth:elytra-trims:q7SmWLkn")
+            add("compileOnly", "maven.modrinth:elytra-trims:6vl1Qyl0") // 4.9.0 (26.2 fabric)
         } else if (mcVersion.let {
             it.startsWith("1.21.") && (it.removePrefix("1.21.").toIntOrNull() ?: 0) >= 9
         }) {
-            add("modCompileOnly", "maven.modrinth:elytra-trims:iLC0LP3D")
+            add("modCompileOnly", "maven.modrinth:elytra-trims:iLC0LP3D") // 4.5.7 (1.21.9/1.21.10)
         }
         // FCGT module - multiloader-loader adds common's src as srcDirs, so the test class
         // compiles here too, AND it must be on the dev runtime classpath because the
@@ -422,13 +427,18 @@ if (branch == "fabric") {
             // -Psmoke.fcgt.only=iris-translucency on a dev machine with the run/ Iris shaderpack.
             add("iris-translucency" to "de.zannagh.armorhider.smoke.IrisTranslucencySmokeTest")
         }
-        // ElytraTrims transparency smoke. Its class (and the ETElytraTrimSubmitMixin it exercises) is
-        // stonecutter-gated to `>= 1.21.9 && < 26.3-0.snapshot.2`, so register the entrypoint on exactly
-        // that range or fabric-loader would try to resolve a commented-out class. Self-detects ET, so
-        // it's harmless without the jar; run it in isolation with
+        // ElytraTrims transparency smoke. Its class is stonecutter-gated to `>= 1.21.9`, matching the
+        // range where an ET submit wrap exists at all, so register the entrypoint on exactly that range
+        // or fabric-loader would try to resolve a commented-out class. 26.3 IS included since ET 4.9.0
+        // ships real 26.3 builds and ETRenderingActionsSubmitMixin covers the 10-arg UvMapping form.
+        // Self-detects ET, so it's harmless without the jar; run it in isolation with
         // `-Psmoke.fcgt.only=elytra-trims -Pcompat=elytratrims`.
-        if (sc.current.parsed >= "1.21.9" && sc.current.parsed < "26.3-0.snapshot.2") {
+        if (sc.current.parsed >= "1.21.9") {
             add("elytra-trims" to "de.zannagh.armorhider.smoke.ElytraTrimsSmokeTest")
+            // Opacity sweep companion (0/30/60/100%), same gate and same ET self-detect. Shoots one
+            // frame per step and pixel-scans every one for the outline tint; run it the same way with
+            // `-Psmoke.fcgt.only=elytra-trims-sweep -Pcompat=elytratrims`.
+            add("elytra-trims-sweep" to "de.zannagh.armorhider.smoke.ElytraTrimsOpacitySweepSmokeTest")
         }
         // First Person Model compat smoke. Guard must stay identical to the test class's own
         // `//? if fcgt && firstperson {` gate, or fabric-loader tries to resolve a commented-out class.

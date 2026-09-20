@@ -1,6 +1,8 @@
 // Verifies the whole point of the ElytraTrims compat branch: a worn elytra's ET decorations follow the
-// configured elytra transparency. Gated to exactly the range where ETElytraTrimSubmitMixin exists.
-//? if fcgt && >= 1.21.9 && < 26.3-0.snapshot.2 {
+// configured elytra transparency. Gated to the range where an ET submit wrap exists: the legacy
+// ETElytraTrimSubmitMixin (ET <= 4.8.x) below 26.3, and ETRenderingActionsSubmitMixin (ET 4.9.0+) on
+// every version including 26.3, whose 10-arg UvMapping submitModel form that mixin branches for.
+//? if fcgt && >= 1.21.9 {
 package de.zannagh.armorhider.smoke;
 
 import de.zannagh.armorhider.ArmorHider;
@@ -24,6 +26,8 @@ import net.minecraft.world.item.equipment.trim.ArmorTrim;
 import net.minecraft.world.item.equipment.trim.TrimMaterials;
 import net.minecraft.world.item.equipment.trim.TrimPatterns;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
@@ -44,6 +48,10 @@ import java.nio.file.Path;
  * the policy there is untouched at 5-100%, hidden only at 0%). FADE must stay flat at 100% everywhere.
  * Screenshots are captured for human eyeballing.
  * <p>
+ * Counters alone cannot see a <em>wrong-looking</em> trim: they increment identically whether the
+ * trim is drawn correctly or as a spurious full-bright outline. Both screenshots are therefore also
+ * pixel-scanned for that defect's colour signature - see {@link #assertNoOutlineTint(Path, String)}.
+ * <p>
  * Self-skips (no fail) when ET isn't present at runtime - detected via {@link CompatManager}, so run it
  * with {@code -Pcompat=elytratrims}. Pure vanilla API otherwise, so it doesn't need ET on the classpath.
  * Gated to {@code >= 1.21.9 && < 26.3-0.snapshot.2}, matching the mixin it exercises.
@@ -53,9 +61,27 @@ public final class ElytraTrimsSmokeTest implements FabricClientGameTest {
     private static final float CAMERA_PITCH = 2.0F;
     private static final double PLAYER_Y = 100.0;
 
+    /**
+     * Blue floor for the outline-tint signature. Measured defect pixels sit at {@code (0, 0, 43..90)};
+     * the floor is well under the observed minimum yet above near-black, so ordinary dark pixels that
+     * happen to have zero red and green (they are black, i.e. blue 0) are not counted.
+     */
+    private static final int OUTLINE_TINT_MIN_BLUE = 20;
+
+    /**
+     * How many outline-tint pixels a healthy frame may contain. Measured correct frames on a real GPU
+     * contain exactly zero - nothing in a correct render is in the {@code R==0 && G==0 && B>0} family
+     * (armor is around {@code (40,35,44)}, wings {@code (56,66,94)}/{@code (74,84,116)}, sky bright in
+     * all channels). We still allow a small budget rather than demanding zero, so a stray dithered or
+     * antialiased texel on some driver cannot turn a correct render red; the defect paints the whole
+     * trim outline, which is orders of magnitude more than this.
+     */
+    private static final int OUTLINE_TINT_TOLERANCE = 64;
+
     @Override
     public void runTest(ClientGameTestContext context) {
         ArmorHider.LOGGER.info("[smoke/fcgt] ElytraTrims transparency smoke starting");
+        clearOldScreenshots();
         context.waitForScreen(TitleScreen.class);
 
         boolean etPresent = CompatManager.requiresCompatTo(CompatFlags.ELYTRA_TRIMS);
@@ -158,6 +184,10 @@ public final class ElytraTrimsSmokeTest implements FabricClientGameTest {
             }
             *///?}
 
+            // The counters above only prove the trim was drawn (and scaled); they are blind to it being
+            // drawn WRONG. Scan the faded frame for the ET outline-tint signature.
+            assertNoOutlineTint(fadedShot, "50% (faded)");
+
             // CONTROL: full opacity - the wrap sees the trim but must never fade it, on any version.
             context.runOnClient(client -> {
                 var config = ArmorHiderClient.CLIENT_CONFIG_MANAGER
@@ -177,7 +207,63 @@ public final class ElytraTrimsSmokeTest implements FabricClientGameTest {
                                 + ") - the trim must render untouched at full opacity");
             }
 
+            // Regression guard: the outline tint must never appear at full opacity either.
+            assertNoOutlineTint(fullShot, "100% (control)");
+
             ArmorHider.LOGGER.info("[smoke/fcgt] ElytraTrims transparency smoke complete");
+        }
+    }
+
+    /**
+     * Fails if {@code shot} carries the ElytraTrims outline-tint signature.
+     * <p>
+     * The defect: ET submits the trim a second time as a full-bright <em>outline</em> tinted
+     * {@code ARGB(0, 0, 0, 100)} - an ET off-by-one that reads our render-order value as
+     * {@code outlineColor}. Its pixels decode to exactly {@code R == 0 && G == 0} with the blue
+     * channel carrying the trim texture's greyscale ramp, a family no pixel of a correct frame falls
+     * into. Counting it over the whole frame avoids brittle region maths and is safe precisely because
+     * correct frames measure zero such pixels.
+     *
+     * @param shot  the screenshot to scan
+     * @param label which capture this is, for the failure message
+     */
+    private static void assertNoOutlineTint(Path shot, String label) {
+        int tinted = ScreenshotPixels.countMatching(shot, rgb -> ScreenshotPixels.red(rgb) == 0
+                && ScreenshotPixels.green(rgb) == 0
+                && ScreenshotPixels.blue(rgb) >= OUTLINE_TINT_MIN_BLUE);
+        ArmorHider.LOGGER.info("[smoke/fcgt] ET outline-tint scan at {}: {} pixels (tolerance {}) in {}",
+                label, tinted, OUTLINE_TINT_TOLERANCE, shot);
+        if (tinted > OUTLINE_TINT_TOLERANCE) {
+            throw new IllegalStateException(
+                    "[smoke/fcgt] ET outline-tint defect at " + label + ": " + tinted
+                            + " pure-blue pixels (R==0 && G==0 && B>=" + OUTLINE_TINT_MIN_BLUE
+                            + ") exceed the tolerance of " + OUTLINE_TINT_TOLERANCE + " in " + shot
+                            + " - the trim was drawn as a full-bright outline tinted ARGB(0,0,0,100)"
+                            + " instead of its normal colours. That is ElytraTrims reading our"
+                            + " render-order value as its outlineColor (an ET off-by-one); the call"
+                            + " counters cannot see it because the submit still happens.");
+        }
+    }
+
+    /**
+     * Deletes this test's screenshots from prior runs so each run leaves only its own artifacts. FCGT
+     * writes to {@code <runDir>/screenshots/} with an {@code NNNN_} sequence prefix that repeats across
+     * runs, so a stale PNG could otherwise be scanned by mistake; we match on the
+     * {@code armorhider_et_} basename.
+     */
+    private static void clearOldScreenshots() {
+        try {
+            Path dir = Path.of("screenshots");
+            if (!Files.isDirectory(dir)) {
+                return;
+            }
+            try (var stream = Files.newDirectoryStream(dir, "*armorhider_et_*.png")) {
+                for (Path p : stream) {
+                    Files.deleteIfExists(p);
+                }
+            }
+        } catch (IOException e) {
+            ArmorHider.LOGGER.warn("[smoke/fcgt] could not clear old ElytraTrims screenshots", e);
         }
     }
 
