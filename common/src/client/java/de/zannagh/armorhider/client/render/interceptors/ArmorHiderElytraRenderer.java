@@ -17,7 +17,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * Short-circuits:
  * <ul>
  *   <li>player flying → don't enter the elytra scope at all (the body re-renders the elytra geometry);</li>
- *   <li>ElytraTrims loaded → don't enter the scope so ET's own pipeline drives rendering;</li>
+ *   <li>ElytraTrims loaded (pre-4.x / MC &lt; 1.21.9) → don't enter the scope so ET's own pipeline drives
+ *       rendering; on 1.21.9+ we DO enter and {@code ETElytraTrimSubmitMixin} fades ET's trim submits from
+ *       the active ELYTRA scope;</li>
  *   <li>modification {@code shouldHide} → cancel and signal.</li>
  * </ul>
  */
@@ -45,17 +47,35 @@ public class ArmorHiderElytraRenderer extends AbstractArmorHiderRenderer {
             return RenderInterceptionResult.ignore();
         }
         // Flying must short-circuit BEFORE shouldHide so that 0%-opacity players still see the
-        // elytra geometry while actually elytra-flying - the wings are the flight indicator. Read the
-        // config off the modification we just resolved (same instance) rather than resolving it again.
-        if (carrier.isPlayerFlying() && mod.config().elytraInFlight.getValue()) {
+        // elytra geometry while actually elytra-flying — the wings are the flight indicator. Read the
+        // config off the modification we just resolved (same instance) rather than resolving it again;
+        // honour the "show elytra in flight" opt-out that main added.
+        if (carrier.ah$isPlayerFlying() && mod.config().elytraInFlight.getValue()) {
             return RenderInterceptionResult.ignore();
         }
-        // With ElytraTrims present, ET's own rendering pipeline owns elytra appearance - collapse
-        // to full-hide-or-vanilla. The non-hide case must NOT enter scope (would still leak our
-        // mod into ET's submissions and re-introduce the blue-trim / missing-trim regressions).
+        //? if < 1.21.9 {
+        /*// ElytraTrims present on a version with no ET submit wrap at all: below 1.21.9 ET (pre-4.x)
+        // has no decorator API and draws through a pipeline we do not intercept, so there is nothing
+        // that could fade its trims. Fading only the base wing while ET's trim stayed solid would look
+        // broken, so we DON'T change the rendering at partial opacity here at all: collapse to
+        // full-show-or-full-hide. Non-hide → ignore (no scope; the wing AND ET's trim render untouched),
+        // and it must NOT enter scope or our mod would leak into ET's submissions (the blue-trim /
+        // missing-trim regressions of #49). Only 0% (shouldHide) falls through to the cancel below. The
+        // elytra opacity slider tooltip flags this to the user on these versions.
         if (CompatManager.requiresCompatTo(CompatFlags.ELYTRA_TRIMS) && !mod.shouldHide()) {
             return RenderInterceptionResult.ignore();
         }
+        *///?}
+        // From 1.21.9 on, an ET submit wrap exists (ETElytraTrimSubmitMixin up to ET 4.8.x,
+        // ETRenderingActionsSubmitMixin from 4.9.0), so we enter the scope on the non-hide path: the
+        // base elytra fades via the ELYTRA scope and the wrap fades ET's trim submits from the same
+        // scope, in lockstep. This used to be gated to 1.21.11+ on the belief that the cutout era
+        // (1.21.9/1.21.10) could not fade because swapping ET's cutout atlas to a translucent type
+        // rendered it flat blue. That was measured on fabric-1.21.10 with ET 4.5.7 and did not happen:
+        // the wing and trim fade together with zero outline-tint pixels at every opacity step. The flat
+        // blue came from ET mis-reading our render-order constant as an outline color, which
+        // ElytraTrimsFade#sanitizeOutline already handles. The hide path below still cancels outright
+        // (ET's renderLayers then never runs, so there is nothing to fade).
 
         if (mod.shouldHide()) {
             // Cancel only - do NOT enter the scope. The WingsLayer render is cancelled at HEAD, so

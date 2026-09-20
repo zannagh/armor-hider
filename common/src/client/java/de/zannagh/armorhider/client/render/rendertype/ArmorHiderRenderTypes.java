@@ -168,6 +168,51 @@ public final class ArmorHiderRenderTypes {
         FIRST_PERSON_HEAD_SCOPE_ENTRIES.incrementAndGet();
     }
 
+    // Diagnostic counters for the ElytraTrims compat (>= 1.21.9), shared by both submit wraps -
+    // ETElytraTrimSubmitMixin for ET <= 4.8.x and ETRenderingActionsSubmitMixin for 4.9.0+. ET draws its
+    // custom elytra decorators through one shared submit helper we wrap. SEEN = our wrap fired at all
+    // (ET drew a trim through the helper) - proves a wrap is bound and ET is decorating. FADE = we scaled
+    // the trim's alpha to match a faded wing, which is expected on EVERY version that has a wrap, cutout
+    // era included: ElytraTrimsFade also substitutes our translucent render type for ET's, so a cutout-era
+    // trim blends just like a 4.9.0 one. FADE stays flat only where nothing needs translucency - full
+    // opacity, or 0% where ArmorHiderElytraRenderer cancels the wing before ET draws. The wraps are
+    // @Pseudo/require=0 and no-op silently if ET's helper drifts, so - per this repo's convention - the
+    // ElytraTrims smoke asserts these while a trimmed elytra is worn.
+    private static final java.util.concurrent.atomic.AtomicLong ELYTRA_TRIM_SEEN =
+            new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong ELYTRA_TRIM_FADES =
+            new java.util.concurrent.atomic.AtomicLong();
+
+    public static void recordElytraTrimSeen() {
+        ELYTRA_TRIM_SEEN.incrementAndGet();
+    }
+
+    public static void recordElytraTrimFade() {
+        ELYTRA_TRIM_FADES.incrementAndGet();
+    }
+
+    public static long elytraTrimSeenCount() {
+        return ELYTRA_TRIM_SEEN.get();
+    }
+
+    public static long elytraTrimFadeCount() {
+        return ELYTRA_TRIM_FADES.get();
+    }
+
+    // Test-only diagnostic switch, mirroring deferralEnabled. Flipped off, the glint pass keeps the
+    // vanilla armorEntityGlint type (the pre-fix behaviour where the glint's EQUAL depth test fails
+    // against our no-depth-write base and the glint vanishes on faded armor). The glint smoke toggles
+    // this to capture a before/after pair with identical framing. Always true in normal play.
+    private static volatile boolean glintSwapEnabled = true;
+
+    public static void setGlintSwapEnabled(boolean enabled) {
+        glintSwapEnabled = enabled;
+    }
+
+    public static boolean isGlintSwapEnabled() {
+        return glintSwapEnabled;
+    }
+
     public static long firstPersonHeadScopeEntryCount() {
         return FIRST_PERSON_HEAD_SCOPE_ENTRIES.get();
     }

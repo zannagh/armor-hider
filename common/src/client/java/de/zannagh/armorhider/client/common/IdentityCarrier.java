@@ -15,11 +15,11 @@ import org.jspecify.annotations.NonNull;
 public interface IdentityCarrier {
     @Nullable String armorHider$playerName();
 
-    @Nullable ItemStack customHeadItem();
+    @Nullable ItemStack ah$getCustomHeadItem();
 
-    boolean isPlayerFlying();
+    boolean ah$isPlayerFlying();
 
-    default boolean isPlayerBlocking() { return false; }
+    default boolean ah$isPlayerBlocking() { return false; }
 
     default boolean armorHider$isPlayerInvisible() { return false; }
 
@@ -28,12 +28,12 @@ public interface IdentityCarrier {
     /**
      * <b>Reads the cached record directly, so it does NOT see
      * {@link de.zannagh.armorhider.client.api.ArmorHiderRenderApi} rules.</b> Every other consumer
-     * goes through {@link #getModification}, whose {@code addItemInformation} call is the single
+     * goes through {@link #ah$getModification}, whose {@code addItemInformation} call is the single
      * point where rules are evaluated. This one skips that, so it reports whatever was baked into
      * {@code PlayerMixin}'s cached {@code PlayerModificationInfo} at the last equip or config
      * change - which for a rule-driven change is stale, and for a time-varying predicate is
      * meaningless. There are no callers today; if you add one, route it through
-     * {@link #getModification} per slot instead of reading the cache.
+     * {@link #ah$getModification} per slot instead of reading the cache.
      */
     default boolean armorHider$allSlotsFullyHidden() {
         var mods = armorHider$getPlayerModifications();
@@ -53,7 +53,7 @@ public interface IdentityCarrier {
      * Creates a rendering modification for the given equipment slot and item without setting the render context.
      * Returns {@code null} when no modification is needed.
      */
-    default SlotModification getModification(@NotNull EquipmentSlot slot, @Nullable ItemStack item) {
+    default SlotModification ah$getModification(@NotNull EquipmentSlot slot, @Nullable ItemStack item) {
         var mods = armorHider$getPlayerModifications();
         if (mods == null) {
             return SlotModification.empty();

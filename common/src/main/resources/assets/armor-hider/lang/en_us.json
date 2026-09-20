@@ -26,6 +26,7 @@
   "armorhider.options.boots_glint.tooltip.disabled": "Enable the enchantment glint effect on the boots.",
   "armorhider.options.elytra.button_text": "Elytra: %s",
   "armorhider.options.elytra.tooltip": "Adjusts the elytra opacity for your model between 0 (transparent) and 100% (visible).",
+  "armorhider.options.elytra.tooltip.et_no_partial": "Partial transparency is not supported on this game version while Elytra Trims is installed - the elytra shows fully at 5-100% and only hides at 0%.",
   "armorhider.options.elytra.tooltip_narration": "Adjusts the elytra opacity for your model between 0 (transparent) and 100% (visible).",
   "armorhider.options.elytra_glint.tooltip.enabled": "Disable the enchantment glint effect on the elytra.",
   "armorhider.options.elytra_glint.tooltip.disabled": "Enable the enchantment glint effect on the elytra.",

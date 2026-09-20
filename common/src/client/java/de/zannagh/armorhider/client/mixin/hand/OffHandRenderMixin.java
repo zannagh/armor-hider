@@ -57,10 +57,10 @@ public class OffHandRenderMixin {
             at = @At("HEAD"),
             cancellable = true
     )
-    // The level render-state class is state.level.PlayerRenderState on snap8, but the bare token
-    // PlayerRenderState collides with the global AvatarRenderState<->PlayerRenderState constant swap;
+    // The level render-state class is state.level.AvatarRenderState on snap8, but the bare token
+    // AvatarRenderState collides with the global AvatarRenderState<->AvatarRenderState constant swap;
     // spell it fully-qualified via the canonical AvatarRenderState token and let the package-qualified
-    // >= snapshot.8 replacement in stonecutter.gradle.kts rewrite it to the level PlayerRenderState.
+    // >= snapshot.8 replacement in stonecutter.gradle.kts rewrite it to the level AvatarRenderState.
     //? if >= 26.3-0.snapshot.8
     //private void onRenderItem(net.minecraft.client.renderer.state.level.AvatarRenderState playerRenderState, FirstPersonHandsAndItemsRenderState firstPersonState, float f, float g, InteractionHand interactionHand, float h, ItemStack itemStack, float i, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int j, CallbackInfo ci){
     //? if >= 1.21.9 && < 26.3-0.snapshot.8

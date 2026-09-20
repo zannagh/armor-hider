@@ -49,7 +49,7 @@ public class WardenHelmetLayerMixin {
             return;
         }
         ItemStack headItem = entity.getItemBySlot(EquipmentSlot.HEAD);
-        if (carrier.getModification(EquipmentSlot.HEAD, headItem).shouldHide()) {
+        if (carrier.ah$getModification(EquipmentSlot.HEAD, headItem).shouldHide()) {
             ci.cancel();
         }
     }

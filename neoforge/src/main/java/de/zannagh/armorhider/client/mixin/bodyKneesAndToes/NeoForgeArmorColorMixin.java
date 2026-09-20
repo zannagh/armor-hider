@@ -62,7 +62,7 @@ public class NeoForgeArmorColorMixin {
     //private void wrapArmorModelPartAdd(ModelPartFeatureRenderer.Storage storage, RenderType renderType, SubmitNodeStorage.ModelPartSubmit submit, Operation<Void> original) {
     //? if 1.21.9 || 1.21.10
     //private void wrapArmorModelPartAdd(ModelPartFeatureRenderer.Storage storage, RenderType renderType, SubmitNodeStorage.ModelPartSubmit submit, Operation<Void> original) {
-        if (shouldApplyArmorTransparency()) {
+        if (ah$shouldApplyArmorTransparency()) {
 
             float alpha = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE, RenderScope.ELYTRA).renderModificationApi().getTransparencyAlpha();
 
@@ -106,7 +106,7 @@ public class NeoForgeArmorColorMixin {
     //private <S> void wrapArmorModelAdd(ModelFeatureRenderer.Storage storage, RenderType renderType, SubmitNodeStorage.ModelSubmit<S> submit, Operation<Void> original) {
     //? if 1.21.9 || 1.21.10
     //private <S> void wrapArmorModelAdd(ModelFeatureRenderer.Storage storage, RenderType renderType, SubmitNodeStorage.ModelSubmit<S> submit, Operation<Void> original) {
-        if (shouldApplyArmorTransparency()) {
+        if (ah$shouldApplyArmorTransparency()) {
 
             float alpha = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE, RenderScope.ELYTRA).renderModificationApi().getTransparencyAlpha();
 
@@ -170,7 +170,7 @@ public class NeoForgeArmorColorMixin {
         // A submit that already carries a blended type has therefore been handled: scaling its alpha
         // again here squared the fade (50% rendered as 25%) - pass it through untouched. Only a submit
         // that reaches the translucent phase with an unblended type still needs this loader-side pass.
-        if (!shouldApplyArmorTransparency() || modelSubmit.renderType().hasBlending()) {
+        if (!ah$shouldApplyArmorTransparency() || modelSubmit.renderType().hasBlending()) {
             original.call(phase, submit);
             return;
         }
@@ -208,7 +208,7 @@ public class NeoForgeArmorColorMixin {
     }
     //?}
 
-    private static boolean shouldApplyArmorTransparency() {
+    private static boolean ah$shouldApplyArmorTransparency() {
         if (!AhRenderManagementApi.hasScopeModification(RenderScope.ARMOR_PIECE)
                 && !AhRenderManagementApi.hasScopeModification(RenderScope.ELYTRA)) {
             return false;

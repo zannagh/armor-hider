@@ -199,9 +199,23 @@ public class ArmorHiderOptionsPanelWidget extends AbstractWidget {
 
         // Elytra sits between the boots and the offhand: its own opacity slider (decoupled from the
         // chestplate since AH 0.12.14) plus a glint toggle and an "in flight" toggle.
+        // Below 1.21.9 there is no ET submit wrap at all, so partial opacity isn't supported with ET
+        // (the base wing would fade while the un-fadeable trim stayed solid) and the elytra collapses
+        // to full-show-or-full-hide there - flag that in the tooltip when ET is loaded. From 1.21.9 on
+        // the wrap fades ET's trims in lockstep, so the plain tooltip applies.
+        //? if < 1.21.9 {
+        /*net.minecraft.network.chat.Component elytraTooltip =
+                de.zannagh.armorhider.api.compat.CompatManager.requiresCompatTo(
+                        de.zannagh.armorhider.api.compat.CompatFlags.ELYTRA_TRIMS)
+                        ? Component.translatable("armorhider.options.elytra.tooltip.et_no_partial")
+                        : Component.translatable("armorhider.options.elytra.tooltip");
+        *///?} else {
+        net.minecraft.network.chat.Component elytraTooltip =
+                Component.translatable("armorhider.options.elytra.tooltip");
+        //?}
         var elytraOption = factory.buildDoubleOption(
                 "armorhider.elytra.transparency",
-                Component.translatable("armorhider.options.elytra.tooltip"),
+                elytraTooltip.copy(),
                 Component.translatable("armorhider.options.elytra.tooltip_narration"),
                 currentValue -> Component.translatable("armorhider.options.elytra.button_text", String.format("%.0f%%", currentValue * 100)),
                 config.elytraOpacity.getValue(),

@@ -78,11 +78,11 @@ public class OptionsMixin implements ArmorHiderOptionsAccess {
         String currentKey = preset.saveString();
         String defaultKey = preset.getDefaultKey().getName();
         boolean isResolvable = ARMORHIDER_LEGACY_PRESET_KEY.equals(currentKey) || defaultKey.equals(currentKey);
-        if (!isResolvable || !isKeyInUse(preset, currentKey)) {
+        if (!isResolvable || !ah$isKeyInUse(preset, currentKey)) {
             return;
         }
 
-        preset.setKey(isKeyInUse(preset, defaultKey) ? InputConstants.UNKNOWN : preset.getDefaultKey());
+        preset.setKey(ah$isKeyInUse(preset, defaultKey) ? InputConstants.UNKNOWN : preset.getDefaultKey());
         KeyMapping.resetMapping();
         ((Options) (Object) this).save();
     }
@@ -107,7 +107,7 @@ public class OptionsMixin implements ArmorHiderOptionsAccess {
         return true;
     }
 
-    private boolean isKeyInUse(KeyMapping exclude, String keyName) {
+    private boolean ah$isKeyInUse(KeyMapping exclude, String keyName) {
         return Arrays.stream(keyMappings)
                 .anyMatch(map -> map != exclude && map.saveString().equals(keyName));
     }

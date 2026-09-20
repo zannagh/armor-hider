@@ -110,7 +110,7 @@ final class RenderApiSmokeLifecycle {
         if (equipped.isEmpty()) {
             throw new IllegalStateException("[smoke/fcgt] the chest slot emptied mid-test");
         }
-        return ((IdentityCarrier) player).getModification(EquipmentSlot.CHEST, equipped);
+        return ((IdentityCarrier) player).ah$getModification(EquipmentSlot.CHEST, equipped);
     }
 
     /**

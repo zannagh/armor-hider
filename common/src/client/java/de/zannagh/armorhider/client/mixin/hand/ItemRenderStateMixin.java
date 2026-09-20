@@ -88,7 +88,7 @@ public class ItemRenderStateMixin {
                     //? if >= 26.1-1.pre.1 {
                     modifiedQuads.add(new BakedQuad(
                             quad.position0(), quad.position1(), quad.position2(), quad.position3(),
-                            quad.packedUV0(), quad.packedUV1(), quad.packedUV2(), quad.packedUV3(), quad.direction(), makeTranslucent(quad.materialInfo(), syntheticTintIndex)
+                            quad.packedUV0(), quad.packedUV1(), quad.packedUV2(), quad.packedUV3(), quad.direction(), ah$makeTranslucent(quad.materialInfo(), syntheticTintIndex)
                     ));
                     //?}
                     //? if >= 26.1-0.snapshot.7 && < 26.1-1.pre.1 {
@@ -96,7 +96,7 @@ public class ItemRenderStateMixin {
                     modifiedQuads.add(new BakedQuad(
                             quad.position0(), quad.position1(), quad.position2(), quad.position3(),
                             quad.packedUV0(), quad.packedUV1(), quad.packedUV2(), quad.packedUV3(),
-                            syntheticTintIndex, quad.direction(), makeTranslucent(quad.spriteInfo()), quad.shade(), quad.lightEmission()
+                            syntheticTintIndex, quad.direction(), ah$makeTranslucent(quad.spriteInfo()), quad.shade(), quad.lightEmission()
                     ));
                     *///?}
                     //? if >= 1.21.11 && < 26.1-0.snapshot.7 {
@@ -118,7 +118,7 @@ public class ItemRenderStateMixin {
                     //? if >= 26.1-1.pre.1 {
                     modifiedQuads.add(new BakedQuad(
                             quad.position0(), quad.position1(), quad.position2(), quad.position3(),
-                            quad.packedUV0(), quad.packedUV1(), quad.packedUV2(), quad.packedUV3(), quad.direction(), makeTranslucent(quad.materialInfo())
+                            quad.packedUV0(), quad.packedUV1(), quad.packedUV2(), quad.packedUV3(), quad.direction(), ah$makeTranslucent(quad.materialInfo())
                     ));
                     //? }
                     //? if >= 26.1-0.snapshot.7 && < 26.1-1.pre.1 {
@@ -126,7 +126,7 @@ public class ItemRenderStateMixin {
                     modifiedQuads.add(new BakedQuad(
                             quad.position0(), quad.position1(), quad.position2(), quad.position3(),
                             quad.packedUV0(), quad.packedUV1(), quad.packedUV2(), quad.packedUV3(),
-                            quad.tintIndex(), quad.direction(), makeTranslucent(quad.spriteInfo()), quad.shade(), quad.lightEmission()
+                            quad.tintIndex(), quad.direction(), ah$makeTranslucent(quad.spriteInfo()), quad.shade(), quad.lightEmission()
                     ));
                     *///? }
                     //? if < 26.1-0.snapshot.7
@@ -147,12 +147,12 @@ public class ItemRenderStateMixin {
     
     //? if >= 26.1-1.pre.1 {
     @Unique
-    private static BakedQuad.MaterialInfo makeTranslucent(BakedQuad.MaterialInfo info) {
-        return makeTranslucent(info, info.tintIndex());
+    private static BakedQuad.MaterialInfo ah$makeTranslucent(BakedQuad.MaterialInfo info) {
+        return ah$makeTranslucent(info, info.tintIndex());
     }
 
     @Unique
-    private static BakedQuad.MaterialInfo makeTranslucent(BakedQuad.MaterialInfo info, int tintIndex) {
+    private static BakedQuad.MaterialInfo ah$makeTranslucent(BakedQuad.MaterialInfo info, int tintIndex) {
         RenderType current = info.itemRenderType();
         if (current == Sheets.cutoutBlockItemSheet()) {
             //? if >= 26.3-0.snapshot.2 {
@@ -182,7 +182,7 @@ public class ItemRenderStateMixin {
     //? if >= 26.1-0.snapshot.7 && < 26.1-1.pre.1 {
     /*
     @Unique
-    private static BakedQuad.SpriteInfo makeTranslucent(BakedQuad.SpriteInfo info) {
+    private static BakedQuad.SpriteInfo ah$makeTranslucent(BakedQuad.SpriteInfo info) {
         RenderType current = info.itemRenderType();
         if (current == Sheets.cutoutBlockItemSheet()) {
             return new BakedQuad.SpriteInfo(info.sprite(), info.layer(), Sheets.translucentBlockItemSheet());

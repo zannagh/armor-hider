@@ -54,7 +54,7 @@ public abstract class SkinCustomizationScreenMixin extends Screen {
     private PlayerPreviewWidget armorHider$preview;
 
     @Unique
-    private boolean isSkinCustomizationScreen() {
+    private boolean ah$isSkinCustomizationScreen() {
         try {
             var screen = (SkinCustomizationScreen) (Object) this;
             return screen != null;
@@ -66,7 +66,7 @@ public abstract class SkinCustomizationScreenMixin extends Screen {
 
     @Inject(method = "init", at = @At("TAIL"))
     private void armorHider$attachOptionsPanel(CallbackInfo ci) {
-        if (!isSkinCustomizationScreen()) {
+        if (!ah$isSkinCustomizationScreen()) {
             return;
         }
 
@@ -108,7 +108,7 @@ public abstract class SkinCustomizationScreenMixin extends Screen {
 
     @Inject(method = "repositionElements", at = @At("TAIL"))
     private void armorHider$repositionPanel(CallbackInfo ci) {
-        if (!isSkinCustomizationScreen()) {
+        if (!ah$isSkinCustomizationScreen()) {
             return;
         }
         armorHider$layoutPanel();
@@ -159,7 +159,7 @@ public abstract class SkinCustomizationScreenMixin extends Screen {
 
     @Inject(method = "onClose", at = @At("HEAD"))
     private void armorHider$onClose(CallbackInfo ci) {
-        if (!isSkinCustomizationScreen()) {
+        if (!ah$isSkinCustomizationScreen()) {
             return;
         }
         if (this.armorHider$settingsChanged) {
