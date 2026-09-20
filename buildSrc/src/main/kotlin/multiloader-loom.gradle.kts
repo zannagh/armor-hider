@@ -422,6 +422,14 @@ if (branch == "fabric") {
             // -Psmoke.fcgt.only=iris-translucency on a dev machine with the run/ Iris shaderpack.
             add("iris-translucency" to "de.zannagh.armorhider.smoke.IrisTranslucencySmokeTest")
         }
+        // ElytraTrims transparency smoke. Its class (and the ETElytraTrimSubmitMixin it exercises) is
+        // stonecutter-gated to `>= 1.21.9 && < 26.3-0.snapshot.2`, so register the entrypoint on exactly
+        // that range or fabric-loader would try to resolve a commented-out class. Self-detects ET, so
+        // it's harmless without the jar; run it in isolation with
+        // `-Psmoke.fcgt.only=elytra-trims -Pcompat=elytratrims`.
+        if (sc.current.parsed >= "1.21.9" && sc.current.parsed < "26.3-0.snapshot.2") {
+            add("elytra-trims" to "de.zannagh.armorhider.smoke.ElytraTrimsSmokeTest")
+        }
         // First Person Model compat smoke. Guard must stay identical to the test class's own
         // `//? if fcgt && firstperson {` gate, or fabric-loader tries to resolve a commented-out class.
         if (hasProperty("firstperson.version")) {
