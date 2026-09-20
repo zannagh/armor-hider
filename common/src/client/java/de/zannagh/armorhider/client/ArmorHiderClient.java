@@ -6,18 +6,22 @@ import de.zannagh.armorhider.client.api.AhRenderInterceptionRegistryApi;
 import de.zannagh.armorhider.client.api.AhRenderModificationApi;
 import de.zannagh.armorhider.client.api.AhRenderTypeFactory;
 import de.zannagh.armorhider.client.api.impl.AhPlayerConfigApiImpl;
+import de.zannagh.armorhider.client.api.impl.AhPlayerLookupCache;
 import de.zannagh.armorhider.client.api.impl.AhRendererRegistryImpl;
 import de.zannagh.armorhider.client.common.RenderScope;
 import de.zannagh.armorhider.client.api.AhClientCompatManager;
 import de.zannagh.armorhider.client.net.ClientCommunicationManager;
+import de.zannagh.armorhider.client.net.ClientConnectionEvents;
 import de.zannagh.armorhider.client.render.rendertype.RenderTypeFactory;
 import de.zannagh.armorhider.client.suppressions.InvisibilitySuppressor;
 import de.zannagh.armorhider.configuration.PresetManager;
 import de.zannagh.armorhider.log.DebugLogger;
 import de.zannagh.armorhider.util.PlayerNameUtil;
+import de.zannagh.eunomia.client.EunomiaClient;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.multiplayer.PlayerInfo;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.NonNull;
@@ -37,6 +41,34 @@ public class ArmorHiderClient {
     public static void init() {
         ArmorHider.LOGGER.info("Armor Hider client initializing...");
         ClientCommunicationManager.initClient();
+
+        // Armor Hider's own wording for eunomia's "this server has no eunomia sync" toast, replacing its
+        // generic copy. Registered here because init() is the single client entry point both loaders call
+        // exactly once per launch, and because the builder is single-use - a second chain per join would
+        // either throw or quietly re-register. Keyed by the mod id, so eunomia replaces rather than
+        // accumulates if a re-init ever happens. EunomiaClientConfiguration lives in eunomia's client
+        // source set, so this must not move into the common initializer.
+        EunomiaClient.configure()
+                .syncUnavailableNotice(
+                        ArmorHider.MOD_ID,
+                        Component.translatable("armorhider.toast.cloud_sync.unavailable"))
+                .apply();
+
+        // The name -> Player snapshot used by ArmorHiderRenderApi's Predicate<Player> rules lives on
+        // the render thread, which outlives every ClientLevel. Its entries are weak, so nothing is
+        // pinned either way, but clearing eagerly on disconnect releases the last roster immediately
+        // instead of waiting for a GC. No-op when no rule ever asked for a player.
+        ClientConnectionEvents.registerDisconnect(client -> AhPlayerLookupCache.invalidate());
+
+        // Memoised remote-player config resolutions are session-scoped: they are keyed by player name and
+        // carry per-session item discovery, and the individual-override map they can shadow is keyed by
+        // server. Drop them on both edges of a connection so nothing crosses between servers and so the
+        // entries are released immediately rather than at the next resolution. The stamp inside the cache
+        // would catch a server change on its own; this is the eager half.
+        if (CLIENT_CONFIG_MANAGER instanceof AhPlayerConfigApiImpl configApi) {
+            ClientConnectionEvents.registerDisconnect(client -> configApi.invalidateResolvedConfigCache());
+            ClientConnectionEvents.registerJoin((handler, client) -> configApi.invalidateResolvedConfigCache());
+        }
 
         initRenderTypes();
 

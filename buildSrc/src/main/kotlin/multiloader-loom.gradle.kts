@@ -1,5 +1,3 @@
-import dev.kikugie.stonecutter.build.StonecutterBuildExtension
-
 val isDeobf = extra.has("loom.deobf") && extra.get("loom.deobf") as Boolean
 val sc = project.stonecutterBuild
 val branch = sc.branch.id
@@ -7,16 +5,16 @@ val mcVersion = sc.current.project.substringAfter('-')
 
 // ── Base setup ──
 if (branch == "common") {
-    apply(plugin = "multiloader-common")
+    plugins.apply("multiloader-common")
 } else {
-    apply(plugin = "multiloader-loader")
+    plugins.apply("multiloader-loader")
 }
 
 // ── Loom ──
 if (isDeobf) {
     extra.set("fabric.loom.disableObfuscation", "true")
 }
-apply(plugin = "fabric-loom")
+plugins.apply("fabric-loom")
 
 val loom = the<net.fabricmc.loom.api.LoomGradleExtensionAPI>()
 
@@ -32,6 +30,12 @@ dependencies {
 repositories {
     maven("https://api.modrinth.com/maven") {
         content { includeGroup("maven.modrinth") }
+    }
+    // Cursemaven (https://cursemaven.com) - keyless CurseForge proxy for CF-hosted mod jars declared as
+    // `curse.maven:<slug>-<projectId>:<fileId>`. Backs the eunomia runtime mod jar (project 1654849) the
+    // FCGT smoke run drops into run/mods. Group-scoped so it only handles `curse.maven` coordinates.
+    maven("https://cursemaven.com") {
+        content { includeGroup("curse.maven") }
     }
 }
 
@@ -63,6 +67,16 @@ with(sc) {
     // leaving the breast body intact - it does not touch the modern GenderArmorLayer.
     constants["gender"] = hasProperty("gender.version") && findProperty("gender_legacy_api") != "true"
     constants["gender_legacy"] = hasProperty("gender.version") && findProperty("gender_legacy_api") == "true"
+    // `gender_physics` activates GenderPhysicsMixin, which relaxes FGM's armor-derived breast-physics
+    // damping when Armor Hider hides the chest. Deliberately NOT gated on `gender`: that constant
+    // tracks the *layer* API generation (GenderArmorLayer vs the legacy inline GenderLayer), which is
+    // unrelated to the physics API. `PlayerConfig#getArmorPhysicsOverride()Z` is present and is the
+    // single chokepoint for every damping consumer on BOTH generations - including FGM 3.2.2
+    // (kKffHCGl), the only build FGM ships for NeoForge - so gating physics on `gender` silently left
+    // every NeoForge user with fully damped breasts behind hidden armor. The `>= 1.21` guard in the
+    // mixin still excludes fabric-1.20.1 (FGM 3.0.1 / nYZ0oktX), which predates
+    // com.wildfire.main.entitydata.PlayerConfig entirely.
+    constants["gender_physics"] = hasProperty("gender.version")
     // First Person Model (tr7zw) renders the local player's body in first person, so layers we hook
     // (head, wings, held item) submit for the camera entity - and FPM cancels several of them at
     // their submit HEAD. `firstperson` compiles the typed guard that keeps our render scopes from
@@ -97,62 +111,15 @@ if (branch == "common") {
         runConfigs.configureEach { runDirectory.set(layout.projectDirectory.dir("run")) }
     }
 
+    // Remapped (production) vs. deobfuscated builds want different configuration names for the mod
+    // compat deps: modCompileOnly/modClientCompileOnly go through Loom's remapper, the deobf variants
+    // (compileOnly/clientCompileOnly) skip it. Pick once, reuse for every version-gated dep below.
+    val modDep = if (isDeobf) "compileOnly" else "modCompileOnly"
+    val modClientDep = if (isDeobf) "clientCompileOnly" else "modClientCompileOnly"
+
     dependencies {
         if (!isDeobf) {
             add("modCompileOnly", "net.fabricmc:fabric-loader:${property("loader_version")}")
-        }
-        val modDep = if (isDeobf) "compileOnly" else "modCompileOnly"
-        val modClientDep = if (isDeobf) "clientCompileOnly" else "modClientCompileOnly"
-        if (hasProperty("geckolib.version")) {
-            add(modDep, "maven.modrinth:geckolib:${findProperty("geckolib.version")}")
-            add(modClientDep, "maven.modrinth:geckolib:${findProperty("geckolib.version")}")
-        }
-        if (hasProperty("elytratrims.version")) {
-            add(modDep, "maven.modrinth:elytra-trims:${findProperty("elytratrims.version")}")
-        }
-        if (hasProperty("iris.version")) {
-            add(modClientDep, "maven.modrinth:iris:${findProperty("iris.version")}")
-        }
-        if (hasProperty("emf.version")) {
-            add(modClientDep, "maven.modrinth:entity-model-features:${findProperty("emf.version")}")
-        }
-        if (hasProperty("etf.version")) {
-            add(modClientDep, "maven.modrinth:entitytexturefeatures:${findProperty("etf.version")}")
-        }
-        if (hasProperty("mekanism.version")) {
-            add(modClientDep, "maven.modrinth:mekanism:${findProperty("mekanism.version")}")
-        }
-        if (hasProperty("waveycapes.version")) {
-            add(modClientDep, "maven.modrinth:wavey-capes:${findProperty("waveycapes.version")}")
-        }
-        if (hasProperty("deeperdarker.version")) {
-            add(modClientDep, "maven.modrinth:deeperdarker:${findProperty("deeperdarker.version")}")
-        }
-        if (hasProperty("uranus.version")) {
-            add(modClientDep, "maven.modrinth:uranus:${findProperty("uranus.version")}")
-        }
-        if (hasProperty("figura.version")) {
-            add(modClientDep, "maven.modrinth:figura:${findProperty("figura.version")}")
-        }
-        if (hasProperty("modmenu.version")) {
-            add(modClientDep, "maven.modrinth:modmenu:${findProperty("modmenu.version")}")
-        }
-        if (hasProperty("gender.version")) {
-            add(modClientDep, "maven.modrinth:female-gender:${findProperty("gender.version")}")
-        }
-        // Accessory providers (issue #246), Fabric side. Curios is NeoForge-only (added on the neoforge
-        // project). Compat is @Pseudo/@Coerce, so these are compile-only parity deps + smoke-fetch sources.
-        if (hasProperty("trinkets.version")) {
-            add(modClientDep, "maven.modrinth:trinkets:${findProperty("trinkets.version")}")
-        }
-        if (hasProperty("accessories.version")) {
-            add(modClientDep, "maven.modrinth:accessories:${findProperty("accessories.version")}")
-        }
-        // Fabric-only. Declared here for the remapped common compile; the loader project compiles common's
-        // sources too, so multiloader-loader.gradle.kts declares the same coordinate unremapped. That pairing
-        // only works because FirstPersonCompat avoids every FPM member whose signature names a Minecraft type.
-        if (hasProperty("firstperson.version")) {
-            add(modClientDep, "maven.modrinth:first-person-model:${findProperty("firstperson.version")}")
         }
         // Phase 2 smoke: FCGT (fabric-client-gametest-api-v1) compile-time dep on common.
         if (sc.current.project.contains("fabric") && hasProperty("fabricapi.semver")) {
@@ -162,9 +129,56 @@ if (branch == "common") {
         }
         add("compileOnly", "net.luckperms:api:5.4")
         add("compileOnly", "org.jspecify:jspecify:1.0.0")
+        // eunomia-core: the MC-free, version-agnostic API surface (CommunicationManager, PacketType,
+        // the transport interfaces). Plain compileOnly - it is a normal Java library, NOT a remapped
+        // mod jar, so it never goes through loom. One coordinate resolves on every variant because the
+        // core artifact carries no MC version. The runtime implementation ships in the eunomia mod
+        // (declared as a required dependency in fabric.mod.json / neoforge.mods.toml), so eunomia is
+        // never bundled here. Mirrored unremapped in multiloader-loader for the loader compile.
+        if (hasProperty("eunomia.version")) {
+            add("compileOnly", "de.zannagh.eunomia:eunomia-core:${findProperty("eunomia.version")}")
+            // eunomia-core is compileOnly for the mod (the eunomia mod supplies it at game runtime), but
+            // the JUnit tests load the config POJOs in a plain JVM and those implement eunomia's
+            // NetworkHealable / encode via its PayloadCodec - and the HTTP/WebSocket fallback E2E
+            // (HttpFallbackE2ETest) drives eunomia's ExternalServerClient / ReplicatedClientStore /
+            // ReplicatedPlayerConfigStore directly - so the classes must be on the test COMPILE classpath,
+            // not just runtime. Test scope only - never bundled into the shipped mod jar.
+            add("testImplementation", "de.zannagh.eunomia:eunomia-core:${findProperty("eunomia.version")}")
+            // eunomia-common on the test classpath too: ElementSpacingOptionsTest exercises eunomia's
+            // layout solver and compound widgets directly, now that our duplicates of them are gone. The
+            // arithmetic is third-party but still load-bearing for our screens, so the test stays as a
+            // guard against an upstream regression rather than being deleted with the classes.
+            add(
+                "testImplementation",
+                "de.zannagh.eunomia:eunomia-common:${findProperty("eunomia.version")}+${findProperty("display_version")}:dev"
+            )
+            // eunomia-common: the MC-facing half of the library - the client settings API
+            // (EunomiaConfig / EunomiaSyncSettings / ServerSettingsClient) and the reusable GUI premades
+            // (WidgetList, OptionElementFactory, ServerSettingsSection, ...). Unlike eunomia-core this one
+            // IS MC-version-specific, so the coordinate carries the same `+<display_version>` suffix our
+            // own jars use; eunomia publishes the identical display_version set, so it maps 1:1 onto every
+            // variant here. Still a plain compileOnly library, not a remapped mod jar - the eunomia mod
+            // supplies the implementation at game runtime, exactly like eunomia-core.
+            add(
+                "compileOnly",
+                "de.zannagh.eunomia:eunomia-common:${findProperty("eunomia.version")}+${findProperty("display_version")}:dev"
+            )
+        }
         add("testImplementation", platform("org.junit:junit-bom:6.0.1"))
         add("testImplementation", "org.junit.jupiter:junit-jupiter")
         add("testRuntimeOnly", "org.junit.platform:junit-platform-launcher")
+        // The fallback E2E's embedded stub relay needs to serve HTTP (/health, PUT /api/packets/*) AND a
+        // WebSocket (/ws) on the SAME port, because eunomia's ExternalServerClient derives the ws URL from
+        // the same base host:port as its REST calls. NanoHTTPD-websocket (NanoWSD) does exactly that in one
+        // tiny, dependency-free server. Test scope only; the real relay is the C# server. Gated at runtime,
+        // so a normal `./gradlew test` never opens a socket - it just needs the class on the test classpath.
+        add("testImplementation", "org.nanohttpd:nanohttpd-websocket:2.3.1")
+        // eunomia-core logs via slf4j-api, which it declares compileOnly (the game/Paper supply a binding at
+        // runtime), so it is not transitive onto the plain-JVM test classpath. The fallback E2E constructs
+        // eunomia's ExternalServerClient (which takes an slf4j Logger), so the API + a simple binding are
+        // needed for the test JVM only.
+        add("testImplementation", "org.slf4j:slf4j-api:2.0.16")
+        add("testRuntimeOnly", "org.slf4j:slf4j-simple:2.0.16")
         // :paper's compiled classes, for PaperSchemaContractTest - the Paper plugin re-declares the
         // parts of the wire schema it has to understand (the serverWideSettings block, the channel
         // names), and nothing else would notice if the mod's side moved. The classes it asserts on
@@ -176,6 +190,30 @@ if (branch == "common") {
         add("testImplementation",
             files(rootProject.layout.projectDirectory.dir("paper/build/classes/java/main")))
     }
+
+    // Version-gated compat deps: each drops out on MC variants that don't pin the property. geckolib
+    // lands on the common (server) config as well as client; everything else is client-only.
+    addDependency(modDep, "geckolib.version", "maven.modrinth:geckolib")
+    addDependency(modClientDep, "geckolib.version", "maven.modrinth:geckolib")
+    addDependency(modDep, "elytratrims.version", "maven.modrinth:elytra-trims")
+    addDependency(modClientDep, "iris.version", "maven.modrinth:iris")
+    addDependency(modClientDep, "emf.version", "maven.modrinth:entity-model-features")
+    addDependency(modClientDep, "etf.version", "maven.modrinth:entitytexturefeatures")
+    addDependency(modClientDep, "mekanism.version", "maven.modrinth:mekanism")
+    addDependency(modClientDep, "waveycapes.version", "maven.modrinth:wavey-capes")
+    addDependency(modClientDep, "deeperdarker.version", "maven.modrinth:deeperdarker")
+    addDependency(modClientDep, "uranus.version", "maven.modrinth:uranus")
+    addDependency(modClientDep, "figura.version", "maven.modrinth:figura")
+    addDependency(modClientDep, "modmenu.version", "maven.modrinth:modmenu")
+    addDependency(modClientDep, "gender.version", "maven.modrinth:female-gender")
+    // Accessory providers (issue #246), Fabric side. Curios is NeoForge-only (added on the neoforge
+    // project). Compat is @Pseudo/@Coerce, so these are compile-only parity deps + smoke-fetch sources.
+    addDependency(modClientDep, "trinkets.version", "maven.modrinth:trinkets")
+    addDependency(modClientDep, "accessories.version", "maven.modrinth:accessories")
+    // Fabric-only. Declared here for the remapped common compile; the loader project compiles common's
+    // sources too, so multiloader-loader.gradle.kts declares the same coordinate unremapped. That pairing
+    // only works because FirstPersonCompat avoids every FPM member whose signature names a Minecraft type.
+    addDependency(modClientDep, "firstperson.version", "maven.modrinth:first-person-model")
 
     val javaVersionStr = findProperty("java.version")?.toString() ?: error("No Java version specified")
     val awVersionStr = findProperty("accesswidener.version")?.toString() ?: error("No access widener version specified")
@@ -216,7 +254,10 @@ if (branch == "fabric") {
     // This deliberately REPLACES any dev-profile identity rather than adding to it: MC's arg
     // parser cannot take `--username` twice.
     val paperSmokePort = findProperty("smoke.paper.port")?.toString()
-    val paperSmokeUsername = "ArmorHiderSmoke"
+    // Defaults to ArmorHiderSmoke (the single-client handshake row); overridable so a multi-client row
+    // (e.g. the two-client config-propagation E2E) can fork the same variant twice under distinct
+    // identities. The offline UUID is derived from the name, matching Paper's offline-mode hashing.
+    val paperSmokeUsername = findProperty("smoke.paper.username")?.toString() ?: "ArmorHiderSmoke"
     val paperSmokeUuid = java.util.UUID
         .nameUUIDFromBytes("OfflinePlayer:$paperSmokeUsername".toByteArray(Charsets.UTF_8))
         .toString()
@@ -273,6 +314,14 @@ if (branch == "fabric") {
             if (paperSmokePort != null) {
                 jvmArguments.add("-Darmorhider.smoke.paper.port=${paperSmokePort}")
             }
+            // Two-client config-propagation E2E (TwoClientConfigPropagationSmokeTest): the PaperE2E row
+            // forks the same variant twice, once as the sender and once as the reader, forwarding the
+            // role, the peer's name and the marker opacity. Absent on every normal run - the test no-ops.
+            listOf("role", "peer", "marker").forEach { key ->
+                findProperty("smoke.twoclient.$key")?.toString()?.let {
+                    jvmArguments.add("-Darmorhider.smoke.twoclient.$key=$it")
+                }
+            }
             if (runProfile != null) {
                 programArguments.add("--username")
                 programArguments.add(runProfile.username)
@@ -299,10 +348,6 @@ if (branch == "fabric") {
         }) {
             add("modCompileOnly", "maven.modrinth:elytra-trims:iLC0LP3D")
         }
-        if (hasProperty("modmenu.version")) {
-            val modMenuDep = if (isDeobf) "compileOnly" else "modCompileOnly"
-            add(modMenuDep, "maven.modrinth:modmenu:${findProperty("modmenu.version")}")
-        }
         // FCGT module - multiloader-loader adds common's src as srcDirs, so the test class
         // compiles here too, AND it must be on the dev runtime classpath because the
         // upstream Modrinth fabric-api jar (the one in run/mods/) does not bundle the
@@ -322,6 +367,9 @@ if (branch == "fabric") {
         }
     }
 
+    // Mod Menu: loader-side compile dep on the base config, remapped or deobf per isDeobf.
+    addDependency(if (isDeobf) "compileOnly" else "modCompileOnly", "modmenu.version", "maven.modrinth:modmenu")
+
     // FCGT (fabric-client-gametest-api-v1) entrypoint registered only on Fabric variants
     // that pin `fabricapi.semver` (currently fabric-26.2). Other variants emit "[]" so the
     // JSON stays valid and fabric-loader simply ignores it.
@@ -332,9 +380,29 @@ if (branch == "fabric") {
         add("individual-config" to "de.zannagh.armorhider.smoke.IndividualConfigSmokeTest")
         add("keybind" to "de.zannagh.armorhider.smoke.KeybindSmokeTest")
         add("combat-detection" to "de.zannagh.armorhider.smoke.CombatDetectionSmokeTest")
+        // Render hot-path allocation regression (frame drops): asserts ZERO PlayerConfig graphs are built
+        // on the render thread during a render window. Deliberately NOT gated on >= 26.2-1.pre like the
+        // rows below: the mixins that carried the regression (hand/ModelPartMixin, hand/ItemRendererMixin)
+        // are `//? if < 1.21.9`, so the oldest FCGT-capable variant that still has them - fabric-1.21.4 -
+        // is exactly where this has to be runnable. The class is `//? if fcgt` only, matching this gate.
+        // Run it in isolation with `-Psmoke.fcgt.only=hot-path-alloc`.
+        add("hot-path-alloc" to "de.zannagh.armorhider.smoke.HotPathAllocSmokeTest")
+        // Sibling of the row above for the NON-local branch of resolveConfig(): spawns client-side
+        // RemotePlayers and asserts the render thread stays within a small allocation budget per window,
+        // so the cost tracks player count rather than frame count. Two legs (steady-state and a cold
+        // multi-player one) plus a positive control on the non-local resolve count - see the class doc.
+        // Run it in isolation with `-Psmoke.fcgt.only=hot-path-remote-alloc`.
+        add("hot-path-remote-alloc" to "de.zannagh.armorhider.smoke.HotPathRemoteAllocSmokeTest")
+        // Public ArmorHiderRenderApi end-to-end smoke. Asserts on SlotModification + the translucent
+        // armor path rather than on a version-specific render architecture, so it is `//? if fcgt`
+        // only and registers on every fcgt variant.
+        add("render-api" to "de.zannagh.armorhider.smoke.RenderApiSmokeTest")
         // Paper end-to-end handshake smoke. Gated only on `fcgt` like the class itself: it no-ops
         // unless -Psmoke.paper.port is supplied, so registering it everywhere is harmless.
         add("paper-handshake" to "de.zannagh.armorhider.smoke.PaperHandshakeSmokeTest")
+        // Two-client config-propagation E2E: one client changes its config, a second observes it via the
+        // server. Role-dispatched by -Darmorhider.smoke.twoclient.role; no-ops unless a Paper port is set.
+        add("two-client-propagation" to "de.zannagh.armorhider.smoke.TwoClientConfigPropagationSmokeTest")
         // WaterTransparencySmokeTest drives the after-terrain feature phase (the fix), which only
         // exists >= 26.2-1.pre - its class is stonecutter-gated to the same floor, so only register
         // the entrypoint there or fabric-loader would fail to find the commented-out class.
@@ -354,14 +422,6 @@ if (branch == "fabric") {
             // -Psmoke.fcgt.only=iris-translucency on a dev machine with the run/ Iris shaderpack.
             add("iris-translucency" to "de.zannagh.armorhider.smoke.IrisTranslucencySmokeTest")
         }
-        // ElytraTrims transparency smoke. Its class (and the ETElytraTrimSubmitMixin it exercises) is
-        // stonecutter-gated to `>= 1.21.9 && < 26.3-0.snapshot.2`, so register the entrypoint on exactly
-        // that range or fabric-loader would try to resolve a commented-out class. Self-detects ET, so
-        // it's harmless without the jar; run it in isolation with
-        // `-Psmoke.fcgt.only=elytra-trims -Pcompat=elytratrims`.
-        if (sc.current.parsed >= "1.21.9" && sc.current.parsed < "26.3-0.snapshot.2") {
-            add("elytra-trims" to "de.zannagh.armorhider.smoke.ElytraTrimsSmokeTest")
-        }
         // First Person Model compat smoke. Guard must stay identical to the test class's own
         // `//? if fcgt && firstperson {` gate, or fabric-loader tries to resolve a commented-out class.
         if (hasProperty("firstperson.version")) {
@@ -372,6 +432,24 @@ if (branch == "fabric") {
         // actually present at runtime. Registered everywhere fcgt is on - run it in isolation with
         // `-Psmoke.fcgt.only=emf-fa -Pcompat=emf,etf,fa`.
         add("emf-fa" to "de.zannagh.armorhider.smoke.EmfFreshAnimationsSmokeTest")
+        // EMF custom-3D-armor translucency repro (issue #360). The class is `//? if fcgt` only (no
+        // pack-pin gate) so it always compiles on fcgt variants; it self-detects whether EMF and the
+        // Glowing 3D Armor pack are actually present/renderable at runtime and degrades to a
+        // screenshot-only SKIP otherwise. Registered ONLY on the variant that pins
+        // `glowingarmor.version` (currently fabric-26.2, the sole build with a compatible pack - it
+        // needs 1.21.9+/26.x): every other fcgt variant could only ever hit the capability SKIP after
+        // burning the per-opacity poll ceiling, so registering it there just wastes CI time. Gate
+        // mirrors the `firstperson.version` pin gate above. Run it in isolation with
+        // `-Psmoke.fcgt.only=emf-360 -Pcompat=emf,etf,glowingarmor`.
+        if (hasProperty("glowingarmor.version")) {
+            add("emf-360" to "de.zannagh.armorhider.smoke.EmfCustomArmorTranslucencySmokeTest")
+        }
+        // Fabric API ArmorRenderer compat repro (issue #348). `//? if fcgt` only - it searches the item
+        // registry for whatever item has a custom ArmorRenderer registered and self-skips when the run
+        // has none, so it is safe to register on every fcgt variant. Nycto supplies one on the rows that
+        // pin nycto.version; run it in isolation with
+        // `-Psmoke.fcgt.only=fabric-armor-renderer -Pcompat=fabricapi,nycto`.
+        add("fabric-armor-renderer" to "de.zannagh.armorhider.smoke.FabricArmorRendererSmokeTest")
     }
 
     // `runClientGametest` runs EVERY registered entrypoint in ONE client launch, so an unrelated
@@ -421,7 +499,7 @@ if (branch == "fabric") {
         inputs.properties(expandProps)
         filesMatching(listOf("fabric.mod.json", "**/*.mixins.json"), ExpandPropertiesAction(expandProps))
         val awNamespace = if (isDeobf) "official" else "named"
-        from(rootProject.file("common/accesswideners"), Action<org.gradle.api.file.CopySpec> {
+        from(rootProject.file("common/accesswideners"), Action {
             include("armorhider.${expandProps["accesswidener"]}.accesswideners")
             filter { it.replace("classTweaker v1 named", "classTweaker v1 $awNamespace") }
         })
@@ -441,6 +519,104 @@ if (branch == "fabric") {
     // When -Psmoke is set, populate run/mods with the configured compat jars before launching.
     if (project.hasProperty("smoke")) {
         tasks.named("runClient") { dependsOn("fetchCompatJars") }
+    }
+
+    // ── eunomia runtime mod provisioning (EVERY Fabric variant) ──────────────────────
+    // armor-hider consumes eunomia-core at compile time only; the eunomia MOD supplies the
+    // networking transports + codec injection + capability handshake at game runtime and is a
+    // REQUIRED dependency (fabric.mod.json). So every client launch - a plain dev/smoke `runClient`
+    // just as much as an FCGT `runClientGametest` - must have the eunomia fabric mod jar in run/mods,
+    // or armor-hider fails its dependency: a plain client aborts mod resolution at boot, and a gametest
+    // boots vanilla and exits ZERO having run nothing (a false green - blueprint risk R4).
+    //
+    // Deliberately registered HERE, at Fabric-branch level, and not inside the FCGT block below: that
+    // block is gated on `fabricapi.semver`, which fabric-1.20.1 / 1.21.1 / 1.21.2 / 1.21.3 do not pin.
+    // Registering inside it meant those four variants got no copy task at all, so their `runClient`
+    // booted with an empty run/mods and failed mod resolution. Only the `runClientGametest` wiring stays
+    // conditional, because that task exists only on the FCGT-capable variants.
+    //
+    // The jar is pulled from CurseForge (project `eunomia.cf.project`) via Cursemaven by default, resolved
+    // for this variant's MC version from the pinned file id `eunomia.cf.file`. Pass -Peunomia.fabric.jar=<path>
+    // to smoke-test a locally-built eunomia instead (e.g. an unreleased change). The CF configuration is
+    // non-transitive, so only eunomia's own jar lands - never its CF-declared deps.
+    //
+    // Clear any previously-copied eunomia jar before copying the current one. Without this, a filename
+    // change - an eunomia version bump changes the CurseForge file id (and thus the jar name), or a run
+    // switches between the CF jar and a -Peunomia.fabric.jar override - leaves TWO eunomia mods in
+    // run/mods. fabric-loader then loads both, the codec-injection mixins apply twice and the handshake
+    // S2C payloads fail to decode (the client disconnects at join). fetchFcgtCompatJars / fetchCompatJars
+    // wipe run/mods on -Psmoke runs, but the plain dev and FCGT/E2E paths do not, so this copy must clean
+    // up after itself.
+    fun deleteStaleEunomiaJars() {
+        delete(fileTree(project.layout.projectDirectory.dir("run/mods")) { include("eunomia*.jar") })
+    }
+    val eunomiaOverrideJar = findProperty("eunomia.fabric.jar")?.toString()
+    val eunomiaCfFile = findProperty("eunomia.cf.file")?.toString()
+    val copyEunomiaToMods = if (eunomiaOverrideJar != null) {
+        tasks.register<Copy>("copyEunomiaToMods") {
+            group = "verification"
+            description = "Drop the local eunomia fabric mod jar into run/mods/ (armor-hider's required runtime dependency)."
+            from(eunomiaOverrideJar)
+            into(project.layout.projectDirectory.dir("run/mods"))
+            // Both wipe run/mods first: fetchFcgtCompatJars on the runClientGametest (ENTITY_RENDER)
+            // path, fetchCompatJars on the runClient (BOOT) path. Land after whichever is in the graph,
+            // or a wipe deletes the eunomia jar we just dropped and the client fails its required dep.
+            mustRunAfter("fetchFcgtCompatJars", "fetchCompatJars")
+            outputs.upToDateWhen { false }
+            doFirst {
+                if (!file(eunomiaOverrideJar).exists()) {
+                    throw GradleException(
+                        "eunomia fabric mod jar (-Peunomia.fabric.jar) not found at:\n  $eunomiaOverrideJar"
+                    )
+                }
+                deleteStaleEunomiaJars()
+            }
+        }
+    } else if (eunomiaCfFile != null) {
+        val cfProject = findProperty("eunomia.cf.project")?.toString()
+            ?: error("eunomia.cf.project is not set; cannot resolve the eunomia mod jar from CurseForge")
+        val eunomiaRuntimeMod = configurations.create("eunomiaRuntimeMod") {
+            isCanBeResolved = true
+            isCanBeConsumed = false
+            isVisible = false
+            isTransitive = false
+        }
+        dependencies.add("eunomiaRuntimeMod", "curse.maven:eunomia-$cfProject:$eunomiaCfFile")
+        tasks.register<Copy>("copyEunomiaToMods") {
+            group = "verification"
+            description = "Drop the eunomia fabric mod jar (CurseForge $cfProject/$eunomiaCfFile) into run/mods/."
+            from(eunomiaRuntimeMod)
+            into(project.layout.projectDirectory.dir("run/mods"))
+            // Both wipe run/mods first: fetchFcgtCompatJars on the runClientGametest (ENTITY_RENDER)
+            // path, fetchCompatJars on the runClient (BOOT) path. Land after whichever is in the graph,
+            // or a wipe deletes the eunomia jar we just dropped and the client fails its required dep.
+            mustRunAfter("fetchFcgtCompatJars", "fetchCompatJars")
+            outputs.upToDateWhen { false }
+            doFirst { deleteStaleEunomiaJars() }
+        }
+    } else {
+        // Lenient, mirroring the NeoForge side (neoforge/build.gradle.kts): an unpinned variant gets no
+        // copy task rather than failing CONFIGURATION, which would break every task on that variant
+        // (`tasks`, `build`, the unit tests) and not just the client runs that actually need the jar.
+        // Adding a new Fabric variant therefore never breaks the build; this warning - plus the hard
+        // failure the runClientGametest wiring installs below - is the signal to pin `eunomia.cf.file`
+        // (https://www.curseforge.com/minecraft/mc-mods/eunomia/files/all) in that variant's section of
+        // stonecutter.properties.toml, or to pass -Peunomia.fabric.jar=<path>.
+        logger.warn(
+            "[armor-hider] eunomia.cf.file is not pinned for ${sc.current.project}; the eunomia mod will " +
+                "NOT be placed in run/mods, so a client run on this variant fails its required eunomia " +
+                "dependency at boot."
+        )
+        null
+    }
+    // A plain `runClient` boot (the smoke BOOT phase, and any dev client launch) needs the eunomia mod in
+    // run/mods just as much as the gametest does - armor-hider hard-requires it, so without this the client
+    // fails mod resolution and never boots. The FCGT module jar is NOT needed for a plain boot, so only the
+    // eunomia copy is wired here. Unlike runClientGametest, `runClient` exists on every Fabric variant.
+    if (copyEunomiaToMods != null) {
+        tasks.named("runClient") {
+            dependsOn(copyEunomiaToMods)
+        }
     }
 
     // ── Phase 2 smoke: FCGT-driven entity render run config ──────────────────────────
@@ -471,26 +647,122 @@ if (branch == "fabric") {
                 // FCGT names this property in that very error message. Required for any gametest
                 // that joins a server - the codec injection is load-bearing and cannot be dropped.
                 jvmArguments.add("-Dfabric.client.gametest.disableNetworkSynchronizer=true")
+                // Keep the gametest window from stealing focus on macOS (it otherwise pops to the
+                // foreground and kicks the developer out of any fullscreen app every FCGT loop). The
+                // GLFW era (26.1.2 / 26.2) is handled by WindowFocusMixin, which sets GLFW's focus hints
+                // before window creation (the process-level -Dapple.awt.UIElement hint does NOT work -
+                // GLFW forces its own Regular activation policy). 26.3 uses SDL, which reads these hint
+                // env vars before creating the window; "0" tells it not to activate/raise-to-front on
+                // show. Harmless off macOS / when the backend isn't in use.
+                environmentVars.put("SDL_WINDOW_ACTIVATE_WHEN_SHOWN", "0")
+                environmentVars.put("SDL_WINDOW_ACTIVATE_WHEN_RAISED", "0")
 
-                // Opt-in JaCoCo coverage of the FCGT run (`-PfcgtCoverage`). The in-game tests exercise
-                // client render code (render interceptors, compat mixins, …) that the Tier-1 unit JVM
-                // never touches, so instrument this launch and emit an exec that fcgtCoverageReport
-                // (root project) turns into an XML for Codecov's `fcgt` flag. Scoped to our own package
-                // so we don't instrument (and slow) all of Minecraft. Off by default - it only matters
-                // in the smoke/coverage CI job, and would otherwise add agent overhead to every dev run.
-                if (project.hasProperty("fcgtCoverage")) {
-                    // The `jacocoAgent` config resolves to the wrapper jar (no Premain-Class); the
-                    // runnable agent is the `runtime`-classifier artifact, so resolve that explicitly.
-                    val jacocoVersion = extensions
-                        .getByType(org.gradle.testing.jacoco.plugins.JacocoPluginExtension::class.java).toolVersion
-                    val agentJar = configurations
-                        .detachedConfiguration(dependencies.create("org.jacoco:org.jacoco.agent:$jacocoVersion:runtime"))
-                        .singleFile
-                    val execFile = layout.buildDirectory.file("jacoco/fcgt.exec").get().asFile
-                    jvmArguments.add("-javaagent:${agentJar.absolutePath}=destfile=${execFile.absolutePath}"
-                            + ",append=false,includes=de.zannagh.armorhider.*")
+                // ── E2E line coverage (opt-in: -Psmoke.coverage) ─────────────────────────────
+                // The FCGT client is a real, mod-loaded Minecraft JVM, so it exercises code the Tier-1
+                // unit tests never can - the render pipeline (RenderModifications, AhRenderManagementApi,
+                // the feature-phase interceptors) and the mod's client/config/net logic.
+                //
+                // On-the-fly JaCoCo (-javaagent) CANNOT see these: Fabric's KnotClassLoader loads the mod
+                // (and Minecraft) classes through a path the agent's ClassFileLoadHook never covers, so the
+                // recorded .exec contains 3500+ library classes but ZERO de.zannagh.armorhider ones
+                // (verified empirically). The reliable route is OFFLINE instrumentation: the class files on
+                // disk are pre-instrumented, so Knot loads already-probed bytecode and no runtime transform
+                // is needed. The runtime then only needs the JaCoCo RT jar on the classpath and a destfile.
+                // See offlineInstrumentForCoverage below. The mixin package is deliberately NOT instrumented
+                // (Mixin reads raw class bytes to apply them - probes would corrupt that - and @Inject
+                // handlers execute on the vanilla target, so they are not attributable anyway).
+                if (project.hasProperty("smoke.coverage")) {
+                    val execFile = project.rootProject.file("build/jacoco/e2e-client.exec")
+                    jvmArguments.add("-Djacoco-agent.destfile=${execFile.absolutePath}")
+                    // append=true so per-scenario launches of one run accumulate; CI wipes build/jacoco first.
+                    jvmArguments.add("-Djacoco-agent.append=true")
                 }
             }
+        }
+        // ── JaCoCo OFFLINE instrumentation for E2E coverage (opt-in: -Psmoke.coverage) ──────────
+        if (project.hasProperty("smoke.coverage")) {
+            val jacocoVersion = (findProperty("jacoco.version")?.toString()) ?: "0.8.14"
+            // Offline-instrumented classes carry a hard dependency on the JaCoCo runtime, so the RT jar
+            // must be on the game JVM classpath. runtimeOnly puts it on the mod runtime classpath; Knot
+            // delegates the non-mod org.jacoco.agent.rt.* package to its parent loader, which has it.
+            dependencies.add("runtimeOnly", "org.jacoco:org.jacoco.agent:$jacocoVersion:runtime")
+            // Standalone JaCoCo CLI (nodeps) + its runtime deps, used to instrument class files offline.
+            val jacocoCli = configurations.create("ahJacocoCli") {
+                isCanBeResolved = true
+                isCanBeConsumed = false
+            }
+            dependencies.add("ahJacocoCli", "org.jacoco:org.jacoco.cli:$jacocoVersion:nodeps")
+            dependencies.add("ahJacocoCli", "org.jacoco:org.jacoco.core:$jacocoVersion")
+            dependencies.add("ahJacocoCli", "org.jacoco:org.jacoco.report:$jacocoVersion")
+
+            val ssc = project.extensions.getByType(SourceSetContainer::class.java)
+            val classOutputs: List<File> = listOf("main", "client")
+                .mapNotNull { ssc.findByName(it) }
+                .flatMap { it.output.classesDirs.files.toList() }
+            val backupRoot = project.rootProject.file("build/jacoco/classes-orig")
+            val pristineRoot = project.rootProject.file("build/jacoco/classes-pristine")
+            val cliCfg = jacocoCli
+
+            // Instrument the client+main class outputs IN PLACE so Knot loads probed bytecode (on-the-fly
+            // can't reach Knot-loaded classes). Idempotent across the two forked compat rows of one variant:
+            // a pristine copy is kept and restored before each instrument pass, so re-running never double-
+            // instruments. Originals are also mirrored to classes-orig for e2eCoverage to analyse the clean
+            // bytecode. Strictly opt-in (-Psmoke.coverage), so a normal build/jar is never instrumented.
+            val instrumentTask = tasks.register("offlineInstrumentForCoverage") {
+                group = "verification"
+                description = "JaCoCo offline-instrument the FCGT client classes in place (-Psmoke.coverage)"
+                dependsOn("classes", "clientClasses")
+                outputs.upToDateWhen { false }
+                doLast {
+                    backupRoot.deleteRecursively(); backupRoot.mkdirs()
+                    pristineRoot.mkdirs()
+                    classOutputs.forEachIndexed { idx, dir ->
+                        if (!dir.isDirectory) {
+                            return@forEachIndexed
+                        }
+                        val pristine = File(pristineRoot, "$idx-${dir.name}")
+                        if (pristine.isDirectory) {
+                            // A previous row already instrumented this dir - restore clean bytes first.
+                            dir.deleteRecursively()
+                            pristine.copyRecursively(dir, overwrite = true)
+                        } else {
+                            dir.copyRecursively(pristine, overwrite = true)
+                        }
+                        // Mirror the clean bytes for the report.
+                        pristine.copyRecursively(File(backupRoot, "$idx-${dir.name}"), overwrite = true)
+
+                        val instrDir = File(dir.parentFile, "${dir.name}-ahInstr")
+                        instrDir.deleteRecursively()
+                        // Run the JaCoCo CLI out-of-process (Gradle 9 removed Project.javaexec, and the CLI
+                        // needs no Gradle wiring). java from the build JVM; the CLI runs on any recent JDK.
+                        val javaBin = File(System.getProperty("java.home"), "bin/java").absolutePath
+                        val cliClasspath = cliCfg.files.joinToString(File.pathSeparator) { it.absolutePath }
+                        val process = ProcessBuilder(
+                            javaBin, "-cp", cliClasspath, "org.jacoco.cli.internal.Main",
+                            "instrument", dir.absolutePath, "--dest", instrDir.absolutePath
+                        ).redirectErrorStream(true).start()
+                        val cliOut = process.inputStream.bufferedReader().readText()
+                        val code = process.waitFor()
+                        if (code != 0) {
+                            throw GradleException(
+                                "JaCoCo offline instrumentation failed (exit $code):\n$cliOut")
+                        }
+                        // Copy probed classes back over the originals, EXCEPT the mixin package (keep raw
+                        // bytes there so Mixin can still apply them and @Inject handlers are not miscounted).
+                        instrDir.walkTopDown().filter { it.isFile }.forEach { src ->
+                            // Normalize separators once so the mixin-package exclusion holds on Windows too.
+                            val rel = src.relativeTo(instrDir).path.replace('\\', '/')
+                            if (!rel.contains("/mixin/") && !rel.startsWith("mixin/")) {
+                                val dest = File(dir, rel)
+                                dest.parentFile?.mkdirs()
+                                src.copyTo(dest, overwrite = true)
+                            }
+                        }
+                        instrDir.deleteRecursively()
+                    }
+                }
+            }
+            tasks.named("runClientGametest") { dependsOn(instrumentTask) }
         }
         // Resolve the FCGT module artifact via a dedicated configuration so we can copy the
         // resolved (already named-mapped) jar into run/mods. fabric-api's umbrella jar
@@ -499,13 +771,28 @@ if (branch == "fabric") {
         val fcgtRuntimeMod = configurations.create("fcgtRuntimeMod") {
             isCanBeResolved = true
             isCanBeConsumed = false
-            isVisible = false
         }
         val fabricApiExt = project.extensions.getByType(net.fabricmc.loom.api.fabricapi.FabricApiExtension::class.java)
+        val fabricApiSemver = findProperty("fabricapi.semver")!!.toString()
         dependencies.add(
             "fcgtRuntimeMod",
-            fabricApiExt.module("fabric-client-gametest-api-v1", findProperty("fabricapi.semver")!!.toString())
+            fabricApiExt.module("fabric-client-gametest-api-v1", fabricApiSemver)
         )
+        // FCGT 6.x (26.3+) hard-depends on fabric-resource-loader-v1, but that's a runtime (fabric.mod.json)
+        // dependency, not a Gradle-transitive one, so copying only the FCGT module leaves it missing and the
+        // client aborts at boot ("requires fabric-resource-loader-v1, which is missing"). Older nodes only
+        // booted because a prior -Psmoke run happened to leave the full fabric-api umbrella (which bundles
+        // it) in run/mods. Provision it explicitly so FCGT boots on a clean run/mods where it's needed.
+        // Fabric-loader deduplicates it against any umbrella-bundled copy, so this is safe where one exists.
+        // fabricApiExt.module resolves the submodule version from the pinned fabric-api's module list, so on
+        // older fabric-api lines (1.21.4..1.21.11) that predate the resource-loader-v1 module it throws
+        // "Failed to find module version" - those run FCGT 5.x, which doesn't need it, so just skip there.
+        runCatching {
+            dependencies.add(
+                "fcgtRuntimeMod",
+                fabricApiExt.module("fabric-resource-loader-v1", fabricApiSemver)
+            )
+        }
         val copyFcgtToMods = tasks.register<Copy>("copyFcgtToMods") {
             group = "verification"
             description = "Drop the FCGT module jar into run/mods/ so its mixin plugin loads at runtime"
@@ -528,6 +815,23 @@ if (branch == "fabric") {
             // leftover and every other variant did not, so the Paper E2E matrix "passed" on 26.2 and
             // silently ran nothing elsewhere.
             dependsOn(copyFcgtToMods)
+            // Same unconditional guarantee for the eunomia runtime dependency (registered above, at
+            // Fabric-branch level, so the non-FCGT variants get it too). Registration is lenient, so on a
+            // variant that pins neither `eunomia.cf.file` nor -Peunomia.fabric.jar the task is absent -
+            // fail the gametest loudly there instead of letting it boot without eunomia and report the
+            // exact false green (exit ZERO, nothing run) this wiring exists to prevent.
+            if (copyEunomiaToMods != null) {
+                dependsOn(copyEunomiaToMods)
+            } else {
+                doFirst {
+                    throw GradleException(
+                        "No eunomia mod jar is provisioned for ${sc.current.project}: armor-hider requires " +
+                            "the eunomia mod at runtime, so this gametest would boot vanilla and exit 0 " +
+                            "having run nothing. Pin `eunomia.cf.file` for this variant in " +
+                            "stonecutter.properties.toml, or pass -Peunomia.fabric.jar=<path>."
+                    )
+                }
+            }
         }
         if (project.hasProperty("smoke")) {
             // Compat-mod fetching stays smoke-only: it wipes run/mods and pulls the full

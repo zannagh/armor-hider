@@ -10,13 +10,8 @@ import de.zannagh.armorhider.configuration.ConfigurationSource;
 import de.zannagh.armorhider.net.packets.ServerWideSettings;
 import de.zannagh.armorhider.util.PlayerNameUtil;
 
-import de.zannagh.armorhider.net.CompressedJsonCodec;
 import de.zannagh.armorhider.net.packets.PlayerConfig;
-//? if >= 1.20.5 {
-import io.netty.buffer.ByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-//?}
+import de.zannagh.eunomia.networking.serialization.NetworkHealable;
 
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.Contract;
@@ -29,36 +24,17 @@ import java.io.StringReader;
 import java.util.*;
 import java.util.function.Consumer;
 
-//? if >= 1.21.11 {
-import net.minecraft.resources.Identifier;
-//?}
-//? if >= 1.20.5 && < 1.21.11 {
-/*import net.minecraft.resources.Identifier;
-*///?}
+public class ServerConfiguration implements ConfigurationSource<ServerConfiguration>, NetworkHealable {
 
-public class ServerConfiguration implements ConfigurationSource<ServerConfiguration> {
-
-    //? if >= 1.21.11 {
-    public static final Identifier PACKET_IDENTIFIER = Identifier.fromNamespaceAndPath("de.zannagh.armorhider", "settings_s2c_packet");
-    //?}
-    //? if >= 1.20.5 && < 1.21.11 {
-    /*public static final Identifier PACKET_IDENTIFIER = Identifier.fromNamespaceAndPath("armorhider", "settings_s2c_packet");
-    *///?}
-
-    //? if >= 1.20.5 {
-    public static final Type<ServerConfiguration> TYPE = new Type<>(PACKET_IDENTIFIER);
-    
-    public static final StreamCodec<ByteBuf, ServerConfiguration> STREAM_CODEC = CompressedJsonCodec.create(ServerConfiguration.class);
-    
-    public StreamCodec<ByteBuf, ServerConfiguration> getCodec() {
-        return CompressedJsonCodec.create(ServerConfiguration.class);
-    }
-
+    /**
+     * Post-decode repair hook invoked by eunomia's {@code PayloadCodec} after this snapshot is
+     * deserialized off the wire. Rebuilds the by-name index, which is transient and therefore never
+     * populated by Gson on the receiving side.
+     */
     @Override
-    public @NonNull Type<? extends CustomPacketPayload> type() {
-        return TYPE;
+    public void heal() {
+        rebuildPlayerNameConfigs();
     }
-    //?}
 
     private static final java.lang.reflect.Type LEGACY_MAP_TYPE = new TypeToken<Map<UUID, PlayerConfig>>() {
     }.getType();

@@ -153,7 +153,6 @@ public final class WaterTransparencySmokeTest implements FabricClientGameTest {
             // translucent pass. Force the shaderpack-active override (no real Iris on this box) and
             // assert the dither path runs and is NOT deferred (opaque cutout is drawn in the normal
             // solid/cutout phase, not the after-terrain translucent phase).
-            //? if < 26.3-0.snapshot.2 {
             context.runOnClient(client -> {
                 ArmorHiderRenderTypes.setShaderPackActiveOverride(Boolean.TRUE);
                 snapPose(client);
@@ -186,7 +185,6 @@ public final class WaterTransparencySmokeTest implements FabricClientGameTest {
                 ArmorHider.LOGGER.warn("[smoke/fcgt] dithered armor drew deferred (delta {}) - expected the "
                         + "opaque cutout in the solid phase; likely a software-GL texture-build fallback", deferDelta);
             }
-            //?}
 
             // Control - same pose, redirect on, but background swapped to solid stone. Pre-fix this
             // rendered the pads fine; it should look the same as the water AFTER shot.

@@ -13,17 +13,45 @@ val compatKeys = listOf(
     "gender", "geckolib", "waveycapes", "mekanism", "figura",
     "elytratrims", "iris", "emf", "etf", "modmenu", "deeperdarker", "uranus", "firstperson",
     "immersivearmors", "armoredelytra",
+    // Nycto (MoriyaShiine) - registers its vampire/hunter armor through Fabric API's ArmorRenderer, the
+    // reproduction case for the fabric-rendering-v1 armor compat (issue #348). Fabric-only, and only
+    // fetched on the variants that pin nycto.version.
+    "nycto",
+    // StrawberryLib - nycto's required lib dep. nycto declares it version-less, so the fetch would
+    // otherwise auto-resolve the latest (26.2-r3), which dropped the EatFoodEvent API nycto still calls
+    // -> NoClassDefFoundError at boot. Pinned explicitly (per variant) to the last build that has it so
+    // the transitive resolution is overridden by our pin.
+    "strawberrylib",
+    // Sodium - Iris's required dep, declared as a version RANGE the fetch does not honour: it auto-resolves
+    // the newest Sodium, which an older pinned Iris refuses (Iris 1.8.8 on 1.21.1 needs 0.6.x, the fetch
+    // picked 0.8.13 -> "Incompatible mods found"). Pinned per variant only where the Iris pin needs it.
+    "sodium",
     // Fresh Animations (issue #217). Not a mod - a resource pack fetched into run/resourcepacks/
     // by fetchFaResourcePack, not run/mods/. Requires emf + etf to actually animate.
     "fa",
     // Fresh Animations: Player Extension (the add-on that actually animates the player model).
     "faplayer",
+    // Glowing 3D Armor (issue #360). Not a mod - a resource pack fetched into run/resourcepacks/
+    // by fetchFaResourcePack, not run/mods/. Provides custom 3D CEM armor models rendered via EMF;
+    // the #360 smoke fades it to prove the EMF custom-armor translucent swap fired.
+    "glowingarmor",
     // Accessory providers (issue #246). trinkets + accessories are Fabric; curios is NeoForge-only.
     "trinkets", "accessories", "curios"
 )
 val availableHashes = compatKeys.mapNotNull { key ->
     findProperty("$key.version")?.toString()?.let { hash -> key to hash }
-}.toMap()
+}.toMap().toMutableMap()
+// Smoke matrix overrides (EmfVersionMatrixSmokeTest): -Psmoke.<key>.version=<modrinth-id> swaps the
+// jar the FCGT run fetches for that compat key WITHOUT touching the pinned <key>.version in
+// stonecutter.properties.toml. Used to test an EMF bump against the otherwise-pinned stack - and since
+// EMF 3.3 hard-requires ETF 7.2+, the matrix overrides emf AND etf together. Flows straight into
+// modHashes -> fetchFcgtCompatJars; run/mods is wiped each launch, so sequential launches with
+// different ids stay hermetic in one run dir.
+compatKeys.forEach { key ->
+    (findProperty("smoke.$key.version")?.toString())?.takeIf { it.isNotBlank() }?.let { override ->
+        availableHashes[key] = override
+    }
+}
 val compatSel = (findProperty("compat")?.toString() ?: "all").trim()
 val selectedKeys: Set<String> = when (compatSel.lowercase()) {
     "all" -> availableHashes.keys
@@ -33,11 +61,12 @@ val selectedKeys: Set<String> = when (compatSel.lowercase()) {
 val activeMcVersion: String? = listOf("fabric.minecraft_version", "neoforge.minecraft_version")
     .firstNotNullOfOrNull { findProperty(it)?.toString() }
     ?.substringBefore("-pre")?.substringBefore("-rc")?.substringBefore("-alpha")
-// Keys that resolve to a mod jar (run/mods). "fa" (Fresh Animations) and "faplayer" (its Player
-// Extension) are resource packs handled separately by fetchFaResourcePack into run/resourcepacks,
-// so they must never be dropped into run/mods even when listed in -Pcompat.
+// Keys that resolve to a mod jar (run/mods). "fa" (Fresh Animations), "faplayer" (its Player
+// Extension) and "glowingarmor" (Glowing 3D Armor, issue #360) are resource packs handled
+// separately by fetchFaResourcePack into run/resourcepacks, so they must never be dropped into
+// run/mods even when listed in -Pcompat.
 val modHashes = availableHashes
-    .filterKeys { it != "fa" && it != "faplayer" }
+    .filterKeys { it != "fa" && it != "faplayer" && it != "glowingarmor" }
     // On 1.20.1, Iris pulls a Sodium whose EarlyDriverScanner rejects loom's dev-runtime LWJGL
     // (caffeine gh-2561), hard-failing the boot - and 1.20.1 is not an FCGT variant, so iris/sodium
     // exercise nothing here. Drop iris from the FETCH only (the compileOnly stays, so IrisCompat still
@@ -48,12 +77,26 @@ val activeLoader: String? = when {
     sc.current.project.contains("neoforge") -> "neoforge"
     else -> null
 }
+// CurseForge pins - a keyless Cursemaven fallback for compat mods not (yet) on Modrinth. Per-variant
+// `<key>.cf.project` + `<key>.cf.file` -> "<projectId>:<fileId>"; FetchCompatJars uses a pin only for a
+// selected key with no Modrinth hash. The variant sections are already loader-specific, so `<key>.cf.file`
+// is the fabric-or-neoforge file for this exact variant. Empty today (every compat mod resolves from
+// Modrinth); this lets a CF-only compat mod be added by pinning those two properties in its section.
+val curseForgeModPins: Map<String, String> = modHashes.keys
+    .plus(compatKeys)
+    .distinct()
+    .mapNotNull { key ->
+        val proj = findProperty("$key.cf.project")?.toString()?.takeIf { it.isNotBlank() } ?: return@mapNotNull null
+        val file = findProperty("$key.cf.file")?.toString()?.takeIf { it.isNotBlank() } ?: return@mapNotNull null
+        key to "$proj:$file"
+    }.toMap()
 
 val fetchCompatJars = tasks.register<FetchCompatJars>("fetchCompatJars") {
     group = "verification"
-    description = "Fetch Modrinth compat jars (controlled by -Pcompat) into run/mods/ for smoke runs"
+    description = "Fetch Modrinth + CurseForge compat jars (controlled by -Pcompat) into run/mods/ for smoke runs"
     modsDir.set(project.layout.projectDirectory.dir("run/mods"))
     versionHashes.set(modHashes)
+    curseForgePins.set(curseForgeModPins)
     include.set(selectedKeys)
     activeMcVersion?.let { mcGameVersion.set(it) }
     activeLoader?.let { loader.set(it) }
@@ -67,6 +110,7 @@ val fetchFcgtCompatJars = tasks.register<FetchCompatJars>("fetchFcgtCompatJars")
     description = "Like fetchCompatJars but always includes fabric-api (required for FCGT runtime activation)"
     modsDir.set(project.layout.projectDirectory.dir("run/mods"))
     versionHashes.set(modHashes)
+    curseForgePins.set(curseForgeModPins)
     if (modHashes.containsKey("fabricapi")) {
         include.set(selectedKeys + "fabricapi")
     } else {
@@ -82,9 +126,9 @@ val fetchFcgtCompatJars = tasks.register<FetchCompatJars>("fetchFcgtCompatJars")
 // required emf/etf deps aren't pulled into the pack dir (they go into run/mods/ via the mod fetch).
 val fetchFaResourcePack = tasks.register<FetchCompatJars>("fetchFaResourcePack") {
     group = "verification"
-    description = "Fetch the Fresh Animations resource pack into run/resourcepacks/ for smoke runs"
+    description = "Fetch the Fresh Animations / Glowing 3D Armor resource packs into run/resourcepacks/ for smoke runs"
     modsDir.set(project.layout.projectDirectory.dir("run/resourcepacks"))
-    versionHashes.set(availableHashes.filterKeys { it == "fa" || it == "faplayer" })
+    versionHashes.set(availableHashes.filterKeys { it == "fa" || it == "faplayer" || it == "glowingarmor" })
     include.set(selectedKeys)
     followDependencies.set(false)
     activeMcVersion?.let { mcGameVersion.set(it) }
@@ -110,55 +154,41 @@ extra["commonProject"] = commonProject
 dependencies {
     compileOnly("org.jspecify:jspecify:1.0.0")
     compileOnly("net.luckperms:api:5.4")
-    if (hasProperty("geckolib.version")) {
-        add("compileOnly", "maven.modrinth:geckolib:${findProperty("geckolib.version")}")
-    }
-    if (hasProperty("iris.version")) {
-        add("compileOnly", "maven.modrinth:iris:${findProperty("iris.version")}")
-    }
-    if (hasProperty("emf.version")) {
-        add("compileOnly", "maven.modrinth:entity-model-features:${findProperty("emf.version")}")
-    }
-    if (hasProperty("etf.version")) {
-        add("compileOnly", "maven.modrinth:entitytexturefeatures:${findProperty("etf.version")}")
-    }
-    if (hasProperty("mekanism.version")) {
-        add("compileOnly", "maven.modrinth:mekanism:${findProperty("mekanism.version")}")
-    }
-    if (hasProperty("waveycapes.version")) {
-        add("compileOnly", "maven.modrinth:wavey-capes:${findProperty("waveycapes.version")}")
-    }
-    if (hasProperty("deeperdarker.version")) {
-        add("compileOnly", "maven.modrinth:deeperdarker:${findProperty("deeperdarker.version")}")
-    }
-    if (hasProperty("uranus.version")) {
-        add("compileOnly", "maven.modrinth:uranus:${findProperty("uranus.version")}")
-    }
-    if (hasProperty("figura.version")) {
-        add("compileOnly", "maven.modrinth:figura:${findProperty("figura.version")}")
-    }
-    if (hasProperty("gender.version")) {
-        add("compileOnly", "maven.modrinth:female-gender:${findProperty("gender.version")}")
-    }
-    // Accessory providers (issue #246). Fabric: trinkets + accessories; NeoForge: curios (added on the
-    // neoforge project). Compat is @Pseudo/@Coerce so these are compileOnly parity deps + smoke-fetch sources.
-    if (hasProperty("trinkets.version")) {
-        add("compileOnly", "maven.modrinth:trinkets:${findProperty("trinkets.version")}")
-    }
-    if (hasProperty("accessories.version")) {
-        add("compileOnly", "maven.modrinth:accessories:${findProperty("accessories.version")}")
-    }
-    if (hasProperty("curios.version")) {
-        add("compileOnly", "maven.modrinth:curios:${findProperty("curios.version")}")
-    }
-    // First Person Model is Fabric-only, but the loader project compiles common's sources too, so the
-    // unremapped jar has to be here as well. That is usable only because FirstPersonCompat never touches an
-    // FPM member whose signature names a Minecraft type - FPM's own types (LogicHandler and friends) are
-    // fine, since those resolve identically either way; it is the MC types that differ between namespaces.
-    if (hasProperty("firstperson.version")) {
-        add("compileOnly", "maven.modrinth:first-person-model:${findProperty("firstperson.version")}")
-    }
 }
+
+// eunomia-core, unremapped - the loader recompiles common's sources, so it needs the same
+// version-agnostic API on its compile classpath (see the compileOnly in multiloader-loom).
+addCompileOnlyDependency("eunomia.version", "de.zannagh.eunomia:eunomia-core")
+// eunomia-common, unremapped - same reason as eunomia-core above, but MC-version-specific, so the
+// coordinate needs the variant's display_version appended, plus the `dev` classifier: eunomia's default
+// artifact is loom's remapped jar, which is intermediary-mapped on every MC 1.x variant. See
+// multiloader-loom for the full reasoning.
+if (hasProperty("eunomia.version") && hasProperty("display_version")) {
+    dependencies.add(
+        "compileOnly",
+        "de.zannagh.eunomia:eunomia-common:${findProperty("eunomia.version")}+${findProperty("display_version")}:dev"
+    )
+}
+addCompileOnlyDependency("geckolib.version", "maven.modrinth:geckolib")
+addCompileOnlyDependency("iris.version", "maven.modrinth:iris")
+addCompileOnlyDependency("emf.version", "maven.modrinth:entity-model-features")
+addCompileOnlyDependency("etf.version", "maven.modrinth:entitytexturefeatures")
+addCompileOnlyDependency("mekanism.version", "maven.modrinth:mekanism")
+addCompileOnlyDependency("waveycapes.version", "maven.modrinth:wavey-capes")
+addCompileOnlyDependency("deeperdarker.version", "maven.modrinth:deeperdarker")
+addCompileOnlyDependency("uranus.version", "maven.modrinth:uranus")
+addCompileOnlyDependency("figura.version", "maven.modrinth:figura")
+addCompileOnlyDependency("gender.version", "maven.modrinth:female-gender")
+// Accessory providers (issue #246). Fabric: trinkets + accessories; NeoForge: curios (added on the
+// neoforge project). Compat is @Pseudo/@Coerce so these are compileOnly parity deps + smoke-fetch sources.
+addCompileOnlyDependency("trinkets.version", "maven.modrinth:trinkets")
+addCompileOnlyDependency("accessories.version", "maven.modrinth:accessories")
+addCompileOnlyDependency("curios.version", "maven.modrinth:curios")
+// First Person Model is Fabric-only, but the loader project compiles common's sources too, so the
+// unremapped jar has to be here as well. That is usable only because FirstPersonCompat never touches an
+// FPM member whose signature names a Minecraft type - FPM's own types (LogicHandler and friends) are
+// fine, since those resolve identically either way; it is the MC types that differ between namespaces.
+addCompileOnlyDependency("firstperson.version", "maven.modrinth:first-person-model")
 
 // Include common's sources in the loader's source sets for IntelliJ
 sourceSets.main {

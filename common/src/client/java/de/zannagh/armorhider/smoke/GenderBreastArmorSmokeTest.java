@@ -4,9 +4,19 @@
 //? if fcgt && >= 26.2-1.pre {
 package de.zannagh.armorhider.smoke;
 
-import com.wildfire.main.WildfireGender;
+// FGM 5.0.0-Beta.5 (the 26.1.2+ pins, new package layout) repackaged its runtime config API: WildfireGender.getOrAddPlayerById
+// now hands out a PlayerConfigHolder whose settings are ConfigValue<T> accessors (update(T)) instead of
+// PlayerConfig#updateXxx setters, and Gender moved to the public com.wildfire.api package.
+//? if >= 26.1.2 {
+import com.wildfire.api.Gender;
+import com.wildfire.common.WildfireGender;
+import com.wildfire.common.config.value.ConfigValue;
+import com.wildfire.common.entitydata.PlayerConfigHolder;
+//? } else {
+/*import com.wildfire.main.WildfireGender;
 import com.wildfire.main.config.enums.Gender;
 import com.wildfire.main.entitydata.PlayerConfig;
+*///? }
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.api.ArmorHiderApi;
 import de.zannagh.armorhider.api.compat.CompatFlags;
@@ -15,6 +25,7 @@ import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.api.impl.AhRenderStateImpl;
 import de.zannagh.armorhider.client.common.RenderScope;
 import de.zannagh.armorhider.client.common.SlotModification;
+import de.zannagh.armorhider.client.compat.GenderPhysicsRelaxation;
 import de.zannagh.armorhider.client.render.rendertype.ArmorHiderRenderTypes;
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
@@ -30,6 +41,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 
 import java.nio.file.Path;
+import java.util.function.LongSupplier;
 
 /**
  * Female Gender Mod compatibility smoke (fabric-client-gametest-api-v1).
@@ -71,7 +83,27 @@ import java.nio.file.Path;
 public final class GenderBreastArmorSmokeTest implements FabricClientGameTest {
 
     // Front third-person so the breast cups face the camera in the screenshots.
-    private static final float BUST_SIZE = 0.9F;
+    //? if >= 26.1.2 {
+    // Beta.5 validates bustSize against ConfigKey.create(0.6f, 0.0f, 0.8f) and REJECTS an out-of-range
+    // update (returns false, keeps 0.6), so stay inside the range.
+    private static final float BUST_SIZE = 0.8F;
+    //? } else {
+    /*private static final float BUST_SIZE = 0.9F;
+    *///? }
+
+    //? if >= 26.1.2 {
+    /**
+     * Beta.5's {@code ConfigValue#update} validates the value and silently keeps the old one when it is
+     * rejected (e.g. out of range), so every setting the test depends on is read back and asserted.
+     */
+    private static <T> void setAndVerify(ConfigValue<T> value, T target, String setting) {
+        boolean updated = value.update(target);
+        if (!java.util.Objects.equals(value.get(), target)) {
+            throw new IllegalStateException("[smoke/fcgt] FGM rejected the " + setting + " update to " + target
+                    + " (update returned " + updated + ", value is " + value.get() + ")");
+        }
+    }
+    //?}
 
     @Override
     public void runTest(ClientGameTestContext context) {
@@ -102,11 +134,19 @@ public final class GenderBreastArmorSmokeTest implements FabricClientGameTest {
 
                 // Make the local player female with visible, physics-enabled breasts, shown even in
                 // armor (we equip a chestplate). This drives FGM's GenderArmorLayer for our hooks.
-                PlayerConfig genderConfig = WildfireGender.getOrAddPlayerById(player.getUUID());
+                //? if >= 26.1.2 {
+                PlayerConfigHolder genderConfig = WildfireGender.getOrAddPlayerById(player.getUUID());
+                setAndVerify(genderConfig.gender(), Gender.FEMALE, "gender");
+                setAndVerify(genderConfig.breasts().bustSize(), BUST_SIZE, "bustSize");
+                setAndVerify(genderConfig.breasts().physics().enabled(), true, "breastPhysics");
+                setAndVerify(genderConfig.showBreastsInArmor(), true, "showBreastsInArmor");
+                //? } else {
+                /*PlayerConfig genderConfig = WildfireGender.getOrAddPlayerById(player.getUUID());
                 genderConfig.updateGender(Gender.FEMALE);
                 genderConfig.updateBustSize(BUST_SIZE);
                 genderConfig.updateBreastPhysics(true);
                 genderConfig.updateShowBreastsInArmor(true);
+                *///? }
 
                 player.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.DIAMOND_CHESTPLATE));
                 client.options.setCameraType(CameraType.THIRD_PERSON_FRONT);
@@ -187,6 +227,58 @@ public final class GenderBreastArmorSmokeTest implements FabricClientGameTest {
                                 + " chest fully hidden (relaxed " + relaxedHidden + " -> " + relaxedHidden2
                                 + ") - the hidden-chest condition (shouldHide) is not being met at physics time");
             }
+            // Negative control: with the plate fully visible the hook must keep firing but decline to
+            // force the override. Without this, a shouldRelaxFor that simply returns true would sail
+            // through every assertion above - the relaxed counter climbs either way.
+            setChestOpacity(context, 1.0);
+            context.waitTicks(15);
+            long ticksVisible = climbOver(context, ArmorHiderRenderTypes::genderPhysicsTickCount, 15);
+            long relaxedVisible = climbOver(context, ArmorHiderRenderTypes::genderPhysicsRelaxedCount, 15);
+            ArmorHider.LOGGER.info("[smoke/fcgt] gender physics (chest @100%): ticks +{}, relaxed +{}",
+                    ticksVisible, relaxedVisible);
+            if (ticksVisible <= 0) {
+                throw new IllegalStateException(
+                        "[smoke/fcgt] getArmorPhysicsOverride hook stopped firing with the chest fully visible"
+                                + " (ticks +" + ticksVisible + ") - the negative control below cannot tell a correct"
+                                + " decline apart from a hook that is simply not running");
+            }
+            if (relaxedVisible > 0) {
+                throw new IllegalStateException(
+                        "[smoke/fcgt] armor physics was relaxed with the chest at 100% opacity (relaxed +"
+                                + relaxedVisible + ") - GenderPhysicsRelaxation.shouldRelaxFor says yes for a fully"
+                                + " worn plate, so FGM's damping is defeated for every armored player regardless of"
+                                + " what Armor Hider is configured to hide");
+            }
+
+            // Threshold: 0.3 is below RELAX_BELOW_OPACITY (0.5) but far above the old shouldHide() cut-off
+            // of 0.05, so this would NOT have relaxed under the previous shouldHide()-based trigger. It
+            // pins the new "faded far enough to read as not worn" rule rather than "slider at zero".
+            setChestOpacity(context, 0.3);
+            context.waitTicks(15);
+            long relaxedFaded = climbOver(context, ArmorHiderRenderTypes::genderPhysicsRelaxedCount, 15);
+            ArmorHider.LOGGER.info("[smoke/fcgt] gender physics (chest @30%): relaxed +{}", relaxedFaded);
+            if (relaxedFaded <= 0) {
+                throw new IllegalStateException(
+                        "[smoke/fcgt] armor physics was not relaxed at 30% chest opacity (relaxed +" + relaxedFaded
+                                + ") - the trigger is back on a hidden-only condition (shouldHide, opacity < 0.05)"
+                                + " instead of GenderPhysicsRelaxation.RELAX_BELOW_OPACITY (" + GenderPhysicsRelaxation.RELAX_BELOW_OPACITY
+                                + "), so a plate faded to a ghost still damps the breasts fully");
+            }
+
+            // Boundary just above the threshold - 0.7 is a visibly worn plate and must keep damping.
+            setChestOpacity(context, 0.7);
+            context.waitTicks(15);
+            long relaxedAbove = climbOver(context, ArmorHiderRenderTypes::genderPhysicsRelaxedCount, 15);
+            ArmorHider.LOGGER.info("[smoke/fcgt] gender physics (chest @70%): relaxed +{}", relaxedAbove);
+            if (relaxedAbove > 0) {
+                throw new IllegalStateException(
+                        "[smoke/fcgt] armor physics was relaxed at 70% chest opacity (relaxed +" + relaxedAbove
+                                + "), above GenderPhysicsRelaxation.RELAX_BELOW_OPACITY ("
+                                + GenderPhysicsRelaxation.RELAX_BELOW_OPACITY + ") - the comparison is inverted or the"
+                                + " threshold moved, and a plainly visible plate no longer damps the physics");
+            }
+
+            assertPhysicsIgnoreCombatFade(context, singleplayer);
             assertFadesDuringCombat(context, singleplayer);
             assertArmoredElytraFollowsCombat(context, singleplayer);
 
@@ -299,6 +391,70 @@ public final class GenderBreastArmorSmokeTest implements FabricClientGameTest {
                 .isInCombat(ArmorHiderClient.getCurrentPlayerName());
     }
 
+    // ── Issue 1 (combat): physics follow the CONFIGURED opacity, not the combat fade ─────────────
+    // Combat detection temporarily raises the *rendered* chest opacity back towards full and ramps it
+    // down again, so a physics trigger derived from the combat-adjusted opacity (as the old
+    // shouldHide()-based one was) switches the jiggle off the moment the player is hit and back on when
+    // the window expires - the "works sometimes" in the issue. GenderPhysicsRelaxation reads
+    // SlotModification#configuredOpacityFor instead, so with the slider at 0% the physics must stay
+    // relaxed all through a fight even while the plate is drawn opaque again.
+    // Runs before assertFadesDuringCombat and restores what it changed (combat waited out, detection
+    // back off, chest opacity reset), because that section - and assertArmoredElytraFollowsCombat after
+    // it - assume they open their own combat window from a clean baseline.
+    private static void assertPhysicsIgnoreCombatFade(ClientGameTestContext context, TestSingleplayerContext singleplayer) {
+        setChestOpacity(context, 0.0);
+        context.runOnClient(client -> {
+            var combatConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER
+                    .resolveConfig(ArmorHiderClient.getCurrentPlayerName());
+            combatConfig.enableCombatDetection.setValue(true);
+            // Left off so the chest keeps going through Armor Hider's own opacity resolution during
+            // combat - vanilla-model enforcement would sidestep the fade this assertion is about.
+            combatConfig.inCombatUseDefaultModel.setValue(false);
+        });
+        context.waitTicks(5);
+
+        singleplayer.getServer().runOnServer(mcServer -> {
+            var level = mcServer.overworld();
+            var serverPlayer = mcServer.getPlayerList().getPlayers().get(0);
+            // Creative shrugs off generic damage - no damage event, no combat, nothing to assert.
+            serverPlayer.setGameMode(GameType.SURVIVAL);
+            serverPlayer.hurtServer(level, level.damageSources().generic(), 4.0F);
+        });
+        context.waitTicks(5);
+
+        double transparencyOnHit = context.computeOnClient(client -> resolveChestTransparency());
+        if (!context.computeOnClient(client -> isInCombat()) || transparencyOnHit < 0.9) {
+            throw new IllegalStateException(
+                    "[smoke/fcgt] chest did not snap to ~full opacity after damage (inCombat="
+                            + context.computeOnClient(client -> isInCombat()) + ", transparency=" + transparencyOnHit
+                            + ") - the combat fade is not actually raising the rendered opacity, so the"
+                            + " combat-independence assertion below would not be testing anything");
+        }
+
+        long relaxedInCombat = climbOver(context, ArmorHiderRenderTypes::genderPhysicsRelaxedCount, 15);
+        ArmorHider.LOGGER.info("[smoke/fcgt] gender physics (chest @0%, in combat, transparency {}): relaxed +{}",
+                transparencyOnHit, relaxedInCombat);
+        if (relaxedInCombat <= 0) {
+            throw new IllegalStateException(
+                    "[smoke/fcgt] armor physics stopped being relaxed while in combat at transparency "
+                            + transparencyOnHit + " with the chest configured to 0% (relaxed +" + relaxedInCombat
+                            + ") - the trigger is reading the combat-adjusted opacity instead of the configured one,"
+                            + " so the jiggle switches itself off on every hit and back on when combat expires");
+        }
+
+        // Restore the baseline the later combat sections expect: wait the combat window out, turn
+        // detection back off and drop the chest back to fully visible.
+        for (int i = 0; i < 24 && context.computeOnClient(client -> isInCombat()); i++) {
+            context.waitTicks(10);
+        }
+        context.runOnClient(client -> ArmorHiderClient.CLIENT_CONFIG_MANAGER
+                .resolveConfig(ArmorHiderClient.getCurrentPlayerName())
+                .enableCombatDetection.setValue(false));
+        setChestOpacity(context, 1.0);
+        ArmorHider.LOGGER.info("[smoke/fcgt] gender physics ignore the combat fade ({} relaxed ticks in combat)",
+                relaxedInCombat);
+    }
+
     // ── Issue 2: the breast cups must follow the post-damage combat fade ─────────────────────────
     // Combat detection snaps every configured piece to full opacity on damage and then ramps it back
     // down over the combat window (CombatManager#transformTransparencyBasedOnCombat, resolved inside
@@ -379,6 +535,15 @@ public final class GenderBreastArmorSmokeTest implements FabricClientGameTest {
         return SlotModification.of(ArmorHiderClient.getCurrentPlayerName(), EquipmentSlot.CHEST, chest).transparency();
     }
 
+    // Samples one of the gender-physics diagnostic counters across a wait window and returns how far it
+    // climbed, so the "does / does not fire" assertions below read as a single number.
+    private static long climbOver(ClientGameTestContext context, LongSupplier counter, int ticks) {
+        long before = context.computeOnClient(client -> counter.getAsLong());
+        context.waitTicks(ticks);
+        long after = context.computeOnClient(client -> counter.getAsLong());
+        return after - before;
+    }
+
     private static void setChestOpacity(ClientGameTestContext context, double opacity) {
         context.runOnClient(client -> {
             var config = ArmorHiderClient.CLIENT_CONFIG_MANAGER
@@ -413,11 +578,19 @@ public final class GenderBreastArmorSmokeTest implements FabricClientGameTest {
                 if (player == null) {
                     return 0.0;
                 }
-                PlayerConfig cfg = WildfireGender.getPlayerById(player.getUUID());
+                //? if >= 26.1.2 {
+                PlayerConfigHolder cfg = WildfireGender.getPlayerById(player.getUUID());
+                if (cfg == null) {
+                    return 0.0;
+                }
+                return (double) cfg.breastPhysics().left().getPositionY();
+                //? } else {
+                /*PlayerConfig cfg = WildfireGender.getPlayerById(player.getUUID());
                 if (cfg == null) {
                     return 0.0;
                 }
                 return (double) cfg.getLeftBreastPhysics().getPositionY();
+                *///? }
             });
             min = Math.min(min, y);
             max = Math.max(max, y);

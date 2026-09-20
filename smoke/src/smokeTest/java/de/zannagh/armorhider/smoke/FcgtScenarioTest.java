@@ -50,7 +50,9 @@ class FcgtScenarioTest {
             "water-transparency",
             "gender-breast-armor",
             "armored-elytra-gender",
-            "emf-fa"
+            "emf-fa",
+            "emf-360",
+            "fabric-armor-renderer"
     })
     void scenario(String fcgtId) throws Exception {
         Path repoRoot = GradleFork.repoRoot();
@@ -66,6 +68,7 @@ class FcgtScenarioTest {
         cmd.add("-Psmoke.delay.ms=" + System.getProperty("smoke.delay.ms", "15000"));
         cmd.add("--console=plain");
         cmd.add("--no-daemon");
+        cmd.add("--build-cache");
 
         // FCGT calls System.exit when the (single, filtered) gametest returns, so the real exit code
         // is meaningful - wait for the natural exit.

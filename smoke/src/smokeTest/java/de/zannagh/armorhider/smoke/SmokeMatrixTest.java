@@ -72,11 +72,13 @@ class SmokeMatrixTest {
 
     private static final List<String> FABRIC_VARIANTS = List.of(
             "fabric-1.20.1", "fabric-1.21.1", "fabric-1.21.4", "fabric-1.21.8",
-            "fabric-1.21.10", "fabric-1.21.11", "fabric-26.1.2", "fabric-26.2"
+            "fabric-1.21.10", "fabric-1.21.11", "fabric-26.1.2", "fabric-26.2",
+            "fabric-26.3"
     );
     private static final List<String> NEOFORGE_VARIANTS = List.of(
             "neoforge-1.21.1", "neoforge-1.21.4", "neoforge-1.21.8",
-            "neoforge-1.21.10", "neoforge-1.21.11", "neoforge-26.1.2", "neoforge-26.2"
+            "neoforge-1.21.10", "neoforge-1.21.11", "neoforge-26.1.2", "neoforge-26.2",
+            "neoforge-26.3"
     );
     /**
      * Variants where the FCGT (entity-render) phase is wired through the build -
@@ -91,7 +93,7 @@ class SmokeMatrixTest {
      */
     static final List<String> FCGT_VARIANTS = List.of(
             "fabric-1.21.4", "fabric-1.21.8", "fabric-1.21.10", "fabric-1.21.11",
-            "fabric-26.1.2", "fabric-26.2"
+            "fabric-26.1.2", "fabric-26.2", "fabric-26.3"
     );
 
     /**
@@ -195,7 +197,11 @@ class SmokeMatrixTest {
         cmd.add("-Pcompat=" + compat);
         cmd.add("-Psmoke.delay.ms=" + System.getProperty("smoke.delay.ms", "15000"));
         cmd.add("--console=plain");
+        // --no-daemon is load-bearing: the game JVM is a child of this forked ./gradlew, so the
+        // watchdog can reap the whole tree on timeout. A daemon would reparent the game JVM and orphan
+        // it. --build-cache lets a variant's compile outputs be reused across its two compat rows.
         cmd.add("--no-daemon");
+        cmd.add("--build-cache");
 
         Lock variantLock = VARIANT_LOCKS.computeIfAbsent(variant, v -> new ReentrantLock());
         variantLock.lock();

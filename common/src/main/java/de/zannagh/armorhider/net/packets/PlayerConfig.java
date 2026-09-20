@@ -1,30 +1,20 @@
 package de.zannagh.armorhider.net.packets;
 
 import com.google.gson.annotations.SerializedName;
+import de.zannagh.armorhider.AhAllocProbe;
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.api.ArmorHiderPlayerConfigApi;
 import de.zannagh.armorhider.configuration.*;
 import de.zannagh.armorhider.configuration.items.*;
 import de.zannagh.armorhider.configuration.items.InCombatUseDefaultArmorSkin;
-//? if >= 1.20.5 {
-import de.zannagh.armorhider.net.CompressedJsonCodec;
-import io.netty.buffer.ByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-//?}
+import de.zannagh.eunomia.networking.serialization.NetworkHealable;
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.NonNull;
 
 import java.io.Reader;
 import java.util.UUID;
 
-//? if >= 1.21.11 {
-import net.minecraft.resources.Identifier;
-        //?}
 import org.jspecify.annotations.Nullable;
-//? if >= 1.20.5 && < 1.21.11 {
-/*import net.minecraft.resources.Identifier;
-*///?}
 
 /**
  * Represents the configuration settings for a player with various customizable options.
@@ -35,7 +25,7 @@ import org.jspecify.annotations.Nullable;
  *
  * @since 0.5.0
  */
-public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
+public class PlayerConfig implements ConfigurationSource<PlayerConfig>, NetworkHealable {
 
     @SerializedName(value = "configVersion")
     public int configVersion;
@@ -51,28 +41,14 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
      */
     private static final int MAX_GLOBAL_OVERRIDE_DEPTH = 1;
 
-    //? if >= 1.21.11 {
-    public static final Identifier PACKET_IDENTIFIER = Identifier.fromNamespaceAndPath("de.zannagh.armorhider", "settings_c2s_packet");
-    //?}
-
-    //? if >= 1.20.5 && < 1.21.11 {
-    /*public static final Identifier PACKET_IDENTIFIER = Identifier.fromNamespaceAndPath("armorhider", "settings_c2s_packet");
-    *///?}
-
-    //? if >= 1.20.5 {
-    public static final StreamCodec<ByteBuf, PlayerConfig> STREAM_CODEC = CompressedJsonCodec.create(PlayerConfig.class);
-
-    public static final Type<PlayerConfig> TYPE = new Type<>(PACKET_IDENTIFIER);
-
-    public StreamCodec<ByteBuf, PlayerConfig> getCodec() {
-        return CompressedJsonCodec.create(PlayerConfig.class);
-    }
-
+    /**
+     * Post-decode repair hook invoked by eunomia's {@code PayloadCodec} after this config is
+     * deserialized off the wire, giving network data the same repair pass as data read from disk.
+     */
     @Override
-    public @NonNull Type<? extends CustomPacketPayload> type() {
-        return TYPE;
+    public void heal() {
+        PlayerConfig.heal(this);
     }
-    //?}
 
     /**
      * The opacity that the helmet slot should be rendered at. Also see {@link ArmorOpacity}.<br/><br/>
@@ -396,6 +372,28 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
 
     private transient boolean hasChangedFromSerializedContent;
 
+    /**
+     * Whether this instance was synthesized as a per-call, derived resolution of some OTHER config rather
+     * than being a config the user owns: the {@code CURRENT.deepCopy(name, id)} of an unknown remote player
+     * and the fresh-defaults fallback of {@code getGlobalConfigOverride()}. Both are answers the client
+     * computes on the fly for "how do I render that stranger"; neither is ever persisted, transmitted, or
+     * shown in a settings screen.
+     * <p>
+     * It exists so writes that only made sense against a user-owned config can be skipped here - currently
+     * just the exclusion-item discovery in {@code SlotModification.addItemInformation}. Before those
+     * resolutions were memoised by {@code ResolvedConfigCache} they were rebuilt per call and discarded on
+     * the next line, so the writes went nowhere; the flag restores exactly that, making the memoisation a
+     * pure performance change.
+     * <p>
+     * {@code transient}, deliberately and load-bearingly: Gson's default excluder drops transient fields, so
+     * this can reach neither the config JSON on disk nor the gzipped-JSON network payload
+     * ({@code CompressedJsonCodec} encodes through the same {@code ArmorHider.GSON}). It is also never
+     * copied by {@link #deepCopy} / {@link #forNetwork} / {@link #migrate}: those all build their result via
+     * a constructor, so every derived or healed config starts out {@code false} and only the two explicit
+     * call sites in {@code AhPlayerConfigApiImpl} ever set it.
+     */
+    private transient boolean derivedResolution;
+
     public PlayerConfig(UUID uuid, String name) {
         this();
         this.playerId = new PlayerUuid(uuid);
@@ -444,6 +442,24 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig> {
         irisDitheringPhases = new IrisDitherPhases();
         irisDitheringResCap = new IrisDitherResCap();
         irisPartialTransparencyMode = new IrisTransparencyMode();
+
+        // Test-only probe (no-op unless a smoke test armed it): this constructor allocates ~37 config
+        // items and must never be reached from the render hot path. See HotPathAllocSmokeTest.
+        AhAllocProbe.recordPlayerConfigAllocation();
+    }
+
+    /**
+     * Marks this instance as a derived, per-call resolution and returns it, so call sites can read
+     * {@code return CURRENT.deepCopy(name, id).markAsDerivedResolution();}. See {@link #derivedResolution}.
+     */
+    public @NonNull PlayerConfig markAsDerivedResolution() {
+        derivedResolution = true;
+        return this;
+    }
+
+    /** @see #derivedResolution */
+    public boolean isDerivedResolution() {
+        return derivedResolution;
     }
 
     public @NonNull ExclusionItemConfiguration getExclusionItems() {

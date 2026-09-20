@@ -90,6 +90,11 @@ public abstract class CustomHeadLayerMixin {
             return;
         }
         AhRenderManagementApi.enterScope(result);
+        if (FirstPersonCompat.isCameraEntityBody(state)) {
+            // Diagnostic (first-person smoke): a head scope entered for FPM's camera body. Not expected with
+            // FPM 2.7.2, which blanks the worn head for that render - see FirstPersonCompat#suppressesHeadLayer.
+            de.zannagh.armorhider.client.render.rendertype.ArmorHiderRenderTypes.recordFirstPersonHeadScopeEntry();
+        }
     }
 
     //? if >= 1.21.9 {

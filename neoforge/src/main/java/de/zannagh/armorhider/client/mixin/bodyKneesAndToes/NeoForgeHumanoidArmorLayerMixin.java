@@ -105,26 +105,10 @@ public class NeoForgeHumanoidArmorLayerMixin<T extends LivingEntity, M extends H
         original.call(model, poseStack, vertexConsumer, packedLight, packedOverlay, modifiedColor);
     }
 
-    // --- Enchantment glint: swap armorEntityGlint → co-draw glint in renderGlint (issue #324) ---
-    // NeoForge routes the glint through the Model overload of renderGlint. The base was swapped to a
-    // translucent, depth-write-disabled type above, so the vanilla glint's EQUAL depth test fails
-    // against depth the base never wrote and the glint vanishes on faded armor. Swap it for a co-draw
-    // glint type sharing the base's LEQUAL depth test. No-ops when nothing is being faded.
-    @WrapOperation(
-            method = "renderGlint(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/model/Model;)V",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/client/renderer/RenderType;armorEntityGlint()Lnet/minecraft/client/renderer/RenderType;"
-            )
-    )
-    private RenderType modifyArmorGlint(Operation<RenderType> original) {
-        RenderType originalType = original.call();
-        var modApi = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE).renderModificationApi();
-        if (modApi.getTranslucentArmorGlintRenderType(originalType) instanceof RenderType rt) {
-            return rt;
-        }
-        return originalType;
-    }
+    // No enchantment-glint swap: on a faded (translucent, depth-write-disabled) base the vanilla glint's
+    // EQUAL depth test fails and the glint vanishes on the faded piece, which is the intended behaviour.
+    // The co-draw glint that re-issued it painted the whole model and broke under shaders, so it was
+    // removed. The glint on/off toggle still applies via getHasFoil at full opacity.
 
     // --- Trim render type: swap armorTrimsSheet → translucent in renderTrim ---
 

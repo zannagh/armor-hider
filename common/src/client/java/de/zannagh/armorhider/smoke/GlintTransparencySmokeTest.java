@@ -29,26 +29,32 @@ import java.nio.file.Path;
 /**
  * Phase glint-transparency render smoke (fabric-client-gametest-api-v1).
  * <p>
- * Reproduces issue #324: with a slot's glint kept ("affect glint" on) and the piece faded to a partial
- * opacity, the enchantment glint disappears entirely rather than fading with the item. The mod's
- * translucent armor render type is built from the armor texture alone and carries no glint pass, so a
- * faded enchanted piece swapped onto it loses the glint. The expected behaviour is a glint that stays
- * visible but fades in step with the item's opacity.
+ * Covers the faded-enchanted-armor behaviour after the issue #324 co-draw was reverted. The mod no
+ * longer re-issues the enchantment glint onto a translucent piece: on a faded (depth-write-disabled)
+ * base the vanilla glint's EQUAL depth test fails and the glint vanishes with the fade, which is the
+ * intended behaviour (the co-draw painted the whole model, mismatched modded/texture-pack armor
+ * outlines and broke under shaders). What must still hold is that a faded enchanted piece keeps
+ * <em>fading</em>: on 26.3 the fused armor+glint shader clamps output alpha up to the Glint Strength
+ * setting, so before the revert an enchanted piece rendered ~opaque even at 5% (#3) and vanished under
+ * "Improved Transparency"/OIT (#4). Routing the faded enchanted piece onto the plain translucent armor
+ * type (which fades and carries OIT) fixes both, at the cost of the glint on faded armor.
  * <p>
  * The scene is a hovering player in third-person-back against a solid stone backdrop (a plain, matte
- * background makes the iridescent glint easy to read), wearing an enchanted diamond chestplate. Glint
+ * background makes the iridescent glint easy to read), wearing an enchanted netherite chestplate. Glint
  * is forced on via {@link DataComponents#ENCHANTMENT_GLINT_OVERRIDE} so the test needs no enchantment
  * registry lookup and behaves identically on every version.
  * <p>
  * Three shots are captured for eyeballing (FCGT does no pixel diffing):
  * <ol>
- *   <li>{@code 100_opacity} - fully opaque enchanted chest: the glint positive control (mod is a
- *       no-op here, so this is vanilla-equivalent and must always show glint).</li>
- *   <li>{@code 40_opacity} - the reported case: a mostly-faded chest that must still show a (faded)
- *       glint. Pre-fix this frame shows a translucent chest with NO glint.</li>
- *   <li>{@code 05_opacity} - nearly hidden: glint should be barely-there, not popped back to full.</li>
+ *   <li>{@code 100} - fully opaque enchanted chest: the glint positive control (mod is a no-op here,
+ *       so this is vanilla-equivalent and must always show a full glint).</li>
+ *   <li>{@code 40} - the reported case: a mostly-faded chest. The chest must be translucent (fading,
+ *       not opaque); the glint is gone.</li>
+ *   <li>{@code 05} - nearly hidden: the chest is barely-there and still fading, not popped back to
+ *       opaque by an enchant glint.</li>
  * </ol>
- * Gated to the {@code fcgt} constant, currently wired for fabric-26.2.
+ * A machine check asserts the faded enchanted piece is routed onto the translucent armor type (so it
+ * fades). Gated to the {@code fcgt} constant, currently wired for fabric-26.2.
  */
 public final class GlintTransparencySmokeTest implements FabricClientGameTest {
 
@@ -119,28 +125,31 @@ public final class GlintTransparencySmokeTest implements FabricClientGameTest {
             // diff isolates the glint regardless of how subtle it reads under llvmpipe.
             captureGlintPair(context, 1.0, "100");
 
-            // The reported bug case at 40% opacity, captured as a before/after pair with identical
-            // framing via the glint-swap toggle. BEFORE (swap off) reproduces the vanish: the vanilla
-            // glint's EQUAL depth test fails against our no-depth-write base. AFTER (swap on) re-issues
-            // the glint on a depth-matched pipeline so it draws with the faded armor.
-            context.runOnClient(client -> ArmorHiderRenderTypes.setGlintSwapEnabled(false));
-            captureGlintPair(context, 0.4, "40_before");
+            // The reported #3/#4 case: a mostly-faded enchanted chest. The mod no longer forces the
+            // glint onto a translucent co-draw type - on a faded (depth-write-disabled) base the vanilla
+            // glint's EQUAL depth test fails and the glint simply vanishes with the fade, which is the
+            // intended behaviour. But the piece MUST still fade: pre-revert on 26.3 the fused glint
+            // shader clamped output alpha back up to the Glint Strength setting (color.a = max(color.a,
+            // GlintAlpha)) so an enchanted piece rendered ~opaque even at 5% opacity (#3), and its OIT
+            // pipeline was wrong so it vanished under "Improved Transparency" (#4). Both are fixed by
+            // routing the faded enchanted piece onto the plain translucent armor type (fades + carries
+            // OIT), dropping the glint. Assert that routing actually happens.
+            long routedBefore = context.computeOnClient(client -> ArmorHiderRenderTypes.armorNoDepthPathCount());
+            captureGlintPair(context, 0.4, "40");
+            captureGlintPair(context, 0.05, "05");
+            long routedAfter = context.computeOnClient(client -> ArmorHiderRenderTypes.armorNoDepthPathCount());
 
-            long swapsBefore = context.computeOnClient(client -> ArmorHiderRenderTypes.armorGlintSwapCount());
-            context.runOnClient(client -> ArmorHiderRenderTypes.setGlintSwapEnabled(true));
-            captureGlintPair(context, 0.4, "40_after");
-            long swapsAfter = context.computeOnClient(client -> ArmorHiderRenderTypes.armorGlintSwapCount());
-
-            // Machine check (per this repo's smoke convention): the swap must actually fire while a
-            // faded enchanted piece is on screen. If the wrap silently misses its target on a version
-            // bump the glint just reverts to vanishing with no crash to notice.
-            if (swapsAfter <= swapsBefore) {
+            // Machine check (per this repo's smoke convention): the faded enchanted piece must be routed
+            // onto our translucent armor type so it fades. If the armorCutoutNoCullGlint/armorCutoutNoCull
+            // swap silently misses its target on a version bump, the piece would render opaque (the #3
+            // regression) with no crash to notice.
+            if (routedAfter <= routedBefore) {
                 throw new IllegalStateException(
-                        "[smoke/fcgt] armor glint swap never fired for a faded enchanted piece (delta "
-                                + (swapsAfter - swapsBefore) + ") - the armorEntityGlint wrap missed its"
-                                + " target; the glint would silently vanish on translucent armor");
+                        "[smoke/fcgt] faded enchanted armor was never routed onto the translucent armor type "
+                                + "(delta " + (routedAfter - routedBefore) + ") - it would render opaque instead "
+                                + "of fading; the armor render-type swap missed its target");
             }
-            ArmorHider.LOGGER.info("[smoke/fcgt] glint swaps during 40%-after capture: {}", swapsAfter - swapsBefore);
+            ArmorHider.LOGGER.info("[smoke/fcgt] faded-armor translucent routings during capture: {}", routedAfter - routedBefore);
 
             ArmorHider.LOGGER.info("[smoke/fcgt] Glint transparency smoke complete");
         }

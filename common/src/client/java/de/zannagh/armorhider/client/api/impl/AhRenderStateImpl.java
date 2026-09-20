@@ -35,6 +35,9 @@ public final class AhRenderStateImpl {
             ThreadLocal.withInitial(() -> new EnumMap<>(RenderScope.class));
     private static final ThreadLocal<String> CURRENT_PLAYER_NAME = ThreadLocal.withInitial(() -> "");
 
+    /** Cached once - {@code RenderScope.values()} clones its array on every call. */
+    private static final RenderScope[] ALL_SCOPES = RenderScope.values();
+
     // Diagnostic counter: scope entries that carried a real (non-empty) modification.
     // The render hooks fail silently when their injection targets drift between MC
     // versions - smoke tests assert this counter moves to catch dead pipelines.
@@ -214,6 +217,44 @@ public final class AhRenderStateImpl {
         return ctx != null && !ctx.isEmpty();
     }
 
+    /**
+     * Whether any per-scope context is currently active (present in the map), including empty
+     * contexts. Per-scope contexts are only entered during the submit/layer phase and are removed
+     * by their paired exit, so a non-empty map at the start of a fresh entity-state extraction means
+     * that extraction is nested inside an already-active submit (e.g. EMF 3.3 re-extracting the
+     * player state from within the off-hand item submit) rather than a clean top-level extraction.
+     */
+    public static boolean hasAnyActiveScope() {
+        return !ACTIVE_SCOPES.get().isEmpty();
+    }
+
+    /**
+     * Whether ANY currently active scope carries a real (non-empty) modification. Deliberately distinct
+     * from {@link #hasAnyActiveScope()}, which counts empty contexts as active and is used to detect
+     * re-entrant entity-state extraction - do not conflate the two.
+     * <p>
+     * This exists as a hot-path guard: it does a single {@code ThreadLocal} get and walks a tiny
+     * {@link EnumMap}, allocating nothing (no varargs array, no empty context). Callers that would
+     * otherwise query several scopes per model part or per baked quad can bail out on a {@code false}
+     * here, because a miss on every scope means every one of those queries would have returned an
+     * empty, no-op context.
+     */
+    public static boolean hasAnyScopeModification() {
+        var active = ACTIVE_SCOPES.get();
+        if (active.isEmpty()) {
+            return false;
+        }
+        // Indexed over a cached RenderScope[] rather than active.values(): both RenderScope.values() and an
+        // EnumMap value-view iterator allocate, and the point of this method is that it allocates nothing.
+        for (RenderScope scope : ALL_SCOPES) {
+            var ctx = active.get(scope);
+            if (ctx != null && !ctx.isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static boolean shouldEnforceVanillaRendering() {
         return shouldEnforceVanillaRendering(currentlyHandledPlayerName());
     }
@@ -285,6 +326,8 @@ public final class AhRenderStateImpl {
         }
         // SlotModification.of already yields an empty (non-hiding) modification when Armor Hider is
         // disabled / force-off for this player, so those guards are respected without repeating them.
-        return SlotModification.of(config, slot).shouldHide();
+        // addItemInformation(EMPTY) is what applies ArmorHiderRenderApi rules - it is the single
+        // evaluation point, and this query has no specific stack to offer, hence the empty one.
+        return SlotModification.of(config, slot).addItemInformation(ItemStack.EMPTY).shouldHide();
     }
 }

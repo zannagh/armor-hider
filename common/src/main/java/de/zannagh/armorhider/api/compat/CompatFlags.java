@@ -12,7 +12,13 @@ public enum CompatFlags {
      *
      * @since 0.10.0-pre.8
      */
-    GENDER_MOD(1<<0, "com.wildfire.render.GenderArmorLayer"),
+    // FGM 5.0.0-Beta.5 (the 26.1.2+ pins, new package layout) moved its render classes from com.wildfire.render to
+    // com.wildfire.client.render.
+    //? if >= 26.1.2 {
+    GENDER_MOD(1<<0, "com.wildfire.client.render.GenderArmorLayer"),
+    //? } else {
+    /*GENDER_MOD(1<<0, "com.wildfire.render.GenderArmorLayer"),
+    *///? }
 
     /**
      * Elytra Trims.
@@ -144,7 +150,20 @@ public enum CompatFlags {
      *
      * @since 0.12.9
      */
-    ARMORED_ELYTRA(1<<18, "dorkix.armored.elytra.ArmoredElytra");
+    ARMORED_ELYTRA(1<<18, "dorkix.armored.elytra.ArmoredElytra"),
+
+    /**
+     * Fabric API's {@code ArmorRenderer} (fabric-rendering-v1). Mods register a per-item armor renderer
+     * with it (Nycto's vampire/hunter armor, for instance) and Fabric API then cancels
+     * {@code HumanoidArmorLayer.renderArmorPiece} at HEAD to draw the mod's own model instead - so Armor
+     * Hider's own hook on that method never sees the piece when Fabric API wins the HEAD race.
+     * <p>
+     * This is a loader API rather than a single mod, so the flag covers every mod that renders armor
+     * through it.
+     *
+     * @since 0.12.20
+     */
+    FABRIC_ARMOR_RENDERER(1<<19, "net.fabricmc.fabric.api.client.rendering.v1.ArmorRenderer");
 
     private final long compatFlagValue;
 

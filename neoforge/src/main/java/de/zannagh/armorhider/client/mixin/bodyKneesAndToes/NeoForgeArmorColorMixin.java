@@ -23,10 +23,17 @@ import net.minecraft.client.renderer.RenderTypes;
 //? if 1.21.9 || 1.21.10
 //import net.minecraft.client.renderer.RenderType;
 
-//? if >= 26.2-1.pre {
+//? if >= 26.3-0.snapshot.2 {
+/^import net.minecraft.client.renderer.feature.phase.FeatureRenderPhase;
+import net.minecraft.client.renderer.feature.submit.SubmitNode;
+^///?} elif >= 26.2-1.pre {
 /^import net.minecraft.client.renderer.feature.phase.TranslucentFeatureRenderPhase;
 import net.minecraft.client.renderer.feature.submit.TranslucentSubmit;
 ^///?}
+// 26.3 swapped ModelFeatureRenderer.Submit's TextureAtlasSprite slot for a UvMapping (sprites still
+// implement it), mirroring the submitModel change EquipmentRenderMixin tracks.
+//? if >= 26.3-0.snapshot.2
+//import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 
 /^*
  * NeoForge-specific armor color transparency mixin.
@@ -130,42 +137,74 @@ public class NeoForgeArmorColorMixin {
     ^///?}
 
     //? if >= 26.2-1.pre {
+    // 26.3 retyped SubmitNodeCollection.translucentModels to the FeatureRenderPhase interface, so
+    // submitModel now emits `invokeinterface FeatureRenderPhase.submit(SubmitNode)`; the concrete
+    // TranslucentFeatureRenderPhase.submit(TranslucentSubmit) target of the 26.2 branch is simply absent
+    // there (javap on the 26.3.0.1-beta patched jar) and the wrap silently never applied. Mirrors the
+    // 26.3 branch of SubmitNodeCollectorMixin.
     @WrapOperation(
             method = "submitModel",
             at = @At(
                     value = "INVOKE",
+                    //? if >= 26.3-0.snapshot.2 {
+                    /^target = "Lnet/minecraft/client/renderer/feature/phase/FeatureRenderPhase;submit(Lnet/minecraft/client/renderer/feature/submit/SubmitNode;)V"
+                    ^///? } else {
                     target = "Lnet/minecraft/client/renderer/feature/phase/TranslucentFeatureRenderPhase;submit(Lnet/minecraft/client/renderer/feature/submit/TranslucentSubmit;)V"
+                    //? }
             )
     )
     @SuppressWarnings({"unchecked", "rawtypes"})
+    //? if >= 26.3-0.snapshot.2 {
+    /^private void wrapArmorModelSubmit(FeatureRenderPhase phase, SubmitNode submit, Operation<Void> original) {
+    ^///? } else {
     private void wrapArmorModelSubmit(TranslucentFeatureRenderPhase phase, TranslucentSubmit submit, Operation<Void> original) {
+    //? }
         if (!(submit instanceof ModelFeatureRenderer.Submit<?> modelSubmit)) {
             original.call(phase, submit);
             return;
         }
-        if (ah$shouldApplyArmorTransparency()) {
-            float alpha = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE, RenderScope.ELYTRA).renderModificationApi().getTransparencyAlpha();
-
-            int origColor = modelSubmit.tintedColor();
-            int origAlpha = (origColor >> 24) & 0xFF;
-            int newAlpha = Math.round(alpha * origAlpha);
-            int modifiedColor = (origColor & 0x00FFFFFF) | (newAlpha << 24);
-
-            RenderType translucentType = modelSubmit.renderType();
-            if (modelSubmit.sprite() != null) {
-                translucentType = RenderTypes.entityTranslucent(modelSubmit.sprite().atlasLocation());
-            }
-
-            var modified = new ModelFeatureRenderer.Submit(
-                    translucentType, modelSubmit.pose(), modelSubmit.model(), modelSubmit.state(),
-                    modelSubmit.lightCoords(), modelSubmit.overlayCoords(), modifiedColor,
-                    modelSubmit.sprite(), modelSubmit.sheetedDecalPose()
-            );
-
-            original.call(phase, (TranslucentSubmit) modified);
-        } else {
+        // NeoForge's patched EquipmentLayerRenderer.renderLayers still calls RenderTypes.armorCutoutNoCull
+        // and OrderedSubmitNodeCollector.submitModel (javap, 26.2 and 26.3), so the common
+        // EquipmentRenderMixin already swapped the armor's render type to Armor Hider's translucent one
+        // (with its OIT/deferral/depth-write routing) and SET the colour alpha before this nested call.
+        // A submit that already carries a blended type has therefore been handled: scaling its alpha
+        // again here squared the fade (50% rendered as 25%) - pass it through untouched. Only a submit
+        // that reaches the translucent phase with an unblended type still needs this loader-side pass.
+        if (!ah$shouldApplyArmorTransparency() || modelSubmit.renderType().hasBlending()) {
             original.call(phase, submit);
+            return;
         }
+        var modApi = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE, RenderScope.ELYTRA).renderModificationApi();
+        int modifiedColor = modApi.colors().scaleAlpha(modelSubmit.tintedColor(), modApi.getTransparencyAlpha());
+
+        // Route through the scope's render types (never vanilla entityTranslucent) so the piece gets the
+        // same no-depth/OIT/after-terrain handling as the Fabric and FGM paths.
+        RenderType translucentType = modelSubmit.renderType();
+        //? if >= 26.3-0.snapshot.2 {
+        /^// 26.3: Submit stores a UvMapping instead of a TextureAtlasSprite; narrow to recover the atlas.
+        if (modelSubmit.uvMapping() instanceof TextureAtlasSprite sprite) {
+            translucentType = modApi.renderTypes().getTranslucentEntityRenderType(sprite.atlasLocation());
+        }
+        ^///? } else {
+        if (modelSubmit.sprite() != null) {
+            translucentType = modApi.renderTypes().getTranslucentEntityRenderType(modelSubmit.sprite().atlasLocation());
+        }
+        //? }
+
+        var modified = new ModelFeatureRenderer.Submit(
+                translucentType, modelSubmit.pose(), modelSubmit.model(), modelSubmit.state(),
+                modelSubmit.lightCoords(), modelSubmit.overlayCoords(), modifiedColor,
+                //? if >= 26.3-0.snapshot.2 {
+                /^modelSubmit.uvMapping(), modelSubmit.sheetedDecalPose()
+                ^///? } else {
+                modelSubmit.sprite(), modelSubmit.sheetedDecalPose()
+                //? }
+        );
+        //? if >= 26.3-0.snapshot.2 {
+        /^original.call(phase, (SubmitNode) modified);
+        ^///? } else {
+        original.call(phase, (TranslucentSubmit) modified);
+        //? }
     }
     //?}
 

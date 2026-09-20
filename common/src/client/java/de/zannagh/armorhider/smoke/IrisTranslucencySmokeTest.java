@@ -5,6 +5,8 @@
 package de.zannagh.armorhider.smoke;
 
 import de.zannagh.armorhider.ArmorHider;
+import de.zannagh.armorhider.api.compat.CompatFlags;
+import de.zannagh.armorhider.api.compat.CompatManager;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.render.rendertype.ArmorHiderRenderTypes;
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
@@ -106,6 +108,20 @@ public final class IrisTranslucencySmokeTest implements FabricClientGameTest {
             // Give Iris time to compile + warm the shaderpack before the first shot.
             context.waitTicks(120);
 
+            // With Iris loaded, IrisCompat must have installed the shaderpack-state supplier. The override
+            // used below bypasses that supplier, so this is the only check that catches a build where the
+            // supplier is never wired (as 26.3 was: it lived inside the pipeline-registration branch that
+            // is skipped for the renderpearl API) - with a real pack the whole under-shaders path would
+            // then silently stay off.
+            boolean irisPresent = CompatManager.requiresCompatTo(CompatFlags.IRIS);
+            boolean supplierInstalled = context.computeOnClient(client -> ArmorHiderRenderTypes.isShaderPackActiveCheckInstalled());
+            ArmorHider.LOGGER.info("[smoke/fcgt] Iris present = {}, shaderPackActive supplier installed = {}",
+                    irisPresent, supplierInstalled);
+            if (irisPresent && !supplierInstalled) {
+                throw new IllegalStateException("[smoke/fcgt] Iris is loaded but IrisCompat never installed the"
+                        + " shaderpack-active supplier (ArmorHiderRenderTypes.setShaderPackActiveCheck) - with a real"
+                        + " shaderpack, armorShouldWriteDepth() and the dithered cutout path would never engage");
+            }
             boolean shaders = context.computeOnClient(client -> ArmorHiderRenderTypes.isShaderPackActive());
             ArmorHider.LOGGER.info("[smoke/fcgt] shaderPackActive reported by IrisApi = {}", shaders);
 

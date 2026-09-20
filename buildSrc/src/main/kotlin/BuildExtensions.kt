@@ -34,9 +34,9 @@ fun Project.registerExpandResourcesForIdea(
         mappings.forEach { dependsOn(it.first) }
         val proj = project
         doLast {
-            for (m in mappings) {
-                val files = (m.first.get() as Task).outputs.files
-                val dir = proj.layout.projectDirectory.dir(m.second)
+            for ((first, second) in mappings) {
+                val files = (first.get() as Task).outputs.files
+                val dir = proj.layout.projectDirectory.dir(second)
                 proj.copy {
                     from(files)
                     into(dir)
@@ -170,7 +170,7 @@ private fun resolveUuid(username: String): String? {
         val json = fetchJson("https://api.mojang.com/users/profiles/minecraft/$username") ?: return null
         val idRaw = Regex(""""id"\s*:\s*"([0-9a-f]+)"""").find(json)?.groupValues?.get(1) ?: return null
         "${idRaw.substring(0, 8)}-${idRaw.substring(8, 12)}-${idRaw.substring(12, 16)}-${idRaw.substring(16, 20)}-${idRaw.substring(20)}"
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         null
     }
 }
@@ -182,7 +182,7 @@ private fun resolveTextures(uuidNoDashes: String): Pair<String?, String?> {
         val value = Regex(""""value"\s*:\s*"([^"]+)"""").find(propsMatch)?.groupValues?.get(1)
         val signature = Regex(""""signature"\s*:\s*"([^"]+)"""").find(propsMatch)?.groupValues?.get(1)
         value to signature
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         null to null
     }
 }

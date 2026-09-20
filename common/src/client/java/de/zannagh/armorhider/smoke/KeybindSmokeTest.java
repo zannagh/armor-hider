@@ -3,11 +3,15 @@ package de.zannagh.armorhider.smoke;
 
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.client.common.IdentityCarrier;
+import de.zannagh.armorhider.client.common.SlotModification;
 import de.zannagh.armorhider.client.gui.screens.ArmorHiderOptionsScreen;
 import de.zannagh.armorhider.client.keybinds.CustomKeyMapping;
 import de.zannagh.armorhider.client.keybinds.OpenSettingsKeyMapping;
 import de.zannagh.armorhider.client.keybinds.ToggleOffKeyMapping;
+import de.zannagh.armorhider.net.packets.PlayerConfig;
 import de.zannagh.armorhider.configuration.SettingsLocation;
+import com.mojang.blaze3d.platform.InputConstants;
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 import net.minecraft.client.KeyMapping;
@@ -16,6 +20,10 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.client.gui.screens.worldselection.WorldCreationUiState;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * Regression smoke for the mod's key mappings (settings-screen re-open loop).
@@ -55,12 +63,23 @@ public final class KeybindSmokeTest implements FabricClientGameTest {
             context.runOnClient(client -> ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig()
                     .settingsScreenLocation.setValue(SettingsLocation.OPTIONS_SCREEN));
 
+            // Under -Pcompat=all a foreign mod frequently binds our defaults (J/K are common); vanilla's
+            // KeyMapping.MAP is single-winner per physical key, so whichever mapping registered last owns
+            // the slot and a physical press of that key increments only THAT mapping's click count. When a
+            // compat mod wins, context.getInput().pressKey(ourMapping) presses the shared key but the click
+            // routes to the foreign mapping and our activation never fires - a false red that reflects a
+            // user-resolvable keybind conflict, not a mod bug. Rebind our mappings onto guaranteed-unused
+            // function keys (F23/F24 - nothing in the vanilla+compat stack claims those) so each press
+            // deterministically drives OUR mapping, exercising the real press -> tick -> activation path.
+            reboundToFreeKeys(context);
+
             try {
                 assertSetDownIsInert(context);
                 assertPressOpensSettings(context);
                 assertClosingDoesNotReopen(context);
                 assertToggleKeyFlipsSessionOverride(context);
             } finally {
+                restoreDefaultKeys(context);
                 context.runOnClient(client -> ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig()
                         .settingsScreenLocation.setValue(priorSettingsLocation));
             }
@@ -141,24 +160,88 @@ public final class KeybindSmokeTest implements FabricClientGameTest {
         ArmorHider.LOGGER.info("[smoke/fcgt] closing with the key held does not re-open");
     }
 
-    /** The toggle keybind still works through the press path. */
+    /** The session master toggle affects remote renders too. */
     private static void assertToggleKeyFlipsSessionOverride(ClientGameTestContext context) {
-        boolean before = context.computeOnClient(client ->
-                ArmorHiderClient.CLIENT_CONFIG_MANAGER.hasSessionDisableOverride());
-
         final KeyMapping toggle = resolveMapping(context, ToggleOffKeyMapping.class);
-        context.getInput().pressKey(toggle);
-        context.waitTicks(5);
-
-        boolean after = context.computeOnClient(client ->
-                ArmorHiderClient.CLIENT_CONFIG_MANAGER.hasSessionDisableOverride());
-        if (after == before) {
-            throw new IllegalStateException(
-                    "[smoke/fcgt] the toggle keybind did not flip the session disable override");
+        var remote = PlayerConfig.defaults(UUID.randomUUID(), "ArmorHiderRemoteSmoke");
+        var local = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig();
+        boolean prior = local.disableArmorHider.getValue();
+        double priorChestOpacity = local.chestOpacity.getValue();
+        try {
+            context.runOnClient(client -> {
+                local.disableArmorHider.setValue(false);
+                local.chestOpacity.setValue(0.0);
+                ArmorHiderClient.CLIENT_CONFIG_MANAGER.clearSessionDisableOverride();
+                ArmorHiderClient.CLIENT_CONFIG_MANAGER.notifyConfigListeners(null);
+                var cached = ((IdentityCarrier) client.player).armorHider$getPlayerModifications().chest();
+                if (!cached.shouldHide()) {
+                    throw new IllegalStateException("[smoke/fcgt] failed to prime the hidden modification cache");
+                }
+            });
+            context.getInput().pressKey(toggle);
+            context.waitTicks(5);
+            context.runOnClient(client -> {
+                if (!ArmorHiderClient.CLIENT_CONFIG_MANAGER.hasSessionDisableOverride()
+                        || !SlotModification.shouldUseVanilla(remote)) {
+                    throw new IllegalStateException(
+                            "[smoke/fcgt] session disable did not restore remote armor/elytra");
+                }
+                var rebuilt = ((IdentityCarrier) client.player).armorHider$getPlayerModifications().chest();
+                if (!rebuilt.isEmpty()) {
+                    throw new IllegalStateException(
+                            "[smoke/fcgt] toggle left a cached 0%-opacity armor/elytra modification active");
+                }
+            });
+        } finally {
+            context.runOnClient(client -> {
+                local.disableArmorHider.setValue(prior);
+                local.chestOpacity.setValue(priorChestOpacity);
+                ArmorHiderClient.CLIENT_CONFIG_MANAGER.clearSessionDisableOverride();
+                ArmorHiderClient.CLIENT_CONFIG_MANAGER.notifyConfigListeners(null);
+            });
         }
+        ArmorHider.LOGGER.info("[smoke/fcgt] toggle keybind restores remote armor/elytra");
+    }
 
-        context.runOnClient(client -> ArmorHiderClient.CLIENT_CONFIG_MANAGER.clearSessionDisableOverride());
-        ArmorHider.LOGGER.info("[smoke/fcgt] toggle keybind flips the session override");
+    /**
+     * The mod's mappings, each paired with a guaranteed-unused physical key. F23/F24 are registered
+     * vanilla key names that nothing in the vanilla controls or the compat stack binds, so rebinding
+     * onto them makes {@code getInput().pressKey(mapping)} route to OUR mapping deterministically.
+     */
+    private static final Map<Class<? extends CustomKeyMapping>, String> FREE_KEYS = new LinkedHashMap<>();
+
+    static {
+        FREE_KEYS.put(OpenSettingsKeyMapping.class, "key.keyboard.f24");
+        FREE_KEYS.put(ToggleOffKeyMapping.class, "key.keyboard.f23");
+    }
+
+    /**
+     * Rebinds each of the mod's key mappings onto its distinct free key (see {@link #FREE_KEYS}) so a
+     * simulated press cannot be stolen by a compat mod that claimed our default (on &lt;=1.21.8 vanilla's
+     * {@code KeyMapping.MAP} is single-winner per key, so a colliding foreign binding would swallow the
+     * click entirely). {@link #restoreDefaultKeys} puts them back afterwards.
+     */
+    private static void reboundToFreeKeys(ClientGameTestContext context) {
+        context.runOnClient(client -> {
+            FREE_KEYS.forEach((type, keyName) ->
+                    mapping(client, type).setKey(InputConstants.getKey(keyName)));
+            KeyMapping.resetMapping();
+        });
+    }
+
+    /**
+     * Restores each rebound mapping to its default key. FCGT runs with consistent/default settings, so
+     * the default is exactly what the key was before {@link #reboundToFreeKeys}; this keeps sibling
+     * scenarios in the same batched launch unaffected.
+     */
+    private static void restoreDefaultKeys(ClientGameTestContext context) {
+        context.runOnClient(client -> {
+            FREE_KEYS.keySet().forEach(type -> {
+                KeyMapping mapping = mapping(client, type);
+                mapping.setKey(mapping.getDefaultKey());
+            });
+            KeyMapping.resetMapping();
+        });
     }
 
     private static KeyMapping resolveMapping(ClientGameTestContext context,

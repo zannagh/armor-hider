@@ -30,9 +30,49 @@ versionRange="${minecraft_version}"
 ordering="NONE"
 side="BOTH"
 
+# eunomia supplies the config/networking framework armor-hider compiles against (eunomia-core) and
+# installs the live client/server transports at runtime. Ordered AFTER so eunomia's init runs first.
+# Published on CurseForge (project 1654849) and Modrinth (project BvzQw4wL, approved 2026-09-16). Floor is 0.3.4: armor-hider's per-player
+# config rides eunomia 0.3.0's replicated keyed store (ReplicatedPlayerConfig / ReplicatedPlayerConfigStore
+# / ReplicatedClientStore) and the HTTP/WebSocket external-relay fallback (ClientTransportSelector /
+# ExternalServerClient), and 0.3.2's versioned API surface (ApiVersion / SemanticVersion) plus the reworked
+# relay protocol (RelayProtocol / RelayEndpoints / RelayConnectionState) and send-gate fallback - on top of
+# the earlier send gate (0.2.3) and installDefaultGson (0.2.4). 0.3.4 is the floor rather than a preference
+# because it moves the send gate's per-connection reset out of the HELLO probe and into the connection
+# lifecycle (CommunicationManager.beginClientConnection): before it, armor-hider's join-time PLAYER_CONFIG
+# send - parked behind the gate by the default AFTER_SUCCESSFUL_HANDSHAKE - was discarded by the probe's own
+# reset whenever armor-hider's join listener happened to be registered ahead of eunomia's, which no
+# initializer ordering on our side could make safe.
+# 0.3.10 is a floor for a different reason than 0.3.9 was: not a missing method, but a missing FIX. Before
+# it, a client whose armor-hider is newer than the server's decoded the old wire format, threw out of the
+# StreamCodec and was disconnected by Netty (and the serverbound path had the same hole, so any client could
+# drop a connection). 0.3.10 drops an undecodable payload instead of throwing. Pairing this mod with 0.3.9
+# would compile and load, then kick players on a version-mismatched server - so the floor has to say 0.3.10.
+#
+# The floor moved 0.3.4 -> 0.3.9 when the Cloud Synchronisation row started calling API that simply does
+# not exist earlier: EunomiaSyncSettings.isLockedByServer(SyncSetting) (admin-enforced sync, so the row
+# can grey itself) and EunomiaClientConfiguration.syncUnavailableNotice(...) (armor-hider's own wording
+# on eunomia's "this server has no eunomia" toast). Both landed in 0.3.9. Against an older eunomia these
+# are a NoSuchMethodError at render time, not a graceful degradation, so the floor has to say 0.3.9.
+[[dependencies."armor_hider"]]
+modId="eunomia"
+type="required"
+versionRange="[0.3.10,)"
+ordering="AFTER"
+side="BOTH"
+
 [[dependencies."armor_hider"]]
 modId="luckperms"
 type="optional"
 versionRange="[5.4,)"
 ordering="AFTER"
 side="SERVER"
+
+# Optional: armor-hider still loads when EMF is absent, but refuses to load against EMF older
+# than 3.3, whose render API this build hard-links (EmfForcedVanillaResolver). Client-side only.
+[[dependencies."armor_hider"]]
+modId="entity_model_features"
+type="optional"
+versionRange="[3.3,)"
+ordering="NONE"
+side="CLIENT"

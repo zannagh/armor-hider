@@ -17,6 +17,8 @@ public class NeoForgeClientMixinPlugin extends ArmorHiderMixinPlugin {
             "GameRendererMixin",
             "DevSkinMixin",
             "TitleScreenSmokeMixin",
+            // Gated >= 26.1.2 && < 26.3 in source; keeps the FCGT window from stealing macOS focus.
+            "WindowFocusMixin",
             // All versions - Stonecutter guards per version range
             "EntityRenderDispatcherMixin",
             "LivingEntityMixin",
@@ -52,8 +54,10 @@ public class NeoForgeClientMixinPlugin extends ArmorHiderMixinPlugin {
             "MinecraftClientMixin",
             // Compat - @Pseudo, auto-skipped if target mod absent
             "compat.wildfiregender.GenderArmorLayerMixin",
+            "compat.wildfiregender.GenderArmorLayerV5Mixin",
             "compat.wildfiregender.GenderLegacyLayerMixin",
             "compat.wildfiregender.GenderPhysicsMixin",
+            "compat.wildfiregender.GenderRenderStateMixin",
             "compat.wildfiregender.WildfireHelperMixin",
             "compat.geckolib.GeckoLibArmorMixin",
             "compat.waveycapes.WaveyCapesMixin",

@@ -1,6 +1,9 @@
 package de.zannagh.armorhider.client.common;
 
+import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.client.api.impl.AhRenderRuleRegistryImpl;
+import de.zannagh.armorhider.client.api.impl.AhRuleTarget;
 import de.zannagh.armorhider.combat.CombatManager;
 import de.zannagh.armorhider.common.ItemInfo;
 import de.zannagh.armorhider.configuration.items.ArmorOpacity;
@@ -9,6 +12,9 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.EnumMap;
+import java.util.Objects;
 
 /**
  * Represents the modifications that should be applied for a specific slot.
@@ -54,10 +60,10 @@ public record SlotModification(
     public static boolean shouldUseVanilla(PlayerConfig config){
         var manager = ArmorHiderClient.CLIENT_CONFIG_MANAGER;
 
-        // Server-wide force-off is the final guard - it overrides everything for every player, including the
-        // local one (the server always has the last say).
-        var serverConfig = manager.getServerConfig();
-        if (serverConfig != null && serverConfig.serverWideSettings.forceArmorHiderOff.getValue()) {
+        // This is a viewer-local master switch, so it applies to every player being rendered.
+        // Otherwise the session key only restores the local player's vanilla armor and leaves
+        // remote armor/elytra on Armor Hider's translucent or hidden render paths.
+        if (manager.isArmorHiderGloballyDisabled()) {
             return true;
         }
 
@@ -70,14 +76,7 @@ public record SlotModification(
         boolean isLocalPlayer = config == manager.getLocalPlayerConfig()
                 || config.playerName.getValue().equals(ArmorHiderClient.getCurrentPlayerName());
 
-        // "Disable Armor Hider" master switch. For the local player this reads the effective state - the
-        // transient keybind override if one is active, otherwise the persisted setting - so the toggle key
-        // takes effect without touching disk. For everyone else the flag on their own resolved config applies.
-        // When set it trumps the opacity sliders and renders vanilla.
-        boolean disableArmorHider = isLocalPlayer
-                ? manager.isLocalArmorHiderDisabledEffective()
-                : config.disableArmorHider.getValue();
-        if (disableArmorHider || config.playerName.getValue().isBlank()) {
+        if (config.disableArmorHider.getValue() || config.playerName.getValue().isBlank()) {
             return true;
         }
 
@@ -92,14 +91,59 @@ public record SlotModification(
     }
 
     /**
+     * One immutable empty modification per slot, built once. {@code empty()} sits on the render hot path -
+     * it is reached from {@code RenderScopeContext.empty(...)}, i.e. from every scope MISS, which happens
+     * per model part and per baked quad - and constructing one allocates a whole {@link PlayerConfig}.
+     * <p>
+     * The shared {@link PlayerConfig} these carry is only ever *read* (RenderModifications' local-viewer
+     * fallback and ArmorHiderElytraRenderer's elytraInFlight lookup are the only readers) - never written.
+     * The one write that used to reach it, the exclusion-item discovery in {@link #addItemInformation},
+     * is now skipped for empty modifications; it wrote into a throwaway instance before, so nothing
+     * observable changes.
+     * <p>
+     * Deliberately tolerant of its own initialisation failing: {@link PlayerConfig#empty()} and
+     * {@link ItemInfo#empty()} both touch registry-backed state that can be unbound this early (the same
+     * window documented at {@code ItemInfo.java:40-48}, issue #260). A throwing {@code <clinit>} would
+     * latch that transient failure for the whole session (ExceptionInInitializerError, then
+     * NoClassDefFoundError on every later touch), so a failure here leaves the map empty and
+     * {@link #empty(EquipmentSlot)} falls back to the old allocating path, retrying on the next call.
+     */
+    private static final EnumMap<EquipmentSlot, SlotModification> EMPTY_BY_SLOT =
+            new EnumMap<>(EquipmentSlot.class);
+
+    static {
+        try {
+            PlayerConfig emptyConfig = PlayerConfig.empty();
+            ItemInfo emptyItemInfo = ItemInfo.empty();
+            for (EquipmentSlot value : EquipmentSlot.values()) {
+                EMPTY_BY_SLOT.put(value, new SlotModification(
+                        value, false, false, false, 1.0, "", emptyConfig, emptyItemInfo));
+            }
+        } catch (Throwable t) {
+            // Partial fills are as bad as none here (the cached instances would disagree with the
+            // fallback ones), so drop everything and let every slot take the allocating path.
+            EMPTY_BY_SLOT.clear();
+            ArmorHider.LOGGER.warn(
+                    "Could not pre-build the shared empty slot modifications; falling back to allocating"
+                            + " them per call. This is expected only if item registries are not bound yet.", t);
+        }
+    }
+
+    /**
      * Creates an empty slot modification.
      * @return An empty slot modification.
      */
     public static SlotModification empty(){
-        return new SlotModification(EquipmentSlot.MAINHAND, false, false, false, 1.0, "", PlayerConfig.empty(), ItemInfo.empty());
+        return empty(EquipmentSlot.MAINHAND);
     }
 
     public static SlotModification empty(EquipmentSlot slot){
+        Objects.requireNonNull(slot, "slot must not be null when asking for an empty SlotModification");
+        SlotModification cached = EMPTY_BY_SLOT.get(slot);
+        if (cached != null) {
+            return cached;
+        }
+        // Only reached when the static pre-build above failed. Slow, but the render path keeps working.
         return new SlotModification(slot, false, false, false, 1.0, "", PlayerConfig.empty(), ItemInfo.empty());
     }
 
@@ -145,34 +189,15 @@ public record SlotModification(
                 ? liveName
                 : config.playerName.getValue();
 
-        var transparency = switch (slot) {
-            case HEAD -> config.helmetOpacity.getValue();
-            case CHEST -> config.chestOpacity.getValue();
-            case LEGS -> config.legsOpacity.getValue();
-            case FEET -> config.bootsOpacity.getValue();
-            case OFFHAND -> config.offHandOpacity.getValue();
-            default -> 1.0;
-        };
-
-        // Combat detection: a player who just took or dealt damage snaps to fully-visible armor and
-        // then fades back to their configured opacity over the combat window. This is applied here,
-        // at the single point every render path resolves its opacity through, so armor, elytra, hand
-        // items and compat layers (Female Gender Mod breast armor, GeckoLib, ...) all follow it.
-        //
-        // Raising the transparency before shouldHide/needsModification are derived is deliberate:
-        // an in-combat piece configured to 0% must stop being *hidden*, not merely become opaque.
+        // ArmorHiderRenderApi rules are deliberately NOT applied here. This record is cached by
+        // PlayerMixin and invalidated only on equip / config change, so folding a time-varying
+        // predicate in at this point would latch its result into the cache until the next re-equip.
+        // Rules are applied once, in withRulesApplied(), on the path that has the stack in hand.
+        double transparency = baseTransparencyFor(config, slot);
         if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.shouldApplyCombatDetectionTo(config)) {
             transparency = CombatManager.transformTransparencyBasedOnCombat(resolvedName, transparency);
         }
-
-        boolean disableGlint = switch (slot) {
-            case HEAD -> !config.helmetGlint.getValue();
-            case CHEST -> !config.chestGlint.getValue();
-            case LEGS -> !config.legsGlint.getValue();
-            case FEET -> !config.bootsGlint.getValue();
-            default -> false;
-        };
-
+        boolean disableGlint = glintDisabledFor(config, slot);
 
         boolean shouldHideEntirely = transparency < ArmorOpacity.TRANSPARENCY_STEP;
 
@@ -182,6 +207,63 @@ public record SlotModification(
         // (e.g. RenderModifications.modifyRenderPriority -> itemInfo.isElytra()) that
         // read it before addItemInformation runs don't trip an NPE.
         return new SlotModification(slot, needsModification, shouldHideEntirely, disableGlint, transparency, resolvedName, config, ItemInfo.empty());
+    }
+
+    /**
+     * The opacity a rule sees as its base: the user's configured value for the slot (or for the elytra),
+     * with combat detection already folded in. This is exactly what {@code AhHideContext.opacity()}
+     * reports and what a matching rule replaces.
+     * <p>
+     * Public because the shared-rule broadcaster has to derive the same base off the render path, when
+     * it evaluates the local player's shared rules on the client tick. Deriving it twice by hand is how
+     * the two would drift apart.
+     */
+    public static double preRuleOpacityFor(PlayerConfig config, String playerName, EquipmentSlot slot, boolean isElytra) {
+        double base = configuredOpacityFor(config, slot, isElytra);
+        if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.shouldApplyCombatDetectionTo(config)) {
+            base = CombatManager.transformTransparencyBasedOnCombat(playerName, base);
+        }
+        return base;
+    }
+
+    /**
+     * The opacity the user configured for a slot, with the transient combat fade deliberately NOT applied
+     * - i.e. what the user asked for, not what is on screen this instant.
+     * <p>
+     * Only {@code GenderPhysicsRelaxation} wants this (referenced by name, not {@code @link}: that class
+     * is stonecutter-gated on {@code gender_physics} and is absent on variants without a compatible FGM
+     * build). Every render consumer must keep using {@link #preRuleOpacityFor}: what is drawn has to
+     * follow the combat fade.
+     */
+    public static double configuredOpacityFor(PlayerConfig config, EquipmentSlot slot, boolean isElytra) {
+        return isElytra ? config.elytraOpacity.getValue() : baseTransparencyFor(config, slot);
+    }
+
+    /**
+     * The user's configured opacity for a slot, before combat detection and before any rule.
+     * Combat detection is applied by the caller before shouldHide is derived, because an in-combat
+     * piece configured to 0% must stop being hidden, not merely become opaque.
+     */
+    private static double baseTransparencyFor(PlayerConfig config, EquipmentSlot slot) {
+        return switch (slot) {
+            case HEAD -> config.helmetOpacity.getValue();
+            case CHEST -> config.chestOpacity.getValue();
+            case LEGS -> config.legsOpacity.getValue();
+            case FEET -> config.bootsOpacity.getValue();
+            case OFFHAND -> config.offHandOpacity.getValue();
+            default -> 1.0;
+        };
+    }
+
+    /** Whether the user turned the glint off for a slot. Hand slots have no glint toggle. */
+    private static boolean glintDisabledFor(PlayerConfig config, EquipmentSlot slot) {
+        return switch (slot) {
+            case HEAD -> !config.helmetGlint.getValue();
+            case CHEST -> !config.chestGlint.getValue();
+            case LEGS -> !config.legsGlint.getValue();
+            case FEET -> !config.bootsGlint.getValue();
+            default -> false;
+        };
     }
 
     public SlotModification addItemInformation(ItemInfo itemInfo) {
@@ -196,9 +278,29 @@ public record SlotModification(
     public SlotModification addItemInformation(@Nullable ItemStack item) {
         ItemStack resolvedItem = item != null ? item : ItemStack.EMPTY;
         ItemInfo resolvedItemInfo = new ItemInfo(resolvedItem);
-        if (!resolvedItemInfo.isEmpty()) {
+        // Skipped when this modification is empty: an empty modification carries the shared config held by
+        // EMPTY_BY_SLOT, and discoverItem() would mutate (and grow without bound) an instance that is
+        // shared across every scope miss. Before the empties were shared this wrote into a per-call throwaway config that was
+        // discarded on the next line, and shouldArmorHiderIgnore() returns false for an absent entry, so
+        // the whole block was already inert on this path - nothing observable changes.
+        //
+        if (!resolvedItemInfo.isEmpty() && !isEmpty()) {
             var exclusionConfig = config.getExclusionItems();
-            exclusionConfig.discoverItem(slot, resolvedItem.getItem(), resolvedItem.getHoverName().getString());
+            // The DISCOVERY write (but not the ignore lookup below, which reads the user's own flags carried
+            // over by the deep copy) is skipped for a DERIVED resolution
+            // (PlayerConfig#isDerivedResolution): the copy built for an unknown remote player and the
+            // synthesized global-override fallback. Those used to be rebuilt on every resolveConfig() call
+            // and dropped immediately, so discovery on them went nowhere; ResolvedConfigCache now memoises
+            // them, and without this they would start accumulating for the session. Do NOT "fix" this by
+            // removing the check: nothing reads remote discovery (ItemExclusionScreen reads
+            // getLocalPlayerConfig() unconditionally) and nothing prunes it (discoverItem has no cap;
+            // prune() only runs via PlayerConfig.heal() on deserialization, which these instances never
+            // see). The local config, a configured globalPlayerOverride, a server-transmitted config and an
+            // individual override are all un-flagged and still discover, exactly as before the cache.
+            if (!config.isDerivedResolution()) {
+                exclusionConfig.discoverItem(
+                        slot, resolvedItem.getItem(), resolvedItem.getHoverName().getString());
+            }
 
             if (exclusionConfig.shouldArmorHiderIgnore(slot, resolvedItem.getItem())) {
                 return empty(slot);
@@ -210,13 +312,57 @@ public record SlotModification(
             return empty(slot);
         }
 
+        // !isEmpty() for the same reason as the discovery block above: elytraModification hands `config`
+        // - the shared empty-modification config - to AhRenderRuleRegistryImpl.evaluate(...), which
+        // surfaces it to every registered third-party AhRenderRule as AhHideContext.config(). Behaviour
+        // is unchanged: on an empty modification elytraModification either returns empty(slot) outright,
+        // or returns a record whose playerName is still blank - so isEmpty() holds and every consumer
+        // short-circuits to the original value anyway.
         if (slot == EquipmentSlot.CHEST
                 && resolvedItemInfo.isElytra()
-                && !resolvedItemInfo.isArmoredElytra()) {
+                && !resolvedItemInfo.isArmoredElytra()
+                && !isEmpty()) {
             return elytraModification(resolvedItemInfo);
         }
 
-        return new SlotModification(slot, needsModification, shouldHide, shouldDisableGlint, transparency, playerName, config, resolvedItemInfo);
+        return withRulesApplied(resolvedItemInfo);
+    }
+
+    /**
+     * Applies {@link de.zannagh.armorhider.client.api.ArmorHiderRenderApi} rules, re-deriving the config
+     * base rather than layering onto {@code this.transparency}. {@code PlayerMixin} builds its cached
+     * {@code PlayerModificationInfo} through here and {@code IdentityCarrier#getModification} re-runs
+     * {@code addItemInformation} over that cache on every read. The cache holds whatever rules evaluated
+     * to at its last rebuild, and only {@code onEquipItem} and the config listener rebuild it - never
+     * (un)registering a rule - so it may hold a rule's output OR the plain config base, with no marker
+     * saying which. Layering onto {@code this.transparency} would ratchet one way; re-deriving is
+     * idempotent in either state and lets a time-varying predicate revert.
+     */
+    private SlotModification withRulesApplied(ItemInfo resolvedItemInfo) {
+        if (isEmpty()) {
+            return new SlotModification(slot, needsModification, shouldHide, shouldDisableGlint, transparency, playerName, config, resolvedItemInfo);
+        }
+        // Re-derived unconditionally, NOT behind a "are there any rules" fast path: after a rule is
+        // unregistered there are no rules left, yet the cached record may still hold that rule's
+        // baked opacity. Skipping the re-derivation then would keep armor hidden forever - the same
+        // ratchet, just triggered by unregister instead of by the predicate flipping. The base is
+        // the same switch of(...) already does, and evaluate() still short-circuits before running any
+        // predicate or allocating when nothing is registered.
+        double base = preRuleOpacityFor(config, playerName, slot, false);
+        boolean baseDisableGlint = glintDisabledFor(config, slot);
+
+        var ruled = AhRenderRuleRegistryImpl.evaluate(
+                AhRuleTarget.of(slot), playerName, slot, resolvedItemInfo.getStack(), false, config, base);
+        return rebuild(ruled.changed() ? ruled.opacity() : base,
+                baseDisableGlint || (ruled.changed() && ruled.disableGlint()),
+                resolvedItemInfo);
+    }
+
+    /** Re-derives the hide / needs-modification flags after a rule changed opacity or glint. */
+    private SlotModification rebuild(double newTransparency, boolean newDisableGlint, ItemInfo info) {
+        boolean hide = newTransparency < ArmorOpacity.TRANSPARENCY_STEP;
+        boolean needsMod = (newTransparency < 1 - ArmorOpacity.TRANSPARENCY_STEP / 2) || newDisableGlint;
+        return new SlotModification(slot, needsMod, hide, newDisableGlint, newTransparency, playerName, config, info);
     }
 
     /**
@@ -228,11 +374,17 @@ public record SlotModification(
      * scope is left untouched and the wings render vanilla.
      */
     private SlotModification elytraModification(ItemInfo elytraInfo) {
-        double elytraTransparency = config.elytraOpacity.getValue();
-        if (ArmorHiderClient.CLIENT_CONFIG_MANAGER.shouldApplyCombatDetectionTo(config)) {
-            elytraTransparency = CombatManager.transformTransparencyBasedOnCombat(playerName, elytraTransparency);
-        }
+        double elytraTransparency = preRuleOpacityFor(config, playerName, slot, true);
         boolean disableGlint = !config.elytraGlint.getValue();
+        // Elytra rules are keyed separately from chest-armor rules: the wings live in the chest slot
+        // but follow their own opacity/glint config, so ArmorHiderRenderApi targets them explicitly.
+        // An ARMORED elytra never reaches here - it stays on the chest path, matching the config.
+        var ruled = AhRenderRuleRegistryImpl.evaluate(
+                AhRuleTarget.ELYTRA, playerName, slot, elytraInfo.getStack(), true, config, elytraTransparency);
+        if (ruled.changed()) {
+            elytraTransparency = ruled.opacity();
+            disableGlint |= ruled.disableGlint();
+        }
         boolean hideEntirely = elytraTransparency < ArmorOpacity.TRANSPARENCY_STEP;
         boolean needsMod = (elytraTransparency < 1 - ArmorOpacity.TRANSPARENCY_STEP / 2) || disableGlint;
         if (!needsMod) {

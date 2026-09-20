@@ -9,6 +9,8 @@ public abstract class FabricClientMixinPlugin extends ArmorHiderMixinPlugin {
             "GameRendererMixin",
             "DevSkinMixin",
             "TitleScreenSmokeMixin",
+            // Gated >= 26.1.2 && < 26.3 in source; keeps the FCGT window from stealing macOS focus.
+            "WindowFocusMixin",
             // All versions - Stonecutter guards per version range
             "EntityRenderDispatcherMixin",
             "LivingEntityMixin",
@@ -47,14 +49,23 @@ public abstract class FabricClientMixinPlugin extends ArmorHiderMixinPlugin {
             "PlayerModelMixin",
             // Compat - @Pseudo, auto-skipped if target mod absent
             "compat.wildfiregender.GenderArmorLayerMixin",
+            "compat.wildfiregender.GenderArmorLayerV5Mixin",
             "compat.wildfiregender.GenderLegacyLayerMixin",
             "compat.wildfiregender.GenderPhysicsMixin",
+            "compat.wildfiregender.GenderRenderStateMixin",
             "compat.wildfiregender.WildfireHelperMixin",
             "compat.geckolib.GeckoLibArmorMixin",
             "compat.waveycapes.WaveyCapesMixin",
             "compat.deeperdarker.WardenHelmetLayerMixin",
             "compat.deeperdarker.HelmetHornLayerMixin",
             "compat.uranus.UranusArmorRendererMixin",
+            // Fabric API's ArmorRenderer (fabric-rendering-v1). Fabric-only: the API does not exist on
+            // NeoForge, and the Layer/Type mixins target vanilla classes, so listing them there would
+            // add hot-path guards that can never fire. Sinytra Connector runs the Fabric jar and is
+            // therefore covered from here.
+            "compat.fabricapi.FabricArmorRendererLayerMixin",
+            "compat.fabricapi.FabricArmorRendererGeometryMixin",
+            "compat.fabricapi.FabricArmorRendererTypeMixin",
             "compat.immersivearmors.ImmersiveArmorsPieceMixin",
             "compat.immersivearmors.ImmersiveArmorsPieceGeometryMixin",
             "compat.emf.EmfModelPartMixin",

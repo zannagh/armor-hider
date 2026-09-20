@@ -1,1 +1,1 @@
-apply(plugin = "multiloader-loom")
+plugins.apply("multiloader-loom")
