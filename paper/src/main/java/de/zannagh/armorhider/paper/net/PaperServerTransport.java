@@ -6,6 +6,9 @@ import de.zannagh.eunomia.networking.serialization.PayloadCodec;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 
@@ -81,4 +84,20 @@ public final class PaperServerTransport implements ServerTransport {
                     + player.getUniqueId(), e);
         }
     }
+
+    /**
+     * Everyone currently online, for eunomia's clientbound capability gate: it expands a broadcast into
+     * per-player sends because the answer to "may I send to this client" is per player. Deliberately not
+     * filtered by listening channel here - the gate only needs to know who exists, and {@link #send} already
+     * drops a player who has not subscribed.
+     */
+    @Override
+    public Collection<UUID> connectedPlayerIds() {
+        List<UUID> ids = new ArrayList<>();
+        for (Player player : plugin.getServer().getOnlinePlayers()) {
+            ids.add(player.getUniqueId());
+        }
+        return ids;
+    }
+
 }
