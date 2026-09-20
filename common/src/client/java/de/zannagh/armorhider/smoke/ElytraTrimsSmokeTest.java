@@ -43,9 +43,10 @@ import java.nio.file.Path;
  * Machine-checked, per this repo's smoke convention (assert the mixin fired, don't just "not crash"),
  * using two counters: {@link ArmorHiderRenderTypes#elytraTrimSeenCount()} (ET drew a trim through our
  * wrap) and {@link ArmorHiderRenderTypes#elytraTrimFadeCount()} (we alpha-scaled it). At 50% opacity
- * SEEN must climb on every version; FADE must climb on {@code >= 1.21.11} (ET draws translucent, so the
- * trim fades in lockstep) but must stay flat on {@code < 1.21.11} (ET draws cutout, which can't fade -
- * the policy there is untouched at 5-100%, hidden only at 0%). FADE must stay flat at 100% everywhere.
+ * both must climb everywhere this test runs, i.e. on every version that has an ET submit wrap
+ * ({@code >= 1.21.9}): the wrap scales the trim's alpha and substitutes our translucent render type, so
+ * the trim fades in lockstep with the wing on the cutout era (1.21.9/1.21.10) just as it does on
+ * {@code >= 1.21.11}. FADE must stay flat at 100% everywhere.
  * Screenshots are captured for human eyeballing.
  * <p>
  * Counters alone cannot see a <em>wrong-looking</em> trim: they increment identically whether the
@@ -167,22 +168,15 @@ public final class ElytraTrimsSmokeTest implements FabricClientGameTest {
                                 + "ETElytraTrimSubmitMixin isn't bound, or the trimmed elytra didn't render "
                                 + "(ET absent, or the wrap target drifted)");
             }
-            //? if >= 1.21.11 {
-            // Translucent era: partial opacity MUST fade ET's trim in lockstep with the wing.
+            // Partial opacity MUST fade ET's trim in lockstep with the wing, on every version that has
+            // an ET submit wrap. On the cutout era (1.21.9/1.21.10) that holds because the wrap also
+            // substitutes our translucent render type for ET's cutout one; measured on fabric-1.21.10
+            // with ET 4.5.7, a clean progressive fade with zero outline-tint pixels.
             if (fadeDelta <= 0) {
                 throw new IllegalStateException(
                         "[smoke/fcgt] ET trim was not faded at 50% opacity (fadeDelta " + fadeDelta
                                 + ") - the ELYTRA scope fade path didn't run");
             }
-            //? } else {
-            /*// Cutout era (1.21.9/1.21.10): ET's trims can't be alpha-blended, so partial opacity must
-            // leave the elytra untouched (full show; only 0% hides). We must NOT have faded it.
-            if (fadeDelta != 0) {
-                throw new IllegalStateException(
-                        "[smoke/fcgt] ET trim was faded at 50% on a cutout version (fadeDelta " + fadeDelta
-                                + ") - partial transparency must be a no-op there, not a fade");
-            }
-            *///?}
 
             // The counters above only prove the trim was drawn (and scaled); they are blind to it being
             // drawn WRONG. Scan the faded frame for the ET outline-tint signature.

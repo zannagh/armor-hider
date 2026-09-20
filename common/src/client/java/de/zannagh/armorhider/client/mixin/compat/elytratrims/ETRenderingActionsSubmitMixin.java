@@ -32,9 +32,12 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
  * equipment-layer renderer (wings only) and draws every decorator through one shared helper that funnels
  * into {@code OrderedSubmitNodeCollector.submitModel(...)}, threading its own ARGB {@code color}. We wrap
  * that one {@code submitModel} and, while the {@code ELYTRA} scope carries a modification, scale the
- * color's alpha so the trim fades in lockstep with the wing ({@link ElytraTrimsFade#fadeTrimColor(int)}).
- * 4.9.0 draws its trims on ET's own {@code elytraTranslucent} type, which blends that alpha directly. The
- * base elytra itself is faded separately at the {@code renderLayers} call site.
+ * color's alpha ({@link ElytraTrimsFade#fadeTrimColor(int)}) and substitute our own translucent render
+ * type for the same atlas ({@link ElytraTrimsFade#fadeTrimRenderType}), so the trim fades in lockstep
+ * with the wing. 4.9.0 already draws its trims on ET's own {@code elytraTranslucent} type, which blends
+ * that alpha directly; substituting ours keeps both ET eras on one code path and on the same
+ * depth-write policy as the base wing. The base elytra itself is faded separately at the
+ * {@code renderLayers} call site.
  * <p>
  * {@code @Pseudo} + {@code require = 0}: ET is optional and Kotlin (the target is the file-class
  * {@code ETRenderingActionsKt}); absent → skipped. {@code @Mixin(remap = false)} because the target is a
@@ -65,7 +68,8 @@ public class ETRenderingActionsSubmitMixin {
                                                       PoseStack poseStack, RenderType renderType, int light, int overlay,
                                                       int color, UvMapping uvMapping, int outline,
                                                       Operation<Void> original) {
-        original.call(collector, model, state, poseStack, renderType, light, overlay,
+        original.call(collector, model, state, poseStack,
+                ElytraTrimsFade.fadeTrimRenderType(renderType, uvMapping), light, overlay,
                 ElytraTrimsFade.fadeTrimColor(color), uvMapping, ElytraTrimsFade.sanitizeOutline(outline));
     }
     *///? } else {
@@ -74,7 +78,8 @@ public class ETRenderingActionsSubmitMixin {
                                                       int color, TextureAtlasSprite sprite, int outline,
                                                       ModelFeatureRenderer.CrumblingOverlay crumblingOverlay,
                                                       Operation<Void> original) {
-        original.call(collector, model, state, poseStack, renderType, light, overlay,
+        original.call(collector, model, state, poseStack,
+                ElytraTrimsFade.fadeTrimRenderType(renderType, sprite), light, overlay,
                 ElytraTrimsFade.fadeTrimColor(color), sprite, ElytraTrimsFade.sanitizeOutline(outline),
                 crumblingOverlay);
     }

@@ -24,8 +24,11 @@ import org.spongepowered.asm.mixin.injection.At;
  * (wings only) and draws each "decorator" layer through the shared helper
  * {@code ETRenderingAPIUtilsKt.submitToCollector(...)} → {@code OrderedSubmitNodeCollector.submitModel(...)},
  * threading its own ARGB {@code color}. We wrap that one {@code submitModel} and, while the
- * {@code ELYTRA} scope carries a modification, scale the color's alpha so the trim fades in lockstep
- * with the wing ({@link ElytraTrimsFade#fadeTrimColor(int)}). The base elytra itself is faded separately
+ * {@code ELYTRA} scope carries a modification, scale the color's alpha
+ * ({@link ElytraTrimsFade#fadeTrimColor(int)}) <em>and</em> substitute our own translucent render type
+ * for the same atlas ({@link ElytraTrimsFade#fadeTrimRenderType}), so the trim fades in lockstep with
+ * the wing. These ET builds submit the trim on a cutout type, which discards the scaled alpha, so the
+ * type substitution is what makes the fade actually happen. The base elytra itself is faded separately
  * at the {@code renderLayers} call site.
  * <p>
  * The outline argument is additionally sanitised ({@link ElytraTrimsFade#sanitizeOutline(int)}): these ET
@@ -57,7 +60,8 @@ public class ETElytraTrimSubmitMixin {
                                                       int color, TextureAtlasSprite sprite, int outline,
                                                       ModelFeatureRenderer.CrumblingOverlay crumblingOverlay,
                                                       Operation<Void> original) {
-        original.call(collector, model, state, poseStack, renderType, light, overlay,
+        original.call(collector, model, state, poseStack,
+                ElytraTrimsFade.fadeTrimRenderType(renderType, sprite), light, overlay,
                 ElytraTrimsFade.fadeTrimColor(color), sprite, ElytraTrimsFade.sanitizeOutline(outline),
                 crumblingOverlay);
     }

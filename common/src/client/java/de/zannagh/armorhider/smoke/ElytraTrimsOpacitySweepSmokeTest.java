@@ -47,8 +47,8 @@ import java.nio.file.Path;
  *       {@code 0.0} - a hidden elytra is cancelled at the WingsLayer HEAD by
  *       {@code ArmorHiderElytraRenderer}, so ET's decorators never run - and must climb at every
  *       visible step. {@link ArmorHiderRenderTypes#elytraTrimFadeCount()} must climb at the partial
- *       steps on {@code >= 1.21.11} (ET draws translucent there) and stay flat everywhere else,
- *       including at {@code 1.0} on every version.</li>
+ *       steps on every version this test runs on ({@code >= 1.21.9}, where an ET submit wrap exists)
+ *       and stay flat everywhere else, including at {@code 1.0} on every version.</li>
  * </ul>
  * <p>
  * Self-skips (no fail) when ET isn't present at runtime, so run it with {@code -Pcompat=elytratrims}.
@@ -68,15 +68,13 @@ public final class ElytraTrimsOpacitySweepSmokeTest implements FabricClientGameT
     private static final int OUTLINE_TINT_TOLERANCE = 64;
 
     /**
-     * Whether ET draws its trims translucently on this version, i.e. whether partial opacity is
-     * expected to fade them. {@code >= 1.21.11} does; below that ET draws cutout and partial opacity is
-     * a deliberate no-op (full show until 0%).
+     * Whether partial opacity is expected to fade ET's trims on this version. True wherever an ET submit
+     * wrap exists ({@code >= 1.21.9}): the wrap scales the trim's alpha and substitutes Armor Hider's own
+     * translucent render type, so the cutout era (1.21.9/1.21.10) fades in lockstep with the wing just as
+     * {@code >= 1.21.11} does - measured on fabric-1.21.10 with ET 4.5.7. Below 1.21.9 there is no wrap
+     * and partial opacity is a deliberate no-op, but this test is gated to {@code >= 1.21.9}.
      */
-    //? if >= 1.21.11 {
     private static final boolean PARTIAL_FADE_SUPPORTED = true;
-    //? } else {
-    /*private static final boolean PARTIAL_FADE_SUPPORTED = false;
-    *///?}
 
     @Override
     public void runTest(ClientGameTestContext context) {
@@ -212,8 +210,7 @@ public final class ElytraTrimsOpacitySweepSmokeTest implements FabricClientGameT
             throw new IllegalStateException(
                     "[smoke/fcgt] ET sweep " + label + ": ET trim was faded at opacity " + opacity
                             + " (fadeDelta " + fadeDelta + ") where no fade may happen - at 100% the trim"
-                            + " must render untouched, at 0% it must not render at all, and on cutout"
-                            + " versions partial opacity is a no-op");
+                            + " must render untouched and at 0% it must not render at all");
         }
     }
 
