@@ -168,14 +168,15 @@ public final class ArmorHiderRenderTypes {
         FIRST_PERSON_HEAD_SCOPE_ENTRIES.incrementAndGet();
     }
 
-    // Diagnostic counters for the ElytraTrims 4.x compat (ETElytraTrimSubmitMixin, >= 1.21.9). ET draws
-    // its custom elytra decorators through one shared submit helper we wrap. SEEN = our wrap fired at all
-    // (ET drew a trim through the helper) - proves the wrap is bound and ET is decorating. FADE = we
-    // scaled the trim's alpha to match a faded wing (the real "transparency works" path, only where ET
-    // draws translucent, i.e. >= 1.21.11). On < 1.21.11 ET draws cutout, which can't be faded, so the
-    // elytra is left untouched at partial opacity (only 0% full-hides, handled by ArmorHiderElytraRenderer
-    // cancelling the whole wing before ET even draws) - there SEEN climbs but FADE does not. The wrap is
-    // @Pseudo/require=0 and no-ops silently if ET's helper drifts, so - per this repo's convention - the
+    // Diagnostic counters for the ElytraTrims compat (>= 1.21.9), shared by both submit wraps -
+    // ETElytraTrimSubmitMixin for ET <= 4.8.x and ETRenderingActionsSubmitMixin for 4.9.0+. ET draws its
+    // custom elytra decorators through one shared submit helper we wrap. SEEN = our wrap fired at all
+    // (ET drew a trim through the helper) - proves a wrap is bound and ET is decorating. FADE = we scaled
+    // the trim's alpha to match a faded wing, which is expected on EVERY version that has a wrap, cutout
+    // era included: ElytraTrimsFade also substitutes our translucent render type for ET's, so a cutout-era
+    // trim blends just like a 4.9.0 one. FADE stays flat only where nothing needs translucency - full
+    // opacity, or 0% where ArmorHiderElytraRenderer cancels the wing before ET draws. The wraps are
+    // @Pseudo/require=0 and no-op silently if ET's helper drifts, so - per this repo's convention - the
     // ElytraTrims smoke asserts these while a trimmed elytra is worn.
     private static final java.util.concurrent.atomic.AtomicLong ELYTRA_TRIM_SEEN =
             new java.util.concurrent.atomic.AtomicLong();

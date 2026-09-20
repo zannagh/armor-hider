@@ -23,14 +23,18 @@ public final class ElytraTrimsFade {
 
     /**
      * Scales an ET decorator's ARGB alpha by the active elytra transparency, keeping RGB so dyed
-     * color/pattern decorators keep their hue. Returns {@code color} unchanged when no elytra
-     * modification is active. Also bumps the diagnostic counters the ElytraTrims smoke asserts on:
+     * color/pattern decorators keep their hue. Returns {@code color} unchanged unless the elytra
+     * actually needs translucency. Also bumps the diagnostic counters the ElytraTrims smoke asserts on:
      * SEEN on every call (our wrap is bound and ET is decorating), FADE only when we actually scaled.
+     * <p>
+     * Gated on {@code needsTranslucency}, not {@code needsModification}: the latter is also true for a
+     * glint-only change at full opacity, which would record a FADE and scale by exactly 1 - a no-op that
+     * only pollutes the counter the smoke asserts on.
      */
     public static int fadeTrimColor(int color) {
         ArmorHiderRenderTypes.recordElytraTrimSeen();
         var ctx = AhRenderManagementApi.getActiveScope(RenderScope.ELYTRA);
-        if (ctx.isEmpty() || !ctx.needsModification()) {
+        if (ctx.isEmpty() || !ctx.needsTranslucency()) {
             return color;
         }
         var modApi = ctx.renderModificationApi();
@@ -40,8 +44,8 @@ public final class ElytraTrimsFade {
 
     /**
      * Substitutes Armor Hider's own translucent render type for the one ET submits the decorator on,
-     * for the same atlas, while an elytra modification is active. Returns {@code renderType} unchanged
-     * when no modification is active or the atlas cannot be recovered.
+     * for the same atlas, while the elytra actually needs translucency. Returns {@code renderType}
+     * unchanged otherwise, or when the atlas cannot be recovered.
      * <p>
      * Scaling the ARGB alpha alone is not enough on the cutout era (1.21.9/1.21.10): ET draws its
      * decorators on a cutout type there, which discards the alpha instead of blending it, so the trim
@@ -49,6 +53,11 @@ public final class ElytraTrimsFade {
      * actually makes the two fade in lockstep, and it is safe: the atlas is the same, only the blend
      * and depth-write state change. On 4.9.0+ ET already picks a translucent type; substituting ours
      * keeps both eras on one code path and on the same depth-write policy as the base wing.
+     * <p>
+     * The {@code needsTranslucency} gate matters more here than for the colour: an inert modification
+     * (full opacity, glint-only) must NOT be swapped to a translucent type, or the trim loses the depth
+     * contest against the opaque wing and gets overwritten - the same rule {@code EquipmentRenderMixin}
+     * and the loader-side colour mixins already follow.
      *
      * @param renderType the type ET is about to submit on
      * @param uvSource   the submit's sprite - a {@code TextureAtlasSprite} on every version, reaching
@@ -60,7 +69,7 @@ public final class ElytraTrimsFade {
             return renderType;
         }
         var ctx = AhRenderManagementApi.getActiveScope(RenderScope.ELYTRA);
-        if (ctx.isEmpty() || !ctx.needsModification()) {
+        if (ctx.isEmpty() || !ctx.needsTranslucency()) {
             return renderType;
         }
         return ctx.renderModificationApi().renderTypes().getTranslucentEntityRenderType(sprite.atlasLocation());
