@@ -78,6 +78,11 @@ val copyEunomiaToMods = if (eunomiaModrinthVersion != null) {
         description = "Drop the eunomia NeoForge mod jar (Modrinth $eunomiaModrinthVersion) into run/mods/."
         from(eunomiaRuntimeMod)
         into(project.layout.projectDirectory.dir("run/mods"))
+        // fetchCompatJars wipes run/mods in its task ACTION, and a smoke run schedules both tasks with no
+        // dependency between them - so without this ordering Gradle is free to run the wipe after this copy
+        // and delete the jar we just resolved, failing armor-hider's required eunomia dependency at boot.
+        // Intermittent by nature, which is exactly why it must be stated rather than left to scheduling luck.
+        mustRunAfter("fetchCompatJars")
         outputs.upToDateWhen { false }
         doFirst {
             delete(fileTree(project.layout.projectDirectory.dir("run/mods")) { include("eunomia*.jar") })
