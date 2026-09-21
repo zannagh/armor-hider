@@ -47,14 +47,15 @@ val devProfile = if (!gradle.startParameter.isOffline && requestedTasks.any {
 // networking transports + codec injection + capability handshake at game runtime, while armor-hider
 // only compiles against eunomia-core. The dependency is declared side="BOTH", so every run - client AND
 // dedicated server - must have the eunomia NeoForge mod jar in run/mods, or armor-hider fails its
-// dependency and the game aborts at boot. Resolved from CurseForge
-// (project `eunomia.cf.project`) for this variant's MC version via the pinned file id `eunomia.cf.file`.
+// dependency and the game aborts at boot. Resolved from MODRINTH, via a version id derived from
+// `eunomia.version` + `display_version` rather than a hand-maintained pin - see the comment on
+// `eunomiaModrinthVersion` below. CurseForge remains only as a fallback branch for the case where that id
+// cannot be derived; its `eunomia.cf.file` pins are frozen and are not re-pinned on a version bump.
 // This mirrors the Fabric copyEunomiaToMods in multiloader-loom.gradle.kts. The gameDir for a run is the
 // variant's `run/` dir, so run/mods is where NeoForge/FML loads it from - the same dir fetchCompatJars uses.
-// Registered only when the variant pins `eunomia.cf.file` (all current NeoForge variants do). Lenient by
-// design: an unpinned variant simply gets no copy task rather than failing configuration, so adding a new
-// NeoForge variant never breaks the build - a client or server run on an unpinned variant fails loudly at
-// boot on the missing eunomia dependency, which is the signal to pin it.
+// Lenient by design: a variant that can resolve neither source simply gets no copy task rather than failing
+// configuration, so adding a new NeoForge variant never breaks the build - a client or server run on such a
+// variant fails loudly at boot on the missing eunomia dependency, which is the signal to fix it.
 val eunomiaCfFile = findProperty("eunomia.cf.file")?.toString()
 // Modrinth version id for this variant, DERIVED rather than pinned - "neo-<display_version>-<semver>",
 // e.g. "neo-26.2-0.3.13". Mirrors the Fabric side in multiloader-loom.gradle.kts; see the long comment
@@ -83,6 +84,9 @@ val copyEunomiaToMods = if (eunomiaModrinthVersion != null) {
         }
     }
 } else if (eunomiaCfFile != null) {
+    // FALLBACK ONLY - unreachable while `eunomia.version` and `display_version` are both set, which is every
+    // configured variant. Kept for the case where the Modrinth id cannot be derived. Its pins are frozen:
+    // see the note above `eunomia.cf.project` in stonecutter.properties.toml.
     val eunomiaCfProject = findProperty("eunomia.cf.project")?.toString()
         ?: error("eunomia.cf.project is not set; cannot resolve the eunomia mod jar from CurseForge")
     val eunomiaRuntimeMod = configurations.create("eunomiaRuntimeMod") {
@@ -108,9 +112,10 @@ val copyEunomiaToMods = if (eunomiaModrinthVersion != null) {
     }
 } else {
     logger.warn(
-        "[armor-hider] eunomia.cf.file is not pinned for ${sc.current.project}; the eunomia mod will NOT be " +
-            "placed in run/mods, so a client or server run on this variant fails its required eunomia " +
-            "dependency at boot."
+        "[armor-hider] could not resolve the eunomia mod jar for ${sc.current.project}: neither a Modrinth " +
+            "id (needs `eunomia.version` + `display_version`) nor a `eunomia.cf.file` fallback pin is " +
+            "available. The eunomia mod will NOT be placed in run/mods, so a client or server run on this " +
+            "variant fails its required eunomia dependency at boot. Set `display_version` for this variant."
     )
     null
 }

@@ -553,14 +553,16 @@ if (branch == "fabric") {
     // booted with an empty run/mods and failed mod resolution. Only the `runClientGametest` wiring stays
     // conditional, because that task exists only on the FCGT-capable variants.
     //
-    // The jar is pulled from CurseForge (project `eunomia.cf.project`) via Cursemaven by default, resolved
-    // for this variant's MC version from the pinned file id `eunomia.cf.file`. Pass -Peunomia.fabric.jar=<path>
-    // to smoke-test a locally-built eunomia instead (e.g. an unreleased change). The CF configuration is
-    // non-transitive, so only eunomia's own jar lands - never its CF-declared deps.
+    // The jar is pulled from MODRINTH by default, at a version id DERIVED from `eunomia.version` +
+    // `display_version` rather than a hand-maintained pin - see the comment on `eunomiaModrinthVersion`
+    // below. CurseForge is a fallback branch only, reachable when that id cannot be derived, and its
+    // `eunomia.cf.file` pins are frozen rather than re-pinned on a bump. Pass -Peunomia.fabric.jar=<path>
+    // to smoke-test a locally-built eunomia instead (e.g. an unreleased change). Both remote configurations
+    // are non-transitive, so only eunomia's own jar lands - never its declared deps.
     //
     // Clear any previously-copied eunomia jar before copying the current one. Without this, a filename
-    // change - an eunomia version bump changes the CurseForge file id (and thus the jar name), or a run
-    // switches between the CF jar and a -Peunomia.fabric.jar override - leaves TWO eunomia mods in
+    // change - an eunomia version bump changes the jar name, or a run switches between a remote jar and a
+    // -Peunomia.fabric.jar override - leaves TWO eunomia mods in
     // run/mods. fabric-loader then loads both, the codec-injection mixins apply twice and the handshake
     // S2C payloads fail to decode (the client disconnects at join). fetchFcgtCompatJars / fetchCompatJars
     // wipe run/mods on -Psmoke runs, but the plain dev and FCGT/E2E paths do not, so this copy must clean
@@ -622,7 +624,8 @@ if (branch == "fabric") {
             doFirst { deleteStaleEunomiaJars() }
         }
     } else if (eunomiaCfFile != null) {
-        // Fallback only, and deliberately NOT kept up to date any more - the pins in
+        // FALLBACK ONLY - unreachable while `eunomia.version` and `display_version` are both set, which is
+        // every configured variant. Deliberately NOT kept up to date any more - the pins in
         // stonecutter.properties.toml are frozen at whatever release was current when Modrinth became the
         // primary source. Reachable only when the Modrinth id cannot be derived (no `eunomia.version` or no
         // `display_version`), so it cannot silently serve a different version than the one pinned.
@@ -656,9 +659,10 @@ if (branch == "fabric") {
         // (https://www.curseforge.com/minecraft/mc-mods/eunomia/files/all) in that variant's section of
         // stonecutter.properties.toml, or to pass -Peunomia.fabric.jar=<path>.
         logger.warn(
-            "[armor-hider] eunomia.cf.file is not pinned for ${sc.current.project}; the eunomia mod will " +
-                "NOT be placed in run/mods, so a client run on this variant fails its required eunomia " +
-                "dependency at boot."
+            "[armor-hider] could not resolve the eunomia mod jar for ${sc.current.project}: neither a " +
+                "Modrinth id (needs `eunomia.version` + `display_version`) nor a `eunomia.cf.file` fallback " +
+                "pin is available. The eunomia mod will NOT be placed in run/mods, so a client run on this " +
+                "variant fails its required eunomia dependency at boot. Set `display_version` for it."
         )
         null
     }
