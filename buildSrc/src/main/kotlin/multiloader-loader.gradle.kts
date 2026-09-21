@@ -72,6 +72,23 @@ val modHashes = availableHashes
     // exercise nothing here. Drop iris from the FETCH only (the compileOnly stays, so IrisCompat still
     // builds); it detects iris absent at runtime and no-ops. Real launchers ship a matching LWJGL.
     .filterKeys { !(it == "iris" && activeMcVersion == "1.20.1") }
+    // On 26.3, Iris cannot survive this harness at all, for a reason that has nothing to do with our code.
+    // 26.3 creates its render device through the new `renderpearl` backend over SDL, and under Xvfb + Mesa
+    // llvmpipe the OpenGL backend cannot be created ("Couldn't find matching GLX visual" - reproduced on the
+    // CI runner itself, and not fixable by the usual levers: GLX is healthy there, core profile 4.5, and
+    // neither forcing the preferred backend nor SDL_VIDEO_X11_FORCE_EGL changes it). Minecraft then falls
+    // back to VULKAN (lavapipe) and runs perfectly well - which is exactly why a `compat=none` 26.3 boot
+    // passes despite that same error being in its log.
+    //
+    // Iris is the one mod that cannot live with that fallback: it hooks RenderSystem.initRenderer and calls
+    // raw GL (SamplerLimits -> GlStateManager._getInteger -> GL11C.glGetInteger) with no GL context current,
+    // so LWJGL aborts the JVM outright - "FATAL ERROR in native method ... No context is current". That is
+    // what has reddened `BOOT/ENTITY_RENDER fabric-26.3 compat=all` in EVERY nightly since 2026-09-12.
+    //
+    // Dropped from the FETCH only, like the 1.20.1 case above: the compileOnly stays, so IrisCompat still
+    // builds and still no-ops when iris is absent at runtime. This costs us Iris coverage on 26.3 in CI and
+    // nowhere else - on a real GPU the OpenGL backend is created, so Iris behaves normally for users.
+    .filterKeys { !(it == "iris" && activeMcVersion == "26.3") }
 val activeLoader: String? = when {
     sc.current.project.contains("fabric") -> "fabric"
     sc.current.project.contains("neoforge") -> "neoforge"
