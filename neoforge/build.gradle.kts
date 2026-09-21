@@ -56,7 +56,33 @@ val devProfile = if (!gradle.startParameter.isOffline && requestedTasks.any {
 // NeoForge variant never breaks the build - a client or server run on an unpinned variant fails loudly at
 // boot on the missing eunomia dependency, which is the signal to pin it.
 val eunomiaCfFile = findProperty("eunomia.cf.file")?.toString()
-val copyEunomiaToMods = if (eunomiaCfFile != null) {
+// Modrinth version id for this variant, DERIVED rather than pinned - "neo-<display_version>-<semver>",
+// e.g. "neo-26.2-0.3.13". Mirrors the Fabric side in multiloader-loom.gradle.kts; see the long comment
+// there for why Modrinth is preferred (publishes in minutes vs CurseForge moderation, and no per-pageSize
+// stale-cache hazard in its API). A bump is one `eunomia.version` edit, not 21 opaque file ids.
+val eunomiaModrinthVersion = findProperty("eunomia.version")?.toString()
+    ?.let { semVer ->
+        findProperty("display_version")?.toString()?.let { display -> "neo-$display-$semVer" }
+    }
+val copyEunomiaToMods = if (eunomiaModrinthVersion != null) {
+    val eunomiaRuntimeMod = configurations.create("eunomiaRuntimeMod") {
+        isCanBeResolved = true
+        isCanBeConsumed = false
+        isVisible = false
+        isTransitive = false
+    }
+    dependencies.add("eunomiaRuntimeMod", "maven.modrinth:eunomia:$eunomiaModrinthVersion")
+    tasks.register<Copy>("copyEunomiaToMods") {
+        group = "verification"
+        description = "Drop the eunomia NeoForge mod jar (Modrinth $eunomiaModrinthVersion) into run/mods/."
+        from(eunomiaRuntimeMod)
+        into(project.layout.projectDirectory.dir("run/mods"))
+        outputs.upToDateWhen { false }
+        doFirst {
+            delete(fileTree(project.layout.projectDirectory.dir("run/mods")) { include("eunomia*.jar") })
+        }
+    }
+} else if (eunomiaCfFile != null) {
     val eunomiaCfProject = findProperty("eunomia.cf.project")?.toString()
         ?: error("eunomia.cf.project is not set; cannot resolve the eunomia mod jar from CurseForge")
     val eunomiaRuntimeMod = configurations.create("eunomiaRuntimeMod") {

@@ -570,6 +570,20 @@ if (branch == "fabric") {
     }
     val eunomiaOverrideJar = findProperty("eunomia.fabric.jar")?.toString()
     val eunomiaCfFile = findProperty("eunomia.cf.file")?.toString()
+    // Modrinth version id for this variant, DERIVED rather than pinned. eunomia publishes one release per
+    // (loader, MC range) named "<fab|neo>-<display_version>-<semver>" - e.g. "fab-mc-1.21.4-0.3.13",
+    // "neo-26.2-0.3.13" - and `display_version` is the same per-variant property already used to build the
+    // eunomia-common coordinate. So the whole set collapses to one computed string, and a version bump is
+    // a single `eunomia.version` edit instead of re-pinning 21 opaque CurseForge file ids by hand.
+    //
+    // Preferred over CurseForge for two practical reasons: Modrinth publishes within a minute or two of the
+    // release workflow while CurseForge sits in moderation (observed: ~25-40 min, and a partially-published
+    // listing looks complete), and CurseForge's files API caches per pageSize, so it can serve a stale page
+    // that omits just-published files. Neither failure mode can bite a derived id.
+    val eunomiaModrinthVersion = findProperty("eunomia.version")?.toString()
+        ?.let { semVer ->
+            findProperty("display_version")?.toString()?.let { display -> "fab-$display-$semVer" }
+        }
     val copyEunomiaToMods = if (eunomiaOverrideJar != null) {
         tasks.register<Copy>("copyEunomiaToMods") {
             group = "verification"
@@ -590,7 +604,28 @@ if (branch == "fabric") {
                 deleteStaleEunomiaJars()
             }
         }
+    } else if (eunomiaModrinthVersion != null) {
+        val eunomiaRuntimeMod = configurations.create("eunomiaRuntimeMod") {
+            isCanBeResolved = true
+            isCanBeConsumed = false
+            isVisible = false
+            isTransitive = false
+        }
+        dependencies.add("eunomiaRuntimeMod", "maven.modrinth:eunomia:$eunomiaModrinthVersion")
+        tasks.register<Copy>("copyEunomiaToMods") {
+            group = "verification"
+            description = "Drop the eunomia fabric mod jar (Modrinth $eunomiaModrinthVersion) into run/mods/."
+            from(eunomiaRuntimeMod)
+            into(project.layout.projectDirectory.dir("run/mods"))
+            mustRunAfter("fetchFcgtCompatJars", "fetchCompatJars")
+            outputs.upToDateWhen { false }
+            doFirst { deleteStaleEunomiaJars() }
+        }
     } else if (eunomiaCfFile != null) {
+        // Fallback only, and deliberately NOT kept up to date any more - the pins in
+        // stonecutter.properties.toml are frozen at whatever release was current when Modrinth became the
+        // primary source. Reachable only when the Modrinth id cannot be derived (no `eunomia.version` or no
+        // `display_version`), so it cannot silently serve a different version than the one pinned.
         val cfProject = findProperty("eunomia.cf.project")?.toString()
             ?: error("eunomia.cf.project is not set; cannot resolve the eunomia mod jar from CurseForge")
         val eunomiaRuntimeMod = configurations.create("eunomiaRuntimeMod") {

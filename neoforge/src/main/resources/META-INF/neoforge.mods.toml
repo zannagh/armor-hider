@@ -81,7 +81,7 @@ side="BOTH"
 [[dependencies."armor_hider"]]
 modId="eunomia"
 type="required"
-versionRange="[0.3.12,)"
+versionRange="[0.3.13,)"
 ordering="AFTER"
 side="BOTH"
 
