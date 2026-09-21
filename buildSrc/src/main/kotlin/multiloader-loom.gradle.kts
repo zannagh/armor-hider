@@ -425,7 +425,20 @@ if (branch == "fabric") {
             add("armored-elytra-gender" to "de.zannagh.armorhider.smoke.ArmoredElytraGenderSmokeTest")
             // Iris translucent-body repro (#342 follow-up). Real-GPU only; run in isolation with
             // -Psmoke.fcgt.only=iris-translucency on a dev machine with the run/ Iris shaderpack.
-            add("iris-translucency" to "de.zannagh.armorhider.smoke.IrisTranslucencySmokeTest")
+            //
+            // NOT registered on 26.3, because iris is excluded from the 26.3 fetch there (see
+            // multiloader-loader.gradle.kts: renderpearl falls back to Vulkan headless and Iris aborts the
+            // JVM on a raw GL call). Without the jar this test still builds its world, takes its four
+            // screenshots and logs "repro complete" while asserting nothing about Iris - a vacuous pass
+            // that reads like coverage. Worse, its `irisPresent && !supplierInstalled` check - the one that
+            // caught the 26.3 renderpearl path never wiring the shaderpack-active supplier - is skipped
+            // entirely when iris is absent. Registering it here would hide exactly the bug it exists for.
+            //
+            // So 26.3 has NO Iris coverage in CI. Closing that needs a runner with a real GPU, not a
+            // harness change; until then it is a known, deliberate hole rather than a silent green.
+            if (sc.current.parsed < "26.3-0.alpha.1") {
+                add("iris-translucency" to "de.zannagh.armorhider.smoke.IrisTranslucencySmokeTest")
+            }
         }
         // ElytraTrims transparency smoke. Its class is stonecutter-gated to `>= 1.21.9`, matching the
         // range where an ET submit wrap exists at all, so register the entrypoint on exactly that range
