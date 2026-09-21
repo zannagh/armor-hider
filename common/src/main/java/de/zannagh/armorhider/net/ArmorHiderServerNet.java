@@ -42,6 +42,11 @@ public final class ArmorHiderServerNet {
     }
 
     public static void init() {
+        // Declare every channel before anything sends on one. NeoForge closes its payload registrar
+        // during mod loading, so a channel first seen at join time cannot be wired at all - see
+        // AhPackets.registerAll().
+        AhPackets.registerAll();
+
         // Capability handshake: answer client HELLO probes so a client learns this server runs the mod.
         CommunicationManager.enableServerHandshake();
 

@@ -9,6 +9,7 @@ import de.zannagh.armorhider.net.packets.ServerWideSettings;
 import de.zannagh.armorhider.net.packets.SharedRuleNotificationPacket;
 import de.zannagh.armorhider.net.packets.SharedRuleStatePacket;
 import de.zannagh.armorhider.server.ServerConfiguration;
+import de.zannagh.eunomia.networking.comms.CommunicationManager;
 import de.zannagh.eunomia.networking.packets.KeyedPacket;
 import de.zannagh.eunomia.networking.packets.PacketType;
 
@@ -74,4 +75,34 @@ public final class AhPackets {
     /** S2C: the server relays one player's shared render-rule outcome to the other clients. */
     public static final PacketType<SharedRuleNotificationPacket> SHARED_RULES_NOTIFICATION =
             PacketType.clientbound(NAMESPACE, "shared_rules_s2c_packet", SharedRuleNotificationPacket.class);
+
+    /**
+     * Declares every channel above to eunomia up front.
+     *
+     * <p>Channels are otherwise registered lazily, on the first packet sent or the first receiver
+     * installed. That is fine on Fabric, but NeoForge closes its payload registrar partway through mod
+     * loading: a channel first seen at join time cannot be wired to the network at all, and the send
+     * blows up as an {@code EncoderException} on the netty thread (the payload falls back to vanilla's
+     * {@code DiscardedPayload} codec and the cast fails), which drops the connection.
+     *
+     * <p>That is not a theoretical case - it is the normal one on a dedicated server. A channel is only
+     * registered eagerly on the side that installs a receiver for it, and the server installs receivers
+     * for the C2S channels only. Everything this mod <em>pushes</em> on join - {@link #SERVER_CONFIG},
+     * {@link #PERMISSION}, {@link #SHARED_RULES_NOTIFICATION}, {@link #COMBAT_NOTIFICATION} - has its
+     * receiver on the client, so on a dedicated server none of them would exist in time.
+     *
+     * <p>Registration is idempotent, so calling this from both the common and client entrypoints is
+     * safe and deliberate: each physical side must declare the full set, not just its own half.
+     */
+    public static void registerAll() {
+        CommunicationManager.register(PLAYER_CONFIG);
+        CommunicationManager.register(PLAYER_CONFIG_REPLICATED);
+        CommunicationManager.register(SERVER_CONFIG);
+        CommunicationManager.register(SERVER_WIDE_SETTINGS);
+        CommunicationManager.register(PERMISSION);
+        CommunicationManager.register(COMBAT_EVENT);
+        CommunicationManager.register(COMBAT_NOTIFICATION);
+        CommunicationManager.register(SHARED_RULES);
+        CommunicationManager.register(SHARED_RULES_NOTIFICATION);
+    }
 }

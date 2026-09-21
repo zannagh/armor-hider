@@ -65,10 +65,23 @@ side="BOTH"
 # (AhReplicatedPlayerConfig implements eunomia's ReplicatedPlayerConfig) reaches a joining player.
 # Against 0.3.10 this mod loads and compiles fine, then silently fails to replicate anyone's config to
 # newcomers on precisely the servers that hit it - so the floor has to say 0.3.11. See #375.
+#
+# 0.3.12 is a hard floor on NeoForge specifically, and not for a subtle reason: below it, eunomia had
+# no working transport on this loader AT ALL. Its codec-injection mixin targets the vanilla two-arg
+# CustomPacketPayload.codec(FallbackProvider, List), which NeoForge patches to four args, so the
+# injection matched nothing and - with no injectors.defaultRequire - failed silently. No codecs meant
+# the client's eunomia:hello never reached the wire, the server's send gate never resolved, and every
+# clientbound packet this mod pushes on join was dropped 15 s later. That is the whole of armor-hider's
+# networking on NeoForge, so pairing this build with an older eunomia there is not degraded, it is dead.
+#
+# It matters on Fabric too, for the opposite reason: since AhPackets.registerAll() now declares every
+# channel up front, running against an eunomia that lacks the matching send guard would hand unwired
+# channels to the encoder, and NeoForge turns that into an EncoderException on the netty thread that
+# drops the connection. Loud breakage rather than quiet - still breakage. See armor-hider #375.
 [[dependencies."armor_hider"]]
 modId="eunomia"
 type="required"
-versionRange="[0.3.11,)"
+versionRange="[0.3.12,)"
 ordering="AFTER"
 side="BOTH"
 
