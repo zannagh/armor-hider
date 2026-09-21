@@ -7,11 +7,20 @@ archives_base_name = "armor-hider"
 loader_version = "0.19.5"
 # eunomia-core compile-time API version. Version-agnostic (no MC suffix), so one value covers every
 # variant. Consumed compileOnly; the eunomia mod supplies the runtime. Matches eunomia's release tag.
-eunomia.version = "0.3.12"
-# eunomia mod jar on CurseForge (project id; also on Modrinth since 2026-09-16 as BvzQw4wL). The per-MC file id is
-# pinned per fabric variant below as `eunomia.cf.file`. The FCGT smoke run resolves that file via the
-# keyless Cursemaven proxy (`curse.maven:eunomia-<project>:<file>`) and drops it into run/mods as
-# armor-hider's required runtime dependency. Update the file ids on each eunomia release.
+eunomia.version = "0.3.13"
+# CurseForge project id for the eunomia mod jar (Modrinth: BvzQw4wL, since 2026-09-16).
+#
+# FROZEN FALLBACK - do NOT re-pin these on a version bump. The eunomia runtime jar dropped into run/mods
+# now resolves from Modrinth at a DERIVED version id, "<fab|neo>-<display_version>-<eunomia.version>", so a
+# bump is a single `eunomia.version` edit above (plus the two declared floors) and nothing here.
+#
+# The per-variant `eunomia.cf.file` ids below resolve through the keyless Cursemaven proxy
+# (`curse.maven:eunomia-<project>:<file>`) and are used ONLY when the Modrinth id cannot be derived - i.e.
+# when a variant has no `display_version`. That is not the case for any variant today, so this path is
+# effectively unreachable and the ids are deliberately left at whatever release was current when the switch
+# happened (0.3.12). The build prefers Modrinth and therefore never silently serves a different version
+# than `eunomia.version` says. See multiloader-loom.gradle.kts / neoforge/build.gradle.kts for the reasoning
+# (Modrinth publishes in minutes; CurseForge sits in moderation and its files API can serve a stale page).
 eunomia.cf.project = "1654849"
 
 # ──────────────────────────────────────────────────────────────────────────────

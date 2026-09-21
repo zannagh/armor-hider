@@ -553,14 +553,16 @@ if (branch == "fabric") {
     // booted with an empty run/mods and failed mod resolution. Only the `runClientGametest` wiring stays
     // conditional, because that task exists only on the FCGT-capable variants.
     //
-    // The jar is pulled from CurseForge (project `eunomia.cf.project`) via Cursemaven by default, resolved
-    // for this variant's MC version from the pinned file id `eunomia.cf.file`. Pass -Peunomia.fabric.jar=<path>
-    // to smoke-test a locally-built eunomia instead (e.g. an unreleased change). The CF configuration is
-    // non-transitive, so only eunomia's own jar lands - never its CF-declared deps.
+    // The jar is pulled from MODRINTH by default, at a version id DERIVED from `eunomia.version` +
+    // `display_version` rather than a hand-maintained pin - see the comment on `eunomiaModrinthVersion`
+    // below. CurseForge is a fallback branch only, reachable when that id cannot be derived, and its
+    // `eunomia.cf.file` pins are frozen rather than re-pinned on a bump. Pass -Peunomia.fabric.jar=<path>
+    // to smoke-test a locally-built eunomia instead (e.g. an unreleased change). Both remote configurations
+    // are non-transitive, so only eunomia's own jar lands - never its declared deps.
     //
     // Clear any previously-copied eunomia jar before copying the current one. Without this, a filename
-    // change - an eunomia version bump changes the CurseForge file id (and thus the jar name), or a run
-    // switches between the CF jar and a -Peunomia.fabric.jar override - leaves TWO eunomia mods in
+    // change - an eunomia version bump changes the jar name, or a run switches between a remote jar and a
+    // -Peunomia.fabric.jar override - leaves TWO eunomia mods in
     // run/mods. fabric-loader then loads both, the codec-injection mixins apply twice and the handshake
     // S2C payloads fail to decode (the client disconnects at join). fetchFcgtCompatJars / fetchCompatJars
     // wipe run/mods on -Psmoke runs, but the plain dev and FCGT/E2E paths do not, so this copy must clean
@@ -570,6 +572,20 @@ if (branch == "fabric") {
     }
     val eunomiaOverrideJar = findProperty("eunomia.fabric.jar")?.toString()
     val eunomiaCfFile = findProperty("eunomia.cf.file")?.toString()
+    // Modrinth version id for this variant, DERIVED rather than pinned. eunomia publishes one release per
+    // (loader, MC range) named "<fab|neo>-<display_version>-<semver>" - e.g. "fab-mc-1.21.4-0.3.13",
+    // "neo-26.2-0.3.13" - and `display_version` is the same per-variant property already used to build the
+    // eunomia-common coordinate. So the whole set collapses to one computed string, and a version bump is
+    // a single `eunomia.version` edit instead of re-pinning 21 opaque CurseForge file ids by hand.
+    //
+    // Preferred over CurseForge for two practical reasons: Modrinth publishes within a minute or two of the
+    // release workflow while CurseForge sits in moderation (observed: ~25-40 min, and a partially-published
+    // listing looks complete), and CurseForge's files API caches per pageSize, so it can serve a stale page
+    // that omits just-published files. Neither failure mode can bite a derived id.
+    val eunomiaModrinthVersion = findProperty("eunomia.version")?.toString()
+        ?.let { semVer ->
+            findProperty("display_version")?.toString()?.let { display -> "fab-$display-$semVer" }
+        }
     val copyEunomiaToMods = if (eunomiaOverrideJar != null) {
         tasks.register<Copy>("copyEunomiaToMods") {
             group = "verification"
@@ -590,7 +606,29 @@ if (branch == "fabric") {
                 deleteStaleEunomiaJars()
             }
         }
+    } else if (eunomiaModrinthVersion != null) {
+        val eunomiaRuntimeMod = configurations.create("eunomiaRuntimeMod") {
+            isCanBeResolved = true
+            isCanBeConsumed = false
+            isVisible = false
+            isTransitive = false
+        }
+        dependencies.add("eunomiaRuntimeMod", "maven.modrinth:eunomia:$eunomiaModrinthVersion")
+        tasks.register<Copy>("copyEunomiaToMods") {
+            group = "verification"
+            description = "Drop the eunomia fabric mod jar (Modrinth $eunomiaModrinthVersion) into run/mods/."
+            from(eunomiaRuntimeMod)
+            into(project.layout.projectDirectory.dir("run/mods"))
+            mustRunAfter("fetchFcgtCompatJars", "fetchCompatJars")
+            outputs.upToDateWhen { false }
+            doFirst { deleteStaleEunomiaJars() }
+        }
     } else if (eunomiaCfFile != null) {
+        // FALLBACK ONLY - unreachable while `eunomia.version` and `display_version` are both set, which is
+        // every configured variant. Deliberately NOT kept up to date any more - the pins in
+        // stonecutter.properties.toml are frozen at whatever release was current when Modrinth became the
+        // primary source. Reachable only when the Modrinth id cannot be derived (no `eunomia.version` or no
+        // `display_version`), so it cannot silently serve a different version than the one pinned.
         val cfProject = findProperty("eunomia.cf.project")?.toString()
             ?: error("eunomia.cf.project is not set; cannot resolve the eunomia mod jar from CurseForge")
         val eunomiaRuntimeMod = configurations.create("eunomiaRuntimeMod") {
@@ -621,9 +659,10 @@ if (branch == "fabric") {
         // (https://www.curseforge.com/minecraft/mc-mods/eunomia/files/all) in that variant's section of
         // stonecutter.properties.toml, or to pass -Peunomia.fabric.jar=<path>.
         logger.warn(
-            "[armor-hider] eunomia.cf.file is not pinned for ${sc.current.project}; the eunomia mod will " +
-                "NOT be placed in run/mods, so a client run on this variant fails its required eunomia " +
-                "dependency at boot."
+            "[armor-hider] could not resolve the eunomia mod jar for ${sc.current.project}: neither a " +
+                "Modrinth id (needs `eunomia.version` + `display_version`) nor a `eunomia.cf.file` fallback " +
+                "pin is available. The eunomia mod will NOT be placed in run/mods, so a client run on this " +
+                "variant fails its required eunomia dependency at boot. Set `display_version` for it."
         )
         null
     }
