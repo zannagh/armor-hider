@@ -88,7 +88,16 @@ val modHashes = availableHashes
     // Dropped from the FETCH only, like the 1.20.1 case above: the compileOnly stays, so IrisCompat still
     // builds and still no-ops when iris is absent at runtime. This costs us Iris coverage on 26.3 in CI and
     // nowhere else - on a real GPU the OpenGL backend is created, so Iris behaves normally for users.
-    .filterKeys { !(it == "iris" && activeMcVersion == "26.3") }
+    //
+    // Gated on `sc.current.parsed`, NOT on `activeMcVersion`: that value is derived from
+    // `fabric.minecraft_version` / `neoforge.minecraft_version`, and only the former is ever defined -
+    // it lives in the `["fabric-<mc>"]` sections, and the NeoForge side declares
+    // `neoforge.minecraft_version_range` instead. So `activeMcVersion` is null on every NeoForge variant
+    // and an equality test there silently never matches (verified: neoforge-26.3 still pulled the iris jar
+    // while fabric-26.3 did not). The stonecutter version is the only value both loaders share.
+    // `>=` rather than `==` so 26.4+ inherits it - renderpearl is not going away - and so this stays the
+    // exact complement of the `iris-translucency` entrypoint gate in multiloader-loom.gradle.kts.
+    .filterKeys { !(it == "iris" && sc.current.parsed >= "26.3-0.alpha.1") }
 val activeLoader: String? = when {
     sc.current.project.contains("fabric") -> "fabric"
     sc.current.project.contains("neoforge") -> "neoforge"
