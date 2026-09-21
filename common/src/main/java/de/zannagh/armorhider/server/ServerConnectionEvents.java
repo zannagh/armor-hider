@@ -1,8 +1,6 @@
 package de.zannagh.armorhider.server;
 
-import com.mojang.authlib.GameProfile;
 import de.zannagh.armorhider.ArmorHider;
-import de.zannagh.armorhider.util.ExponentialBackoff;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 
@@ -10,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 
@@ -18,22 +15,29 @@ public final class ServerConnectionEvents {
 
     private static final List<BiConsumer<ServerPlayer, MinecraftServer>> JOIN_HANDLERS = new ArrayList<>();
     private static final Map<UUID, Long> RECENT_JOINS = new ConcurrentHashMap<>();
-    private static final int PLAYER_WAIT_TIMEOUT_MS = 5000;
     private static final long DEDUPE_WINDOW_MS = 2000;
 
     public static void registerJoin(BiConsumer<ServerPlayer, MinecraftServer> handler) {
         JOIN_HANDLERS.add(handler);
     }
 
-    public static void onPlayerJoin(GameProfile profile, MinecraftServer server) {
-        //? if >= 1.21.9 {
-        UUID playerId = profile.id();
-        String playerName = profile.name();
-        //?}
-        //? if < 1.21.9 {
-        /*UUID playerId = profile.getId();
-        String playerName = profile.getName();
-        *///?}
+    /**
+     * Fires the join event for a player that is <b>already in the player list</b>. Called from the
+     * {@code PlayerList.placeNewPlayer} tail mixin, which is the first moment that is true.
+     *
+     * <p>There is deliberately no waiting here any more. This used to be raised from the login listener,
+     * before the configuration phase had even started, and bridged the gap by polling the player list on
+     * a pooled thread until an exponential backoff ran out at ~4.3 s. That window belongs to the client,
+     * not to us, so on a real server the poll could simply lose - and losing it silently skipped every
+     * handler, leaving the client with no config, no permission level and no shared rules. Hooking the
+     * moment itself removes the race instead of widening it. See #375.</p>
+     *
+     * <p>The de-duplication below is kept as cheap insurance: {@code placeNewPlayer} is called once per
+     * join by vanilla, but it is a public method and nothing stops another mod routing a respawn or a
+     * transfer back through it.</p>
+     */
+    public static void onPlayerJoin(ServerPlayer player, MinecraftServer server) {
+        UUID playerId = player.getUUID();
 
         long now = System.currentTimeMillis();
         // Evict entries older than the dedupe window before checking: they can never trigger a dedupe-skip
@@ -46,25 +50,7 @@ public final class ServerConnectionEvents {
         }
         RECENT_JOINS.put(playerId, now);
 
-        CompletableFuture.runAsync(() -> {
-            ServerPlayer player;
-            var backoff = new ExponentialBackoff(PLAYER_WAIT_TIMEOUT_MS);
-            do {
-                player = server.getPlayerList().getPlayer(playerId);
-                if (player != null) {
-                    break;
-                }
-            }
-            while (backoff.shouldContinue());
-
-            if (backoff.hasTimedOut) {
-                ArmorHider.LOGGER.warn("Timed out waiting for player {} ({}) to appear in player list after {} ms", playerName, playerId, backoff.getElapsedMillisSinceFirstAttempt());
-                return;
-            }
-
-            final ServerPlayer foundPlayer = player;
-            server.execute(() -> invokeHandlers(foundPlayer, server));
-        });
+        invokeHandlers(player, server);
     }
 
     private static void invokeHandlers(ServerPlayer player, MinecraftServer server) {
@@ -72,7 +58,7 @@ public final class ServerConnectionEvents {
             try {
                 handler.accept(player, server);
             } catch (Exception e) {
-                de.zannagh.armorhider.ArmorHider.LOGGER.error("Error in player join handler", e);
+                ArmorHider.LOGGER.error("Error in player join handler", e);
             }
         }
     }

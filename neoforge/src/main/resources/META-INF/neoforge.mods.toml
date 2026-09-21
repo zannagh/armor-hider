@@ -54,10 +54,21 @@ side="BOTH"
 # can grey itself) and EunomiaClientConfiguration.syncUnavailableNotice(...) (armor-hider's own wording
 # on eunomia's "this server has no eunomia" toast). Both landed in 0.3.9. Against an older eunomia these
 # are a NoSuchMethodError at render time, not a graceful degradation, so the floor has to say 0.3.9.
+#
+# 0.3.11 is a floor for the same kind of reason as 0.3.10: a missing FIX, not a missing method.
+# Before it, eunomia raised its server-side join event from the login listener and then polled the
+# player list for ~4.3 s waiting for the player to appear. From 1.20.5 on the player only lands there
+# after the whole configuration phase - registry sync, resource-pack download, and PrepareSpawnTask's
+# chunk load on 26.x - which is client-driven and unbounded, so on a busy or heavily modded server the
+# poll simply loses and every eunomia join handler is skipped. One of those handlers is
+# ReplicatedStores.pushAllTo, which is exactly how armor-hider's per-player config
+# (AhReplicatedPlayerConfig implements eunomia's ReplicatedPlayerConfig) reaches a joining player.
+# Against 0.3.10 this mod loads and compiles fine, then silently fails to replicate anyone's config to
+# newcomers on precisely the servers that hit it - so the floor has to say 0.3.11. See #375.
 [[dependencies."armor_hider"]]
 modId="eunomia"
 type="required"
-versionRange="[0.3.10,)"
+versionRange="[0.3.11,)"
 ordering="AFTER"
 side="BOTH"
 

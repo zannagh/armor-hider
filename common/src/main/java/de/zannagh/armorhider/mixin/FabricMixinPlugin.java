@@ -7,7 +7,7 @@ public class FabricMixinPlugin extends ArmorHiderMixinPlugin {
 
     private static final String[] GENERIC_MIXINS = new String[]{
             "MinecraftServerMixin",
-            "ServerLoginMixin",
+            "PlayerListMixin",
     };
 
     private static final String[] BELOW_1_20_5_MIXINS = new String[]{

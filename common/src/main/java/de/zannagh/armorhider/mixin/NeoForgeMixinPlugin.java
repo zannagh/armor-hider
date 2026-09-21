@@ -6,7 +6,7 @@ import java.util.List;
 public class NeoForgeMixinPlugin extends ArmorHiderMixinPlugin {
     private static final String[] GENERIC_MIXINS = new String[]{
             "MinecraftServerMixin",
-            "ServerLoginMixin"
+            "PlayerListMixin"
     };
 
     @Override
