@@ -65,7 +65,7 @@ public final class ArmorHiderServerNet {
     }
 
     private static void pushOnJoin(ServerPlayer player, MinecraftServer server) {
-        ArmorHider.LOGGER.info("Player joined with ID {}. Sending current server config to client...",
+        ArmorHider.LOGGER.debug("Player joined with ID {}. Sending current server config to client...",
                 player.getStringUUID());
         ServerRuntime runtime = ArmorHider.getRuntime();
         if (runtime == null) {
@@ -199,7 +199,7 @@ public final class ArmorHiderServerNet {
     }
 
     private static void handlePlayerConfigReceived(PlayerConfig config, ServerContext ctx) {
-        ArmorHider.LOGGER.info("Server received settings packet from {}", ctx.senderId());
+        ArmorHider.LOGGER.debug("Server received settings packet from {}", ctx.senderId());
 
         ServerRuntime runtime = ArmorHider.getRuntime();
         if (runtime == null) {
@@ -232,7 +232,7 @@ public final class ArmorHiderServerNet {
     }
 
     private static void handleServerWideSettingsReceived(ServerWideSettings payload, ServerContext ctx) {
-        ArmorHider.LOGGER.info("Server received admin settings packet.");
+        ArmorHider.LOGGER.debug("Server received admin settings packet.");
 
         ServerRuntime runtime = ArmorHider.getRuntime();
         if (runtime == null) {

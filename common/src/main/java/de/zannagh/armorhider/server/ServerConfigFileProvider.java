@@ -57,7 +57,7 @@ public class ServerConfigFileProvider implements ConfigurationProvider<ServerCon
             Files.createDirectories(file.getParent());
             try (Writer w = Files.newBufferedWriter(file)) {
                 ArmorHider.GSON.toJson(CURRENT, ServerConfiguration.class, w);
-                ArmorHider.LOGGER.info("Saved server config.");
+                ArmorHider.LOGGER.debug("Saved server config.");
             }
         } catch (Exception e) {
             ArmorHider.LOGGER.error("Server config save failed", e);

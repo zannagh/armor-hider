@@ -354,7 +354,7 @@ public class AdvancedArmorHiderSettingsScreen extends ArmorHiderConfigurationScr
     @Override
     protected void saveSettingsOnClose() {
         if (!hasUsedFallbackWhereServerDidntTranspondSettings && serverSettingsChanged) {
-            ArmorHider.LOGGER.info("Updating current server settings (if possible)...");
+            ArmorHider.LOGGER.debug("Updating current server settings (if possible)...");
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.setAndSendServerConfig(newServerCombatDetection, setForceArmorHiderOff, visibilityRespectDefaultSetting, setAllowIndividualConfigs);
         }
         if (localSettingsChanged) {

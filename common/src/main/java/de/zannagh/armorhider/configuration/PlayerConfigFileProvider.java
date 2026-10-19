@@ -75,7 +75,7 @@ public class PlayerConfigFileProvider implements ConfigurationProvider<PlayerCon
             Files.createDirectories(FILE.getParent());
             try (Writer writer = Files.newBufferedWriter(FILE)) {
                 ArmorHider.GSON.toJson(currentValue, writer);
-                ArmorHider.LOGGER.info("Saved client config to file.");
+                ArmorHider.LOGGER.debug("Saved client config to file.");
             }
         } catch (IOException e) {
             ArmorHider.LOGGER.error("Failed to save client config!", e);

@@ -214,7 +214,10 @@ public final class PaperServer implements AutoCloseable {
                 // The watchdog otherwise trips on a stalled tick under CI load and tries to exec a
                 // ./start.sh that does not exist here.
                 "-Ddisable.watchdog=true",
-                "-Duser.language=en", "-Duser.country=US",
+                "-Duser.language=en", "-Duser.country=US"));
+        // Per-packet plugin lines are FINE in production; the E2E assertions need them.
+        command.addAll(PaperDebugLogging.jvmArguments(serverDirectory));
+        command.addAll(List.of(
                 "-jar", build.jar().toAbsolutePath().toString(),
                 "--nogui", "--nojline",
                 "--host", "127.0.0.1",
@@ -233,6 +236,7 @@ public final class PaperServer implements AutoCloseable {
         Files.writeString(serverDirectory.resolve("eula.txt"), "eula=true\n", StandardCharsets.UTF_8);
         Files.writeString(serverDirectory.resolve("server.properties"), serverProperties(),
                 StandardCharsets.UTF_8);
+        PaperDebugLogging.write(serverDirectory);
     }
 
     /**

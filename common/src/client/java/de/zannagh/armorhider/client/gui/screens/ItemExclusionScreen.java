@@ -88,7 +88,7 @@ public class ItemExclusionScreen extends ArmorHiderConfigurationScreen {
 
     @Override
     protected void saveSettingsOnClose() {
-        ArmorHider.LOGGER.info("Saving item exclusion changes for slot {}...", slot.name());
+        ArmorHider.LOGGER.debug("Saving item exclusion changes for slot {}...", slot.name());
         ArmorHiderClient.CLIENT_CONFIG_MANAGER.saveCurrent();
     }
 
