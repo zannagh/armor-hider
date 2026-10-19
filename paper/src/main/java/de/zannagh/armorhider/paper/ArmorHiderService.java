@@ -74,7 +74,7 @@ public final class ArmorHiderService {
      */
     public void handlePlayerConfig(Player from, JsonObject config) {
         UUID senderId = from.getUniqueId();
-        logger.info("Server received settings packet from " + senderId);
+        logger.fine(() -> "Server received settings packet from " + senderId);
         try {
             state.put(senderId, config);
             saveAsync();
@@ -95,7 +95,7 @@ public final class ArmorHiderService {
      * and mutation.</p>
      */
     public void handleServerWideSettings(Player from, JsonObject payload) {
-        logger.info("Server received admin settings packet.");
+        logger.fine("Server received admin settings packet.");
         int level = permissions.getPermissionLevel(from);
         if (level < 3) {
             logger.info("Non-admin player " + from.getUniqueId()
@@ -134,10 +134,11 @@ public final class ArmorHiderService {
      * sender UUID - otherwise any client could forge a combat event attributed to anyone.</p>
      */
     public void handleCombatLogEvent(Player from, JsonObject payload) {
-        // Logged like the other two inbound handlers, and relied on by PaperE2ESmokeTest: with a
-        // single connected player the relay below reaches nobody, so this line is the only
-        // observable evidence that the combat-log C2S channel works against a real Paper server.
-        logger.info("Server received combat log packet from " + from.getUniqueId());
+        // FINE (fires on every combat event), but relied on by PaperE2ESmokeTest, which enables FINE
+        // for this logger: with a single connected player the relay below reaches nobody, so this
+        // line is the only observable evidence that the combat-log C2S channel works against a real
+        // Paper server.
+        logger.fine(() -> "Server received combat log packet from " + from.getUniqueId());
         JsonObject notification = new JsonObject();
         if (payload.has("playerName") && payload.get("playerName").isJsonPrimitive()) {
             notification.addProperty("playerName", payload.get("playerName").getAsString());

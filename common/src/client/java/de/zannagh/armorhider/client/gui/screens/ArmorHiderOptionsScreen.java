@@ -56,7 +56,7 @@ public class ArmorHiderOptionsScreen extends ArmorHiderConfigurationScreen {
 
     @Override
     protected void saveSettingsOnClose() {
-        ArmorHider.LOGGER.info("Updating current player settings...");
+        ArmorHider.LOGGER.debug("Updating current player settings...");
         ArmorHiderClient.CLIENT_CONFIG_MANAGER.saveCurrent();
     }
 }

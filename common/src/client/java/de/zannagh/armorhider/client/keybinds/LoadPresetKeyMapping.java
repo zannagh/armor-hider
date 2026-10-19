@@ -81,6 +81,6 @@ public class LoadPresetKeyMapping extends CustomKeyMapping {
         presetManager.setActiveIndex(presetIndex);
         preset.applyTo(config);
         ArmorHiderClient.CLIENT_CONFIG_MANAGER.saveCurrent();
-        ArmorHider.LOGGER.info("Loaded preset {} via keybind.", presetIndex + 1);
+        ArmorHider.LOGGER.debug("Loaded preset {} via keybind.", presetIndex + 1);
     }
 }

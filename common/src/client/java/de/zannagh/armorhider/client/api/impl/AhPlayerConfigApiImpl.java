@@ -183,10 +183,10 @@ public class AhPlayerConfigApiImpl implements ArmorHiderPlayerConfigApi, Configu
 
         ClientPacketListener clientNetwork = Minecraft.getInstance().getConnection();
         if (serverConfiguration != null && McClientUtils.isClientConnectedToServer() && clientNetwork != null) {
-            ArmorHider.LOGGER.info("Sending to server...");
+            ArmorHider.LOGGER.debug("Sending to server...");
             // Strip the client-only per-player override map before transmitting (privacy + irrelevant to peers).
             CommunicationManager.sendToServer(AhPackets.PLAYER_CONFIG, config.forNetwork());
-            ArmorHider.LOGGER.info("Send client config package to server.");
+            ArmorHider.LOGGER.debug("Send client config package to server.");
         }
         // Also publish over the replicated channel so config propagates on the HTTP/WebSocket fallback (where
         // no mod server exists and the block above never fires). eunomia's send gate routes this: to the relay
@@ -265,14 +265,14 @@ public class AhPlayerConfigApiImpl implements ArmorHiderPlayerConfigApi, Configu
     @Override
     public void setAndSendServerWideSettings(@NonNull ServerWideSettings serverWideSettings) {
         if (ArmorHiderClient.permissionLevel < 3) {
-            ArmorHider.LOGGER.info("Player is no admin, suppressing update...");
+            ArmorHider.LOGGER.debug("Player is no admin, suppressing update...");
             return;
         }
         if (serverConfiguration == null) {
             return;
         }
         serverConfiguration.serverWideSettings = serverWideSettings;
-        ArmorHider.LOGGER.info("Sending server-wide settings to server...");
+        ArmorHider.LOGGER.debug("Sending server-wide settings to server...");
         CommunicationManager.sendToServer(AhPackets.SERVER_WIDE_SETTINGS, serverWideSettings);
     }
 
@@ -343,14 +343,14 @@ public class AhPlayerConfigApiImpl implements ArmorHiderPlayerConfigApi, Configu
 
     @Override
     public void setServerConfig(ServerConfiguration serverConfig) {
-        ArmorHider.LOGGER.info("Setting server config...");
+        ArmorHider.LOGGER.debug("Setting server config...");
         serverConfiguration = serverConfig;
         notifyConfigListeners(null);
     }
 
     @Override
     public void clearServerConfig() {
-        ArmorHider.LOGGER.info("Clearing server config...");
+        ArmorHider.LOGGER.debug("Clearing server config...");
         serverConfiguration = null;
         notifyConfigListeners(null);
     }

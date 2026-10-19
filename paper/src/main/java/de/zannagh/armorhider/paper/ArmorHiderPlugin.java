@@ -22,6 +22,7 @@ import org.bukkit.plugin.messaging.Messenger;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 
 /**
  * Server-side Armor Hider, reimplemented as a Bukkit plugin over eunomia's networking core.
@@ -34,11 +35,21 @@ import java.util.List;
  */
 public final class ArmorHiderPlugin extends JavaPlugin {
 
+    /**
+     * Opt-in switch ({@code -Darmorhider.debug=true}) that lowers the plugin logger to FINE, so the
+     * per-packet lines become loggable. Paper forwards FINE to log4j as TRACE, so they only reach
+     * {@code latest.log} if a log4j logger named {@code ArmorHider} is at TRACE as well.
+     */
+    static final String DEBUG_PROPERTY = "armorhider.debug";
+
     private ArmorHiderService service;
     private PaperServerTransport transport;
 
     @Override
     public void onEnable() {
+        if (Boolean.getBoolean(DEBUG_PROPERTY)) {
+            getLogger().setLevel(Level.FINE);
+        }
         // Install the wire/disk Gson before anything (de)serializes. Pretty-printing matches
         // ArmorHider.GSON, so configs round-trip byte-for-byte between the mod and this plugin, and
         // the shared PayloadCodec resolves opaque JsonObject payloads with it.

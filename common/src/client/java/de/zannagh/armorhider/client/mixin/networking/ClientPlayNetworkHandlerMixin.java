@@ -24,7 +24,7 @@ public abstract class ClientPlayNetworkHandlerMixin {
     @Inject(method = "handleLogin", at = @At("TAIL"))
     private void onHandleLogin(CallbackInfo ci) {
         var listener = (ClientPacketListener) (Object) this;
-        ArmorHider.LOGGER.info("Client joined server (client-side)");
+        ArmorHider.LOGGER.debug("Client joined server (client-side)");
         ClientConnectionEvents.onClientJoin(listener, minecraft);
     }
 }

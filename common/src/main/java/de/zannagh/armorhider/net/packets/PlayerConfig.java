@@ -570,7 +570,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig>, NetworkH
      * the values that were present in the old config.
      */
     public static @NonNull PlayerConfig migrate(@NonNull PlayerConfig old) {
-        ArmorHider.LOGGER.info("Migrating player config for {} from version {} to {}.",
+        ArmorHider.LOGGER.debug("Migrating player config for {} from version {} to {}.",
                 old.playerName.getValue(), old.configVersion, CURRENT_CONFIG_VERSION);
 
         var fresh = new PlayerConfig(old.playerId.getValue(), old.playerName.getValue());

@@ -82,7 +82,10 @@ class PaperE2ESmokeTest {
      */
     private static final String FCGT_TEST_ID = "paper-handshake";
 
-    /** Plugin log line proving the combat-log C2S packet reached the server. */
+    /**
+     * Plugin log line proving the combat-log C2S packet reached the server. Logged at FINE, so it
+     * only appears because {@code PaperDebugLogging} enables that level for the smoke server.
+     */
     private static final String COMBAT_LOG_RECEIVED = "Server received combat log packet from";
 
     /** Markers PaperHandshakeSmokeTest logs, used to attribute a red gametest run. */

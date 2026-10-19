@@ -125,7 +125,7 @@ public class ServerWideSettings implements ConfigurationSource<ServerWideSetting
      * the values that were present in the old payload.
      */
     public static @NonNull ServerWideSettings migrate(@NonNull ServerWideSettings old) {
-        ArmorHider.LOGGER.info("Migrating server-wide settings from version {} to {}.",
+        ArmorHider.LOGGER.debug("Migrating server-wide settings from version {} to {}.",
                 old.configVersion, CURRENT_CONFIG_VERSION);
 
         var fresh = defaults();
