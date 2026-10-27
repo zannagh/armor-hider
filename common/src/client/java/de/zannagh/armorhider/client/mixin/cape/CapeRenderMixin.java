@@ -68,6 +68,9 @@ public class CapeRenderMixin {
 
     // ===== Move cape back to body when armor is hidden =====
 
+    // 1.21.2+: the only translate is the conditional chest-armor offset, so zeroing it is correct.
+    // <1.21.2: the only translate is the unconditional base offset (0,0,0.125f); zeroing it clips the cape into the body.
+    //? if >= 1.21.2 {
     @WrapOperation(
             method = CAPE_CONTEXT_METHOD,
             at = @At(
@@ -83,6 +86,7 @@ public class CapeRenderMixin {
             original.call(instance, f, g, h);
         }
     }
+    //?}
 
 
     @WrapOperation(
