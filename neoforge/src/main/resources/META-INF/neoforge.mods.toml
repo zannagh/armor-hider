@@ -78,10 +78,13 @@ side="BOTH"
 # channel up front, running against an eunomia that lacks the matching send guard would hand unwired
 # channels to the encoder, and NeoForge turns that into an EncoderException on the netty thread that
 # drops the connection. Loud breakage rather than quiet - still breakage. See armor-hider #375.
+#
+# 0.3.15 is the first release whose Paper plugin is published to Modrinth for every supported game version,
+# including 26.3 (see armor-hider #389). It keeps all loaders on one pinned eunomia line.
 [[dependencies."armor_hider"]]
 modId="eunomia"
 type="required"
-versionRange="[0.3.13,)"
+versionRange="[0.3.15,)"
 ordering="AFTER"
 side="BOTH"
 

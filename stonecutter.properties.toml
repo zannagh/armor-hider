@@ -7,7 +7,7 @@ archives_base_name = "armor-hider"
 loader_version = "0.19.5"
 # eunomia-core compile-time API version. Version-agnostic (no MC suffix), so one value covers every
 # variant. Consumed compileOnly; the eunomia mod supplies the runtime. Matches eunomia's release tag.
-eunomia.version = "0.3.13"
+eunomia.version = "0.3.15"
 # CurseForge project id for the eunomia mod jar (Modrinth: BvzQw4wL, since 2026-09-16).
 #
 # FROZEN FALLBACK - do NOT re-pin these on a version bump. The eunomia runtime jar dropped into run/mods
