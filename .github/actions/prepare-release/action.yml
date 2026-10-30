@@ -1,9 +1,9 @@
 name: Prepare Release
 description: >
-  Single-runner release preflight: picks a build runner, calculates the version,
-  decides whether to release, resolves the mod version, validates against downgrades,
-  checks Modrinth for an existing version and generates the changelogs - all in one
-  job so downstream work waits on exactly one runner instead of four sequential jobs.
+  Single-runner release preflight: calculates the version, decides whether to release,
+  resolves the mod version, validates against downgrades, checks Modrinth for an
+  existing version and generates the changelogs - all in one job so downstream work
+  waits on exactly one runner instead of four sequential jobs.
 
 inputs:
   event-name:
@@ -29,20 +29,6 @@ inputs:
     description: The GitHub release body (manual releases only)
     required: false
     default: ''
-  runner-token:
-    description: >
-      Fine-grained PAT with Administration:read used to list self-hosted runners.
-      Missing/invalid degrades gracefully to default-runs-on.
-    required: false
-    default: ''
-  required-labels:
-    description: Comma-separated labels a self-hosted runner must have
-    required: false
-    default: 'Linux,X64,build'
-  default-runs-on:
-    description: Runner to fall back to when no matching self-hosted runner is free
-    required: false
-    default: 'ubuntu-latest'
   modrinth-project-id:
     description: The Modrinth project ID/slug to check for an existing version
     required: true
@@ -51,9 +37,6 @@ inputs:
     required: true
 
 outputs:
-  runner:
-    description: The JSON runs-on value for the build job
-    value: ${{ steps.runner.outputs.runner }}
   semver:
     description: MajorMinorPatch version
     value: ${{ steps.version.outputs.majorMinorPatch }}
@@ -100,17 +83,7 @@ outputs:
 runs:
   using: composite
   steps:
-    # 1. Pick the build runner (independent of the version math, but folded in here so
-    #    it does not cost its own runner slot).
-    - name: Pick a runner
-      id: runner
-      uses: zannagh/versionizer/determine-runner@v1
-      with:
-        runner-token: ${{ inputs.runner-token }}
-        required-labels: ${{ inputs.required-labels }}
-        default-runs-on: ${{ inputs.default-runs-on }}
-
-    # 2. Version math from git history (requires the caller to checkout with fetch-depth: 0).
+    # 1. Version math from git history (requires the caller to checkout with fetch-depth: 0).
     - name: Calculate version
       id: version
       uses: zannagh/versionizer/calculate-version@v1
@@ -125,7 +98,7 @@ runs:
         echo "PreReleaseLabel: ${{ steps.version.outputs.preReleaseLabel }}"
         echo "Config Source: ${{ steps.version.outputs.configSource }}"
 
-    # 3. Decide whether this run should produce a release.
+    # 2. Decide whether this run should produce a release.
     - name: Check release
       id: release-check
       uses: zannagh/versionizer/check-release@v1
@@ -134,7 +107,7 @@ runs:
         is-dry-run: ${{ inputs.is-dry-run }}
         force-release: ${{ inputs.force-release }}
 
-    # 4. Resolve the concrete mod version string (shared by validate, Modrinth check,
+    # 3. Resolve the concrete mod version string (shared by validate, Modrinth check,
     #    changelog and the build itself).
     - name: Determine mod version
       id: mod-ver
@@ -147,7 +120,7 @@ runs:
         prerelease-number: ${{ steps.version.outputs.preReleaseNumber }}
         commits-since: ${{ steps.version.outputs.commitsSinceVersionSource }}
 
-    # 5. Downgrade guard (manual releases only). Soft gate: on a downgrade we warn and
+    # 4. Downgrade guard (manual releases only). Soft gate: on a downgrade we warn and
     #    set version_ok=false rather than failing, so the caller can skip publishing,
     #    the GitHub release upload and prerelease creation without turning the run red.
     - name: Validate release version
@@ -177,7 +150,7 @@ runs:
           echo "version_ok=true" >> "$GITHUB_OUTPUT"
         fi
 
-    # 6. Has this version already been published to Modrinth?
+    # 5. Has this version already been published to Modrinth?
     - name: Check Modrinth version
       id: modrinth
       if: steps.release-check.outputs.should_release == 'true'
@@ -186,7 +159,7 @@ runs:
         project-id: ${{ inputs.modrinth-project-id }}
         mod-version: ${{ steps.mod-ver.outputs.version }}
 
-    # 7. Changelogs - known already at this point since they only need the mod version
+    # 6. Changelogs - known already at this point since they only need the mod version
     #    and git history, so they are generated here and merely consumed if we publish.
     - name: Generate full changelog
       id: full-changelog
