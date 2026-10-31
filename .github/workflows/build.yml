@@ -20,22 +20,12 @@ env:
   ARMOR_HIDER_BUILD_SCAN_PUBLISH: "true"
 
 jobs:
-  runner-and-version:
-    name: Determine Runner & Get Version
+  version:
+    name: Get Version
     runs-on: ubuntu-latest
     outputs:
-      runner: ${{ steps.pick.outputs.runner }}
       fullSemVer: ${{ steps.version.outputs.fullSemVer }}
     steps:
-      - name: Pick a runner
-        id: pick
-        uses: zannagh/versionizer/determine-runner@v1
-        with:
-          # Fine-grained PAT with Administration:read on this repo (lists runners). Missing/invalid
-          # token degrades gracefully to default-runs-on.
-          runner-token: ${{ secrets.RUNNER_TOKEN }}
-          required-labels: 'Linux,X64,build'
-          default-runs-on: 'ubuntu-latest'
       - name: Checkout
         uses: actions/checkout@v7
         with:
@@ -47,8 +37,8 @@ jobs:
 
   build:
     name: Build & Test
-    needs: runner-and-version
-    runs-on: ${{ fromJSON(needs.runner-and-version.outputs.runner) }}
+    needs: version
+    runs-on: ${{ (contains(fromJSON('["push","schedule","workflow_dispatch","merge_group"]'), github.event_name) || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON(vars.RUNS_ON || '{}').build || 'ubuntu-latest' }}
     # `contents: read` to check out; `pull-requests: write` so the coverage step can post/update its
     # summary comment on the PR; `packages: read` so Gradle can resolve the eunomia libraries from
     # GitHub Packages (see `env.GITHUB_TOKEN` below).
@@ -98,7 +88,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: coverage-${{ needs.runner-and-version.outputs.fullSemVer }}
+          name: coverage-${{ needs.version.outputs.fullSemVer }}
           # Merged report + both per-module reports.
           path: '**/build/reports/jacoco/**'
           if-no-files-found: warn
@@ -125,11 +115,11 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Build & Stage Artifacts
-        run: ./gradlew stageArtifacts -PsemVer="${{ needs.runner-and-version.outputs.fullSemVer }}" -Pprerelease="true"
+        run: ./gradlew stageArtifacts -PsemVer="${{ needs.version.outputs.fullSemVer }}" -Pprerelease="true"
 
       - name: Upload Staged Artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: armor-hider-${{ needs.runner-and-version.outputs.fullSemVer }}
+          name: armor-hider-${{ needs.version.outputs.fullSemVer }}
           path: staging/*.jar
           if-no-files-found: warn

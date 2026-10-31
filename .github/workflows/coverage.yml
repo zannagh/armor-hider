@@ -4,7 +4,7 @@
 # BASE branch has coverage too. build.yml runs on pull_request only, so main never uploads - this tiny
 # workflow fills that gap by running the Tier-1 unit tests + merged JaCoCo report on every push to main
 # and uploading it. It intentionally does NOT build artifacts (publish.yml owns that); it only needs the
-# coverage XML, so a plain ubuntu runner is enough.
+# coverage XML.
 name: Coverage
 
 on:
@@ -27,7 +27,7 @@ env:
 jobs:
   coverage:
     name: Coverage baseline
-    runs-on: ubuntu-latest
+    runs-on: ${{ (contains(fromJSON('["push","schedule","workflow_dispatch","merge_group"]'), github.event_name) || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON(vars.RUNS_ON || '{}').coverage || 'ubuntu-latest' }}
     # buildSrc only declares the GitHub Packages repository when a token is visible, and :paper fails
     # at configuration time without one - so the Gradle steps below need it in the environment.
     # EUNOMIA_PACKAGES_TOKEN is deliberately NOT defined: eunomia is a public repo publishing a public

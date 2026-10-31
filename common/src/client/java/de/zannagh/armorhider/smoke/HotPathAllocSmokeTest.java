@@ -27,7 +27,7 @@ import net.minecraft.world.item.Items;
  * entity, per frame) and twice per baked quad of every item model.
  * <p>
  * <b>Why an allocation count and not a frame time.</b> CI renders under Mesa llvmpipe software GL on a
- * shared self-hosted runner, so absolute FPS/frame-time numbers are noise and any threshold on them is
+ * shared CI runner, so absolute FPS/frame-time numbers are noise and any threshold on them is
  * either vacuous or flaky. The number of {@code PlayerConfig} graphs built during a render window, however,
  * is deterministic: the correct value is exactly zero, on any GPU, at any frame rate.
  * <p>

@@ -93,9 +93,8 @@ local builds too.
 
 - **Build workflow** (`build.yml`): Runs on pull requests to validate compilation and tests
 - **Smoke gate** (`smoke.yml`): Headless FCGT gate on PRs into `main`. Boots a real client under
-  Xvfb + Mesa software GL, which only the self-hosted `fcgt` runner provides - the `detect` job checks
-  whether one is online and, if not (or on a fork PR), the gate self-skips and the required
-  `smoke-result` check still passes. When a runner is present it runs the full FCGT scenario batch on
+  Xvfb + Mesa software GL. The smoke jobs are skipped unless configured (always on fork PRs), and the
+  required `smoke-result` check then still passes. When smoke runs it covers the full FCGT scenario batch on
   fabric-26.2 in both compat modes plus a parallel boot sweep of the other current versions (~6 min,
   under the 7-min cap). The exhaustive loader/version matrix and the `e2e` coverage upload run nightly.
   Set **`smoke-result`** (not `smoke`) as the required check in branch protection.
