@@ -2,6 +2,7 @@ package de.zannagh.armorhider.client.gui.screens;
 
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.client.net.SingleplayerServerSync;
 import de.zannagh.armorhider.configuration.IrisPartialTransparencyMode;
 import de.zannagh.armorhider.configuration.SettingsLocation;
 import de.zannagh.armorhider.log.DebugLogger;
@@ -260,6 +261,16 @@ public class AdvancedArmorHiderSettingsScreen extends ArmorHiderConfigurationScr
         armorHiderOffButton.active = ArmorHiderClient.permissionLevel >= 3;
         visibilityButton.active = ArmorHiderClient.permissionLevel >= 3;
         allowIndividualConfigsButton.active = ArmorHiderClient.permissionLevel >= 3;
+
+        // While the singleplayer sync applies, the combat detection and invisibility values follow the client
+        // settings, so an admin value set here would be silently reverted on the next save.
+        if (SingleplayerServerSync.applies(ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig())) {
+            var followsClient = Tooltip.create(Component.translatable("armorhider.options.sync_singleplayer.follows_client"));
+            combatButton.active = false;
+            combatButton.setTooltip(followsClient);
+            visibilityButton.active = false;
+            visibilityButton.setTooltip(followsClient);
+        }
 
         factory.addElementAsWidget(combatButton);
         factory.addElementAsWidget(armorHiderOffButton);

@@ -159,13 +159,13 @@ public final class ClientCommunicationManager {
         DebugLogger.log("Armor Hider received configuration from server.");
         ArmorHiderClient.CLIENT_CONFIG_MANAGER.setServerConfig(ctx);
         DebugLogger.log("Armor Hider successfully set configuration from server.");
-        SingleplayerServerSync.pushIfApplicable();
+        SingleplayerServerSync.pushOnClientThread();
     }
 
     private static void handlePermissionPacketReceived(PermissionPacket ctx) {
         DebugLogger.log("Received permission packet from server: {}", ctx.permissionLevel);
         ArmorHiderClient.permissionLevel = ctx.permissionLevel;
-        SingleplayerServerSync.pushIfApplicable();
+        SingleplayerServerSync.pushOnClientThread();
     }
 
     private static void handleCombatLogNotificationReceived(CombatLogNotificationPacket ctx) {
