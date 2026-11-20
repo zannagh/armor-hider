@@ -61,14 +61,15 @@ public class LoadPresetKeyMapping extends CustomKeyMapping {
             var hotbarKey = mc.options.keyHotbarSlots[i];
             if (hotbarKey.isDown() && instance.activatedWhileHeld != i) {
                 instance.activatedWhileHeld = i;
-                instance.activatePreset(i);
+                activatePreset(i);
                 while (hotbarKey.consumeClick()) {}
                 return;
             }
         }
     }
 
-    private void activatePreset(int presetIndex) {
+    /** Activates a preset for the local player: marks it active, applies it and saves the client config. */
+    public static void activatePreset(int presetIndex) {
         var presetManager = ArmorHiderClient.PRESET_MANAGER;
         if (!presetManager.hasPreset(presetIndex)) {
             return;

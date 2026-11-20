@@ -13,11 +13,15 @@ import java.nio.file.Path;
 public class PresetManager {
 
     public static final int PRESET_COUNT = 5;
+    public static final int DEFAULT_QUICK_TOGGLE_A = 0;
+    public static final int DEFAULT_QUICK_TOGGLE_B = 1;
     private static final Path DEFAULT_FILE = new File("config", "armor-hider-presets.json").toPath();
 
     private final Path file;
     private final ConfigPreset @Nullable [] presets = new ConfigPreset[PRESET_COUNT];
     private int activeIndex = -1;
+    private int quickToggleA = DEFAULT_QUICK_TOGGLE_A;
+    private int quickToggleB = DEFAULT_QUICK_TOGGLE_B;
     /** Set by {@link #updateActivePreset}; cleared by {@link #save()}. See {@link #flushPendingSave()}. */
     private boolean pendingSave;
 
@@ -87,6 +91,36 @@ public class PresetManager {
         }
     }
 
+    public int getQuickToggleA() {
+        return quickToggleA;
+    }
+
+    public int getQuickToggleB() {
+        return quickToggleB;
+    }
+
+    /** Sets the two presets the quick-toggle keybind alternates between. Out-of-range indices are ignored. */
+    public void setQuickTogglePresets(int a, int b) {
+        if (!isValidIndex(a) || !isValidIndex(b)) {
+            return;
+        }
+        quickToggleA = a;
+        quickToggleB = b;
+        save();
+    }
+
+    /**
+     * The preset the quick-toggle should activate next: B while A is active, otherwise A (B active,
+     * another preset, or none).
+     */
+    public int resolveQuickToggleTarget() {
+        return activeIndex == quickToggleA ? quickToggleB : quickToggleA;
+    }
+
+    private static boolean isValidIndex(int index) {
+        return index >= 0 && index < PRESET_COUNT;
+    }
+
     public boolean hasPreset(int index) {
         return index >= 0 && index < PRESET_COUNT && presets[index] != null;
     }
@@ -106,6 +140,10 @@ public class PresetManager {
                         if (activeIndex < -1 || activeIndex >= PRESET_COUNT) {
                             activeIndex = -1;
                         }
+                        // Files written before the quick-toggle existed lack these fields; Gson then keeps
+                        // the defaults from PresetStorage. Out-of-range values are healed the same way.
+                        quickToggleA = isValidIndex(loaded.quickToggleA) ? loaded.quickToggleA : DEFAULT_QUICK_TOGGLE_A;
+                        quickToggleB = isValidIndex(loaded.quickToggleB) ? loaded.quickToggleB : DEFAULT_QUICK_TOGGLE_B;
                     }
                 }
                 ArmorHider.LOGGER.info("Loaded {} presets from file (active: {}).", countNonNull(), activeIndex);
@@ -138,6 +176,8 @@ public class PresetManager {
                 var storage = new PresetStorage();
                 storage.presets = presets.clone();
                 storage.activeIndex = activeIndex;
+                storage.quickToggleA = quickToggleA;
+                storage.quickToggleB = quickToggleB;
                 ArmorHider.GSON.toJson(storage, w);
             }
             // Cleared only after the write actually succeeds: clearing up front would make a failed save
@@ -157,5 +197,7 @@ public class PresetManager {
     private static class PresetStorage {
         ConfigPreset @Nullable [] presets;
         int activeIndex = -1;
+        int quickToggleA = DEFAULT_QUICK_TOGGLE_A;
+        int quickToggleB = DEFAULT_QUICK_TOGGLE_B;
     }
 }

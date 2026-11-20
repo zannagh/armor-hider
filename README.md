@@ -31,7 +31,7 @@ Armor Hider features a big selection of customization options to have your playe
 * Works client-side only too without server mod required
 * Live in-game preview of your changes
 * [Keybindings](https://github.com/zannagh/armor-hider/wiki/Configuration#keybinds) to quickly toggle Armor Hider or open the settings screen
-* [Presets](https://github.com/zannagh/armor-hider/wiki/Configuration#presets) to store your favorite configurations - including quick-loading by a keybind you can define yourself
+* [Presets](https://github.com/zannagh/armor-hider/wiki/Configuration#presets) to store your favorite configurations - including quick-loading by a keybind you can define yourself and a Preset Quick-Toggle key (default `P`) that flips between two presets of your choice
 * [Individual item configurations](https://github.com/zannagh/armor-hider/wiki/Configuration#item-handling) provide more freedom if you're using custom items and want them handled by Armor Hider or not
 * [Adjustable player-configs](https://github.com/zannagh/armor-hider/wiki/Configuration#individual-player-configuration) allow you to choose (if the server allows) how other players are drawn - both generically applied or on a per-player basis
 * [Admin controls](https://github.com/zannagh/armor-hider/wiki/Advanced-Settings) for server operators

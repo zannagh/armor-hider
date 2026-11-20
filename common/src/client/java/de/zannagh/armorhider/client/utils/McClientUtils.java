@@ -6,6 +6,7 @@ import de.zannagh.armorhider.client.gui.screens.ArmorHiderOptionsScreen;
 import de.zannagh.armorhider.configuration.SettingsLocation;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
+import net.minecraft.client.gui.components.toasts.SystemToast;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.options.SkinCustomizationScreen;
 import net.minecraft.network.chat.Component;
@@ -26,6 +27,18 @@ public final class McClientUtils {
             //? if < 26.1-0.snapshot.11
             //player.displayClientMessage(message, true);
         }
+    }
+
+    /** Shows a system toast (top-right popup) with a title and a message line. */
+    public static void showToast(Component title, Component message) {
+        var minecraft = Minecraft.getInstance();
+        //? if > 26.1.2
+        var toasts = minecraft.gui.toastManager();
+        //? if > 1.21.1 && <= 26.1.2
+        //var toasts = minecraft.getToastManager();
+        //? if <= 1.21.1
+        //var toasts = minecraft.getToasts();
+        SystemToast.add(toasts, SystemToast.SystemToastId.PERIODIC_NOTIFICATION, title, message);
     }
 
     /**

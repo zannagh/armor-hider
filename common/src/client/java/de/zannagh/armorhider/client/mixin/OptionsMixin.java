@@ -40,7 +40,8 @@ public class OptionsMixin implements ArmorHiderOptionsAccess {
         boolean hasToggleMapping = Arrays.stream(keyMappings).anyMatch(map -> map instanceof ToggleOffKeyMapping);
         boolean hasOpenSettingsMapping = Arrays.stream(keyMappings).anyMatch(map -> map instanceof OpenSettingsKeyMapping);
         boolean hasPresetMapping = Arrays.stream(keyMappings).anyMatch(map -> map instanceof LoadPresetKeyMapping);
-        if (hasToggleMapping && hasOpenSettingsMapping && hasPresetMapping) {
+        boolean hasQuickToggleMapping = Arrays.stream(keyMappings).anyMatch(map -> map instanceof QuickTogglePresetKeyMapping);
+        if (hasToggleMapping && hasOpenSettingsMapping && hasPresetMapping && hasQuickToggleMapping) {
             return;
         }
         var existingMappings = new java.util.ArrayList<>(Arrays.stream(keyMappings.clone()).toList());
@@ -53,7 +54,35 @@ public class OptionsMixin implements ArmorHiderOptionsAccess {
         if (!hasPresetMapping) {
             existingMappings.add(new LoadPresetKeyMapping(LoadPresetKeyMapping.DEFAULT_KEY));
         }
+        if (!hasQuickToggleMapping) {
+            existingMappings.add(new QuickTogglePresetKeyMapping());
+        }
         keyMappings = existingMappings.toArray(new KeyMapping[0]);
+    }
+
+    // Same taken-default guard for the quick-toggle key (default P, which vanilla uses for social
+    // interactions): leave it unbound rather than double-binding, persist that, and queue a one-off toast
+    // for the first world join. A user's own non-default binding is never touched, and once unbound the
+    // saved key is no longer the default, so this cannot repeat on later launches.
+    @Inject(
+            method = "load",
+            at = @At("RETURN")
+    )
+    private void onLoadReturnQuickToggle(CallbackInfo ci) {
+        for (KeyMapping map : keyMappings) {
+            if (!(map instanceof QuickTogglePresetKeyMapping quickToggle)) {
+                continue;
+            }
+            String currentKey = quickToggle.saveString();
+            if (!currentKey.equals(quickToggle.getDefaultKey().getName()) || !ah$isKeyInUse(quickToggle, currentKey)) {
+                return;
+            }
+            quickToggle.setKey(InputConstants.UNKNOWN);
+            KeyMapping.resetMapping();
+            QuickTogglePresetKeyMapping.markKeyTaken();
+            ((Options) (Object) this).save();
+            return;
+        }
     }
 
     // Resolve the preset modifier only when its *current* (post-load) binding is

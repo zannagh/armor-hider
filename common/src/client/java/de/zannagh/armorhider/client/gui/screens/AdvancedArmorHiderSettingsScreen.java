@@ -4,6 +4,7 @@ import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.client.ArmorHiderClient;
 import de.zannagh.armorhider.client.net.SingleplayerServerSync;
 import de.zannagh.armorhider.configuration.IrisPartialTransparencyMode;
+import de.zannagh.armorhider.configuration.PresetManager;
 import de.zannagh.armorhider.configuration.SettingsLocation;
 import de.zannagh.armorhider.log.DebugLogger;
 import net.minecraft.client.Options;
@@ -27,6 +28,9 @@ public class AdvancedArmorHiderSettingsScreen extends ArmorHiderConfigurationScr
     private boolean allowIndividualConfigsDefaultSetting;
     private boolean setAllowIndividualConfigs;
     private Button debugButton;
+    private int quickToggleA = ArmorHiderClient.PRESET_MANAGER.getQuickToggleA();
+    private int quickToggleB = ArmorHiderClient.PRESET_MANAGER.getQuickToggleB();
+    private boolean quickToggleChanged;
 
     // Iris partial-transparency (dithering) settings - local, per-client render prefs. Seeded from the
     // saved local config; written back in saveSettingsOnClose. The widgets are only shown where the
@@ -321,6 +325,10 @@ public class AdvancedArmorHiderSettingsScreen extends ArmorHiderConfigurationScr
         factory.addSimpleOptionAsWidget(syncSingleplayerToggle);
         factory.addElementAsWidget(settingsLocationButton);
 
+        factory.addTextWidget(Component.translatable("armorhider.options.quick_toggle.title"));
+        factory.addElementAsWidget(quickToggleButton(true));
+        factory.addElementAsWidget(quickToggleButton(false));
+
         // Iris partial-transparency (dithering) settings. Only shown on the version family where the
         // dithering render path actually runs (>= 26.2-1.pre); on older versions the render path is a
         // no-op, so exposing knobs there would just be confusing.
@@ -374,8 +382,38 @@ public class AdvancedArmorHiderSettingsScreen extends ArmorHiderConfigurationScr
         factory.addElementAsWidget(debugButton);
     }
 
+    // Cycling button picking one of the presets for the quick-toggle key (A or B). Stored in the preset
+    // file via PresetManager, written on close.
+    private Button quickToggleButton(boolean isA) {
+        return Button.builder(
+                quickToggleButtonText(isA),
+                btn -> {
+                    int next = ((isA ? quickToggleA : quickToggleB) + 1) % PresetManager.PRESET_COUNT;
+                    setSetting(next, v -> {
+                        if (isA) {
+                            quickToggleA = v;
+                        } else {
+                            quickToggleB = v;
+                        }
+                        quickToggleChanged = true;
+                    });
+                    btn.setMessage(quickToggleButtonText(isA));
+                })
+                .tooltip(Tooltip.create(Component.translatable("armorhider.options.quick_toggle.tooltip")))
+                .build();
+    }
+
+    private Component quickToggleButtonText(boolean isA) {
+        return Component.translatable(
+                isA ? "armorhider.options.quick_toggle.a" : "armorhider.options.quick_toggle.b",
+                (isA ? quickToggleA : quickToggleB) + 1);
+    }
+
     @Override
     protected void saveSettingsOnClose() {
+        if (quickToggleChanged) {
+            ArmorHiderClient.PRESET_MANAGER.setQuickTogglePresets(quickToggleA, quickToggleB);
+        }
         if (!hasUsedFallbackWhereServerDidntTranspondSettings && serverSettingsChanged) {
             ArmorHider.LOGGER.debug("Updating current server settings (if possible)...");
             ArmorHiderClient.CLIENT_CONFIG_MANAGER.setAndSendServerConfig(newServerCombatDetection, setForceArmorHiderOff, visibilityRespectDefaultSetting, setAllowIndividualConfigs);
