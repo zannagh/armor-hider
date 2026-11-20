@@ -8,6 +8,7 @@ import de.zannagh.armorhider.client.common.SlotModification;
 import de.zannagh.armorhider.log.DebugLogger;
 import de.zannagh.armorhider.net.packets.PlayerConfig;
 import net.minecraft.client.Minecraft;
+//? if < 26.4-0.snapshot.1
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.Resource;
@@ -106,12 +107,16 @@ public final class VanillaArmorTextureManager {
 
         try (InputStream in = vanillaResource.open()) {
             NativeImage image = NativeImage.read(in);
-            //? if >= 1.21.8 {
+            // 26.4 removed DynamicTexture; see ImageTextures.
+            //? if >= 26.4-0.snapshot.1 {
+            /*ImageTextures.registerAndClose(fallbackId, () -> "armor_hider_vanilla_" + original.getPath(), image);
+            *///?} elif >= 1.21.8 {
             DynamicTexture dynamicTexture = new DynamicTexture(() -> "armor_hider_vanilla_" + original.getPath(), image);
+            Minecraft.getInstance().getTextureManager().register(fallbackId, dynamicTexture);
             //?} else {
             /*DynamicTexture dynamicTexture = new DynamicTexture(image);
-            *///?}
             Minecraft.getInstance().getTextureManager().register(fallbackId, dynamicTexture);
+            *///?}
             fallbackCache.put(original, fallbackId);
             ArmorHider.LOGGER.debug("Loaded vanilla fallback texture for {} (overridden by {} packs)", original, stack.size() - 1);
             if (DebugLogger.isEnabled()) {
@@ -219,12 +224,16 @@ public final class VanillaArmorTextureManager {
 
         try (InputStream in = vanillaResource.open()) {
             NativeImage image = NativeImage.read(in);
-            //? if >= 1.21.8 {
+            // 26.4 removed DynamicTexture; see ImageTextures.
+            //? if >= 26.4-0.snapshot.1 {
+            /*ImageTextures.registerAndClose(fallbackId, () -> "armor_hider_vanilla_" + vanillaTexturePath.getPath(), image);
+            *///?} elif >= 1.21.8 {
             DynamicTexture dynamicTexture = new DynamicTexture(() -> "armor_hider_vanilla_" + vanillaTexturePath.getPath(), image);
+            Minecraft.getInstance().getTextureManager().register(fallbackId, dynamicTexture);
             //?} else {
             /*DynamicTexture dynamicTexture = new DynamicTexture(image);
-            *///?}
             Minecraft.getInstance().getTextureManager().register(fallbackId, dynamicTexture);
+            *///?}
             fallbackCache.put(vanillaTexturePath, fallbackId);
             if (DebugLogger.isEnabled()) {
                 DebugLogger.log("[VanillaTexture] Registered vanilla equipment fallback {} -> {} (vanilla source: {})",

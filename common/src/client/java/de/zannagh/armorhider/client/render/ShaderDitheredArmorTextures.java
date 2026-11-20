@@ -10,7 +10,11 @@ import java.util.Map;
 //? if >= 26.2-1.pre {
 import com.mojang.blaze3d.platform.NativeImage;
 import net.minecraft.client.Minecraft;
+//?}
+//? if >= 26.2-1.pre && < 26.4-0.snapshot.1 {
 import net.minecraft.client.renderer.texture.DynamicTexture;
+//?}
+//? if >= 26.2-1.pre {
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 
@@ -122,6 +126,7 @@ public final class ShaderDitheredArmorTextures {
         // the very memory pressure this class guards against) frees them in finally instead of leaking.
         NativeImage source = null;
         NativeImage image = null;
+        //? if < 26.4-0.snapshot.1
         DynamicTexture texture = null;
         try {
             source = readBaseTexture(base);
@@ -133,6 +138,22 @@ public final class ShaderDitheredArmorTextures {
             source.close();
             source = null;
             long bytes = (long) image.getWidth() * image.getHeight() * 4L;
+            // 26.4 removed DynamicTexture: upload + register through ImageTextures, which closes the image.
+            //? if >= 26.4-0.snapshot.1 {
+            /*synchronized (CACHE_LOCK) {
+                if (CACHE.containsKey(derived)) {
+                    // Lost a race: another thread already registered this id; finally frees our image.
+                    return derived;
+                }
+                NativeImage upload = image;
+                image = null;
+                ImageTextures.registerAndClose(derived, derived::toString, upload);
+                CACHE.put(derived, bytes);
+                cacheBytes += bytes;
+                evictIfOverBudget();
+            }
+            return derived;
+            *///?} else {
             texture = new DynamicTexture(derived::toString, image);
             // DynamicTexture now owns the image and closes it on texture.close(); drop our handle so the
             // finally block never double-closes it.
@@ -153,6 +174,7 @@ public final class ShaderDitheredArmorTextures {
                 evictIfOverBudget();
             }
             return derived;
+            //?}
         } catch (Throwable t) {
             ArmorHider.LOGGER.warn("[armor-hider] failed to build dithered armor texture for {} ({})",
                     base, t.toString());
@@ -164,9 +186,11 @@ public final class ShaderDitheredArmorTextures {
             if (image != null) {
                 image.close();
             }
+            //? if < 26.4-0.snapshot.1 {
             if (texture != null) {
                 texture.close();
             }
+            //?}
         }
         //?} else {
         /*return null;

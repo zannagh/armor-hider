@@ -73,7 +73,7 @@ class SmokeMatrixTest {
     private static final List<String> FABRIC_VARIANTS = List.of(
             "fabric-1.20.1", "fabric-1.21.1", "fabric-1.21.4", "fabric-1.21.8",
             "fabric-1.21.10", "fabric-1.21.11", "fabric-26.1.2", "fabric-26.2",
-            "fabric-26.3"
+            "fabric-26.3", "fabric-26.4-snapshot-10"
     );
     private static final List<String> NEOFORGE_VARIANTS = List.of(
             "neoforge-1.21.1", "neoforge-1.21.4", "neoforge-1.21.8",
@@ -93,7 +93,7 @@ class SmokeMatrixTest {
      */
     static final List<String> FCGT_VARIANTS = List.of(
             "fabric-1.21.4", "fabric-1.21.8", "fabric-1.21.10", "fabric-1.21.11",
-            "fabric-26.1.2", "fabric-26.2", "fabric-26.3"
+            "fabric-26.1.2", "fabric-26.2", "fabric-26.3", "fabric-26.4-snapshot-10"
     );
 
     /**
