@@ -33,6 +33,7 @@ public class AdvancedArmorHiderSettingsScreen extends ArmorHiderConfigurationScr
     private IrisPartialTransparencyMode setIrisMode = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig().irisPartialTransparencyMode.getValue();
     private int setIrisScale = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig().irisDitheringScale.getValue();
     private int setIrisPhases = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig().irisDitheringPhases.getValue();
+    private boolean setSyncServerSettingsInSingleplayer = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig().syncServerSettingsInSingleplayer.getValue();
     private int setIrisResCap = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig().irisDitheringResCap.getValue();
 
     public AdvancedArmorHiderSettingsScreen(Screen parent, Options gameOptions, Component title) {
@@ -295,7 +296,18 @@ public class AdvancedArmorHiderSettingsScreen extends ArmorHiderConfigurationScr
                 })
                 .tooltip(Tooltip.create(settingsLocationTooltip(setSettingsLocation)))
                 .build();
+        var syncSingleplayerToggle = factory.buildBooleanOption(
+                Component.translatable("armorhider.options.sync_singleplayer.title"),
+                Component.translatable("armorhider.options.sync_singleplayer.tooltip"),
+                Component.translatable("armorhider.options.sync_singleplayer.tooltip_narration"),
+                ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig().syncServerSettingsInSingleplayer.getValue(),
+                val -> setSetting(val, v -> {
+                    setSyncServerSettingsInSingleplayer = v;
+                    localSettingsChanged = true;
+                })
+        );
         factory.addSimpleOptionAsWidget(globalToggle);
+        factory.addSimpleOptionAsWidget(syncSingleplayerToggle);
         factory.addElementAsWidget(settingsLocationButton);
 
         // Iris partial-transparency (dithering) settings. Only shown on the version family where the
@@ -360,6 +372,7 @@ public class AdvancedArmorHiderSettingsScreen extends ArmorHiderConfigurationScr
         if (localSettingsChanged) {
             var localConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig();
             localConfig.disableArmorHider.setValue(setDisableLocal);
+            localConfig.syncServerSettingsInSingleplayer.setValue(setSyncServerSettingsInSingleplayer);
             localConfig.settingsScreenLocation.setValue(setSettingsLocation);
             localConfig.irisPartialTransparencyMode.setValue(setIrisMode);
             localConfig.irisDitheringScale.setValue(setIrisScale);

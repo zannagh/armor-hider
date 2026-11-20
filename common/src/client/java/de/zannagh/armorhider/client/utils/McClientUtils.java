@@ -42,6 +42,23 @@ public final class McClientUtils {
             //player.displayClientMessage(message, false);
         }
     }
+    /**
+     * Whether this client hosts an integrated server (singleplayer or an opened-to-LAN world). Replaces the
+     * old check that sat behind {@code getCurrentServer() != null}, which is always null for an integrated server.
+     */
+    public static boolean isIntegratedServerHost() {
+        return Minecraft.getInstance().getSingleplayerServer() != null;
+    }
+
+    /**
+     * Whether this client hosts an integrated server that has NOT been opened to LAN, i.e. nobody else can be
+     * connected to it. Turns false as soon as the world is published to LAN.
+     */
+    public static boolean isPrivateSingleplayer() {
+        var server = Minecraft.getInstance().getSingleplayerServer();
+        return server != null && !server.isPublished();
+    }
+
     public static @NonNull Boolean isClientConnectedToServer() {
         return Minecraft.getInstance().isLocalServer()
                 || Minecraft.getInstance().getCurrentServer() != null

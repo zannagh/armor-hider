@@ -4,6 +4,7 @@ import de.zannagh.armorhider.AhAllocProbe;
 import de.zannagh.armorhider.ArmorHider;
 import de.zannagh.armorhider.api.ArmorHiderPlayerConfigApi;
 import de.zannagh.armorhider.client.ArmorHiderClient;
+import de.zannagh.armorhider.client.net.SingleplayerServerSync;
 import de.zannagh.armorhider.client.utils.McClientUtils;
 import de.zannagh.armorhider.configuration.ConfigurationProvider;
 import de.zannagh.armorhider.log.DebugLogger;
@@ -200,6 +201,9 @@ public class AhPlayerConfigApiImpl implements ArmorHiderPlayerConfigApi, Configu
             }
         }
         notifyConfigListeners(config.playerName.getValue());
+        if (config == CURRENT) {
+            SingleplayerServerSync.pushIfApplicable();
+        }
     }
 
     @Override

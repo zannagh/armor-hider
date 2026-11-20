@@ -16,7 +16,6 @@ import de.zannagh.armorhider.net.packets.PermissionPacket;
 import de.zannagh.armorhider.server.ServerConfiguration;
 import de.zannagh.armorhider.util.PlayerNameUtil;
 import de.zannagh.eunomia.networking.comms.CommunicationManager;
-import net.minecraft.client.multiplayer.ServerData;
 
 /**
  * Client-side communication manager, wired against eunomia's {@link CommunicationManager}.
@@ -73,19 +72,10 @@ public final class ClientCommunicationManager {
             //ArmorHiderClient.CLIENT_CONFIG_MANAGER.updateLocalPlayerUuid(handler.getLocalGameProfile().getId(), java.util.Optional.of(true));
             var currentConfig = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig();
 
-            ServerData serverData = client.getCurrentServer();
-            if (serverData != null) {
-                try {
-                    //? if >= 26.2-1.pre
-                    boolean isSinglePlayer = client.hasSingleplayerServer();
-                    //? if < 26.2-1.pre
-                    //boolean isSinglePlayer = client.isSingleplayer();
-                    if (isSinglePlayer) {
-                        ArmorHiderClient.permissionLevel = 4;
-                    }
-                } catch (Exception ignored) {
-                    ArmorHider.LOGGER.error("Failed to set permissions for player {}.", playerName);
-                }
+            // The host of an integrated server is its owner and therefore admin. (The previous check sat behind
+            // getCurrentServer() != null, which is always null for an integrated server, so it never ran.)
+            if (McClientUtils.isIntegratedServerHost()) {
+                ArmorHiderClient.permissionLevel = 4;
             }
 
             if (!McClientUtils.isClientConnectedToServer()) {
@@ -169,12 +159,13 @@ public final class ClientCommunicationManager {
         DebugLogger.log("Armor Hider received configuration from server.");
         ArmorHiderClient.CLIENT_CONFIG_MANAGER.setServerConfig(ctx);
         DebugLogger.log("Armor Hider successfully set configuration from server.");
+        SingleplayerServerSync.pushIfApplicable();
     }
 
     private static void handlePermissionPacketReceived(PermissionPacket ctx) {
         DebugLogger.log("Received permission packet from server: {}", ctx.permissionLevel);
         ArmorHiderClient.permissionLevel = ctx.permissionLevel;
-
+        SingleplayerServerSync.pushIfApplicable();
     }
 
     private static void handleCombatLogNotificationReceived(CombatLogNotificationPacket ctx) {

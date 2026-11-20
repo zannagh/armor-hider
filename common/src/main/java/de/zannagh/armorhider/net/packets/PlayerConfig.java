@@ -31,7 +31,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig>, NetworkH
     public int configVersion;
 
     /** The current config schema version. */
-    public static final int CURRENT_CONFIG_VERSION = 15;
+    public static final int CURRENT_CONFIG_VERSION = 16;
 
     /**
      * Maximum nesting depth for {@link #globalPlayerOverride}. The override is itself a {@link PlayerConfig},
@@ -366,6 +366,15 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig>, NetworkH
     @SerializedName(value = "irisPartialTransparencyMode")
     public @NonNull IrisTransparencyMode irisPartialTransparencyMode;
 
+    /**
+     * Whether settings with a server-wide counterpart are written into the integrated server's config in
+     * singleplayer (when not opened to LAN). Defaults to {@code true}, also for configs migrated from older schemas.
+     *
+     * @since AH 0.12.17, schema 16
+     */
+    @SerializedName(value = "syncServerSettingsInSingleplayer")
+    public @NonNull SyncServerSettingsInSingleplayer syncServerSettingsInSingleplayer;
+
     public @NonNull PlayerUuid playerId;
 
     public @NonNull PlayerName playerName;
@@ -442,6 +451,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig>, NetworkH
         irisDitheringPhases = new IrisDitherPhases();
         irisDitheringResCap = new IrisDitherResCap();
         irisPartialTransparencyMode = new IrisTransparencyMode();
+        syncServerSettingsInSingleplayer = new SyncServerSettingsInSingleplayer();
 
         // Test-only probe (no-op unless a smoke test armed it): this constructor allocates ~37 config
         // items and must never be reached from the render hot path. See HotPathAllocSmokeTest.
@@ -630,6 +640,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig>, NetworkH
         fresh.irisDitheringScale.setValue(old.irisDitheringScale.getValue());
         fresh.irisDitheringResCap.setValue(old.irisDitheringResCap.getValue());
         fresh.irisPartialTransparencyMode.setValue(old.irisPartialTransparencyMode.getValue());
+        fresh.syncServerSettingsInSingleplayer.setValue(old.syncServerSettingsInSingleplayer.getValue());
 
         fresh.setHasChangedFromSerializedContent();
         return fresh;
@@ -724,6 +735,7 @@ public class PlayerConfig implements ConfigurationSource<PlayerConfig>, NetworkH
         newConfig.irisDitheringScale.setValue(this.irisDitheringScale.getValue());
         newConfig.irisDitheringResCap.setValue(this.irisDitheringResCap.getValue());
         newConfig.irisPartialTransparencyMode.setValue(this.irisPartialTransparencyMode.getValue());
+        newConfig.syncServerSettingsInSingleplayer.setValue(this.syncServerSettingsInSingleplayer.getValue());
         return newConfig;
     }
 }
