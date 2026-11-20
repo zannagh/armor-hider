@@ -1,8 +1,10 @@
 package de.zannagh.armorhider.client.render.rendertype;
 
-//? if >= 26.3-0.snapshot.2 {
+//? if >= 26.3-0.snapshot.2 && < 26.4-0.snapshot.1 {
 /*import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.client.renderer.rendertype.LayeringTransform;
+*///?}
+//? if >= 26.3-0.snapshot.2 {
+/*import net.minecraft.client.renderer.rendertype.LayeringTransform;
 import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.resources.Identifier;
