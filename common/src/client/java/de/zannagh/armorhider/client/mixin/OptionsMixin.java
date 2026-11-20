@@ -40,7 +40,8 @@ public class OptionsMixin implements ArmorHiderOptionsAccess {
         boolean hasToggleMapping = Arrays.stream(keyMappings).anyMatch(map -> map instanceof ToggleOffKeyMapping);
         boolean hasOpenSettingsMapping = Arrays.stream(keyMappings).anyMatch(map -> map instanceof OpenSettingsKeyMapping);
         boolean hasPresetMapping = Arrays.stream(keyMappings).anyMatch(map -> map instanceof LoadPresetKeyMapping);
-        if (hasToggleMapping && hasOpenSettingsMapping && hasPresetMapping) {
+        boolean hasQuickToggleMapping = Arrays.stream(keyMappings).anyMatch(map -> map instanceof QuickTogglePresetKeyMapping);
+        if (hasToggleMapping && hasOpenSettingsMapping && hasPresetMapping && hasQuickToggleMapping) {
             return;
         }
         var existingMappings = new java.util.ArrayList<>(Arrays.stream(keyMappings.clone()).toList());
@@ -52,6 +53,9 @@ public class OptionsMixin implements ArmorHiderOptionsAccess {
         }
         if (!hasPresetMapping) {
             existingMappings.add(new LoadPresetKeyMapping(LoadPresetKeyMapping.DEFAULT_KEY));
+        }
+        if (!hasQuickToggleMapping) {
+            existingMappings.add(new QuickTogglePresetKeyMapping());
         }
         keyMappings = existingMappings.toArray(new KeyMapping[0]);
     }
