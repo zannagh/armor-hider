@@ -208,12 +208,17 @@ public final class ShaderDitheredArmorTextures {
         if (cacheBytes <= MAX_CACHE_BYTES) {
             return;
         }
+        //? if < 26.4-0.snapshot.1
         var textureManager = Minecraft.getInstance().getTextureManager();
         var iterator = CACHE.entrySet().iterator();
         int evicted = 0;
         while (cacheBytes > MAX_CACHE_BYTES && iterator.hasNext()) {
             Map.Entry<Identifier, Long> eldest = iterator.next();
+            //? if >= 26.4-0.snapshot.1 {
+            /*ImageTextures.release(eldest.getKey());
+            *///?} else {
             textureManager.release(eldest.getKey());
+            //?}
             cacheBytes -= eldest.getValue();
             iterator.remove();
             evicted++;
@@ -231,9 +236,14 @@ public final class ShaderDitheredArmorTextures {
         }
         synchronized (CACHE_LOCK) {
             if (lastResourceManager != null && !CACHE.isEmpty()) {
+                //? if < 26.4-0.snapshot.1
                 var textureManager = Minecraft.getInstance().getTextureManager();
                 for (Identifier id : CACHE.keySet()) {
+                    //? if >= 26.4-0.snapshot.1 {
+                    /*ImageTextures.release(id);
+                    *///?} else {
                     textureManager.release(id);
+                    //?}
                 }
                 ArmorHider.LOGGER.debug("[armor-hider] resource reload - released {} cached dither textures",
                         CACHE.size());

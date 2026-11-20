@@ -138,9 +138,14 @@ public final class VanillaArmorTextureManager {
         ResourceManager current = Minecraft.getInstance().getResourceManager();
         if (current != lastResourceManager) {
             if (lastResourceManager != null) {
+                //? if < 26.4-0.snapshot.1
                 var textureManager = Minecraft.getInstance().getTextureManager();
                 for (Identifier fallbackId : fallbackCache.values()) {
+                    //? if >= 26.4-0.snapshot.1 {
+                    /*ImageTextures.release(fallbackId);
+                    *///?} else {
                     textureManager.release(fallbackId);
+                    //?}
                 }
                 if (DebugLogger.isEnabled()) {
                     DebugLogger.log("[VanillaTexture] ResourceManager changed - cleared {} cached fallback textures",
