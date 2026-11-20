@@ -19,37 +19,16 @@ repositories {
     // eunomia (de.zannagh.eunomia:eunomia-core) - the MC-free, game-version-agnostic API surface
     // armor-hider compiles against; the eunomia mod supplies the live transport at runtime. Consumed
     // compileOnly (see multiloader-loom / multiloader-loader), so this is a compile-time-only source.
-    // GitHub Packages is the portable remote: the repo is public, so ANY valid GitHub token can read it
-    // (not just repo collaborators), but GitHub still requires *a* token for maven artifacts - there is
-    // no anonymous access - so the repo is added only when credentials are present. mavenLocal is the
-    // credential-free local fallback (publish with `./gradlew :core:publishToMavenLocal` in the eunomia
-    // repo), so a build without a read:packages token still resolves. Property/env names mirror eunomia's
-    // own publish convention, so an existing credential setup carries straight over. For fully tokenless
-    // resolution eunomia would need Maven Central.
+    // Resolved from eunomia's self-hosted Reposilite, which allows anonymous reads: no token, no
+    // credentials, so local and CI builds behave identically. Group-scoped so it never intercepts
+    // another artifact. mavenLocal is checked first as the override for an UNRELEASED eunomia: publish
+    // it with `./gradlew publishToMavenLocal` in the eunomia repo and it wins over the remote.
     mavenLocal {
         content { includeGroup("de.zannagh.eunomia") }
     }
-    // The TOKEN is the only thing GitHub actually validates on a Packages read - the Basic-auth username
-    // field is ignored, so it is not worth gating on. Requiring a username here used to make a
-    // token-only environment (CI, or a shell with GITHUB_TOKEN but no GITHUB_ACTOR) skip this repo
-    // *silently*, and the resulting "Could not find de.zannagh.eunomia:eunomia-core:<v>" listed every
-    // searched location EXCEPT this one - which reads as a missing artifact rather than missing config.
-    // So: gate on the token alone and send a placeholder username when none was supplied.
-    val eunomiaGprToken = providers.gradleProperty("gpr.token")
-        .orElse(providers.environmentVariable("GITHUB_TOKEN"))
-    val eunomiaGprUser = providers.gradleProperty("gpr.user")
-        .orElse(providers.environmentVariable("GITHUB_ACTOR"))
-        .orElse("x-access-token")
-    if (eunomiaGprToken.isPresent) {
-        maven {
-            name = "EunomiaGitHubPackages"
-            url = uri("https://maven.pkg.github.com/zannagh/eunomia")
-            credentials {
-                username = eunomiaGprUser.get()
-                password = eunomiaGprToken.get()
-            }
-            content { includeGroup("de.zannagh.eunomia") }
-        }
+    maven("https://maven.zannagh.me/releases") {
+        name = "EunomiaReposilite"
+        content { includeGroup("de.zannagh.eunomia") }
     }
 }
 
