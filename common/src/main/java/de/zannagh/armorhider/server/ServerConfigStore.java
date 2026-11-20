@@ -2,6 +2,7 @@ package de.zannagh.armorhider.server;
 
 import de.zannagh.armorhider.configuration.ConfigurationProvider;
 import de.zannagh.armorhider.net.packets.PlayerConfig;
+import de.zannagh.armorhider.net.packets.ServerWideSettings;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -35,6 +36,27 @@ public class ServerConfigStore implements ConfigurationProvider<ServerConfigurat
 
     public void setGlobalOverride(Boolean enabled) {
         configurationProvider.getValue().serverWideSettings.forceArmorHiderOff.setValue(enabled);
+    }
+
+    /**
+     * Applies all four server-wide toggles from the given settings.
+     *
+     * @return {@code true} if at least one value differed and was changed, {@code false} if nothing changed.
+     */
+    public boolean applyServerWideSettings(ServerWideSettings incoming) {
+        ServerWideSettings current = configurationProvider.getValue().serverWideSettings;
+        boolean changed = current.enableCombatDetection.getValue() != incoming.enableCombatDetection.getValue()
+                || current.forceArmorHiderOff.getValue() != incoming.forceArmorHiderOff.getValue()
+                || current.disableArmorHiderOnInvisibilityGlobally.getValue() != incoming.disableArmorHiderOnInvisibilityGlobally.getValue()
+                || current.allowIndividualPlayerConfigurations.getValue() != incoming.allowIndividualPlayerConfigurations.getValue();
+        if (!changed) {
+            return false;
+        }
+        current.enableCombatDetection.setValue(incoming.enableCombatDetection.getValue());
+        current.forceArmorHiderOff.setValue(incoming.forceArmorHiderOff.getValue());
+        current.disableArmorHiderOnInvisibilityGlobally.setValue(incoming.disableArmorHiderOnInvisibilityGlobally.getValue());
+        current.allowIndividualPlayerConfigurations.setValue(incoming.allowIndividualPlayerConfigurations.getValue());
+        return true;
     }
 
     @Override

@@ -3,6 +3,7 @@ package de.zannagh.armorhider.server;
 import de.zannagh.armorhider.StringServerConfigProvider;
 import de.zannagh.armorhider.configuration.ConfigurationItemFactoryRegistry;
 import de.zannagh.armorhider.net.packets.PlayerConfig;
+import de.zannagh.armorhider.net.packets.ServerWideSettings;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -48,6 +49,34 @@ class ServerConfigStoreTest {
         ServerConfigStore store = emptyStore();
         store.setGlobalOverride(true);
         assertTrue(store.getConfig().serverWideSettings.forceArmorHiderOff.getValue());
+    }
+
+    @Test
+    @DisplayName("applyServerWideSettings stores all four fields and reports the change")
+    void appliesAllFourServerWideFields() {
+        ServerConfigStore store = emptyStore();
+        assertTrue(store.applyServerWideSettings(new ServerWideSettings(false, true, true, false)));
+        var stored = store.getConfig().serverWideSettings;
+        assertFalse(stored.enableCombatDetection.getValue());
+        assertTrue(stored.forceArmorHiderOff.getValue());
+        assertTrue(stored.disableArmorHiderOnInvisibilityGlobally.getValue());
+        assertFalse(stored.allowIndividualPlayerConfigurations.getValue());
+    }
+
+    @Test
+    @DisplayName("applyServerWideSettings detects a change confined to the last two fields")
+    void detectsChangeInInvisibilityOrIndividualConfigs() {
+        ServerConfigStore store = emptyStore();
+        var d = ServerWideSettings.defaults();
+        boolean combat = d.enableCombatDetection.getValue();
+        boolean force = d.forceArmorHiderOff.getValue();
+        boolean invis = d.disableArmorHiderOnInvisibilityGlobally.getValue();
+        boolean allow = d.allowIndividualPlayerConfigurations.getValue();
+
+        assertFalse(store.applyServerWideSettings(new ServerWideSettings(combat, force, invis, allow)));
+        assertTrue(store.applyServerWideSettings(new ServerWideSettings(combat, force, !invis, allow)));
+        assertTrue(store.applyServerWideSettings(new ServerWideSettings(combat, force, !invis, !allow)));
+        assertFalse(store.applyServerWideSettings(new ServerWideSettings(combat, force, !invis, !allow)));
     }
 
     @Test

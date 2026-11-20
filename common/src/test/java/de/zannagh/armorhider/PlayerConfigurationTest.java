@@ -54,6 +54,18 @@ class PlayerConfigurationTest {
     }
 
     @Test
+    @DisplayName("syncServerSettingsInSingleplayer defaults to true and survives migration from an older schema")
+    void syncServerSettingsInSingleplayerDefaultsToTrue() {
+        PlayerConfig old = new PlayerConfig(UUID.randomUUID(), "Migrant");
+        old.configVersion = 15;
+        assertTrue(old.syncServerSettingsInSingleplayer.getValue());
+        assertTrue(PlayerConfig.migrate(old).syncServerSettingsInSingleplayer.getValue());
+
+        old.syncServerSettingsInSingleplayer.setValue(false);
+        assertFalse(PlayerConfig.migrate(old).syncServerSettingsInSingleplayer.getValue());
+    }
+
+    @Test
     @DisplayName("Read from v1 configuration")
     void readV1() {
         String v1Json = """

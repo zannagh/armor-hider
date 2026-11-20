@@ -256,24 +256,17 @@ public final class ArmorHiderServerNet {
         CommunicationManager.sendToPlayer(player.getUUID(), AhPackets.PERMISSION,
                 new PermissionPacket(currentPlayerPermissionLevel));
 
-        if (runtime.getStore().getConfig().serverWideSettings.enableCombatDetection.getValue() == payload.enableCombatDetection.getValue()
-                && runtime.getStore().getConfig().serverWideSettings.forceArmorHiderOff.getValue() == payload.forceArmorHiderOff.getValue()) {
-            ArmorHider.LOGGER.debug(
-                    "Admin player {} attempted to update server-wide settings (combatDetection={}, forceArmorHiderOff={}), but no change detected.",
-                    player.getStringUUID(),
-                    payload.enableCombatDetection.getValue(),
-                    payload.forceArmorHiderOff.getValue()
-            );
-            return;
-        }
-
-        ArmorHider.LOGGER.debug("Admin player {} is updating server-wide settings (combatDetection={}, forceArmorHiderOff={}).",
+        ArmorHider.LOGGER.debug("Admin player {} is updating server-wide settings (combatDetection={}, forceArmorHiderOff={}, disableOnInvisibility={}, allowIndividualConfigs={}).",
                 player.getStringUUID(),
                 payload.enableCombatDetection.getValue(),
-                payload.forceArmorHiderOff.getValue()
+                payload.forceArmorHiderOff.getValue(),
+                payload.disableArmorHiderOnInvisibilityGlobally.getValue(),
+                payload.allowIndividualPlayerConfigurations.getValue()
         );
-        runtime.getStore().setServerCombatDetection(payload.enableCombatDetection.getValue());
-        runtime.getStore().setGlobalOverride(payload.forceArmorHiderOff.getValue());
+        if (!runtime.getStore().applyServerWideSettings(payload)) {
+            ArmorHider.LOGGER.debug("Admin player {} sent server-wide settings, but no change detected.", player.getStringUUID());
+            return;
+        }
         runtime.getStore().saveCurrent();
         CommunicationManager.broadcastExcept(player.getUUID(), AhPackets.SERVER_CONFIG, runtime.getStore().getConfig());
     }

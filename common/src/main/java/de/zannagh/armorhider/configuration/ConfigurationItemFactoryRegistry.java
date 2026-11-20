@@ -58,6 +58,7 @@ public class ConfigurationItemFactoryRegistry {
         registerFactoriesForClass(IrisDitheringScale.class);
         registerFactoriesForClass(IrisDitherPhases.class);
         registerFactoriesForClass(IrisDitherResCap.class);
+        registerFactoriesForClass(SyncServerSettingsInSingleplayer.class);
 
         initialized = true;
     }
