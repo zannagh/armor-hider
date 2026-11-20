@@ -38,7 +38,10 @@ public final class McClientUtils {
         //var toasts = minecraft.getToastManager();
         //? if <= 1.21.1
         //var toasts = minecraft.getToasts();
+        //? if >= 1.21
         SystemToast.add(toasts, SystemToast.SystemToastId.PERIODIC_NOTIFICATION, title, message);
+        //? if < 1.21
+        //SystemToast.add(toasts, SystemToast.SystemToastIds.PERIODIC_NOTIFICATION, title, message);
     }
 
     /**

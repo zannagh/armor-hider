@@ -10,6 +10,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PresetQuickToggleTest {
 
@@ -111,5 +113,23 @@ class PresetQuickToggleTest {
         var manager = createManager();
         assertEquals(PresetManager.DEFAULT_QUICK_TOGGLE_A, manager.getQuickToggleA());
         assertEquals(PresetManager.DEFAULT_QUICK_TOGGLE_B, manager.getQuickToggleB());
+    }
+
+    @Test
+    @DisplayName("key check and owed notice default to off and survive a reload")
+    void keyStatePersists() {
+        var manager = createManager();
+        assertFalse(manager.isQuickToggleKeyChecked());
+        assertFalse(manager.isQuickToggleNoticePending());
+
+        manager.setQuickToggleKeyState(true, true);
+        var reloaded = createManager();
+        assertTrue(reloaded.isQuickToggleKeyChecked());
+        assertTrue(reloaded.isQuickToggleNoticePending());
+
+        reloaded.setQuickToggleKeyState(true, false);
+        var again = createManager();
+        assertTrue(again.isQuickToggleKeyChecked());
+        assertFalse(again.isQuickToggleNoticePending());
     }
 }

@@ -105,6 +105,7 @@
   "armorhider.options.cloud_sync.tooltip.server_locked": "This server manages its own server-wide Cloud Synchronisation settings; your own preferences still apply.",
   "armorhider.options.cloud_sync.button.tooltip.enforced": "This server does not permit Cloud Synchronisation and enforces that, so it cannot be changed here. Your own preference is kept and applies again on servers that do not enforce it.",
   "armorhider.toast.cloud_sync.unavailable": "Armor Hider can synchronise via Cloud. Go to Settings to enable it.",
+  "armorhider.toggle.preset_empty": "Armor Hider: Preset %s is empty",
   "armorhider.toast.quick_toggle_key_taken.title": "Armor Hider",
   "armorhider.toast.quick_toggle_key_taken": "Armor Hider Preset Quick-Toggle Key already taken - can be assigned in Keybinds",
   "armorhider.options.quick_toggle.title": "Preset Quick-Toggle",

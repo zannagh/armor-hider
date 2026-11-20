@@ -68,20 +68,21 @@ public class LoadPresetKeyMapping extends CustomKeyMapping {
         }
     }
 
-    /** Activates a preset for the local player: marks it active, applies it and saves the client config. */
-    public static void activatePreset(int presetIndex) {
+    /** Activates a preset for the local player: marks it active, applies it and saves the client config. Returns false if the slot is empty. */
+    public static boolean activatePreset(int presetIndex) {
         var presetManager = ArmorHiderClient.PRESET_MANAGER;
         if (!presetManager.hasPreset(presetIndex)) {
-            return;
+            return false;
         }
         var preset = presetManager.getPreset(presetIndex);
         if (preset == null) {
-            return;
+            return false;
         }
         var config = ArmorHiderClient.CLIENT_CONFIG_MANAGER.getLocalPlayerConfig();
         presetManager.setActiveIndex(presetIndex);
         preset.applyTo(config);
         ArmorHiderClient.CLIENT_CONFIG_MANAGER.saveCurrent();
         ArmorHider.LOGGER.debug("Loaded preset {} via keybind.", presetIndex + 1);
+        return true;
     }
 }

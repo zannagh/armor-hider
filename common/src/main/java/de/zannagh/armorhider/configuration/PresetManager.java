@@ -22,6 +22,8 @@ public class PresetManager {
     private int activeIndex = -1;
     private int quickToggleA = DEFAULT_QUICK_TOGGLE_A;
     private int quickToggleB = DEFAULT_QUICK_TOGGLE_B;
+    private boolean quickToggleKeyChecked;
+    private boolean quickToggleNoticePending;
     /** Set by {@link #updateActivePreset}; cleared by {@link #save()}. See {@link #flushPendingSave()}. */
     private boolean pendingSave;
 
@@ -117,6 +119,22 @@ public class PresetManager {
         return activeIndex == quickToggleA ? quickToggleB : quickToggleA;
     }
 
+    /** Whether the quick-toggle's default key was already checked for a conflict (done once per install). */
+    public boolean isQuickToggleKeyChecked() {
+        return quickToggleKeyChecked;
+    }
+
+    /** Whether the "key already taken" toast is still owed to the player. Survives restarts. */
+    public boolean isQuickToggleNoticePending() {
+        return quickToggleNoticePending;
+    }
+
+    public void setQuickToggleKeyState(boolean checked, boolean noticePending) {
+        quickToggleKeyChecked = checked;
+        quickToggleNoticePending = noticePending;
+        save();
+    }
+
     private static boolean isValidIndex(int index) {
         return index >= 0 && index < PRESET_COUNT;
     }
@@ -144,6 +162,8 @@ public class PresetManager {
                         // the defaults from PresetStorage. Out-of-range values are healed the same way.
                         quickToggleA = isValidIndex(loaded.quickToggleA) ? loaded.quickToggleA : DEFAULT_QUICK_TOGGLE_A;
                         quickToggleB = isValidIndex(loaded.quickToggleB) ? loaded.quickToggleB : DEFAULT_QUICK_TOGGLE_B;
+                        quickToggleKeyChecked = loaded.quickToggleKeyChecked;
+                        quickToggleNoticePending = loaded.quickToggleNoticePending;
                     }
                 }
                 ArmorHider.LOGGER.info("Loaded {} presets from file (active: {}).", countNonNull(), activeIndex);
@@ -178,6 +198,8 @@ public class PresetManager {
                 storage.activeIndex = activeIndex;
                 storage.quickToggleA = quickToggleA;
                 storage.quickToggleB = quickToggleB;
+                storage.quickToggleKeyChecked = quickToggleKeyChecked;
+                storage.quickToggleNoticePending = quickToggleNoticePending;
                 ArmorHider.GSON.toJson(storage, w);
             }
             // Cleared only after the write actually succeeds: clearing up front would make a failed save
@@ -199,5 +221,7 @@ public class PresetManager {
         int activeIndex = -1;
         int quickToggleA = DEFAULT_QUICK_TOGGLE_A;
         int quickToggleB = DEFAULT_QUICK_TOGGLE_B;
+        boolean quickToggleKeyChecked;
+        boolean quickToggleNoticePending;
     }
 }
