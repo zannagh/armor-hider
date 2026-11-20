@@ -22,7 +22,6 @@ jobs:
         shell: bash
     permissions:
       security-events: write
-      packages: read
       contents: read
 
     strategy:
