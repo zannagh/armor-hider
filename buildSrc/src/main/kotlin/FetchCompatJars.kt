@@ -264,7 +264,8 @@ abstract class FetchCompatJars : DefaultTask() {
         if (!mc.isNullOrBlank()) {
             val pinnedGameVersions = json.getAsJsonArray("game_versions")
                 ?.mapNotNull { it.takeIf { !it.isJsonNull }?.asString } ?: emptyList()
-            if (pinnedGameVersions.isNotEmpty() && mc !in pinnedGameVersions) {
+            // A snapshot-fallback version (MC-agnostic dep, see ModrinthClient) targets the last release on purpose.
+            if (pinnedGameVersions.isNotEmpty() && mc !in pinnedGameVersions && !modrinth.isSnapshotFallback(hash)) {
                 val projectId = json.get("project_id")?.takeIf { !it.isJsonNull }?.asString
                 logger.warn(
                     "[fetchCompatJars] {} pinned hash {} targets {} not MC {}; attempting auto-resolve",
