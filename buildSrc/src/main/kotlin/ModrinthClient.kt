@@ -44,7 +44,20 @@ internal class ModrinthClient(
         /** Upper bound honoured for a `Retry-After` header on 429/5xx, so a hostile value cannot stall the build. */
         const val MAX_RETRY_AFTER_SECONDS = 5L
         private const val USER_AGENT = "armor-hider-buildscript"
+
+        /**
+         * Modrinth projects whose jars do not depend on the Minecraft version, so a build tagged for the
+         * newest release also runs on the following snapshots. Deliberately an explicit allowlist: only
+         * these may take the snapshot fallback in [latestForProject].
+         * Ha28R6CL = fabric-language-kotlin (required by ElytraTrims; never tagged for snapshots).
+         */
+        val MC_AGNOSTIC_PROJECTS = setOf("Ha28R6CL")
     }
+
+    /** Version ids handed out by the snapshot fallback; FetchCompatJars skips its MC-version check for them. */
+    private val snapshotFallbackVersions = mutableSetOf<String>()
+
+    fun isSnapshotFallback(versionId: String): Boolean = versionId in snapshotFallbackVersions
 
     private val http: HttpClient by lazy {
         HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(20)).build()
@@ -212,15 +225,55 @@ internal class ModrinthClient(
             return null
         }
         val arr = JsonParser.parseString(body).asJsonArray
+        if (arr.size() == 0 && projectId in MC_AGNOSTIC_PROJECTS && mcGameVersion.contains("-snapshot-")) {
+            val fallback = snapshotFallback(projectId, parentLabel)
+            projectResolutionMemo[projectId] = fallback
+            return fallback
+        }
         if (arr.size() == 0) {
             logger.warn("[fetchCompatJars] {} required project={} but no {} version exists for MC {}",
                     parentLabel, projectId, loader, mcGameVersion)
             projectResolutionMemo[projectId] = null
             return null
         }
-        val release = arr.firstOrNull { it.asJsonObject.get("version_type")?.asString == "release" }?.asJsonObject
-        val id = (release ?: arr.first().asJsonObject).get("id").asString
+        val id = preferRelease(arr)
         projectResolutionMemo[projectId] = id
         return id
+    }
+
+    private fun preferRelease(arr: com.google.gson.JsonArray): String {
+        val release = arr.firstOrNull { it.asJsonObject.get("version_type")?.asString == "release" }?.asJsonObject
+        return (release ?: arr.first().asJsonObject).get("id").asString
+    }
+
+    /**
+     * Snapshot fallback for an MC-agnostic dep with no build tagged for the snapshot: the newest build for
+     * the newest RELEASE game version Modrinth knows (e.g. 26.3 while 26.4 is in snapshots). Logged, and
+     * best-effort like the rest of auto-resolve: any failure means "no version" and the dep is skipped.
+     */
+    private fun snapshotFallback(projectId: String, parentLabel: String): String? {
+        return try {
+            val tags = JsonParser.parseString(getJson("$apiBase/tag/game_version", "game version tags")).asJsonArray
+            val release = tags.firstOrNull { it.asJsonObject.get("version_type")?.asString == "release" }
+                ?.asJsonObject?.get("version")?.asString ?: return null
+            val gv = URLEncoder.encode("""["$release"]""", StandardCharsets.UTF_8)
+            val ld = URLEncoder.encode("""["$loader"]""", StandardCharsets.UTF_8)
+            val arr = JsonParser.parseString(getJson("$apiBase/project/$projectId/version?game_versions=$gv&loaders=$ld",
+                    "$parentLabel snapshot fallback project=$projectId")).asJsonArray
+            if (arr.size() == 0) {
+                return null
+            }
+            val id = preferRelease(arr)
+            snapshotFallbackVersions += id
+            logger.lifecycle("[fetchCompatJars] {} project={} has no {} build for MC {}; MC-agnostic dep, " +
+                    "falling back to its newest build for release {} ({})", parentLabel, projectId, loader, mcGameVersion, release, id)
+            id
+        } catch (e: InterruptedException) {
+            Thread.currentThread().interrupt()
+            throw e
+        } catch (e: Exception) {
+            logger.warn("[fetchCompatJars] {} snapshot fallback project={} failed: {}", parentLabel, projectId, e.message)
+            null
+        }
     }
 }

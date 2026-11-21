@@ -374,7 +374,13 @@ public class ArmorHiderOptionsPanelWidget extends AbstractWidget {
     *///?}
 
     @Override
-    //? if >= 26.1-1.pre.1 {
+    // 26.4 dropped the mouse/partial-tick parameters; GuiGraphicsExtractor carries them now.
+    //? if >= 26.4-0.snapshot.1 {
+    /*protected void extractWidgetRenderState(@NonNull GuiGraphicsExtractor guiGraphics) {
+        widgetList.extractRenderState(guiGraphics);
+    }
+    *///?}
+    //? if >= 26.1-1.pre.1 && < 26.4-0.snapshot.1 {
     protected void extractWidgetRenderState(@NonNull GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
         widgetList.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
     }

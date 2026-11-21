@@ -1,8 +1,10 @@
 package de.zannagh.armorhider.client.render.rendertype;
 
-//? if >= 26.3-0.snapshot.2 {
+//? if >= 26.3-0.snapshot.2 && < 26.4-0.snapshot.1 {
 /*import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.client.renderer.rendertype.LayeringTransform;
+*///?}
+//? if >= 26.3-0.snapshot.2 {
+/*import net.minecraft.client.renderer.rendertype.LayeringTransform;
 import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.resources.Identifier;
@@ -34,8 +36,7 @@ final class DepthArmorRenderTypes {
 
     private static RenderType create(Identifier texture) {
         return RenderType.create("armor_hider_armor_translucent_depth",
-                RenderSetup.builder(RenderPipelines.ENTITY_TRANSLUCENT)
-                        .setOitPipelines(RenderPipelines.OIT_ENTITY)
+                entityTranslucentBuilder()
                         .withTexture("Sampler0", texture)
                         .useLightmap()
                         .useOverlay()
@@ -44,6 +45,20 @@ final class DepthArmorRenderTypes {
                         .sortOnUpload()
                         .setOutline(RenderSetup.OutlineProperty.AFFECTS_OUTLINE)
                         .createRenderSetup());
+    }
+*///?}
+//? if >= 26.4-0.snapshot.1 {
+
+    /*// 26.4: one OitStage -> pipeline provider replaces the static pipeline + setOitPipelines pair.
+    private static RenderSetup.RenderSetupBuilder entityTranslucentBuilder() {
+        return RenderSetup.builder(RenderPipelineProviders.entityTranslucentAllStages());
+    }
+}
+*///?} elif >= 26.3-0.snapshot.2 {
+/*
+    private static RenderSetup.RenderSetupBuilder entityTranslucentBuilder() {
+        return RenderSetup.builder(RenderPipelines.ENTITY_TRANSLUCENT)
+                .setOitPipelines(RenderPipelines.OIT_ENTITY);
     }
 }
 *///?}

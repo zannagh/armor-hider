@@ -299,7 +299,16 @@ public final class ArmorHiderRenderTypes {
         // getShaders() map, and getColorTargetStates()/getVertexFormatBindings() now return
         // Lists (Snippet takes arrays + an active-count int). 26.3-snapshot-8 added a trailing
         // pushConstantSize int to the Snippet canonical constructor.
-        //? if >= 26.3-0.snapshot.5 {
+        // 26.4 moved VertexFormat back to com.mojang.blaze3d.vertex (Snippet shape unchanged otherwise).
+        //? if >= 26.4-0.snapshot.1 {
+        /*var snippet = new RenderPipeline.Snippet(
+                src.getShaders(),
+                Optional.of(src.getShaderDefines()), Optional.of(src.getBindGroupLayouts()),
+                src.getColorTargetStates().toArray(new ColorTargetState[0]), src.getColorTargetStates().size(),
+                Optional.of(noDss), Optional.of(src.getPolygonMode()),
+                Optional.of(src.isCull()), src.getVertexFormatBindings().toArray(new com.mojang.blaze3d.vertex.VertexFormat[0]),
+                Optional.of(src.getPrimitiveTopology()), src.pushConstantSize());
+        *///?} elif >= 26.3-0.snapshot.5 {
         /*var snippet = new RenderPipeline.Snippet(
                 src.getShaders(),
                 Optional.of(src.getShaderDefines()), Optional.of(src.getBindGroupLayouts()),
@@ -322,7 +331,9 @@ public final class ArmorHiderRenderTypes {
     private static final RenderPipeline ARMOR_TRANSLUCENT_NO_DEPTH = clonePipelineNoDepthWrite(
             // 26.3 removed RenderPipelines.ARMOR_TRANSLUCENT; armor now renders through the
             // entity translucent pipeline, so we clone that as the depth-disabled armor base.
-            //? if >= 26.3-0.snapshot.2 {
+            //? if >= 26.4-0.snapshot.1 {
+            /*RenderPipelineProviders.entityTranslucent(),
+            *///?} elif >= 26.3-0.snapshot.2 {
             /*RenderPipelines.ENTITY_TRANSLUCENT,
             *///?} else {
             RenderPipelines.ARMOR_TRANSLUCENT,
@@ -330,11 +341,19 @@ public final class ArmorHiderRenderTypes {
             Identifier.fromNamespaceAndPath("armor_hider", "pipeline/armor_translucent_no_depth"));
 
     private static final RenderPipeline ENTITY_TRANSLUCENT_NO_DEPTH = clonePipelineNoDepthWrite(
+            //? if >= 26.4-0.snapshot.1 {
+            /*RenderPipelineProviders.entityTranslucent(),
+            *///?} else {
             RenderPipelines.ENTITY_TRANSLUCENT,
+            //?}
             Identifier.fromNamespaceAndPath("armor_hider", "pipeline/entity_translucent_no_depth"));
 
     private static final RenderPipeline ITEM_ENTITY_TRANSLUCENT_CULL_NO_DEPTH = clonePipelineNoDepthWrite(
+            //? if >= 26.4-0.snapshot.1 {
+            /*RenderPipelineProviders.itemTranslucent(),
+            *///?} else {
             RenderPipelines.ITEM_TRANSLUCENT,
+            //?}
             Identifier.fromNamespaceAndPath("armor_hider", "pipeline/item_translucent_no_depth"));
     //?} elif >= 26.2-0.snapshot {
     /*private static RenderPipeline clonePipelineNoDepthWrite(RenderPipeline src, Identifier location) {
@@ -432,14 +451,18 @@ public final class ArmorHiderRenderTypes {
     //? if >= 1.21.11 {
     private static final Function<Identifier, RenderType> TRANSLUCENT_ARMOR = memoize(
             texture -> RenderType.create("armor_hider_armor_translucent_no_depth",
+                    //? if >= 26.4-0.snapshot.1 {
+                    /*RenderSetup.builder(RenderPipelineProviders.entityWithNonOit(ARMOR_TRANSLUCENT_NO_DEPTH))
+                    *///?} else {
                     RenderSetup.builder(ARMOR_TRANSLUCENT_NO_DEPTH)
+                    //?}
                             // 26.3 OIT: a translucent type must carry an OIT set to fade under the
                             // "Improved Transparency" option (drawFromBufferOit throws without it). We do
                             // NOT set an opaque-parts pipeline: opaqueParts makes bothSolidAndTranslucent()
                             // true, which routes the model into the solid phase too - and since we reduce
                             // the whole model's alpha uniformly, that opaque copy just renders it fully
                             // opaque. OIT-only (no opaque parts) fades the entire piece.
-                            //? if >= 26.3-0.snapshot.2 {
+                            //? if >= 26.3-0.snapshot.2 && < 26.4-0.snapshot.1 {
                             /*.setOitPipelines(RenderPipelines.OIT_ENTITY)
                             *///?}
                             .withTexture("Sampler0", texture)
@@ -454,8 +477,12 @@ public final class ArmorHiderRenderTypes {
 
     private static final Function<Identifier, RenderType> TRANSLUCENT_ENTITY = memoize(
             texture -> RenderType.create("armor_hider_entity_translucent_no_depth",
+                    //? if >= 26.4-0.snapshot.1 {
+                    /*RenderSetup.builder(RenderPipelineProviders.entityWithNonOit(ENTITY_TRANSLUCENT_NO_DEPTH))
+                    *///?} else {
                     RenderSetup.builder(ENTITY_TRANSLUCENT_NO_DEPTH)
-                            //? if >= 26.3-0.snapshot.2 {
+                    //?}
+                            //? if >= 26.3-0.snapshot.2 && < 26.4-0.snapshot.1 {
                             /*.setOitPipelines(RenderPipelines.OIT_ENTITY)
                             *///?}
                             .withTexture("Sampler0", texture)
@@ -540,8 +567,13 @@ public final class ArmorHiderRenderTypes {
     //? if >= 1.21.11 {
     private static final RenderType TRANSLUCENT_ITEM_SHEET = RenderType.create(
             "armor_hider_item_translucent_cull_no_depth",
+            //? if >= 26.4-0.snapshot.1 {
+            /*RenderSetup.builder(RenderPipelineProviders.itemWithNonOit(ITEM_ENTITY_TRANSLUCENT_CULL_NO_DEPTH))
+            *///?} else {
             RenderSetup.builder(ITEM_ENTITY_TRANSLUCENT_CULL_NO_DEPTH)
-                    //? if >= 26.3-0.snapshot.2 {
+            //?}
+                    // 26.4 folds the OIT set into the builder's pipeline provider (RenderPipelineProviders).
+                    //? if >= 26.3-0.snapshot.2 && < 26.4-0.snapshot.1 {
                     /*.setOitPipelines(RenderPipelines.OIT_ITEM)
                     *///?}
                     .withTexture("Sampler0", net.minecraft.client.renderer.texture.TextureAtlas.LOCATION_BLOCKS)
