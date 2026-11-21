@@ -88,8 +88,11 @@ public class FabricArmorRendererGeometryMixin {
         if (!FabricArmorRendererCompat.isDrawingCustomArmor()) {
             return alpha;
         }
+        // ModelPart.render recurses into its children with the alpha this hook already modified, so clamp
+        // rather than multiply - otherwise every nesting level fades the piece again (deep geo armor models
+        // such as Armor Model API's would end up at transparency^depth).
         var ctx = AhRenderManagementApi.getActiveScope(RenderScope.ARMOR_PIECE);
-        return ctx.isEmpty() ? alpha : alpha * ctx.renderModificationApi().getTransparencyAlpha();
+        return ctx.isEmpty() ? alpha : Math.min(alpha, ctx.renderModificationApi().getTransparencyAlpha());
     }
     *///? }
 }

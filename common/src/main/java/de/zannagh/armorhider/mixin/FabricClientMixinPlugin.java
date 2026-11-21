@@ -59,6 +59,8 @@ public abstract class FabricClientMixinPlugin extends ArmorHiderMixinPlugin {
             "compat.deeperdarker.WardenHelmetLayerMixin",
             "compat.deeperdarker.HelmetHornLayerMixin",
             "compat.uranus.UranusArmorRendererMixin",
+            // AzureLib Armor (1.20.1 RPG Series armor). Guarded by //? if < 1.21 in source.
+            "compat.azurelibarmor.AzureLibArmorRendererMixin",
             // Fabric API's ArmorRenderer (fabric-rendering-v1). Fabric-only: the API does not exist on
             // NeoForge, and the Layer/Type mixins target vanilla classes, so listing them there would
             // add hot-path guards that can never fire. Sinytra Connector runs the Fabric jar and is
