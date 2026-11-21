@@ -8,9 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 // Bookkeeping behind ImageTextures on 26.4: the GPU side (TextureResources / TextureManager) is replaced
 // by string handles and recorded calls, so ownership, close order and failure paths are checked here.
@@ -79,13 +79,13 @@ class OwnedTextureRegistryTest {
 
     @Test
     @DisplayName("value is closed even if the releaser throws")
-    void releaseClosesWhenReleaserThrows() {
+    void releaseKeepsOwnershipWhenReleaserThrows() {
         register("a", "tex1");
         events.clear();
         assertThrows(IllegalStateException.class,
                 () -> registry.release("a", key -> { throw new IllegalStateException(); }));
-        assertTrue(events.contains("close tex1"));
-        assertEquals(0, registry.size());
+        assertFalse(events.contains("close tex1"));
+        assertEquals(1, registry.size());
     }
 }
 *///?}

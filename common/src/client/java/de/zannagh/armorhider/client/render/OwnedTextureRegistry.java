@@ -36,15 +36,14 @@ final class OwnedTextureRegistry<K, V> {
     }
 
     // Unregisters key through releaser, then closes the value owned under it (if any). The releaser is
-    // invoked even for unknown keys, so callers can route every release through here.
+    // invoked even for unknown keys, so callers can route every release through here. If the releaser
+    // throws, the value stays owned: TextureManager may still map key to it, so closing would leave a
+    // closed texture in use.
     synchronized void release(K key, Consumer<K> releaser) {
-        try {
-            releaser.accept(key);
-        } finally {
-            V value = owned.remove(key);
-            if (value != null) {
-                closer.accept(value);
-            }
+        releaser.accept(key);
+        V value = owned.remove(key);
+        if (value != null) {
+            closer.accept(value);
         }
     }
 
