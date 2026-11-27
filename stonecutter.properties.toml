@@ -7,7 +7,7 @@ archives_base_name = "armor-hider"
 loader_version = "0.19.5"
 # eunomia-core compile-time API version. Version-agnostic (no MC suffix), so one value covers every
 # variant. Consumed compileOnly; the eunomia mod supplies the runtime. Matches eunomia's release tag.
-eunomia.version = "0.3.15"
+eunomia.version = "0.3.16"
 # CurseForge project id for the eunomia mod jar (Modrinth: BvzQw4wL, since 2026-09-16).
 #
 # FROZEN FALLBACK - do NOT re-pin these on a version bump. The eunomia runtime jar dropped into run/mods
@@ -351,6 +351,7 @@ fabricapi.version = "4UONjsQe" # 0.166.4+26.4 (26.4-snapshot-10)
 # of individual API modules off fabric maven (e.g. fabric-client-gametest-api-v1 for the
 # Phase 2 entity-render smoke test). Mirrors `fabricapi.version`'s Modrinth hash.
 fabricapi.semver = "0.166.4+26.4"
+eunomia.cf.file = "9846113" # [Fabric] 26.4-snap.10 - 0.3.16
 
 # ── NeoForge ──────────────────────────────────────────────────────────────────
 
