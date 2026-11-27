@@ -37,7 +37,9 @@ stonecutter parameters {
     // com.mojang.renderpearl module (same types/methods, new package) and changed
     // BakedQuad.MaterialInfo's boolean shade() accessor to Direction shadeDirectionOverride()
     // (same constructor slot, value passed straight through).
-    replacements.string(current.parsed >= "26.3-0.snapshot.3") { replace("com.mojang.blaze3d.pipeline.RenderPipeline", "com.mojang.renderpearl.api.pipeline.RenderPipeline") }
+    // 26.4 moved RenderPipeline back into com.mojang.blaze3d.pipeline (verified on 26.4-snapshot-10; the
+    // DepthStencilState / ColorTargetState records stay in renderpearl), so this rule stops at 26.4.
+    replacements.string(current.parsed >= "26.3-0.snapshot.3" && current.parsed < "26.4-0.snapshot.1") { replace("com.mojang.blaze3d.pipeline.RenderPipeline", "com.mojang.renderpearl.api.pipeline.RenderPipeline") }
     replacements.string(current.parsed >= "26.3-0.snapshot.3") { replace("com.mojang.blaze3d.pipeline.DepthStencilState", "com.mojang.renderpearl.api.pipeline.DepthStencilState") }
     replacements.string(current.parsed >= "26.3-0.snapshot.3") { replace("com.mojang.blaze3d.pipeline.ColorTargetState", "com.mojang.renderpearl.api.pipeline.ColorTargetState") }
     replacements.string(current.parsed >= "26.3-0.snapshot.3") { replace("info.shade()", "info.shadeDirectionOverride()") }
@@ -47,6 +49,9 @@ stonecutter parameters {
     // OffHandRenderMixin spells that class with the canonical AvatarRenderState token and this
     // package-qualified rule rewrites only the level class (never the unrelated entity.state.AvatarRenderState).
     replacements.string(current.parsed >= "26.3-0.snapshot.8") { replace("net.minecraft.client.renderer.state.level.AvatarRenderState", "net.minecraft.client.renderer.state.level.PlayerRenderState") }
+    // 26.4 moved RenderPipelines into net.minecraft.client.renderer.pipeline and made most of its pipelines
+    // dynamic (built from a variant + OitStage); see RenderPipelineProviders for the 26.4 call shape.
+    replacements.string(current.parsed >= "26.4-0.snapshot.1") { replace("net.minecraft.client.renderer.RenderPipelines", "net.minecraft.client.renderer.pipeline.RenderPipelines") }
 
 }
 

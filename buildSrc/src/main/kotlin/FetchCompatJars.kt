@@ -264,30 +264,37 @@ abstract class FetchCompatJars : DefaultTask() {
         if (!mc.isNullOrBlank()) {
             val pinnedGameVersions = json.getAsJsonArray("game_versions")
                 ?.mapNotNull { it.takeIf { !it.isJsonNull }?.asString } ?: emptyList()
-            if (pinnedGameVersions.isNotEmpty() && mc !in pinnedGameVersions) {
+            // A snapshot-fallback version (MC-agnostic dep, see ModrinthClient) targets the last release on purpose.
+            if (pinnedGameVersions.isNotEmpty() && mc !in pinnedGameVersions && !modrinth.isSnapshotFallback(hash)) {
                 val projectId = json.get("project_id")?.takeIf { !it.isJsonNull }?.asString
                 logger.warn(
                     "[fetchCompatJars] {} pinned hash {} targets {} not MC {}; attempting auto-resolve",
                     label, hash, pinnedGameVersions, mc
                 )
-                if (projectId != null) {
-                    val resolved = modrinth.latestForProject(projectId, "$label/auto-correct")
-                    if (resolved != null && resolved != hash) {
+                val resolved = projectId?.let { modrinth.latestForProject(it, "$label/auto-correct") }
+                when (PinAutoCorrect.decide(hash, resolved, modrinth::isSnapshotFallback)) {
+                    PinAutoCorrect.REPLACE -> {
                         // Replace the bad pin with the auto-resolved one. Deliberately NOT
                         // pre-adding `resolved` to `seen` as a recursion guard: fetchVersion opens
                         // with `if (!seen.add(hash)) return`, so pre-adding made it return on entry
                         // and the replacement was never downloaded - the stale pin was dropped with
                         // nothing put back. Let that same check do the dedup; the resolved version
                         // targets `mc` by construction, so it cannot re-enter this branch.
-                        fetchVersion(resolved, target, seen, claimedProjects, pendingDeps, label)
+                        fetchVersion(resolved!!, target, seen, claimedProjects, pendingDeps, label)
+                        return
+                    }
+                    // The pin is the snapshot-fallback build itself: fall through and fetch it.
+                    PinAutoCorrect.KEEP -> logger.lifecycle(
+                        "[fetchCompatJars] {} pinned hash {} is the snapshot fallback; keeping it", label, hash
+                    )
+                    PinAutoCorrect.SKIP -> {
+                        logger.warn(
+                            "[fetchCompatJars] {} could not auto-correct; skipping {} to avoid an incompatible-mod boot failure",
+                            label, hash
+                        )
                         return
                     }
                 }
-                logger.warn(
-                    "[fetchCompatJars] {} could not auto-correct; skipping {} to avoid an incompatible-mod boot failure",
-                    label, hash
-                )
-                return
             }
         }
 

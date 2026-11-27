@@ -38,6 +38,8 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+//? if >= 26.4-0.snapshot.1
+//import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 //? if >= 1.21.9 {
 import net.minecraft.client.renderer.SubmitNodeCollector;
@@ -153,12 +155,19 @@ public class EquipmentRenderMixin {
     }
     //?}
 
-    //? if >= 1.21.9
+    // 26.4 made both renderLayers overloads return the next free submit order (int) instead of void.
+    // Mixin's default require is 0 here, so a stale descriptor fails silently and every armor fade
+    // injection below goes inert - keep these in step with the target's return type.
+    //? if >= 26.4-0.snapshot.1
+    //@Unique private static final String RENDER_LAYERS_ENTRY = "renderLayers(Lnet/minecraft/client/resources/model/EquipmentClientInfo$LayerType;Lnet/minecraft/resources/ResourceKey;Lnet/minecraft/client/model/Model;Ljava/lang/Object;Lnet/minecraft/world/item/ItemStack;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;II)I";
+    //? if >= 1.21.9 && < 26.4-0.snapshot.1
     @Unique private static final String RENDER_LAYERS_ENTRY = "renderLayers(Lnet/minecraft/client/resources/model/EquipmentClientInfo$LayerType;Lnet/minecraft/resources/ResourceKey;Lnet/minecraft/client/model/Model;Ljava/lang/Object;Lnet/minecraft/world/item/ItemStack;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;II)V";
     //? if < 1.21.9
     //@Unique private static final String RENDER_LAYERS_ENTRY = "renderLayers(Lnet/minecraft/client/resources/model/EquipmentClientInfo$LayerType;Lnet/minecraft/resources/ResourceKey;Lnet/minecraft/client/model/Model;Lnet/minecraft/world/item/ItemStack;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V";
 
-    //? if >= 1.21.9
+    //? if >= 26.4-0.snapshot.1
+    //@Unique private static final String RENDER_LAYERS_DETAIL = "renderLayers(Lnet/minecraft/client/resources/model/EquipmentClientInfo$LayerType;Lnet/minecraft/resources/ResourceKey;Lnet/minecraft/client/model/Model;Ljava/lang/Object;Lnet/minecraft/world/item/ItemStack;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/resources/Identifier;II)I";
+    //? if >= 1.21.9 && < 26.4-0.snapshot.1
     @Unique private static final String RENDER_LAYERS_DETAIL = "renderLayers(Lnet/minecraft/client/resources/model/EquipmentClientInfo$LayerType;Lnet/minecraft/resources/ResourceKey;Lnet/minecraft/client/model/Model;Ljava/lang/Object;Lnet/minecraft/world/item/ItemStack;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/resources/Identifier;II)V";
     //? if < 1.21.9
     //@Unique private static final String RENDER_LAYERS_DETAIL = "renderLayers(Lnet/minecraft/client/resources/model/EquipmentClientInfo$LayerType;Lnet/minecraft/resources/ResourceKey;Lnet/minecraft/client/model/Model;Lnet/minecraft/world/item/ItemStack;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/resources/Identifier;)V";
@@ -175,10 +184,17 @@ public class EquipmentRenderMixin {
     // scope entry from here. Older versions don't have that parameter - HumanoidArmorLayerMixin
     // handles scope entry there instead, so the entry/reset hooks are gated to 1.21.9+.
     @Inject(method = RENDER_LAYERS_ENTRY, at = @At("HEAD"), cancellable = true)
+    //? if >= 26.4-0.snapshot.1 {
+    /*private <S> void interceptRender(EquipmentClientInfo.LayerType layerType, ResourceKey<EquipmentAsset> resourceKey, Model<? super S> model, S object, ItemStack itemStack, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int i, int j, CallbackInfoReturnable<Integer> ci) {
+    *///?} else {
     private <S> void interceptRender(EquipmentClientInfo.LayerType layerType, ResourceKey<EquipmentAsset> resourceKey, Model<? super S> model, S object, ItemStack itemStack, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int i, int j, CallbackInfo ci) {
+    //?}
         var targetScope = RenderScope.of(null, itemStack);
         var renderer = AhRenderInterceptionRegistryApi.getRenderer(targetScope);
         var result = renderer.intercept(object, targetScope == RenderScope.ELYTRA ? EquipmentSlot.CHEST : null, itemStack, ci);
+        // The entry overload always starts the detail pass at submit order 1 (26.4 bytecode).
+        //? if >= 26.4-0.snapshot.1
+        //armorHider$keepSubmitOrder(ci, 1);
         if (result.shouldCancel() || !result.shouldIntercept()) {
             return;
         }
@@ -200,7 +216,11 @@ public class EquipmentRenderMixin {
     }
 
     @Inject(method = RENDER_LAYERS_ENTRY, at = @At("RETURN"))
+    //? if >= 26.4-0.snapshot.1 {
+    /*private static <S> void resetContext(EquipmentClientInfo.LayerType layerType, ResourceKey<EquipmentAsset> resourceKey, Model<? super S> model, S object, ItemStack itemStack, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int i, int j, CallbackInfoReturnable<Integer> ci) {
+    *///?} else {
     private static <S> void resetContext(EquipmentClientInfo.LayerType layerType, ResourceKey<EquipmentAsset> resourceKey, Model<? super S> model, S object, ItemStack itemStack, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int i, int j, CallbackInfo ci) {
+    //?}
         AhRenderManagementApi.exitScopes(RenderScope.ARMOR_PIECE, RenderScope.ELYTRA);
         armorHider$combatSingleLayer.remove();
         armorHider$combatAssetKey.remove();
@@ -219,7 +239,11 @@ public class EquipmentRenderMixin {
     private static final ThreadLocal<Boolean> armorHider$enteredForeignElytraScope = new ThreadLocal<>();
 
     @Inject(method = RENDER_LAYERS_DETAIL, at = @At("HEAD"), cancellable = true)
+    //? if >= 26.4-0.snapshot.1 {
+    /*private <S> void armorHider$interceptForeignElytra(EquipmentClientInfo.LayerType layerType, ResourceKey<EquipmentAsset> resourceKey, Model<? super S> model, S object, ItemStack itemStack, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int i, Identifier identifier, int j, int k, CallbackInfoReturnable<Integer> ci) {
+    *///?} else {
     private <S> void armorHider$interceptForeignElytra(EquipmentClientInfo.LayerType layerType, ResourceKey<EquipmentAsset> resourceKey, Model<? super S> model, S object, ItemStack itemStack, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int i, Identifier identifier, int j, int k, CallbackInfo ci) {
+    //?}
         // Vanilla chest elytra already has the ELYTRA scope active from the outer WingsLayer.submit
         // HEAD, and armor pieces run under an ARMOR_PIECE scope - leave both untouched so this only
         // ever covers an otherwise-unscoped foreign elytra draw.
@@ -241,19 +265,37 @@ public class EquipmentRenderMixin {
         // and enters the ELYTRA scope itself on the opacity path.
         var result = AhRenderInterceptionRegistryApi.getRenderer(RenderScope.ELYTRA)
                 .intercept(object, EquipmentSlot.CHEST, itemStack, ci);
+        // A cancelled detail pass submitted nothing: hand the caller its order back unchanged.
+        //? if >= 26.4-0.snapshot.1
+        //armorHider$keepSubmitOrder(ci, k);
         if (result.shouldIntercept() && !result.shouldCancel()) {
             armorHider$enteredForeignElytraScope.set(Boolean.TRUE);
         }
     }
 
     @Inject(method = RENDER_LAYERS_DETAIL, at = @At("RETURN"))
+    //? if >= 26.4-0.snapshot.1 {
+    /*private void armorHider$exitForeignElytra(CallbackInfoReturnable<Integer> ci) {
+    *///?} else {
     private void armorHider$exitForeignElytra(CallbackInfo ci) {
+    //?}
         if (armorHider$enteredForeignElytraScope.get() != null) {
             armorHider$enteredForeignElytraScope.remove();
             AhRenderManagementApi.exitScope(RenderScope.ELYTRA);
         }
     }
     //?}
+
+    // 26.4: renderLayers returns the next free submit order. A cancelled CallbackInfoReturnable would
+    // otherwise return 0 and let the caller's following submits reuse order 0.
+    //? if >= 26.4-0.snapshot.1 {
+    /*@Unique
+    private static void armorHider$keepSubmitOrder(CallbackInfoReturnable<Integer> cir, int order) {
+        if (cir.isCancelled()) {
+            cir.setReturnValue(order);
+        }
+    }
+    *///?}
 
     // Scope entry happens per-piece in HumanoidArmorLayerMixin (renderLayers has no entity
     // parameter here) - only the combat vanilla-model bookkeeping is driven from this level.

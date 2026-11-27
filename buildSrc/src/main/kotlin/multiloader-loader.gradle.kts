@@ -58,8 +58,12 @@ val selectedKeys: Set<String> = when (compatSel.lowercase()) {
     "none", "clean" -> emptySet()
     else -> compatSel.split(",").map { it.trim() }.toSet()
 }
+// Snapshot variants (Fabric's normalised "26.4-alpha.10") use the Mojang id from the project name
+// ("26.4-snapshot-10"): that is what Modrinth tags snapshot builds with, whereas stripping "-alpha" would
+// yield the unreleased "26.4", which no jar targets - every pin, fabric-api included, would be skipped.
 val activeMcVersion: String? = listOf("fabric.minecraft_version", "neoforge.minecraft_version")
     .firstNotNullOfOrNull { findProperty(it)?.toString() }
+    ?.let { if ("-alpha." in it) sc.current.project.substringAfter('-') else it }
     ?.substringBefore("-pre")?.substringBefore("-rc")?.substringBefore("-alpha")
 // Keys that resolve to a mod jar (run/mods). "fa" (Fresh Animations), "faplayer" (its Player
 // Extension) and "glowingarmor" (Glowing 3D Armor, issue #360) are resource packs handled

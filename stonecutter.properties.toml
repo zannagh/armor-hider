@@ -7,7 +7,7 @@ archives_base_name = "armor-hider"
 loader_version = "0.19.5"
 # eunomia-core compile-time API version. Version-agnostic (no MC suffix), so one value covers every
 # variant. Consumed compileOnly; the eunomia mod supplies the runtime. Matches eunomia's release tag.
-eunomia.version = "0.3.15"
+eunomia.version = "0.3.16"
 # CurseForge project id for the eunomia mod jar (Modrinth: BvzQw4wL, since 2026-09-16).
 #
 # FROZEN FALLBACK - do NOT re-pin these on a version bump. The eunomia runtime jar dropped into run/mods
@@ -93,6 +93,12 @@ java.version = "25"
 display_version = "26.3"
 accesswidener.version = "current"
 game_versions = "26.3"
+
+["26.4-snapshot-10"]
+java.version = "25"
+display_version = "26.4-snap.10"
+accesswidener.version = "current"
+game_versions = "26.4-snapshot-10"
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Per project - loader-specific properties.
@@ -321,6 +327,31 @@ fabricapi.version = "oCYG2H4L"
 # Phase 2 entity-render smoke test). Mirrors `fabricapi.version`'s Modrinth hash.
 fabricapi.semver = "0.160.5+26.3"
 eunomia.cf.file = "8938334" # [Fabric] 26.3 - 0.3.12
+
+["fabric-26.4-snapshot-10"]
+"fabric.minecraft_version" = "26.4-alpha.10"
+"fabric.minecraft_version_range" = ">=26.4-alpha.10 <=26.4-alpha.10"
+# 26.4-snapshot-10 pins (2026-11-20). Only ElytraTrims and Fabric API publish 26.4-snapshot-10 builds;
+# every other mod keeps its 26.3 pin (FetchCompatJars skips a pin that does not target this MC version).
+# Fabric API 0.166.x+26.4 declares fabricloader >=0.20.0, so this node raises the loader pin.
+loader_version = "0.20.1"
+elytratrims.version = "o8z30DDU" # 4.9.4 (26.4-snapshot-10)
+geckolib.version = "1VWnZPbQ" # 5.5.6 (26.3 jar; no 26.4 build)
+iris.version = "bAdKrpw8" # 1.11.6+26.3-fabric (no 26.4 build)
+emf.version = "gfsJrXHb" # EMF 3.3.6-fabric-26.3 (no 26.4 build)
+etf.version = "iJQBr7S3" # ETF 7.2.2-fabric-26.3 (no 26.4 build)
+fa.version = "RGIzA5em" # Fresh Animations 1.10.5 (resource pack, MC-version-agnostic zip; issue #217 repro)
+faplayer.version = "Wj7NeGjP" # FA Player Extension 1.1 (issue #217 repro)
+glowingarmor.version = "g9suat2M" # Glowing 3D Armor 1.1.5 (resource pack; custom 3D CEM armor via EMF, issue #360 repro)
+gender.version = "OQqLMTt6" # 5.0.0-Beta.5+mc26.3-fabric (no 26.4 build)
+waveycapes.version = "cp2elfPy" # 26.2 jar (no 26.3/26.4 build)
+modmenu.version = "lcxkZSq6" # 21.0.0-beta.1 (26.3 pin; 22.0.0-alpha.7 targets only 26.4-snapshot-9)
+fabricapi.version = "4UONjsQe" # 0.166.4+26.4 (26.4-snapshot-10)
+# Upstream fabric-api version_number - needed for loom's `fabricApi.module(...)` resolution
+# of individual API modules off fabric maven (e.g. fabric-client-gametest-api-v1 for the
+# Phase 2 entity-render smoke test). Mirrors `fabricapi.version`'s Modrinth hash.
+fabricapi.semver = "0.166.4+26.4"
+eunomia.cf.file = "9846113" # [Fabric] 26.4-snap.10 - 0.3.16
 
 # ── NeoForge ──────────────────────────────────────────────────────────────────
 
